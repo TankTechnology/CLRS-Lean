@@ -654,4 +654,618 @@ theorem affineRuntimeStackStandaloneSteps_le_encoding (blankStep : Nat)
   exact hsource.trans (Nat.mul_le_mul_left _
     (Nat.pow_le_pow_left hlength 2))
 
+/-! ## Fixed finite family of self-contained stack sources -/
+
+/-- Concatenated source invocations for a runtime stack-seed family. -/
+def encodeAffineRuntimeStackStandaloneInvocationFamily :
+    List AffineRuntimeStackSourceSeed → List UnaryFrameSym
+  | [] => []
+  | seed :: rest =>
+      encodeAffineRuntimeStackStandaloneInvocation seed ++
+        encodeAffineRuntimeStackStandaloneInvocationFamily rest
+
+/-- Stack frames obtained by pairing fixed blank strides with runtime seeds.
+The exact-run theorem requires equal list lengths, so neither truncation case
+is reachable in a successful invocation. -/
+def affineRuntimeStackSourceFamilyFrames :
+    List Nat → List AffineRuntimeStackSourceSeed → List AffineStackFrame
+  | blankStep :: blankSteps, seed :: seeds =>
+      affineRuntimeStackSourceFrame blankStep seed ::
+        affineRuntimeStackSourceFamilyFrames blankSteps seeds
+  | _, _ => []
+
+/-- Pairwise mapping form of the fixed-stride/runtime-seed frame family. -/
+theorem affineRuntimeStackSourceFamilyFrames_map
+    {index : Type} (indices : List index)
+    (blankStep : index → Nat)
+    (seed : index → AffineRuntimeStackSourceSeed) :
+    affineRuntimeStackSourceFamilyFrames
+        (indices.map blankStep) (indices.map seed) =
+      indices.map fun i =>
+        affineRuntimeStackSourceFrame (blankStep i) (seed i) := by
+  induction indices with
+  | nil => rfl
+  | cons i rest ih =>
+      simp [affineRuntimeStackSourceFamilyFrames, ih]
+
+/-- Empty-family control writes the outer stack-family terminator. -/
+inductive AffineRuntimeStackEmptyFamilyLabel
+  | emitEnd | finish
+deriving DecidableEq, Fintype
+
+/-- Nested finite-control sum of the fixed per-stack programs. -/
+abbrev AffineRuntimeStackFamilySourceLabel : List Nat → Type
+  | [] => AffineRuntimeStackEmptyFamilyLabel
+  | blankStep :: rest =>
+      Sum (affineRuntimeStackStandaloneRevProgram blankStep).Label
+        (AffineRuntimeStackFamilySourceLabel rest)
+
+private instance affineRuntimeStackFamilySourceLabelDecidableEq
+    (blankSteps : List Nat) :
+    DecidableEq (AffineRuntimeStackFamilySourceLabel blankSteps) := by
+  induction blankSteps with
+  | nil =>
+      simp only [AffineRuntimeStackFamilySourceLabel]
+      infer_instance
+  | cons blankStep rest ih =>
+      simp only [AffineRuntimeStackFamilySourceLabel]
+      letI := ih
+      letI := (affineRuntimeStackStandaloneRevProgram blankStep).labelDecidableEq
+      infer_instance
+
+private instance affineRuntimeStackFamilySourceLabelFintype
+    (blankSteps : List Nat) :
+    Fintype (AffineRuntimeStackFamilySourceLabel blankSteps) := by
+  induction blankSteps with
+  | nil =>
+      simp only [AffineRuntimeStackFamilySourceLabel]
+      infer_instance
+  | cons blankStep rest ih =>
+      simp only [AffineRuntimeStackFamilySourceLabel]
+      letI := ih
+      letI := (affineRuntimeStackStandaloneRevProgram blankStep).labelFintype
+      infer_instance
+
+private def affineRuntimeStackFamilySourceMain :
+    (blankSteps : List Nat) → AffineRuntimeStackFamilySourceLabel blankSteps
+  | [] => .emitEnd
+  | blankStep :: _ =>
+      .inl (affineRuntimeStackStandaloneRevProgram blankStep).main
+
+private def affineRuntimeStackFamilySourceOp :
+    (blankSteps : List Nat) →
+      AffineRuntimeStackFamilySourceLabel blankSteps →
+        Op UnaryFrameSym UnaryFrameSym
+          (AffineRuntimeStackFamilySourceLabel blankSteps)
+  | [], .emitEnd => .pushOutput .frameEnd .finish
+  | [], .finish => .halt
+  | _blankStep :: rest, .inl .finish =>
+      .jump (.inr (affineRuntimeStackFamilySourceMain rest))
+  | blankStep :: _, .inl label =>
+      standaloneStackRelabelOp .inl
+        ((affineRuntimeStackStandaloneRevProgram blankStep).op label)
+  | _ :: rest, .inr label =>
+      standaloneStackRelabelOp .inr
+        (affineRuntimeStackFamilySourceOp rest label)
+
+/-- Fixed finite-control assembly of all runtime stack sources. -/
+abbrev affineRuntimeStackFamilySourceRevProgram
+    (blankSteps : List Nat) : Program UnaryFrameSym UnaryFrameSym where
+  Label := AffineRuntimeStackFamilySourceLabel blankSteps
+  main := affineRuntimeStackFamilySourceMain blankSteps
+  op := affineRuntimeStackFamilySourceOp blankSteps
+
+/-- Public terminal label nested through the fixed stack list. -/
+def affineRuntimeStackFamilySourceFinishLabel :
+    (blankSteps : List Nat) →
+      (affineRuntimeStackFamilySourceRevProgram blankSteps).Label
+  | [] => .finish
+  | _ :: rest => .inr (affineRuntimeStackFamilySourceFinishLabel rest)
+
+@[simp] theorem affineRuntimeStackFamilySource_op_finish
+    (blankSteps : List Nat) :
+    (affineRuntimeStackFamilySourceRevProgram blankSteps).op
+        (affineRuntimeStackFamilySourceFinishLabel blankSteps) = .halt := by
+  induction blankSteps with
+  | nil => rfl
+  | cons blankStep rest ih =>
+      change affineRuntimeStackFamilySourceOp rest
+        (affineRuntimeStackFamilySourceFinishLabel rest) = .halt at ih
+      simp [affineRuntimeStackFamilySourceRevProgram,
+        affineRuntimeStackFamilySourceFinishLabel,
+        affineRuntimeStackFamilySourceOp, standaloneStackRelabelOp, ih]
+
+private def affineRuntimeStackFamilySourceCfg {blankSteps : List Nat}
+    (label : (affineRuntimeStackFamilySourceRevProgram blankSteps).Label)
+    (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (first second third : List Unit) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram blankSteps) where
+  label := some label
+  buffer₁ := buffer₁
+  buffer₂ := buffer₂
+  test := test
+  input := input
+  output := output
+  work₁ := work₁
+  work₂ := work₂
+  counter₁ := first
+  counter₂ := second
+  counter₃ := third
+
+/-- Clean entry for the complete fixed stack family. -/
+def affineRuntimeStackFamilySourceLoopCfg (blankSteps : List Nat)
+    (input output : List UnaryFrameSym) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram blankSteps) :=
+  affineRuntimeStackFamilySourceCfg
+    (affineRuntimeStackFamilySourceRevProgram blankSteps).main
+    none none false input output [] [] [] [] []
+
+/-- Clean continuation after the outer family terminator has been written. -/
+def affineRuntimeStackFamilySourceFinishCfg (blankSteps : List Nat)
+    (tail output : List UnaryFrameSym) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram blankSteps) :=
+  affineRuntimeStackFamilySourceCfg
+    (affineRuntimeStackFamilySourceFinishLabel blankSteps)
+    none none false tail output [] [] [] [] []
+
+private def affineRuntimeStackFamilySourceRelabelCfg
+    {blankStep : Nat} {rest : List Nat}
+    {P : Program UnaryFrameSym UnaryFrameSym}
+    (tag : P.Label →
+      (affineRuntimeStackFamilySourceRevProgram
+        (blankStep :: rest)).Label)
+    (c : BuilderCfg P) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram
+      (blankStep :: rest)) where
+  label := c.label.map tag
+  buffer₁ := c.buffer₁
+  buffer₂ := c.buffer₂
+  test := c.test
+  input := c.input
+  output := c.output
+  work₁ := c.work₁
+  work₂ := c.work₂
+  counter₁ := c.counter₁
+  counter₂ := c.counter₂
+  counter₃ := c.counter₃
+
+private def liftAffineRuntimeStackFamilySourceHeadCfg
+    {blankStep : Nat} {rest : List Nat}
+    (c : BuilderCfg (affineRuntimeStackStandaloneRevProgram blankStep)) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram
+      (blankStep :: rest)) :=
+  affineRuntimeStackFamilySourceRelabelCfg .inl c
+
+private def liftAffineRuntimeStackFamilySourceTailCfg
+    {blankStep : Nat} {rest : List Nat}
+    (c : BuilderCfg (affineRuntimeStackFamilySourceRevProgram rest)) :
+    BuilderCfg (affineRuntimeStackFamilySourceRevProgram
+      (blankStep :: rest)) :=
+  affineRuntimeStackFamilySourceRelabelCfg .inr c
+
+private theorem affineRuntimeStackFamilySourceRelabel_stepOp
+    {blankStep : Nat} {rest : List Nat}
+    {P : Program UnaryFrameSym UnaryFrameSym}
+    (tag : P.Label →
+      (affineRuntimeStackFamilySourceRevProgram
+        (blankStep :: rest)).Label)
+    (op : Op UnaryFrameSym UnaryFrameSym P.Label) (c : BuilderCfg P) :
+    stepOp (standaloneStackRelabelOp tag op)
+        (affineRuntimeStackFamilySourceRelabelCfg tag c) =
+      affineRuntimeStackFamilySourceRelabelCfg tag (stepOp op c) := by
+  rcases c with
+    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+      counter₁, counter₂, counter₃⟩
+  cases op <;>
+    simp only [standaloneStackRelabelOp,
+      affineRuntimeStackFamilySourceRelabelCfg, stepOp] <;>
+    first
+    | rfl
+    | split <;> rfl
+
+private theorem affineRuntimeStackFamilySource_op_head
+    {blankStep : Nat} {rest : List Nat}
+    (label : (affineRuntimeStackStandaloneRevProgram blankStep).Label)
+    (hexit : label ≠ .finish) :
+    affineRuntimeStackFamilySourceOp (blankStep :: rest) (.inl label) =
+      standaloneStackRelabelOp .inl
+        ((affineRuntimeStackStandaloneRevProgram blankStep).op label) := by
+  cases label <;>
+    simp_all [affineRuntimeStackFamilySourceOp]
+
+private theorem affineRuntimeStackFamilySource_op_tail
+    {blankStep : Nat} {rest : List Nat}
+    (label : (affineRuntimeStackFamilySourceRevProgram rest).Label) :
+    affineRuntimeStackFamilySourceOp (blankStep :: rest) (.inr label) =
+      standaloneStackRelabelOp .inr
+        (affineRuntimeStackFamilySourceOp rest label) := by
+  rfl
+
+private theorem liftAffineRuntimeStackFamilySourceHead_step
+    {blankStep : Nat} {rest : List Nat}
+    (c : BuilderCfg (affineRuntimeStackStandaloneRevProgram blankStep))
+    (hexit : c.label ≠ some .finish) :
+    step (affineRuntimeStackFamilySourceRevProgram (blankStep :: rest))
+        (liftAffineRuntimeStackFamilySourceHeadCfg c) =
+      Option.map liftAffineRuntimeStackFamilySourceHeadCfg
+        (step (affineRuntimeStackStandaloneRevProgram blankStep) c) := by
+  unfold step
+  rw [show (liftAffineRuntimeStackFamilySourceHeadCfg c).label =
+      c.label.map .inl by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ .finish := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      rw [affineRuntimeStackFamilySource_op_head label hlabelExit]
+      exact congrArg some
+        (affineRuntimeStackFamilySourceRelabel_stepOp .inl
+          ((affineRuntimeStackStandaloneRevProgram blankStep).op label) c)
+
+private theorem liftAffineRuntimeStackFamilySourceTail_step
+    {blankStep : Nat} {rest : List Nat}
+    (c : BuilderCfg (affineRuntimeStackFamilySourceRevProgram rest)) :
+    step (affineRuntimeStackFamilySourceRevProgram (blankStep :: rest))
+        (liftAffineRuntimeStackFamilySourceTailCfg c) =
+      Option.map liftAffineRuntimeStackFamilySourceTailCfg
+        (step (affineRuntimeStackFamilySourceRevProgram rest) c) := by
+  unfold step
+  rw [show (liftAffineRuntimeStackFamilySourceTailCfg c).label =
+      c.label.map .inr by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      simp only [Option.map_some]
+      rw [affineRuntimeStackFamilySource_op_tail label]
+      exact congrArg some
+        (affineRuntimeStackFamilySourceRelabel_stepOp .inr
+          (affineRuntimeStackFamilySourceOp rest label) c)
+
+private theorem affineRuntimeStackFamilySource_iterate_bind_none
+    {sigma : Type} (f : sigma → Option sigma) : ∀ n : Nat,
+    (flip Option.bind f)^[n] none = none := by
+  intro n
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [Function.iterate_succ_apply]
+      change (flip Option.bind f)^[n] none = none
+      exact ih
+
+private theorem affineRuntimeStackFamilySource_haltExit_no_return
+    {P : Program UnaryFrameSym UnaryFrameSym} (exit : P.Label)
+    (hop : P.op exit = .halt) (a b : BuilderCfg P)
+    (ha : a.label = some exit) (hb : b.label = some exit) : ∀ n : Nat,
+    (flip Option.bind (step P))^[n] (step P a) ≠ some b := by
+  intro n
+  let halted : BuilderCfg P :=
+    { a with label := none, buffer₁ := none, buffer₂ := none, test := false }
+  have hstep : step P a = some halted := by
+    unfold step
+    rw [ha]
+    simp [hop, stepOp, halted]
+  cases n with
+  | zero =>
+      rw [hstep]
+      intro h
+      have hlabel := congrArg (fun cfg => cfg.label) (Option.some.inj h)
+      simp [halted, hb] at hlabel
+  | succ n =>
+      rw [hstep, Function.iterate_succ_apply]
+      change (flip Option.bind (step P))^[n] (step P halted) ≠ some b
+      have hnone : step P halted = none := rfl
+      rw [hnone, affineRuntimeStackFamilySource_iterate_bind_none]
+      simp
+
+private theorem affineRuntimeStackFamilySource_lift_iterations_to_haltExit
+    {Q : Program UnaryFrameSym UnaryFrameSym} (exit : Q.Label)
+    (hop : Q.op exit = .halt)
+    {P : Program UnaryFrameSym UnaryFrameSym}
+    (tr : BuilderCfg Q → BuilderCfg P)
+    (hstep : ∀ c, c.label ≠ some exit →
+      step P (tr c) = Option.map tr (step Q c))
+    {a b : BuilderCfg Q} (hb : b.label = some exit) : ∀ n : Nat,
+    (flip Option.bind (step Q))^[n] (some a) = some b →
+      (flip Option.bind (step P))^[n] (some (tr a)) = some (tr b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      simp [hab]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change (flip Option.bind (step Q))^[n] (step Q a) = some b at h
+      change (flip Option.bind (step P))^[n] (step P (tr a)) = some (tr b)
+      have haexit : a.label ≠ some exit := by
+        intro ha
+        exact affineRuntimeStackFamilySource_haltExit_no_return
+          exit hop a b ha hb n h
+      cases hsource : step Q a with
+      | none =>
+          rw [hsource,
+            affineRuntimeStackFamilySource_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := hstep a haexit
+          rw [hsource] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hsource] at h
+          exact ih h
+
+private theorem affineRuntimeStackFamilySource_lift_iterations
+    {Q P : Program UnaryFrameSym UnaryFrameSym}
+    (tr : BuilderCfg Q → BuilderCfg P)
+    (hstep : ∀ c, step P (tr c) = Option.map tr (step Q c)) : ∀ n : Nat,
+    {a b : BuilderCfg Q} →
+    (flip Option.bind (step Q))^[n] (some a) = some b →
+      (flip Option.bind (step P))^[n] (some (tr a)) = some (tr b) := by
+  intro n
+  induction n with
+  | zero =>
+      intro a b h
+      injection h with hab
+      simp [hab]
+  | succ n ih =>
+      intro a b h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change (flip Option.bind (step Q))^[n] (step Q a) = some b at h
+      change (flip Option.bind (step P))^[n] (step P (tr a)) = some (tr b)
+      rw [hstep]
+      cases hsource : step Q a with
+      | none =>
+          rw [hsource,
+            affineRuntimeStackFamilySource_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          simp only [Option.map_some]
+          rw [hsource] at h
+          exact ih h
+
+private def affineRuntimeStackFamilySource_head_run
+    {blankStep : Nat} {rest : List Nat}
+    (seed : AffineRuntimeStackSourceSeed)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineRuntimeStackFamilySourceRevProgram (blankStep :: rest)))
+      (liftAffineRuntimeStackFamilySourceHeadCfg
+        (affineRuntimeStackStandaloneLoopCfg blankStep
+          (encodeAffineRuntimeStackStandaloneInvocation seed ++ tail) output))
+      (some (liftAffineRuntimeStackFamilySourceHeadCfg
+        (affineRuntimeStackStandaloneFinishCfg blankStep tail
+          ((encodeAffineStackFrame
+            (affineRuntimeStackSourceFrame blankStep seed)).reverse ++ output))))
+      (affineRuntimeStackStandaloneSteps blankStep seed) := by
+  have sourceRun := affineRuntimeStackStandalone_runToFinish blankStep seed
+    tail output
+  have htarget :
+      (affineRuntimeStackStandaloneFinishCfg blankStep tail
+        ((encodeAffineStackFrame
+          (affineRuntimeStackSourceFrame blankStep seed)).reverse ++ output)
+        ).label = some .finish := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact affineRuntimeStackFamilySource_lift_iterations_to_haltExit
+    (AffineRuntimeStackStandaloneLabel.finish (blankStep := blankStep)) rfl
+    liftAffineRuntimeStackFamilySourceHeadCfg
+    liftAffineRuntimeStackFamilySourceHead_step htarget
+    sourceRun.steps sourceRun.evals_in_steps
+
+private def affineRuntimeStackFamilySource_tail_run
+    {blankStep : Nat} {rest : List Nat}
+    {a b : BuilderCfg (affineRuntimeStackFamilySourceRevProgram rest)}
+    {steps : Nat}
+    (sourceRun : EvalsToInTime
+      (step (affineRuntimeStackFamilySourceRevProgram rest))
+      a (some b) steps) :
+    EvalsToInTime
+      (step (affineRuntimeStackFamilySourceRevProgram (blankStep :: rest)))
+      (liftAffineRuntimeStackFamilySourceTailCfg a)
+      (some (liftAffineRuntimeStackFamilySourceTailCfg b)) steps := by
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact affineRuntimeStackFamilySource_lift_iterations
+    liftAffineRuntimeStackFamilySourceTailCfg
+    liftAffineRuntimeStackFamilySourceTail_step
+    sourceRun.steps sourceRun.evals_in_steps
+
+/-- Exact family runtime, including the outer `frameEnd`. -/
+def affineRuntimeStackFamilySourceSteps :
+    List Nat → List AffineRuntimeStackSourceSeed → Nat
+  | blankStep :: blankSteps, seed :: seeds =>
+      affineRuntimeStackStandaloneSteps blankStep seed + 1 +
+        affineRuntimeStackFamilySourceSteps blankSteps seeds
+  | _, _ => 1
+
+/-- Fixed coefficient for the family-level quadratic bound. -/
+def affineRuntimeStackFamilySourceStepCoeff : List Nat → Nat
+  | [] => 1
+  | blankStep :: rest =>
+      101 * (blankStep + 1) +
+        affineRuntimeStackFamilySourceStepCoeff rest
+
+/-- The fixed family controller emits every stack encoding followed by the
+outer family terminator, preserving the next invocation and returning clean. -/
+def affineRuntimeStackFamilySource_runToFinish
+    (blankSteps : List Nat) (seeds : List AffineRuntimeStackSourceSeed)
+    (tail output : List UnaryFrameSym)
+    (hlength : seeds.length = blankSteps.length) :
+    EvalsToInTime
+      (step (affineRuntimeStackFamilySourceRevProgram blankSteps))
+      (affineRuntimeStackFamilySourceLoopCfg blankSteps
+        (encodeAffineRuntimeStackStandaloneInvocationFamily seeds ++ tail)
+        output)
+      (some (affineRuntimeStackFamilySourceFinishCfg blankSteps tail
+        ((encodeAffineStackFamily
+          (affineRuntimeStackSourceFamilyFrames blankSteps seeds) ++
+            [UnaryFrameSym.frameEnd]).reverse ++ output)))
+      (affineRuntimeStackFamilySourceSteps blankSteps seeds) := by
+  induction blankSteps generalizing seeds output with
+  | nil =>
+      cases seeds with
+      | nil => exact ⟨⟨1, rfl⟩, le_rfl⟩
+      | cons seed seeds => simp at hlength
+  | cons blankStep blankSteps ih =>
+      cases seeds with
+      | nil => simp at hlength
+      | cons seed seeds =>
+          have hrestLength : seeds.length = blankSteps.length := by
+            simpa using hlength
+          let restInput :=
+            encodeAffineRuntimeStackStandaloneInvocationFamily seeds ++ tail
+          let headOutput :=
+            (encodeAffineStackFrame
+              (affineRuntimeStackSourceFrame blankStep seed)).reverse ++ output
+          let headStart := liftAffineRuntimeStackFamilySourceHeadCfg
+            (rest := blankSteps)
+            (affineRuntimeStackStandaloneLoopCfg blankStep
+              (encodeAffineRuntimeStackStandaloneInvocation seed ++ restInput)
+              output)
+          let headDone := liftAffineRuntimeStackFamilySourceHeadCfg
+            (rest := blankSteps)
+            (affineRuntimeStackStandaloneFinishCfg blankStep restInput
+              headOutput)
+          let tailStart := liftAffineRuntimeStackFamilySourceTailCfg
+            (blankStep := blankStep)
+            (affineRuntimeStackFamilySourceLoopCfg blankSteps restInput
+              headOutput)
+          let tailDone := liftAffineRuntimeStackFamilySourceTailCfg
+            (blankStep := blankStep)
+            (affineRuntimeStackFamilySourceFinishCfg blankSteps tail
+              ((encodeAffineStackFamily
+                (affineRuntimeStackSourceFamilyFrames blankSteps seeds) ++
+                  [UnaryFrameSym.frameEnd]).reverse ++ headOutput))
+          have hhead : EvalsToInTime
+              (step (affineRuntimeStackFamilySourceRevProgram
+                (blankStep :: blankSteps)))
+              headStart (some headDone)
+              (affineRuntimeStackStandaloneSteps blankStep seed) := by
+            simpa [headStart, headDone, restInput, headOutput] using
+              affineRuntimeStackFamilySource_head_run
+                (rest := blankSteps) seed restInput output
+          have hbridge : EvalsToInTime
+              (step (affineRuntimeStackFamilySourceRevProgram
+                (blankStep :: blankSteps)))
+              headDone (some tailStart) 1 := by
+            refine ⟨⟨1, ?_⟩, le_rfl⟩
+            rfl
+          have htailSource := ih seeds headOutput hrestLength
+          have htail : EvalsToInTime
+              (step (affineRuntimeStackFamilySourceRevProgram
+                (blankStep :: blankSteps)))
+              tailStart (some tailDone)
+              (affineRuntimeStackFamilySourceSteps blankSteps seeds) := by
+            simpa [tailStart, tailDone, restInput] using
+              affineRuntimeStackFamilySource_tail_run
+                (blankStep := blankStep) htailSource
+          let h₁ := EvalsToInTime.trans
+            (step (affineRuntimeStackFamilySourceRevProgram
+              (blankStep :: blankSteps))) _ 1 _ headDone _ hhead hbridge
+          let full := EvalsToInTime.trans
+            (step (affineRuntimeStackFamilySourceRevProgram
+              (blankStep :: blankSteps))) _ _ _ tailStart _ h₁ htail
+          convert full using 1
+          · simp [headStart, liftAffineRuntimeStackFamilySourceHeadCfg,
+              affineRuntimeStackFamilySourceRelabelCfg,
+              affineRuntimeStackStandaloneLoopCfg,
+              affineRuntimeStackStandaloneCfg,
+              affineRuntimeStackStandaloneRevProgram,
+              affineRuntimeStackFamilySourceLoopCfg,
+              affineRuntimeStackFamilySourceCfg,
+              affineRuntimeStackFamilySourceMain,
+              restInput,
+              encodeAffineRuntimeStackStandaloneInvocationFamily,
+              List.append_assoc]
+          · simp [tailDone, liftAffineRuntimeStackFamilySourceTailCfg,
+              affineRuntimeStackFamilySourceRelabelCfg,
+              affineRuntimeStackFamilySourceFinishCfg,
+              affineRuntimeStackFamilySourceCfg,
+              affineRuntimeStackFamilySourceFinishLabel,
+              affineRuntimeStackSourceFamilyFrames,
+              encodeAffineStackFamily, headOutput,
+              List.reverse_append, List.append_assoc]
+          · simp [affineRuntimeStackFamilySourceSteps]
+            omega
+
+/-- The complete fixed family source is quadratic in its explicit seed-stream
+length; all stack-dependent widths occur only in the fixed coefficient. -/
+theorem affineRuntimeStackFamilySourceSteps_le
+    (blankSteps : List Nat) (seeds : List AffineRuntimeStackSourceSeed)
+    (hlength : seeds.length = blankSteps.length) :
+    affineRuntimeStackFamilySourceSteps blankSteps seeds ≤
+      affineRuntimeStackFamilySourceStepCoeff blankSteps *
+        ((encodeAffineRuntimeStackStandaloneInvocationFamily seeds).length +
+          1) ^ 2 := by
+  induction blankSteps generalizing seeds with
+  | nil =>
+      cases seeds with
+      | nil => simp [affineRuntimeStackFamilySourceSteps,
+          affineRuntimeStackFamilySourceStepCoeff,
+          encodeAffineRuntimeStackStandaloneInvocationFamily]
+      | cons seed seeds => simp at hlength
+  | cons blankStep blankSteps ih =>
+      cases seeds with
+      | nil => simp at hlength
+      | cons seed seeds =>
+          have hrestLength : seeds.length = blankSteps.length := by
+            simpa using hlength
+          let headLength :=
+            (encodeAffineRuntimeStackStandaloneInvocation seed).length
+          let tailLength :=
+            (encodeAffineRuntimeStackStandaloneInvocationFamily seeds).length
+          let measure := headLength + tailLength + 1
+          have hmeasure : 1 ≤ measure := by simp [measure]
+          have hheadLength : headLength ≤ measure := by
+            dsimp only [measure]
+            omega
+          have htailLength : tailLength + 1 ≤ measure := by
+            dsimp only [measure]
+            omega
+          have hheadSource :=
+            affineRuntimeStackStandaloneSteps_le_encoding blankStep seed
+          have hheadSquare := Nat.pow_le_pow_left hheadLength 2
+          have hhead :
+              affineRuntimeStackStandaloneSteps blankStep seed + 1 ≤
+                101 * (blankStep + 1) * measure ^ 2 := by
+            have hscaled := Nat.mul_le_mul_left
+              (100 * (blankStep + 1)) hheadSquare
+            have hone : 1 ≤ (blankStep + 1) * measure ^ 2 := by
+              nlinarith
+            calc
+              affineRuntimeStackStandaloneSteps blankStep seed + 1 ≤
+                  100 * (blankStep + 1) * measure ^ 2 +
+                    (blankStep + 1) * measure ^ 2 :=
+                Nat.add_le_add (hheadSource.trans hscaled) hone
+              _ = 101 * (blankStep + 1) * measure ^ 2 := by ring
+          have htailSource := ih seeds hrestLength
+          have htailSquare := Nat.pow_le_pow_left htailLength 2
+          have htail :
+              affineRuntimeStackFamilySourceSteps blankSteps seeds ≤
+                affineRuntimeStackFamilySourceStepCoeff blankSteps *
+                  measure ^ 2 :=
+            htailSource.trans (Nat.mul_le_mul_left _ htailSquare)
+          calc
+            affineRuntimeStackFamilySourceSteps
+                (blankStep :: blankSteps) (seed :: seeds) =
+                (affineRuntimeStackStandaloneSteps blankStep seed + 1) +
+                  affineRuntimeStackFamilySourceSteps blankSteps seeds := by
+              rfl
+            _ ≤ 101 * (blankStep + 1) * measure ^ 2 +
+                  affineRuntimeStackFamilySourceStepCoeff blankSteps *
+                    measure ^ 2 := Nat.add_le_add hhead htail
+            _ = affineRuntimeStackFamilySourceStepCoeff
+                  (blankStep :: blankSteps) * measure ^ 2 := by
+              simp [affineRuntimeStackFamilySourceStepCoeff]
+              ring
+            _ = affineRuntimeStackFamilySourceStepCoeff
+                  (blankStep :: blankSteps) *
+                ((encodeAffineRuntimeStackStandaloneInvocationFamily
+                  (seed :: seeds)).length + 1) ^ 2 := by
+              simp [measure, headLength, tailLength,
+                encodeAffineRuntimeStackStandaloneInvocationFamily]
+
 end CLRS.Chapter34.Turing.PolyBuilder

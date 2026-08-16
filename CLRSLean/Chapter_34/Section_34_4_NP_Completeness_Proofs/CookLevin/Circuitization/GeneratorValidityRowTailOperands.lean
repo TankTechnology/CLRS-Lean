@@ -157,6 +157,102 @@ theorem arithmeticRuntimeStackStandalone_steps_le
           (arithmeticRuntimeStackSourceSeed tm H start rowBase k)).length ^ 2 :=
   affineRuntimeStackStandaloneSteps_le_encoding _ _
 
+/-- Canonical fixed stack indices used by both the source controller and the
+existing arithmetic stack-frame family. -/
+def arithmeticRuntimeStackSourceIndices
+    (tm : _root_.Turing.FinTM2) : List (Fin (arithmeticStackCount tm)) :=
+  List.finRange (arithmeticStackCount tm)
+
+/-- Fixed blank strides stored in the family controller's finite control. -/
+noncomputable def arithmeticRuntimeStackSourceBlankSteps
+    (tm : _root_.Turing.FinTM2) : List Nat :=
+  (arithmeticRuntimeStackSourceIndices tm).map fun j =>
+    (reachableAlphabet tm ((arithmeticStackEquiv tm).symm j)).card + 1
+
+/-- Runtime source seeds for every stack in canonical finite order. -/
+noncomputable def arithmeticRuntimeStackSourceSeeds
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineRuntimeStackSourceSeed :=
+  (arithmeticRuntimeStackSourceIndices tm).map fun j =>
+    arithmeticRuntimeStackSourceSeed tm H start rowBase
+      ((arithmeticStackEquiv tm).symm j)
+
+theorem arithmeticRuntimeStackSourceSeeds_length
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    (arithmeticRuntimeStackSourceSeeds tm H start rowBase).length =
+      (arithmeticRuntimeStackSourceBlankSteps tm).length := by
+  simp [arithmeticRuntimeStackSourceSeeds,
+    arithmeticRuntimeStackSourceBlankSteps]
+
+private theorem map_finRange_eq_ofFn {alpha : Type} {n : Nat}
+    (f : Fin n → alpha) :
+    (List.finRange n).map f = List.ofFn f := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [List.finRange_succ, List.ofFn_succ]
+      simp only [List.map_cons, List.map_map]
+      congr 1
+      exact ih (f ∘ Fin.succ)
+
+/-- Interpreting the paired fixed strides and runtime seeds recovers exactly
+the established arithmetic stack-frame list. -/
+theorem arithmeticRuntimeStackSourceFamilyFrames_eq
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineRuntimeStackSourceFamilyFrames
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticRuntimeStackSourceSeeds tm H start rowBase) =
+      arithmeticStackFrames tm H start rowBase := by
+  rw [arithmeticRuntimeStackSourceBlankSteps,
+    arithmeticRuntimeStackSourceSeeds,
+    affineRuntimeStackSourceFamilyFrames_map]
+  simp_rw [arithmeticRuntimeStackSourceFrame_eq]
+  unfold arithmeticRuntimeStackSourceIndices arithmeticStackFrames
+  exact map_finRange_eq_ofFn _
+
+/-- One fixed family controller emits every canonical arithmetic stack frame
+and its outer family terminator, while preserving the following invocation. -/
+noncomputable def arithmeticRuntimeStackFamilySource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineRuntimeStackFamilySourceRevProgram
+        (arithmeticRuntimeStackSourceBlankSteps tm)))
+      (affineRuntimeStackFamilySourceLoopCfg
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (encodeAffineRuntimeStackStandaloneInvocationFamily
+          (arithmeticRuntimeStackSourceSeeds tm H start rowBase) ++ tail)
+        output)
+      (some (affineRuntimeStackFamilySourceFinishCfg
+        (arithmeticRuntimeStackSourceBlankSteps tm) tail
+        ((encodeAffineStackFamily
+          (arithmeticStackFrames tm H start rowBase) ++
+            [UnaryFrameSym.frameEnd]).reverse ++ output)))
+      (affineRuntimeStackFamilySourceSteps
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticRuntimeStackSourceSeeds tm H start rowBase)) := by
+  simpa [arithmeticRuntimeStackSourceFamilyFrames_eq] using
+    affineRuntimeStackFamilySource_runToFinish
+      (arithmeticRuntimeStackSourceBlankSteps tm)
+      (arithmeticRuntimeStackSourceSeeds tm H start rowBase)
+      tail output
+      (arithmeticRuntimeStackSourceSeeds_length tm H start rowBase)
+
+/-- The complete canonical stack-family source is quadratic in its explicit
+runtime seed stream, with a coefficient fixed by the verifier machine. -/
+theorem arithmeticRuntimeStackFamilySource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineRuntimeStackFamilySourceSteps
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticRuntimeStackSourceSeeds tm H start rowBase) ≤
+      affineRuntimeStackFamilySourceStepCoeff
+          (arithmeticRuntimeStackSourceBlankSteps tm) *
+        ((encodeAffineRuntimeStackStandaloneInvocationFamily
+          (arithmeticRuntimeStackSourceSeeds tm H start rowBase)).length +
+            1) ^ 2 :=
+  affineRuntimeStackFamilySourceSteps_le _ _
+    (arithmeticRuntimeStackSourceSeeds_length tm H start rowBase)
+
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/
 noncomputable def validityRowSeedTailFrame
