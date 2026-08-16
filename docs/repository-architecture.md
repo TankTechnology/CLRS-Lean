@@ -116,6 +116,12 @@ Generated HTML and `_site/` are artifacts, not source files.
   configuration checks.
 - `scripts/check_progress_csv.py` validates the progress schema and regenerates
   the public dashboard.
+- `scripts/check_book_coverage.py` reconciles the formalization with the book
+  structure: every edition-map section source must exist, every FourthEdition
+  `Section_*` module must have a map row, tracked/proved theorem counts must be
+  backed by real `theorem`/`lemma` heads in the source closure, gap records must
+  name real absences, and `repo_status` must agree with both ledgers.  It is the
+  drift catcher for the ledgers that the prose-consistency checks do not cover.
 - `scripts/check_site_consistency.py` checks Lean modules, navigation, chapter
   guides, and the source catalog.
 - `scripts/test_literate_config.py` verifies navigation order against imports.
