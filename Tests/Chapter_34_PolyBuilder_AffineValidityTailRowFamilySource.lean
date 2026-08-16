@@ -11,6 +11,11 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 #check affineCellProgressionSourceSteps_phase_le
 #check affineCellProgressionSourceSteps_le
 #check affineCellProgressionSource_runToFinish
+#check AffineRuntimeStackSourceSeed
+#check affineRuntimeStackSourceFrame
+#check affineRuntimeStackSourceRevProgram
+#check affineRuntimeStackSource_runToFinish
+#check affineRuntimeStackSourceSteps_le
 
 example (blankStep count right left blank : Nat)
     (output : List UnaryFrameSym) :
@@ -30,5 +35,7 @@ example (blankStep count right left blank : Nat)
 
 #print axioms affineCellProgressionSource_runToFinish
 #print axioms affineCellProgressionSourceSteps_le
+#print axioms affineRuntimeStackSource_runToFinish
+#print axioms affineRuntimeStackSourceSteps_le
 
 end CLRS.Chapter34.Turing.PolyBuilder
