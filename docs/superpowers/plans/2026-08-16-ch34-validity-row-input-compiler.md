@@ -153,6 +153,30 @@ and integrate the module into Chapter 34 metadata.
 git commit -m "feat(ch34): compile row-major validity seeds"
 ```
 
+### Task 3a: Generalize the reusable unary triple loader
+
+**Files:**
+- Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/PolyBuilder/UnaryFrameLoader.lean`
+- Modify: `Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean`
+
+- [x] **Step 1: Add RED checks for a non-circuit output alphabet**
+
+Require the loader and its exact run theorem at output alphabet
+`UnaryFrameSym`, which is needed by the seed-to-frame expander.  Confirm that
+the previous circuit-only public program rejects this instantiation.
+
+- [x] **Step 2: Generalize the loader without breaking existing serializers**
+
+Factor out `unaryTripleLoaderProgramFor`, the corresponding configurations,
+and `unaryTripleLoader_runFor`; keep backward-compatible `CircuitSym`
+specializations under the existing names so all gate serializers retain their
+old interfaces.
+
+- [x] **Step 3: Run downstream regression and commit**
+
+Build the loader, the complete existing validity-row controller, focused row
+tests, and the Chapter 34 root before committing this prerequisite.
+
 ### Task 4: Runtime-height one-hot frame compiler
 
 **Files:**
