@@ -23,6 +23,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOnePrefixSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneHeightSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneCellProgressionSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackSource
 
 /-!
 # Verified bounded TM2 builders

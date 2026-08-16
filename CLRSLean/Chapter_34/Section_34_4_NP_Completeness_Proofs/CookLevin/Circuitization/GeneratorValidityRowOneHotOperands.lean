@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackSource
 
 /-!
 # Ordered one-hot operands for Cook--Levin validity rows
@@ -214,6 +215,28 @@ noncomputable def arithmeticStackOneHotFrames
       (.inr (.inr ⟨k, .inl ()⟩)) ::
     affineExactlyOneFramesOfTripleProgression
       (arithmeticStackCellOneHotProgression tm H start rowBase k)
+
+/-- Instantiating the continuous stack source at the semantic height frame
+and the fixed reachable-alphabet width gives exactly the canonical arithmetic
+stack block. -/
+theorem affineExactlyOneStackFrames_eq_arithmeticStack
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineExactlyOneStackFrames ((reachableAlphabet tm k).card + 1) H
+        (arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr ⟨k, .inl ()⟩))).start
+        (arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr ⟨k, .inl ()⟩))).rowBase =
+      arithmeticStackOneHotFrames tm H start rowBase k := by
+  unfold affineExactlyOneStackFrames arithmeticStackOneHotFrames
+  congr 1
+  · cases hframe : arithmeticOneHotGroupFrame tm H start rowBase
+        (.inr (.inr ⟨k, .inl ()⟩)) with
+    | mk frameStart frameBase frameCount =>
+        have hcount := arithmeticOneHotGroupFrame_stackHeight_count
+          tm H start rowBase k
+        rw [hframe] at hcount
+        simp only at hcount
+        simp [affineExactlyOneHeightFrame, hcount]
 
 /-- Closed source base of a stack-height one-hot group. -/
 @[simp] theorem arithmeticOneHotGroupFrame_stackHeight_rowBase
