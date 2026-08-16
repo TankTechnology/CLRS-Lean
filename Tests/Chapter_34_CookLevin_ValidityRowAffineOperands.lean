@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowAffineOperands
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check verifierCfgBitCountPolynomial
+#check verifierCfgBitCountPolynomial_eval
+#check verifierValidityRowBaseProgression
+#check verifierValidityRowGateStartProgression
+#check verifierValidityRowBaseValues_eq_ofFn
+#check verifierValidityRowGateStartValues_eq_ofFn
+#check verifierValidityRowBaseValues_eq_frames
+#check verifierValidityRowBaseFrames_computableInPolyTime
+#check verifierValidityRowGateStartFrames_computableInPolyTime
+
+#print axioms verifierValidityRowBaseValues_eq_frames
+#print axioms verifierValidityRowBaseFrames_computableInPolyTime
+#print axioms verifierValidityRowGateStartFrames_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
