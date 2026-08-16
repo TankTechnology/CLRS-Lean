@@ -21,6 +21,7 @@ noncomputable section
 namespace CLRS.Chapter34.Turing.CookLevin
 
 open PolyBuilder
+open StateTransition
 
 /-- Initial blank-coordinate wire for the runtime cell progression.  This
 closed expression remains meaningful when the horizon is zero. -/
@@ -50,6 +51,74 @@ theorem affineCellProgressionFrames_eq_arithmeticStackCellFrames
   · simp [arithmeticStackMaskOutputWire]
   · simp [arithmeticStackCellBlankBase, arithmeticStackBlankWire]
     ring
+
+/-- Exact six runtime operands needed by the continuous source for one
+canonical Cook--Levin stack frame. -/
+noncomputable def arithmeticRuntimeStackSourceSeed
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    AffineRuntimeStackSourceSeed :=
+  { maskStart := arithmeticStackBlockStart tm H start k
+    maskBase := arithmeticStackMaskWireBase tm H rowBase k
+    count := H
+    cellRight := arithmeticStackCellTraceStart tm H start k
+    cellLeft := arithmeticStackBlockStart tm H start k + H
+    cellBlank := arithmeticStackCellBlankBase tm H rowBase k }
+
+/-- The source seed denotes the exact existing arithmetic stack frame, not a
+parallel approximation of its operands. -/
+theorem arithmeticRuntimeStackSourceFrame_eq
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineRuntimeStackSourceFrame ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k) =
+      arithmeticStackFrame tm H start rowBase k := by
+  unfold affineRuntimeStackSourceFrame arithmeticRuntimeStackSourceSeed
+    arithmeticStackFrame
+  simp only
+  congr 1
+  exact affineCellProgressionFrames_eq_arithmeticStackCellFrames
+    tm H start rowBase k
+
+/-- Contextual exact run for one complete canonical Cook--Levin stack input
+frame, through its outer `frameEnd`. -/
+noncomputable def arithmeticRuntimeStackSource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K)
+    (output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineRuntimeStackSourceRevProgram
+        ((reachableAlphabet tm k).card + 1)))
+      (affineRuntimeStackSourceLoadedCfg ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k) output)
+      (some (affineRuntimeStackSourceFinishCfg
+        ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k)
+        ((encodeAffineStackFrame
+          (arithmeticStackFrame tm H start rowBase k)).reverse ++ output)))
+      (affineRuntimeStackSourceSteps ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k)) := by
+  simpa [arithmeticRuntimeStackSourceFrame_eq] using
+    affineRuntimeStackSource_runToFinish
+      ((reachableAlphabet tm k).card + 1)
+      (arithmeticRuntimeStackSourceSeed tm H start rowBase k) output
+
+/-- The canonical one-stack contextual run inherits the generic quadratic
+payload bound. -/
+theorem arithmeticRuntimeStackSource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineRuntimeStackSourceSteps ((reachableAlphabet tm k).card + 1)
+        (arithmeticRuntimeStackSourceSeed tm H start rowBase k) ≤
+      70 * (((reachableAlphabet tm k).card + 1) + 1) *
+        ((encodeUnaryFrame [
+            (arithmeticRuntimeStackSourceSeed tm H start rowBase k).count,
+            (arithmeticRuntimeStackSourceSeed tm H start rowBase k).maskStart,
+            (arithmeticRuntimeStackSourceSeed tm H start rowBase k).maskBase +
+              (arithmeticRuntimeStackSourceSeed tm H start rowBase k).count]
+          ).length +
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k).count +
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k).cellRight +
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k).cellLeft +
+          (arithmeticRuntimeStackSourceSeed tm H start rowBase k).cellBlank +
+          1) ^ 2 :=
+  affineRuntimeStackSourceSteps_le _ _
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/

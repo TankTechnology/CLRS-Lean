@@ -5,6 +5,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check validityRowSeedTailFrame
 #check arithmeticStackCellBlankBase
 #check affineCellProgressionFrames_eq_arithmeticStackCellFrames
+#check arithmeticRuntimeStackSourceSeed
+#check arithmeticRuntimeStackSourceFrame_eq
+#check arithmeticRuntimeStackSource_runToFinish
+#check arithmeticRuntimeStackSource_steps_le
 #check validityRowSeedTailFrame_eq_expand
 #check validityRowSeedTailFamily
 #check validityRowSeedTailFamily_eq_canonical
@@ -13,4 +17,6 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #print axioms validityRowSeedTailFamily_eq_canonical
 #print axioms affineCellProgressionFrames_eq_arithmeticStackCellFrames
+#print axioms arithmeticRuntimeStackSource_runToFinish
+#print axioms arithmeticRuntimeStackSource_steps_le
 #print axioms verifierValidityRowTailOperandFrames_eq_canonical
