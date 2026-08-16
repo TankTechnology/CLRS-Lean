@@ -1,7 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputFamilySource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -294,6 +294,58 @@ theorem arithmeticRawOneHotOutputSource_steps_le
       20 * (encodeAffineExactlyOneOutputSourceInvocation
         (arithmeticOneHotGroupFrame tm H start rowBase group)).length ^ 2 :=
   affineExactlyOneOutputSourceSteps_le _
+
+/-- The final conjunction consumes the raw group outputs in reverse order, so
+the compact family source receives the established runtime frames reversed. -/
+noncomputable def arithmeticRawOneHotOutputSourceFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineExactlyOneFrame :=
+  (arithmeticRawOneHotFrames tm H start rowBase).reverse
+
+/-- The family source stream is exactly the raw-output segment expected by
+the tail-first conjunction frame. -/
+theorem arithmeticRawOneHotOutputSourceFamilyStream_eq
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineExactlyOneOutputSourceFamilyStream
+        (arithmeticRawOneHotOutputSourceFrames tm H start rowBase) =
+      encodeAffineConjunctionSources
+        (arithmeticFinalConjunctionRawWires tm H start rowBase).reverse := by
+  simp [affineExactlyOneOutputSourceFamilyStream,
+    arithmeticRawOneHotOutputSourceFrames,
+    arithmeticFinalConjunctionRawWires, encodeUnaryFrame,
+    encodeAffineConjunctionSources]
+
+/-- One continuous fixed controller generates every raw one-hot output block
+in the exact reverse order consumed by the final conjunction. -/
+noncomputable def arithmeticRawOneHotOutputFamilySource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime (step affineExactlyOneOutputFamilySourceRevProgram)
+      (affineExactlyOneOutputFamilySourceLoopCfg
+        (encodeAffineExactlyOneOutputSourceInvocationFamily
+            (arithmeticRawOneHotOutputSourceFrames tm H start rowBase) ++
+          .frameEnd :: tail) output)
+      (some (affineExactlyOneOutputFamilySourceFinishCfg tail
+        ((encodeAffineConjunctionSources
+          (arithmeticFinalConjunctionRawWires
+            tm H start rowBase).reverse).reverse ++ output)))
+      (affineExactlyOneOutputFamilySourceSteps
+        (arithmeticRawOneHotOutputSourceFrames tm H start rowBase)) := by
+  simpa [arithmeticRawOneHotOutputSourceFamilyStream_eq] using
+    affineExactlyOneOutputFamilySource_runToFinish
+      (arithmeticRawOneHotOutputSourceFrames tm H start rowBase) tail output
+
+/-- The complete raw-output segment is quadratic in its compact reversed
+frame invocation. -/
+theorem arithmeticRawOneHotOutputFamilySource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineExactlyOneOutputFamilySourceSteps
+        (arithmeticRawOneHotOutputSourceFrames tm H start rowBase) ≤
+      25 *
+        ((encodeAffineExactlyOneOutputSourceInvocationFamily
+          (arithmeticRawOneHotOutputSourceFrames
+            tm H start rowBase)).length + 1) ^ 2 :=
+  affineExactlyOneOutputFamilySourceSteps_le _
 
 /-- Stack-cell canonicality outputs in stack-major/cell-major order.  The
 formula is independent of the source wires and names the last gate of each
