@@ -13,6 +13,15 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticOneHotGroupFrame_stackCell_count
 #check arithmeticOneHotGroupFrame_stackCell_start
 #check arithmeticStackCellOneHotProgression_frames
+#check arithmeticOneHotGroupFrame_label
+#check arithmeticOneHotGroupFrame_state
+#check arithmeticOneHotGroupFrame_stackHeight_count
+#check arithmeticOneHotPrefixFrames
+#check arithmeticOneHotPrefixFrames_eq_explicit
+#check arithmeticStackOneHotFrames
+#check arithmeticStackOneHotFrames_eq_groups
+#check arithmeticStructuredOneHotFrames
+#check arithmeticStructuredOneHotFrames_eq_raw
 #check arithmeticRawOneHotFrames_eq_groupFrames
 #check validityRowSeedOneHotFrames
 #check validityRowSeedOneHotFrames_eq_expand
@@ -22,4 +31,5 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms affineExactlyOneRuntimeFrames_eq_ofFn
 #print axioms arithmeticRawOneHotFrames_eq_groupFrames
 #print axioms arithmeticStackCellOneHotProgression_frames
+#print axioms arithmeticStructuredOneHotFrames_eq_raw
 #print axioms validityRowSeedOneHotFamily_eq_canonical

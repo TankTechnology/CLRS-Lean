@@ -249,6 +249,11 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   `AffineUnaryTripleProgression`.  This includes exact starts, source bases,
   counts, order, and the `H = 0` case.
 
+- [x] Decompose the complete canonical group order into the controller-facing
+  sequence `label -> state -> each fixed stack (height -> H cells)`, proving
+  exact equality to `arithmeticRawOneHotFrames`, including the empty-height
+  case.
+
 The remaining outer controller must synthesize the progression's seven unary
 parameters from each row seed, surround it with the fixed label/state and
 per-stack height frames, and continue to the following stack/row.
