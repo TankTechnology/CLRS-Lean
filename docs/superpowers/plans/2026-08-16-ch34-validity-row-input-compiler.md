@@ -271,9 +271,16 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   closed affine strides, restores `H`, and handles `H = 0` in the same run
   theorem.
 
-The remaining outer controller must embed the height and cell components for
-each fixed stack, advance to the following stack, and then continue to the
-following row.
+- [x] Embed the height and cell components in one continuous fixed controller
+  for a stack.  The two component exits are redirected through explicit
+  bridge instructions; the combined exact-run theorem emits the entire
+  height-plus-cells compact family, preserves `H`, advances both offsets, and
+  is identified exactly with `arithmeticStackOneHotFrames` at the semantic
+  Cook--Levin parameters.
+
+The remaining outer controller must iterate this verified block over every
+fixed stack, starting from the completed label/state prefix, and then continue
+to the following row.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
