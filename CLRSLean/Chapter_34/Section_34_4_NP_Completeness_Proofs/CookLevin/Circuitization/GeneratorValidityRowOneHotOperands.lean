@@ -146,6 +146,75 @@ noncomputable def arithmeticStackCellOneHotProgression
     step₃ := 0
     count := H }
 
+/-! ## Fixed row prefix and structured stack blocks -/
+
+/-- The label group is the first row group, so its gate start is unchanged
+and its source interval begins immediately after the halted bit. -/
+@[simp] theorem arithmeticOneHotGroupFrame_label
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticOneHotGroupFrame tm H start rowBase (.inl ()) =
+      { start := start
+        rowBase := rowBase + 1
+        count := labelCount tm + 1 } := by
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    affineExactlyOnePrefixCost, arithmeticCfgOneHotGroupWireBase,
+    arithmeticCfgOneHotGroupWireCount]
+
+/-- The state group follows the label group by exactly one label-group gate
+cost and one label-width source interval. -/
+@[simp] theorem arithmeticOneHotGroupFrame_state
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticOneHotGroupFrame tm H start rowBase (.inr (.inl ())) =
+      { start := start + (3 * (labelCount tm + 1) + 4)
+        rowBase := rowBase + 1 + (labelCount tm + 1)
+        count := stateCount tm } := by
+  have hfirst : (cfgOneHotGroupEquivFin tm H).symm
+      (⟨0, by simp [cfgOneHotGroupCount]⟩ :
+        Fin (cfgOneHotGroupCount tm H)) = (.inl () : CfgOneHotGroup tm H) := by
+    apply (cfgOneHotGroupEquivFin tm H).injective
+    apply Fin.ext
+    simp
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    affineExactlyOnePrefixCost, arithmeticCfgOneHotGroupWireBase,
+    arithmeticCfgOneHotGroupWireCount, hfirst]
+
+/-- The two fixed groups emitted before the runtime stack loop. -/
+noncomputable def arithmeticOneHotPrefixFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineExactlyOneFrame :=
+  [ arithmeticOneHotGroupFrame tm H start rowBase (.inl ())
+  , arithmeticOneHotGroupFrame tm H start rowBase (.inr (.inl ())) ]
+
+/-- Closed form consumed by the fixed prefix source controller. -/
+theorem arithmeticOneHotPrefixFrames_eq_explicit
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticOneHotPrefixFrames tm H start rowBase =
+      [ { start := start
+          rowBase := rowBase + 1
+          count := labelCount tm + 1 }
+      , { start := start + (3 * (labelCount tm + 1) + 4)
+          rowBase := rowBase + 1 + (labelCount tm + 1)
+          count := stateCount tm } ] := by
+  simp [arithmeticOneHotPrefixFrames]
+
+/-- Every fixed stack begins with its runtime-height one-hot group. -/
+@[simp] theorem arithmeticOneHotGroupFrame_stackHeight_count
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inl ()⟩))).count = H + 1 := by
+  simp [arithmeticOneHotGroupFrame, affineExactlyOneRuntimeFrameAt,
+    arithmeticCfgOneHotGroupWireCount]
+
+/-- Structured source block for one fixed stack: its height frame followed by
+the concrete affine progression of its `H` cell-symbol frames. -/
+noncomputable def arithmeticStackOneHotFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    List AffineExactlyOneFrame :=
+  arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr ⟨k, .inl ()⟩)) ::
+    affineExactlyOneFramesOfTripleProgression
+      (arithmeticStackCellOneHotProgression tm H start rowBase k)
+
 /-- Closed source base of a stack-height one-hot group. -/
 @[simp] theorem arithmeticOneHotGroupFrame_stackHeight_rowBase
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
@@ -322,6 +391,141 @@ theorem arithmeticStackCellOneHotProgression_frames
         ring
       · omega
 
+/-- The structured stack block is exactly the semantic height group followed
+by all cell-symbol groups in increasing cell order. -/
+theorem arithmeticStackOneHotFrames_eq_groups
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    arithmeticStackOneHotFrames tm H start rowBase k =
+      arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr ⟨k, .inl ()⟩)) ::
+        List.ofFn fun index : Fin H =>
+          arithmeticOneHotGroupFrame tm H start rowBase
+            (.inr (.inr ⟨k, .inr index⟩)) := by
+  simp [arithmeticStackOneHotFrames,
+    arithmeticStackCellOneHotProgression_frames]
+
+private theorem cfgOneHotGroupEquivFin_symm_stackHeight
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (stack : Fin (@Fintype.card tm.K tm.kFin)) :
+    (cfgOneHotGroupEquivFin tm H).symm
+        ⟨2 + (H + 1) * stack.val, by
+          simp only [cfgOneHotGroupCount]
+          calc
+            2 + (H + 1) * stack.val <
+                2 + (H + 1) * @Fintype.card tm.K tm.kFin :=
+              Nat.add_lt_add_left
+                (Nat.mul_lt_mul_of_pos_left stack.isLt
+                  (Nat.zero_lt_succ H)) 2
+            _ = 2 + @Fintype.card tm.K tm.kFin * (H + 1) := by
+              rw [Nat.mul_comm]⟩ =
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm stack, .inl ()⟩) :
+          CfgOneHotGroup tm H) := by
+  apply (cfgOneHotGroupEquivFin tm H).injective
+  apply Fin.ext
+  simp [cfgOneHotStackOffset]
+
+private theorem cfgOneHotGroupEquivFin_symm_stackCell
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (stack : Fin (@Fintype.card tm.K tm.kFin)) (index : Fin H) :
+    (cfgOneHotGroupEquivFin tm H).symm
+        ⟨2 + (H + 1) * stack.val + 1 + index.val, by
+          simp only [cfgOneHotGroupCount]
+          have hstack := stack.isLt
+          have hindex := index.isLt
+          nlinarith⟩ =
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm stack, .inr index⟩) :
+          CfgOneHotGroup tm H) := by
+  apply (cfgOneHotGroupEquivFin tm H).injective
+  apply Fin.ext
+  simp [cfgOneHotStackOffset]
+
+private theorem cfgOneHotGroupEquivFin_symm_stackHeight_natAdd
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (stack : Fin (@Fintype.card tm.K tm.kFin)) :
+    (cfgOneHotGroupEquivFin tm H).symm
+        (Fin.natAdd 2
+          (⟨stack.val * (H + 1), by
+            exact Nat.mul_lt_mul_of_pos_right stack.isLt
+              (Nat.zero_lt_succ H)⟩ :
+            Fin (@Fintype.card tm.K tm.kFin * (H + 1)))) =
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm stack, .inl ()⟩) :
+          CfgOneHotGroup tm H) := by
+  rw [show Fin.natAdd 2
+      (⟨stack.val * (H + 1), by
+        exact Nat.mul_lt_mul_of_pos_right stack.isLt
+          (Nat.zero_lt_succ H)⟩ :
+        Fin (@Fintype.card tm.K tm.kFin * (H + 1))) =
+      ⟨2 + (H + 1) * stack.val, by
+        calc
+          2 + (H + 1) * stack.val <
+              2 + (H + 1) * @Fintype.card tm.K tm.kFin :=
+            Nat.add_lt_add_left
+              (Nat.mul_lt_mul_of_pos_left stack.isLt
+                (Nat.zero_lt_succ H)) 2
+          _ = 2 + @Fintype.card tm.K tm.kFin * (H + 1) := by
+            rw [Nat.mul_comm]⟩ by
+    apply Fin.ext
+    change 2 + stack.val * (H + 1) = 2 + (H + 1) * stack.val
+    rw [Nat.mul_comm stack.val]]
+  exact cfgOneHotGroupEquivFin_symm_stackHeight tm H stack
+
+private theorem stackCellProductIndex_lt
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (stack : Fin (@Fintype.card tm.K tm.kFin)) (index : Fin H) :
+    stack.val * (H + 1) + index.succ.val <
+      @Fintype.card tm.K tm.kFin * (H + 1) := by
+  calc
+    stack.val * (H + 1) + index.succ.val <
+        stack.val * (H + 1) + (H + 1) :=
+      Nat.add_lt_add_left index.succ.isLt _
+    _ = (stack.val + 1) * (H + 1) := by ring
+    _ ≤ @Fintype.card tm.K tm.kFin * (H + 1) :=
+      Nat.mul_le_mul_right _ (Nat.succ_le_iff.mpr stack.isLt)
+
+private theorem cfgOneHotGroupEquivFin_symm_stackCell_natAdd
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (stack : Fin (@Fintype.card tm.K tm.kFin)) (index : Fin H) :
+    (cfgOneHotGroupEquivFin tm H).symm
+        (Fin.natAdd 2
+          (⟨stack.val * (H + 1) + index.succ.val, by
+            exact stackCellProductIndex_lt tm H stack index⟩ :
+            Fin (@Fintype.card tm.K tm.kFin * (H + 1)))) =
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm stack, .inr index⟩) :
+          CfgOneHotGroup tm H) := by
+  rw [show Fin.natAdd 2
+      (⟨stack.val * (H + 1) + index.succ.val, by
+        exact stackCellProductIndex_lt tm H stack index⟩ :
+        Fin (@Fintype.card tm.K tm.kFin * (H + 1))) =
+      ⟨2 + (H + 1) * stack.val + 1 + index.val, by
+        have hbound := stackCellProductIndex_lt tm H stack index
+        calc
+          2 + (H + 1) * stack.val + 1 + index.val =
+              2 + (stack.val * (H + 1) + index.succ.val) := by
+            simp only [Fin.val_succ]
+            ring
+          _ < 2 + @Fintype.card tm.K tm.kFin * (H + 1) :=
+            Nat.add_lt_add_left hbound 2⟩ by
+    apply Fin.ext
+    change 2 + (stack.val * (H + 1) + index.succ.val) =
+      2 + (H + 1) * stack.val + 1 + index.val
+    rw [Nat.mul_comm stack.val]
+    simp [Nat.add_assoc, Nat.add_comm]]
+  exact cfgOneHotGroupEquivFin_symm_stackCell tm H stack index
+
+/-- Controller-oriented decomposition of one row: the two fixed groups,
+then one height-plus-cells block for every fixed stack. -/
+noncomputable def arithmeticStructuredOneHotFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    List AffineExactlyOneFrame :=
+  arithmeticOneHotPrefixFrames tm H start rowBase ++
+    (List.ofFn fun stack : Fin (@Fintype.card tm.K tm.kFin) =>
+      arithmeticStackOneHotFrames tm H start rowBase
+        ((@Fintype.equivFin tm.K tm.kFin).symm stack)).flatten
+
 /-- The raw row frames are exactly the semantic groups in their explicit
 `cfgOneHotGroupEquivFin` order. -/
 theorem arithmeticRawOneHotFrames_eq_groupFrames
@@ -335,6 +539,36 @@ theorem arithmeticRawOneHotFrames_eq_groupFrames
   apply List.ofFn_inj.mpr
   funext index
   simp
+
+/-- The controller-oriented prefix/stack decomposition preserves the exact
+canonical `cfgOneHotGroupEquivFin` order, including `H = 0`. -/
+theorem arithmeticStructuredOneHotFrames_eq_raw
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticStructuredOneHotFrames tm H start rowBase =
+      arithmeticRawOneHotFrames tm H start rowBase := by
+  rw [arithmeticRawOneHotFrames_eq_groupFrames]
+  unfold arithmeticStructuredOneHotFrames arithmeticOneHotPrefixFrames
+  simp only [cfgOneHotGroupCount]
+  rw [List.ofFn_add]
+  rw [List.ofFn_mul]
+  simp only [List.ofFn_succ, List.ofFn_zero, List.cons_append,
+    List.nil_append]
+  congr 1
+  congr 1
+  apply congrArg List.flatten
+  apply List.ofFn_inj.mpr
+  funext stack
+  rw [arithmeticStackOneHotFrames_eq_groups]
+  simp only [List.cons.injEq]
+  constructor
+  · apply congrArg (arithmeticOneHotGroupFrame tm H start rowBase)
+    symm
+    exact cfgOneHotGroupEquivFin_symm_stackHeight_natAdd tm H stack
+  apply List.ofFn_inj.mpr
+  funext index
+  apply congrArg (arithmeticOneHotGroupFrame tm H start rowBase)
+  symm
+  exact cfgOneHotGroupEquivFin_symm_stackCell_natAdd tm H stack index
 
 /-! ## Row-seed and row-family contracts -/
 
