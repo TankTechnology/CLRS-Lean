@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowIndices
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check verifierValidityRowCountPolynomial
+#check verifierValidityRowCountPolynomial_eval
+#check verifierValidityRowIndexFrames
+#check verifierValidityRowIndexFrames_eq_frameOrdinals
+#check verifierValidityRowIndexFrames_computableInPolyTime
+
+#print axioms verifierValidityRowCountPolynomial_eval
+#print axioms verifierValidityRowIndexFrames_eq_frameOrdinals
+#print axioms verifierValidityRowIndexFrames_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
