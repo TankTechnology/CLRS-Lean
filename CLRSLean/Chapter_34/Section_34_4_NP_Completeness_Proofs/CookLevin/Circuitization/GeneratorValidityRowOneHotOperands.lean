@@ -131,6 +131,24 @@ noncomputable def arithmeticOneHotGroupFrame
       (equiv.symm index))
     (equiv group)
 
+/-- The output wire recorded by the semantic raw-one-hot trace is exactly the
+closed last-gate index carried by the corresponding arithmetic runtime frame.
+This removes the last semantic lookup from later conjunction-source code. -/
+theorem arithmeticRawOneHot_output_eq_frame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (group : CfgOneHotGroup tm H) :
+    (rawOneHotGateTrace start
+      (arithmeticCfgWires tm H rowBase)).outputs group =
+      affineExactlyOneFrameOutputWire
+        (arithmeticOneHotGroupFrame tm H start rowBase group) := by
+  unfold rawOneHotGateTrace arithmeticOneHotGroupFrame
+  dsimp only
+  rw [exactlyOneFamilyGateTrace_output_eq]
+  unfold affineExactlyOneFrameOutputWire affineExactlyOneRuntimeFrameAt
+    affineExactlyOnePrefixCost
+  simp_rw [arithmeticCfgOneHotGroupWires_eq_affine]
+  simp [affineSequentialExactlyOneWires]
+
 /-- Runtime progression parameters for the `H` consecutive cell-symbol
 groups of one fixed verifier stack.  Its first base follows the stack-height
 group, and both gate and source bases then advance by fixed stack-dependent
