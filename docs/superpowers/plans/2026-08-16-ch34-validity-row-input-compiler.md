@@ -284,9 +284,15 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   preserves runtime `H`, handles the empty fixed family, and has an exact
   recursive execution-time theorem.
 
-The remaining outer controller must connect the completed label/state prefix
-to this verified stack-family source, identify the chosen fixed width list
-with the verifier machine's stacks, and then continue to the following row.
+- [x] Connect the completed label/state prefix directly to the verified
+  stack-family source in one fixed row controller.  Its exact run emits the
+  canonical compact triples for a complete structured row, preserves runtime
+  `H`, threads both affine offsets, and includes the explicit bridge step in
+  its exact execution time.
+
+The remaining outer work must identify the chosen fixed width list with the
+verifier machine's stacks, iterate this row controller over all runtime rows,
+and compose the compact-triple expander.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 

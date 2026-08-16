@@ -169,7 +169,8 @@ def affineExactlyOneStackFamilyEndBase :
       affineExactlyOneStackFamilyEndBase rest height
         (affineExactlyOneStackEndBase cellCount height rowBase)
 
-private def affineExactlyOneStackFamilyCfg {cellCounts : List Nat}
+/-- Fully explicit configuration constructor used by row-level controllers. -/
+def affineExactlyOneStackFamilyCfg {cellCounts : List Nat}
     (label : (affineExactlyOneStackFamilyRevProgram cellCounts).Label)
     (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
     (input output work₁ work₂ : List UnaryFrameSym)

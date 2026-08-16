@@ -25,6 +25,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneCellProgressionSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowSource
 
 /-!
 # Verified bounded TM2 builders
@@ -58,5 +59,8 @@ arbitrary five-gate XNOR trace with an exact linear runtime and cleared scratch.
 The affine suffix-OR layer uses a separate nested control phase to generate the
 right-to-left active-cell mask with an exact contextual run and quadratic
 counter bound.  The single-NOT layer closes the remaining primitive used at
-the head of every six-gate stack-cell block.
+the head of every six-gate stack-cell block.  The compact one-hot source layers
+now compose the label/state prefix with every fixed stack block in one
+continuous row controller, while keeping the tableau height and affine offsets
+as runtime unary counters and proving the exact emitted frame sequence.
 -/
