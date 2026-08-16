@@ -4,6 +4,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macro
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Clock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialClock
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialUnaryFrame
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialUnaryFrameFamily
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryIndex
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.NatEncoding
@@ -28,7 +29,9 @@ fixed polynomial degree.  The exact-clock layer adds a sentinel-and-tuple
 construction whose concrete TM2 output has length exactly `p.eval input.length`,
 including empty inputs and constant terms.  The exact unary-frame layer then
 compiles that value into the delimiter-bearing operand representation used by
-the runtime controllers.  The reversal layer provides an
+the runtime controllers, and its family extension shares one tuple enumeration
+while producing any fixed finite sequence of polynomial-valued operands.  The
+reversal layer provides an
 exact linear-time finalization pass for prepend-based streaming encoders, and
 the unary-index layer generates the complete wire-reference stream in
 quadratic time.  The natural-number serializer connects those counters to the
