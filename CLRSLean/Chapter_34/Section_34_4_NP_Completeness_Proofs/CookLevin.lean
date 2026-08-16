@@ -19,6 +19,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.BoundaryCircuits
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.Finishing
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Textbook
 
 /-!
 # Cook--Levin infrastructure
@@ -73,7 +74,12 @@ adjacent transitions, recovers the bounded certificate shape, fixes exact
 initial and accepting boundaries, and closes their conjunction as a
 well-formed general circuit.  Its satisfiability is equivalent to language
 membership, and its gate count has an explicit fixed-verifier polynomial
-bound. The validity layer builds canonical row
+bound.  The textbook circuitization layer packages the explicit serialized
+map, exact membership equivalence, and polynomial output-length bound for every
+NP language as {lit}`cookLevin_textbookCircuitization`.  It deliberately does
+not call this NP-hardness: its separate bridge to {lit}`PolyTimeReducible`
+keeps the concrete map-generating TM2 obligation explicit.  The validity layer
+builds canonical row
 validation with exact semantics and gate cost; its stack-validity index layer
 also gives closed affine wire formulas for every active-mask, cell, and
 ordered-stack output, and the circuitization layer now executes the five-gate
