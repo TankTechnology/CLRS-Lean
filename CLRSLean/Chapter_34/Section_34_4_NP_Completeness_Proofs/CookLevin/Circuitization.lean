@@ -15,6 +15,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransition
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
@@ -46,7 +47,8 @@ delimiter-bearing row frame.  A fixed raw-input source compiler now generates
 the actual halted-start, halted-left, and halted-right operand triple for every
 public tableau row in polynomial time.  A second fixed source compiler emits
 the row-major `(height, gateStart, rowBase)` seeds whose arithmetic expansion
-is exactly the full semantic row-frame family.  Compiling the continuous seed
-expander for the remaining one-hot and tail fields is the next source-level
-boundary.
+is exactly the full semantic row-frame family.  The continuous one-hot seed
+expander is polynomial-time and produces the canonical four-field operands.
+The remaining tail target is pinned byte-for-byte to the canonical stack/cell
+and final-conjunction frames; its fixed source compiler is the next boundary.
 -/

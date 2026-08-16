@@ -346,7 +346,7 @@ git commit -m "feat(ch34): compile validity row one-hot operands"
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/GeneratorValidityRowTailOperands.lean`
 - Create: `Tests/Chapter_34_CookLevin_ValidityRowTailOperands.lean`
 
-- [ ] **Step 1: Add RED checks for the tail source compiler**
+- [x] **Step 1: Add RED checks for the tail source compiler**
 
 Pin exact output equality to the row-major flattening of
 `encodeAffineValidityTailFrame frame.tailFrame` and pin a concrete raw-input
