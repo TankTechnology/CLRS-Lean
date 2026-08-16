@@ -1,0 +1,22 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorFirstValidityHaltedFrame
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check rawOneHotGatePolynomial
+#check rawOneHotGatePolynomial_eval
+#check verifierFirstValidityHaltedPolynomials
+#check verifierFirstValidityHaltedFrame
+#check verifierFirstValidityHaltedFrame_eq_arithmetic
+#check verifierFirstValidityHaltedFrame_eq_rowFields
+#check verifierValidityRowFramesByLength_head
+#check encodeFirstValidityRowFrame_eq_compiledHalted
+#check verifierFirstValidityHaltedFrame_computableInPolyTime
+
+#print axioms rawOneHotGatePolynomial_eval
+#print axioms verifierFirstValidityHaltedFrame_eq_arithmetic
+#print axioms verifierFirstValidityHaltedFrame_eq_rowFields
+#print axioms verifierValidityRowFramesByLength_head
+#print axioms encodeFirstValidityRowFrame_eq_compiledHalted
+#print axioms verifierFirstValidityHaltedFrame_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
