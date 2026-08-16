@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneCellProgressionSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineExactlyOneCellProgression
+#check affineExactlyOneCellProgressionRevProgram
+#check affineExactlyOneCellProgressionLoadedCfg
+#check affineExactlyOneCellProgressionFinishCfg
+#check affineExactlyOneCellProgressionSteps
+#check affineExactlyOneCellProgression_runToFinish
+
+#print axioms affineExactlyOneCellProgression_runToFinish

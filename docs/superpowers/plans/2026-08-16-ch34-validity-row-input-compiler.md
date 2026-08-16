@@ -265,9 +265,15 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   advances the affine offsets to the first cell-symbol group with an exact
   run and step count.
 
-The remaining outer controller must use the preserved height counter to run
-the fixed-width cell group for `H` iterations, advance to the following
-stack, and then continue to the following row.
+- [x] Implement the loaded fixed-width cell progression controller.  For a
+  runtime `H` it emits exactly `H` compact cell triples, proves equality with
+  `affineExactlyOneFramesOfTripleProgression`, advances both counters by the
+  closed affine strides, restores `H`, and handles `H = 0` in the same run
+  theorem.
+
+The remaining outer controller must embed the height and cell components for
+each fixed stack, advance to the following stack, and then continue to the
+following row.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
