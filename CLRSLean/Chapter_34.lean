@@ -68,12 +68,6 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Trans
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionController
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyController
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyScript
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInitialBoundary
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInputBoundary
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorAcceptingBoundary
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTail
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorBody
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorConjunction
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
@@ -183,7 +177,14 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowAffineOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransition
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInitialBoundary
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInputBoundary
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorAcceptingBoundary
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTail
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorBody
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorConjunction
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Textbook
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -296,9 +297,14 @@ certificate checker whose bounded-certificate semantics is exact.  A concrete
 TM2 computes that checker Boolean on every input; every successful, rejecting,
 and malformed route is covered by one explicit quartic step polynomial.
 Consequently `GeneralCircuitSAT` is now proved polynomially verifiable and a
-member of `ClassNP`.  The concrete polynomial-time Cook--Levin generator TM2
-and the resulting hardness/NP-completeness wrappers remain downstream.  A
-general graph-plus-{lit}`k` CLIQUE target and Section 34.5 remain unrepresented.
+member of `ClassNP`.  The explicit Cook--Levin map, semantic equivalence, and
+polynomial output-length theorem are packaged for every NP language by
+{lit}`cookLevin_textbookCircuitization`.  This is the semantic-and-size core of
+the textbook construction, not an NP-hardness theorem: polynomial output
+length alone does not prove polynomial-time computability.  The concrete
+polynomial-time Cook--Levin generator TM2 remains the explicit bridge to the
+standard {lit}`NPHard` and {lit}`NPComplete` predicates.  A general
+graph-plus-{lit}`k` CLIQUE target and Section 34.5 remain unrepresented.
 
 Theorem layer:
 
