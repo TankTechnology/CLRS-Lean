@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check affineExactlyOneRuntimeFrameAt
+#check affineExactlyOneRuntimeFrames_eq_ofFn
+#check arithmeticOneHotGroupFrame
+#check arithmeticRawOneHotFrames_eq_groupFrames
+#check validityRowSeedOneHotFrames
+#check validityRowSeedOneHotFrames_eq_expand
+#check validityRowSeedOneHotFamily
+#check validityRowSeedOneHotFamily_eq_canonical
+
+#print axioms affineExactlyOneRuntimeFrames_eq_ofFn
+#print axioms arithmeticRawOneHotFrames_eq_groupFrames
+#print axioms validityRowSeedOneHotFamily_eq_canonical
