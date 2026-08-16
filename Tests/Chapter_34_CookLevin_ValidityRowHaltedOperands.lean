@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierValidityRowHaltedProgression
+#check verifierValidityRowHaltedTriples
+#check verifierValidityRowHaltedTriples_eq_frames
+#check verifierValidityRowHaltedOperandFrames
+#check verifierValidityRowHaltedOperandFrames_eq_frames
+#check verifierValidityRowHaltedOperandFrames_computableInPolyTime
+
+#print axioms verifierValidityRowHaltedTriples_eq_frames
+#print axioms verifierValidityRowHaltedOperandFrames_eq_frames
+#print axioms verifierValidityRowHaltedOperandFrames_computableInPolyTime

@@ -16,10 +16,11 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 /-! ## Shared-depth exact polynomial clocks -/
 
-/-- A deliberately simple shared tuple depth dominating every polynomial in
-the fixed family. -/
+/-- Shared tuple depth dominating every polynomial in the fixed family.  The
+maximum, rather than the sum, keeps the finite control independent of the
+number of fields except for the fixed field tags. -/
 def polynomialFamilyDegree (polynomials : List (Polynomial Nat)) : Nat :=
-  (polynomials.map Polynomial.natDegree).sum
+  (polynomials.map Polynomial.natDegree).foldr max 0
 
 /-- Every member's degree is bounded by the shared family depth. -/
 theorem polynomial_natDegree_le_familyDegree
@@ -30,10 +31,10 @@ theorem polynomial_natDegree_le_familyDegree
   | nil => simp at hp
   | cons head tail ih =>
       simp only [List.mem_cons] at hp
-      simp only [polynomialFamilyDegree, List.map_cons, List.sum_cons]
+      simp only [polynomialFamilyDegree, List.map_cons, List.foldr_cons]
       rcases hp with rfl | hp
-      · omega
-      · exact (ih hp).trans (Nat.le_add_left _ _)
+      · exact Nat.le_max_left _ _
+      · exact (ih hp).trans (Nat.le_max_right _ _)
 
 /-- Indexed form of the shared-depth bound used by the finite field tags. -/
 theorem polynomial_get_natDegree_le_familyDegree

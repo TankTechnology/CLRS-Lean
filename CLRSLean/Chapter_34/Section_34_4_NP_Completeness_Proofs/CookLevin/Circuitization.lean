@@ -12,6 +12,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorFirstValidityHaltedFrame
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowIndices
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowAffineOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransition
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
@@ -39,6 +40,8 @@ now executes every raw one-hot group, halted/none-label equality, all stack
 canonicality blocks, and the final conjunction in one fixed whole-row
 controller.  The exact output theorem agrees byte-for-byte with
 `validityRowGateStreamAt`, and the runtime is explicitly quadratic in the
-delimiter-bearing row frame.  The next execution boundary is iteration of
-this completed controller across every public tableau row.
+delimiter-bearing row frame.  A fixed raw-input source compiler now generates
+the actual halted-start, halted-left, and halted-right operand triple for every
+public tableau row in polynomial time.  Compiling the remaining one-hot and
+tail fields is the next source-level boundary.
 -/
