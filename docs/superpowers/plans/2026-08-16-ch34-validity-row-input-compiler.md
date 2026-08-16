@@ -290,9 +290,13 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   `H`, threads both affine offsets, and includes the explicit bridge step in
   its exact execution time.
 
-The remaining outer work must identify the chosen fixed width list with the
-verifier machine's stacks, iterate this row controller over all runtime rows,
-and compose the compact-triple expander.
+- [x] Instantiate the structured row with the verifier's canonical fixed stack
+  enumeration and reachable-alphabet widths.  Prove exact equality to
+  `arithmeticRawOneHotFrames`, including adjacent stack gate/source offsets,
+  the empty stack family, and `H = 0`.
+
+The remaining outer work must iterate this row controller over all runtime
+rows and compose the compact-triple expander.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 

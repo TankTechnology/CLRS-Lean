@@ -1,6 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStackSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowSource
 
 /-!
 # Ordered one-hot operands for Cook--Levin validity rows
@@ -549,6 +549,355 @@ noncomputable def arithmeticStructuredOneHotFrames
       arithmeticStackOneHotFrames tm H start rowBase
         ((@Fintype.equivFin tm.K tm.kFin).symm stack)).flatten
 
+/-- Fixed reachable-alphabet widths carried in the verifier's canonical stack
+order.  These are compile-time constants of the verifier, not runtime data. -/
+noncomputable def verifierOneHotCellCounts
+    (tm : _root_.Turing.FinTM2) : List Nat :=
+  List.ofFn fun stack : Fin (@Fintype.card tm.K tm.kFin) =>
+    (reachableAlphabet tm
+      ((@Fintype.equivFin tm.K tm.kFin).symm stack)).card + 1
+
+/-- Consecutive canonical stack indices advance the tableau source offset by
+the complete height-plus-cells width of the preceding stack. -/
+private theorem cfgStackBitOffset_equivFin_succ
+    (tm : _root_.Turing.FinTM2) (H index : Nat)
+    (hnext : index + 1 < @Fintype.card tm.K tm.kFin) :
+    cfgStackBitOffset tm H
+        ((@Fintype.equivFin tm.K tm.kFin).symm ⟨index + 1, hnext⟩) =
+      cfgStackBitOffset tm H
+          ((@Fintype.equivFin tm.K tm.kFin).symm
+            ⟨index, by omega⟩) +
+        cfgStackBitWidth tm H
+          ((@Fintype.equivFin tm.K tm.kFin).symm
+            ⟨index, by omega⟩) := by
+  let stackEquiv := @Fintype.equivFin tm.K tm.kFin
+  let offsetAt : Fin (@Fintype.card tm.K tm.kFin) → Nat := fun position =>
+    ∑ j : Fin position.val,
+      cfgStackBitWidth tm H
+        (stackEquiv.symm (Fin.castLE position.isLt.le j))
+  let next : Fin (@Fintype.card tm.K tm.kFin) := ⟨index + 1, hnext⟩
+  let current : Fin (@Fintype.card tm.K tm.kFin) := ⟨index, by omega⟩
+  have hnextOffset : cfgStackBitOffset tm H (stackEquiv.symm next) =
+      offsetAt next := by
+    unfold cfgStackBitOffset
+    change offsetAt (stackEquiv (stackEquiv.symm next)) = offsetAt next
+    exact congrArg offsetAt (stackEquiv.apply_symm_apply next)
+  have hcurrentOffset : cfgStackBitOffset tm H (stackEquiv.symm current) =
+      offsetAt current := by
+    unfold cfgStackBitOffset
+    change offsetAt (stackEquiv (stackEquiv.symm current)) = offsetAt current
+    exact congrArg offsetAt (stackEquiv.apply_symm_apply current)
+  have hsum : offsetAt next = offsetAt current +
+      cfgStackBitWidth tm H (stackEquiv.symm current) := by
+    change
+      (∑ j : Fin (index + 1), cfgStackBitWidth tm H
+        (stackEquiv.symm (Fin.castLE hnext.le j))) =
+        (∑ j : Fin index, cfgStackBitWidth tm H
+          (stackEquiv.symm (Fin.castLE (by omega) j))) +
+          cfgStackBitWidth tm H (stackEquiv.symm current)
+    rw [Fin.sum_univ_castSucc]
+    congr 1
+  simpa [stackEquiv, next, current] using
+    hnextOffset.trans (hsum.trans (congrArg
+      (fun value => value + cfgStackBitWidth tm H (stackEquiv.symm current))
+      hcurrentOffset.symm))
+
+/-- The first canonical stack has no preceding stack bits. -/
+private theorem cfgStackBitOffset_equivFin_zero
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (hcard : 0 < @Fintype.card tm.K tm.kFin) :
+    cfgStackBitOffset tm H
+      ((@Fintype.equivFin tm.K tm.kFin).symm ⟨0, hcard⟩) = 0 := by
+  let stackEquiv := @Fintype.equivFin tm.K tm.kFin
+  let offsetAt : Fin (@Fintype.card tm.K tm.kFin) → Nat := fun position =>
+    ∑ j : Fin position.val,
+      cfgStackBitWidth tm H
+        (stackEquiv.symm (Fin.castLE position.isLt.le j))
+  let first : Fin (@Fintype.card tm.K tm.kFin) := ⟨0, hcard⟩
+  have hfirstOffset : cfgStackBitOffset tm H (stackEquiv.symm first) =
+      offsetAt first := by
+    unfold cfgStackBitOffset
+    change offsetAt (stackEquiv (stackEquiv.symm first)) = offsetAt first
+    exact congrArg offsetAt (stackEquiv.apply_symm_apply first)
+  simpa [stackEquiv, first, offsetAt] using hfirstOffset
+
+/-- The source base of the next canonical stack is exactly the base left by
+the fixed-width stack source. -/
+private theorem arithmeticStackHeight_rowBase_succ
+    (tm : _root_.Turing.FinTM2) (H start rowBase index : Nat)
+    (hnext : index + 1 < @Fintype.card tm.K tm.kFin) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm ⟨index + 1, hnext⟩,
+          .inl ()⟩))).rowBase =
+      affineExactlyOneStackEndBase
+        ((reachableAlphabet tm
+          ((@Fintype.equivFin tm.K tm.kFin).symm
+            ⟨index, by omega⟩)).card + 1) H
+        (arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr
+            ⟨(@Fintype.equivFin tm.K tm.kFin).symm
+              ⟨index, by omega⟩, .inl ()⟩))).rowBase := by
+  rw [arithmeticOneHotGroupFrame_stackHeight_rowBase,
+    arithmeticOneHotGroupFrame_stackHeight_rowBase,
+    cfgStackBitOffset_equivFin_succ]
+  simp only [affineExactlyOneStackEndBase, cfgStackBitWidth]
+  ring
+
+/-- The gate start of the next canonical stack is exactly the start left by
+the fixed-width stack source. -/
+private theorem arithmeticStackHeight_start_succ
+    (tm : _root_.Turing.FinTM2) (H start rowBase index : Nat)
+    (hnext : index + 1 < @Fintype.card tm.K tm.kFin) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm ⟨index + 1, hnext⟩,
+          .inl ()⟩))).start =
+      affineExactlyOneStackEndStart
+        ((reachableAlphabet tm
+          ((@Fintype.equivFin tm.K tm.kFin).symm
+            ⟨index, by omega⟩)).card + 1) H
+        (arithmeticOneHotGroupFrame tm H start rowBase
+          (.inr (.inr
+            ⟨(@Fintype.equivFin tm.K tm.kFin).symm
+              ⟨index, by omega⟩, .inl ()⟩))).start := by
+  let stackEquiv := @Fintype.equivFin tm.K tm.kFin
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let bases : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireBase tm H rowBase
+      (groupEquiv.symm position)
+  let counts : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireCount tm H (groupEquiv.symm position)
+  let current : Fin (@Fintype.card tm.K tm.kFin) := ⟨index, by omega⟩
+  let next : Fin (@Fintype.card tm.K tm.kFin) := ⟨index + 1, hnext⟩
+  let currentHeight : CfgOneHotGroup tm H :=
+    .inr (.inr ⟨stackEquiv.symm current, .inl ()⟩)
+  let nextHeight : CfgOneHotGroup tm H :=
+    .inr (.inr ⟨stackEquiv.symm next, .inl ()⟩)
+  have hcurrentVal : (groupEquiv currentHeight).val =
+      2 + (H + 1) * index := by
+    simp [groupEquiv, currentHeight, current, stackEquiv,
+      cfgOneHotStackOffset]
+  have hnextVal : (groupEquiv nextHeight).val =
+      2 + (H + 1) * (index + 1) := by
+    simp [groupEquiv, nextHeight, next, stackEquiv,
+      cfgOneHotStackOffset]
+  have hfirstBound : (groupEquiv currentHeight).val + 1 <
+      cfgOneHotGroupCount tm H := by
+    refine Nat.lt_of_le_of_lt ?_ (groupEquiv nextHeight).isLt
+    rw [hcurrentVal, hnextVal]
+    nlinarith
+  have hfirst := affineExactlyOneRuntimeFrameAt_succ_start
+    start bases counts (groupEquiv currentHeight).val hfirstBound
+  have hheightCount : counts (groupEquiv currentHeight) = H + 1 := by
+    simp [counts, currentHeight, arithmeticCfgOneHotGroupWireCount]
+  have hfirst' :
+      (affineExactlyOneRuntimeFrameAt start bases counts
+        ⟨(groupEquiv currentHeight).val + 1, hfirstBound⟩).start =
+        (affineExactlyOneRuntimeFrameAt start bases counts
+          (groupEquiv currentHeight)).start + (3 * (H + 1) + 4) := by
+    simpa [hheightCount] using hfirst
+  have htailBound : (groupEquiv currentHeight).val + 1 + H <
+      cfgOneHotGroupCount tm H := by
+    rw [hcurrentVal, show 2 + (H + 1) * index + 1 + H =
+      (groupEquiv nextHeight).val by rw [hnextVal]; ring]
+    exact (groupEquiv nextHeight).isLt
+  have hcellCounts : ∀ cell : Fin H,
+      counts ⟨(groupEquiv currentHeight).val + 1 + cell.val,
+        by omega⟩ =
+        (reachableAlphabet tm (stackEquiv.symm current)).card + 1 := by
+    intro cell
+    let cellGroup : CfgOneHotGroup tm H :=
+      .inr (.inr ⟨stackEquiv.symm current, .inr cell⟩)
+    have hposition :
+        (⟨(groupEquiv currentHeight).val + 1 + cell.val, by omega⟩ :
+          Fin (cfgOneHotGroupCount tm H)) = groupEquiv cellGroup := by
+      apply Fin.ext
+      simp [groupEquiv, currentHeight, cellGroup, current, stackEquiv,
+        cfgOneHotStackOffset]
+    rw [hposition]
+    simp [counts, cellGroup, arithmeticCfgOneHotGroupWireCount]
+  have htail := affineExactlyOneRuntimeFrameAt_add_const_start
+    start bases counts ((groupEquiv currentHeight).val + 1) H
+      ((reachableAlphabet tm (stackEquiv.symm current)).card + 1)
+      htailBound hcellCounts
+  have hnextPosition : groupEquiv nextHeight =
+      ⟨(groupEquiv currentHeight).val + 1 + H, htailBound⟩ := by
+    apply Fin.ext
+    change (groupEquiv nextHeight).val =
+      (groupEquiv currentHeight).val + 1 + H
+    calc
+      (groupEquiv nextHeight).val =
+          2 + (H + 1) * (index + 1) := hnextVal
+      _ = 2 + (H + 1) * index + 1 + H := by ring
+      _ = (groupEquiv currentHeight).val + 1 + H := by rw [hcurrentVal]
+  change (affineExactlyOneRuntimeFrameAt start bases counts
+      (groupEquiv nextHeight)).start =
+    affineExactlyOneStackEndStart
+      ((reachableAlphabet tm (stackEquiv.symm current)).card + 1) H
+      (affineExactlyOneRuntimeFrameAt start bases counts
+        (groupEquiv currentHeight)).start
+  calc
+    (affineExactlyOneRuntimeFrameAt start bases counts
+        (groupEquiv nextHeight)).start =
+        (affineExactlyOneRuntimeFrameAt start bases counts
+          ⟨(groupEquiv currentHeight).val + 1 + H,
+            htailBound⟩).start := by rw [hnextPosition]
+    _ = (affineExactlyOneRuntimeFrameAt start bases counts
+          ⟨(groupEquiv currentHeight).val + 1, hfirstBound⟩).start +
+          H * (3 *
+            ((reachableAlphabet tm (stackEquiv.symm current)).card + 1) +
+              4) := htail
+    _ = affineExactlyOneStackEndStart
+          ((reachableAlphabet tm (stackEquiv.symm current)).card + 1) H
+          (affineExactlyOneRuntimeFrameAt start bases counts
+            (groupEquiv currentHeight)).start := by
+      rw [hfirst']
+      unfold affineExactlyOneStackEndStart
+      ring
+
+/-- The first stack begins exactly after the label/state compact prefix. -/
+private theorem arithmeticFirstStackHeight_start
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (hcard : 0 < @Fintype.card tm.K tm.kFin) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm ⟨0, hcard⟩,
+          .inl ()⟩))).start =
+      affineExactlyOneStructuredRowStackStart
+        (labelCount tm + 1) (stateCount tm) start := by
+  let stackEquiv := @Fintype.equivFin tm.K tm.kFin
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let bases : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireBase tm H rowBase
+      (groupEquiv.symm position)
+  let counts : Fin (cfgOneHotGroupCount tm H) → Nat := fun position =>
+    arithmeticCfgOneHotGroupWireCount tm H (groupEquiv.symm position)
+  let first : Fin (@Fintype.card tm.K tm.kFin) := ⟨0, hcard⟩
+  let firstHeight : CfgOneHotGroup tm H :=
+    .inr (.inr ⟨stackEquiv.symm first, .inl ()⟩)
+  let stateGroup : CfgOneHotGroup tm H := .inr (.inl ())
+  have hheightVal : (groupEquiv firstHeight).val = 2 := by
+    simp [groupEquiv, firstHeight, first, stackEquiv,
+      cfgOneHotStackOffset]
+  have hbound : 1 + 1 < cfgOneHotGroupCount tm H := by
+    rw [show 1 + 1 = (groupEquiv firstHeight).val by
+      exact hheightVal.symm]
+    exact (groupEquiv firstHeight).isLt
+  have hheightPosition : groupEquiv firstHeight = ⟨1 + 1, hbound⟩ := by
+    apply Fin.ext
+    exact hheightVal
+  have hstateVal : (groupEquiv stateGroup).val = 1 := by
+    simp [groupEquiv, stateGroup]
+  have hstatePosition : groupEquiv stateGroup =
+      (⟨1, by omega⟩ : Fin (cfgOneHotGroupCount tm H)) := by
+    apply Fin.ext
+    exact hstateVal
+  have hcount : counts (groupEquiv stateGroup) = stateCount tm := by
+    simp [counts, stateGroup, arithmeticCfgOneHotGroupWireCount]
+  have hsucc := affineExactlyOneRuntimeFrameAt_succ_start
+    start bases counts 1 hbound
+  change (affineExactlyOneRuntimeFrameAt start bases counts
+      (groupEquiv firstHeight)).start =
+    affineExactlyOneStructuredRowStackStart
+      (labelCount tm + 1) (stateCount tm) start
+  rw [hheightPosition, hsucc, ← hstatePosition, hcount]
+  change (arithmeticOneHotGroupFrame tm H start rowBase stateGroup).start +
+      (3 * stateCount tm + 4) =
+    affineExactlyOneStructuredRowStackStart
+      (labelCount tm + 1) (stateCount tm) start
+  rw [show arithmeticOneHotGroupFrame tm H start rowBase stateGroup =
+      { start := start + (3 * (labelCount tm + 1) + 4)
+        rowBase := rowBase + 1 + (labelCount tm + 1)
+        count := stateCount tm } by
+    exact arithmeticOneHotGroupFrame_state tm H start rowBase]
+  unfold affineExactlyOneStructuredRowStackStart
+  simp only
+
+/-- The first stack's source interval begins exactly after halted, label, and
+state bits. -/
+private theorem arithmeticFirstStackHeight_rowBase
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (hcard : 0 < @Fintype.card tm.K tm.kFin) :
+    (arithmeticOneHotGroupFrame tm H start rowBase
+      (.inr (.inr
+        ⟨(@Fintype.equivFin tm.K tm.kFin).symm ⟨0, hcard⟩,
+          .inl ()⟩))).rowBase =
+      affineExactlyOneStructuredRowStackBase
+        (labelCount tm + 1) (stateCount tm) rowBase := by
+  rw [arithmeticOneHotGroupFrame_stackHeight_rowBase,
+    cfgStackBitOffset_equivFin_zero]
+  unfold affineExactlyOneStructuredRowStackBase
+  ring
+
+/-- Starting at any canonical stack index, the recursive fixed-width source
+emits exactly that nonempty suffix of semantic stack blocks. -/
+private theorem affineExactlyOneStackFamilyFrames_fromArithmetic :
+    ∀ (tm : _root_.Turing.FinTM2) (H start rowBase n offset : Nat)
+      (hbound : offset + n < @Fintype.card tm.K tm.kFin),
+      affineExactlyOneStackFamilyFrames
+          (List.ofFn fun position : Fin (n + 1) =>
+            (reachableAlphabet tm
+              ((@Fintype.equivFin tm.K tm.kFin).symm
+                ⟨offset + position.val, by omega⟩)).card + 1)
+          H
+          (arithmeticOneHotGroupFrame tm H start rowBase
+            (.inr (.inr
+              ⟨(@Fintype.equivFin tm.K tm.kFin).symm
+                ⟨offset, by omega⟩, .inl ()⟩))).start
+          (arithmeticOneHotGroupFrame tm H start rowBase
+            (.inr (.inr
+              ⟨(@Fintype.equivFin tm.K tm.kFin).symm
+                ⟨offset, by omega⟩, .inl ()⟩))).rowBase =
+        (List.ofFn fun position : Fin (n + 1) =>
+          arithmeticStackOneHotFrames tm H start rowBase
+            ((@Fintype.equivFin tm.K tm.kFin).symm
+              ⟨offset + position.val, by omega⟩)).flatten := by
+  intro tm H start rowBase n
+  induction n with
+  | zero =>
+      intro offset hbound
+      simpa [affineExactlyOneStackFamilyFrames] using
+        affineExactlyOneStackFrames_eq_arithmeticStack tm H start rowBase
+          ((@Fintype.equivFin tm.K tm.kFin).symm
+            ⟨offset, by omega⟩)
+  | succ n ih =>
+      intro offset hbound
+      conv_lhs => rw [List.ofFn_succ]
+      conv_rhs => rw [List.ofFn_succ]
+      simp only [affineExactlyOneStackFamilyFrames, Fin.val_zero,
+        Nat.add_zero, Fin.val_succ, List.flatten_cons]
+      rw [affineExactlyOneStackFrames_eq_arithmeticStack]
+      congr 1
+      have hstart := arithmeticStackHeight_start_succ
+        tm H start rowBase offset (by omega)
+      have hbase := arithmeticStackHeight_rowBase_succ
+        tm H start rowBase offset (by omega)
+      rw [← hstart, ← hbase]
+      convert ih (offset + 1) (by omega) using 1
+      · congr 1
+        apply List.ofFn_inj.mpr
+        funext position
+        have hposition :
+            (⟨offset + (position.val + 1), by omega⟩ :
+              Fin (@Fintype.card tm.K tm.kFin)) =
+              ⟨offset + 1 + position.val, by omega⟩ := by
+          apply Fin.ext
+          change offset + (position.val + 1) = offset + 1 + position.val
+          omega
+        rw [hposition]
+      · apply congrArg List.flatten
+        apply List.ofFn_inj.mpr
+        funext position
+        have hposition :
+            (⟨offset + (position.val + 1), by omega⟩ :
+              Fin (@Fintype.card tm.K tm.kFin)) =
+              ⟨offset + 1 + position.val, by omega⟩ := by
+          apply Fin.ext
+          change offset + (position.val + 1) = offset + 1 + position.val
+          omega
+        rw [hposition]
+
 /-- The raw row frames are exactly the semantic groups in their explicit
 `cfgOneHotGroupEquivFin` order. -/
 theorem arithmeticRawOneHotFrames_eq_groupFrames
@@ -592,6 +941,52 @@ theorem arithmeticStructuredOneHotFrames_eq_raw
   apply congrArg (arithmeticOneHotGroupFrame tm H start rowBase)
   symm
   exact cfgOneHotGroupEquivFin_symm_stackCell_natAdd tm H stack index
+
+/-- Instantiating the fixed structured-row source with the verifier's finite
+widths produces the canonical arithmetic one-hot frames for one row. -/
+theorem affineExactlyOneStructuredRowFrames_eq_arithmeticRaw
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineExactlyOneStructuredRowFrames (labelCount tm + 1) (stateCount tm)
+        (verifierOneHotCellCounts tm) H start rowBase =
+      arithmeticRawOneHotFrames tm H start rowBase := by
+  rw [← arithmeticStructuredOneHotFrames_eq_raw]
+  unfold affineExactlyOneStructuredRowFrames
+    arithmeticStructuredOneHotFrames
+  rw [arithmeticOneHotPrefixFrames_eq_explicit]
+  simp only [affineExactlyOnePrefixFrames, verifierOneHotCellCounts]
+  congr 1
+  by_cases hzero : @Fintype.card tm.K tm.kFin = 0
+  · simp [hzero, affineExactlyOneStackFamilyFrames]
+  · obtain ⟨n, hcard⟩ : ∃ n,
+        @Fintype.card tm.K tm.kFin = n + 1 :=
+      Nat.exists_eq_succ_of_ne_zero hzero
+    have hpositive : 0 < @Fintype.card tm.K tm.kFin := by omega
+    have hfamily := affineExactlyOneStackFamilyFrames_fromArithmetic
+      tm H start rowBase n 0 (by omega)
+    rw [arithmeticFirstStackHeight_start tm H start rowBase hpositive,
+      arithmeticFirstStackHeight_rowBase tm H start rowBase hpositive]
+      at hfamily
+    convert hfamily using 1
+    · congr 1
+      rw [List.ofFn_congr hcard]
+      apply List.ofFn_inj.mpr
+      funext position
+      have hposition : Fin.cast hcard.symm position =
+          (⟨0 + position.val, by omega⟩ :
+            Fin (@Fintype.card tm.K tm.kFin)) := by
+        apply Fin.ext
+        simp only [Fin.val_cast, Nat.zero_add]
+      rw [hposition]
+    · apply congrArg List.flatten
+      rw [List.ofFn_congr hcard]
+      apply List.ofFn_inj.mpr
+      funext position
+      have hposition : Fin.cast hcard.symm position =
+          (⟨0 + position.val, by omega⟩ :
+            Fin (@Fintype.card tm.K tm.kFin)) := by
+        apply Fin.ext
+        simp only [Fin.val_cast, Nat.zero_add]
+      rw [hposition]
 
 /-! ## Row-seed and row-family contracts -/
 
