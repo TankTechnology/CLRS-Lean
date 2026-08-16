@@ -769,15 +769,15 @@ theorem affineCellProgressionSourceSteps_le
 
 private def affineCellProgressionSource_runFrom
     (blankStep count right left blank : Nat) (initialTest : Bool)
-    (output : List UnaryFrameSym) :
+    (tail output : List UnaryFrameSym) :
     EvalsToInTime
       (step (affineCellProgressionSourceRevProgram blankStep))
       (affineCellProgressionSourceCfg .loop none initialTest
-        (List.replicate count .tick ++ [.frameEnd]) output []
+        (List.replicate count .tick ++ .frameEnd :: tail) output []
         (List.replicate right ()) (List.replicate left ())
         (List.replicate blank ()))
       (some (affineCellProgressionSourceCfg .finish (some .frameEnd)
-        (affineCellProgressionSourceFinishTest count initialTest) []
+        (affineCellProgressionSourceFinishTest count initialTest) tail
         ((encodeAffineCellFamily
           (affineCellProgressionFrames blankStep count
             right left blank)).reverse ++ output) []
@@ -786,13 +786,13 @@ private def affineCellProgressionSource_runFrom
         (List.replicate (blank + blankStep * count) ())))
       (affineCellProgressionSourceSteps blankStep count
         right left blank) := by
-  induction count generalizing right left blank initialTest output with
+  induction count generalizing right left blank initialTest tail output with
   | zero =>
       refine ⟨⟨1, ?_⟩, le_rfl⟩
       rfl
   | succ count ih =>
       let restInput := List.replicate count UnaryFrameSym.tick ++
-        [UnaryFrameSym.frameEnd]
+        UnaryFrameSym.frameEnd :: tail
       let loopAfterPop := affineCellProgressionSourceCfg
         (blankStep := blankStep) .emitRight (some .tick) initialTest
         restInput output []
@@ -801,7 +801,7 @@ private def affineCellProgressionSource_runFrom
       have hpop : EvalsToInTime
           (step (affineCellProgressionSourceRevProgram blankStep))
           (affineCellProgressionSourceCfg .loop none initialTest
-            (List.replicate (count + 1) .tick ++ [.frameEnd]) output []
+            (List.replicate (count + 1) .tick ++ .frameEnd :: tail) output []
             (List.replicate right ()) (List.replicate left ())
             (List.replicate blank ()))
           (some loopAfterPop) 1 := by
@@ -810,7 +810,7 @@ private def affineCellProgressionSource_runFrom
       have hgroup := affineCellProgressionSource_runGroup
         blankStep right left blank initialTest restInput output
       have hrest := ih (right + 6) (left - 1) (blank + blankStep) true
-        ((encodeAffineCellFrame
+        tail ((encodeAffineCellFrame
           { right := right, left := left, blank := blank }).reverse ++ output)
       let h₁ := EvalsToInTime.trans
         (step (affineCellProgressionSourceRevProgram blankStep)) _ _ _
@@ -852,7 +852,31 @@ def affineCellProgressionSource_runToFinish
   simpa [affineCellProgressionSourceLoadedCfg,
     affineCellProgressionSourceFinishCfg] using
     affineCellProgressionSource_runFrom
-      blankStep count right left blank false output
+      blankStep count right left blank false [] output
+
+/-- Contextual form of the loaded cell progression: the explicit sentinel is
+consumed while an arbitrary following invocation remains untouched. -/
+def affineCellProgressionSource_runToFinishWithTail
+    (blankStep count right left blank : Nat)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineCellProgressionSourceRevProgram blankStep))
+      (affineCellProgressionSourceCfg .loop none false
+        (List.replicate count .tick ++ .frameEnd :: tail) output []
+        (List.replicate right ()) (List.replicate left ())
+        (List.replicate blank ()))
+      (some (affineCellProgressionSourceCfg .finish (some .frameEnd)
+        (affineCellProgressionSourceFinishTest count false) tail
+        ((encodeAffineCellFamily
+          (affineCellProgressionFrames blankStep count
+            right left blank)).reverse ++ output) []
+        (List.replicate (right + 6 * count) ())
+        (List.replicate (left - count) ())
+        (List.replicate (blank + blankStep * count) ())))
+      (affineCellProgressionSourceSteps blankStep count
+        right left blank) :=
+  affineCellProgressionSource_runFrom blankStep count right left blank false
+    tail output
 
 /-! ## One complete loaded stack frame -/
 
@@ -982,6 +1006,26 @@ def affineRuntimeStackSourceFinishCfg (blankStep : Nat)
     BuilderCfg (affineRuntimeStackSourceRevProgram blankStep) :=
   affineRuntimeStackSourceCfg .finish (some .frameEnd)
     (affineCellProgressionSourceFinishTest seed.count false) [] output []
+    (List.replicate (seed.cellRight + 6 * seed.count) ())
+    (List.replicate (seed.cellLeft - seed.count) ())
+    (List.replicate (seed.cellBlank + blankStep * seed.count) ())
+
+/-- Contextual entry preserving an arbitrary invocation after this stack. -/
+def affineRuntimeStackSourceLoadedCfgWithTail (blankStep : Nat)
+    (seed : AffineRuntimeStackSourceSeed) (tail output : List UnaryFrameSym) :
+    BuilderCfg (affineRuntimeStackSourceRevProgram blankStep) :=
+  affineRuntimeStackSourceCfg .copyHeader none false
+    (encodeAffineRuntimeStackSourceInvocation seed ++ tail) output []
+    (List.replicate seed.cellRight ())
+    (List.replicate seed.cellLeft ())
+    (List.replicate seed.cellBlank ())
+
+/-- Contextual continuation preserving the following invocation. -/
+def affineRuntimeStackSourceFinishCfgWithTail (blankStep : Nat)
+    (seed : AffineRuntimeStackSourceSeed) (tail output : List UnaryFrameSym) :
+    BuilderCfg (affineRuntimeStackSourceRevProgram blankStep) :=
+  affineRuntimeStackSourceCfg .finish (some .frameEnd)
+    (affineCellProgressionSourceFinishTest seed.count false) tail output []
     (List.replicate (seed.cellRight + 6 * seed.count) ())
     (List.replicate (seed.cellLeft - seed.count) ())
     (List.replicate (seed.cellBlank + blankStep * seed.count) ())
@@ -1196,21 +1240,29 @@ private def affineRuntimeStackSource_copy_run {blankStep : Nat}
         omega
 
 private def affineRuntimeStackSource_cells_run (blankStep : Nat)
-    (seed : AffineRuntimeStackSourceSeed) (output : List UnaryFrameSym) :
+    (seed : AffineRuntimeStackSourceSeed)
+    (tail output : List UnaryFrameSym) :
     EvalsToInTime (step (affineRuntimeStackSourceRevProgram blankStep))
       (runtimeStackSourceRelabelCfg
-        (affineCellProgressionSourceLoadedCfg blankStep seed.count
-          seed.cellRight seed.cellLeft seed.cellBlank output))
+        (affineCellProgressionSourceCfg .loop none false
+          (List.replicate seed.count .tick ++ .frameEnd :: tail) output []
+          (List.replicate seed.cellRight ())
+          (List.replicate seed.cellLeft ())
+          (List.replicate seed.cellBlank ())))
       (some (runtimeStackSourceRelabelCfg
-        (affineCellProgressionSourceFinishCfg blankStep seed.count
-          seed.cellRight seed.cellLeft seed.cellBlank
+        (affineCellProgressionSourceCfg .finish (some .frameEnd)
+          (affineCellProgressionSourceFinishTest seed.count false) tail
           ((encodeAffineCellFamily
             (affineCellProgressionFrames blankStep seed.count
-              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++ output))))
+              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++ output) []
+          (List.replicate (seed.cellRight + 6 * seed.count) ())
+          (List.replicate (seed.cellLeft - seed.count) ())
+          (List.replicate
+            (seed.cellBlank + blankStep * seed.count) ()))))
       (affineCellProgressionSourceSteps blankStep seed.count
         seed.cellRight seed.cellLeft seed.cellBlank) := by
-  have sourceRun := affineCellProgressionSource_runToFinish blankStep
-    seed.count seed.cellRight seed.cellLeft seed.cellBlank output
+  have sourceRun := affineCellProgressionSource_runToFinishWithTail blankStep
+    seed.count seed.cellRight seed.cellLeft seed.cellBlank tail output
   refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
   exact affineRuntimeStackSource_lift_iterations rfl sourceRun.steps
     sourceRun.evals_in_steps
@@ -1223,6 +1275,58 @@ def affineRuntimeStackSourceSteps (blankStep : Nat)
     affineCellProgressionSourceSteps blankStep seed.count
       seed.cellRight seed.cellLeft seed.cellBlank + 1
 
+/-- Contextual exact run preserving the invocation that follows this stack. -/
+def affineRuntimeStackSource_runToFinishWithTail (blankStep : Nat)
+    (seed : AffineRuntimeStackSourceSeed)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime (step (affineRuntimeStackSourceRevProgram blankStep))
+      (affineRuntimeStackSourceLoadedCfgWithTail blankStep seed tail output)
+      (some (affineRuntimeStackSourceFinishCfgWithTail blankStep seed tail
+        ((encodeAffineStackFrame
+          (affineRuntimeStackSourceFrame blankStep seed)).reverse ++ output)))
+      (affineRuntimeStackSourceSteps blankStep seed) := by
+  let header := encodeUnaryFrame [seed.count, seed.maskStart,
+    seed.maskBase + seed.count]
+  have hcopy := affineRuntimeStackSource_copy_run
+    (blankStep := blankStep) header
+    (List.replicate seed.count .tick ++ .frameEnd :: tail) output none
+    seed.cellRight seed.cellLeft seed.cellBlank
+    (unaryFrame_no_frameEnd _)
+  have hcells := affineRuntimeStackSource_cells_run blankStep seed tail
+    (header.reverse ++ output)
+  let h₁ := EvalsToInTime.trans
+    (step (affineRuntimeStackSourceRevProgram blankStep)) _ _ _ _ _
+      hcopy hcells
+  have hend : EvalsToInTime
+      (step (affineRuntimeStackSourceRevProgram blankStep))
+      (runtimeStackSourceRelabelCfg
+        (affineCellProgressionSourceCfg .finish (some .frameEnd)
+          (affineCellProgressionSourceFinishTest seed.count false) tail
+          ((encodeAffineCellFamily
+            (affineCellProgressionFrames blankStep seed.count
+              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++
+                (header.reverse ++ output)) []
+          (List.replicate (seed.cellRight + 6 * seed.count) ())
+          (List.replicate (seed.cellLeft - seed.count) ())
+          (List.replicate
+            (seed.cellBlank + blankStep * seed.count) ())))
+      (some (affineRuntimeStackSourceFinishCfgWithTail blankStep seed tail
+        (.frameEnd ::
+          (encodeAffineCellFamily
+            (affineCellProgressionFrames blankStep seed.count
+              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++
+            (header.reverse ++ output)))) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans
+    (step (affineRuntimeStackSourceRevProgram blankStep)) _ _ _ _ _ h₁ hend
+  convert full using 1
+  · simp [affineRuntimeStackSourceLoadedCfgWithTail,
+      encodeAffineRuntimeStackSourceInvocation, header]
+  · simp [affineRuntimeStackSourceFinishCfgWithTail,
+      affineRuntimeStackSourceFrame, encodeAffineStackFrame, header,
+      List.reverse_append, List.append_assoc]
+  · simp [affineRuntimeStackSourceSteps, header]
+    omega
+
 /-- The continuous loaded source emits the exact reversed encoding of one
 complete `AffineStackFrame`. -/
 def affineRuntimeStackSource_runToFinish (blankStep : Nat)
@@ -1233,43 +1337,11 @@ def affineRuntimeStackSource_runToFinish (blankStep : Nat)
         ((encodeAffineStackFrame
           (affineRuntimeStackSourceFrame blankStep seed)).reverse ++ output)))
       (affineRuntimeStackSourceSteps blankStep seed) := by
-  let header := encodeUnaryFrame [seed.count, seed.maskStart,
-    seed.maskBase + seed.count]
-  have hcopy := affineRuntimeStackSource_copy_run
-    (blankStep := blankStep) header
-    (List.replicate seed.count .tick ++ [.frameEnd]) output none
-    seed.cellRight seed.cellLeft seed.cellBlank
-    (unaryFrame_no_frameEnd _)
-  have hcells := affineRuntimeStackSource_cells_run blankStep seed
-    (header.reverse ++ output)
-  let h₁ := EvalsToInTime.trans
-    (step (affineRuntimeStackSourceRevProgram blankStep)) _ _ _ _ _
-      hcopy hcells
-  have hend : EvalsToInTime
-      (step (affineRuntimeStackSourceRevProgram blankStep))
-      (runtimeStackSourceRelabelCfg
-        (affineCellProgressionSourceFinishCfg blankStep seed.count
-          seed.cellRight seed.cellLeft seed.cellBlank
-          ((encodeAffineCellFamily
-            (affineCellProgressionFrames blankStep seed.count
-              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++
-                (header.reverse ++ output))))
-      (some (affineRuntimeStackSourceFinishCfg blankStep seed
-        (.frameEnd ::
-          (encodeAffineCellFamily
-            (affineCellProgressionFrames blankStep seed.count
-              seed.cellRight seed.cellLeft seed.cellBlank)).reverse ++
-            (header.reverse ++ output)))) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
-  let full := EvalsToInTime.trans
-    (step (affineRuntimeStackSourceRevProgram blankStep)) _ _ _ _ _ h₁ hend
-  convert full using 1
-  · simp [affineRuntimeStackSourceLoadedCfg,
-      encodeAffineRuntimeStackSourceInvocation, header]
-  · simp [affineRuntimeStackSourceFinishCfg,
-      affineRuntimeStackSourceFrame, encodeAffineStackFrame, header,
-      List.reverse_append, List.append_assoc]
-  · simp [affineRuntimeStackSourceSteps, header]
-    omega
+  simpa [affineRuntimeStackSourceLoadedCfg,
+    affineRuntimeStackSourceFinishCfg,
+    affineRuntimeStackSourceLoadedCfgWithTail,
+    affineRuntimeStackSourceFinishCfgWithTail] using
+      affineRuntimeStackSource_runToFinishWithTail blankStep seed [] output
 
 /-- Quadratic contextual runtime bound in the full stack-source payload. -/
 theorem affineRuntimeStackSourceSteps_le (blankStep : Nat)
