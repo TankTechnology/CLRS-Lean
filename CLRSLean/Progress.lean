@@ -34,8 +34,7 @@ every theorem already selected for that chapter is proved.
 
 ## Status Counts
 
-* {lit}`main-proof-complete`: 32 chapters.
-* {lit}`main-proof-complete-for-correctness`: 1 chapter.
+* {lit}`main-proof-complete`: 33 chapters.
 * {lit}`partial`: 1 chapter.
 * {lit}`expository`: 1 chapter.
 
@@ -63,7 +62,7 @@ Ch  Chapter                                                     Status          
 17  17. Augmenting Data Structures                              main-proof-complete                  17.1;17.2;17.3                     79        0
 18  18. B-Trees                                                 main-proof-complete                  18.1;18.2;18.3                    147        0
 19  19. Data Structures for Disjoint Sets                       main-proof-complete                  19.1;19.2;19.3;19.4                84        0
-20  20. Elementary Graph Algorithms                             main-proof-complete-for-correctness  20.1;20.2;20.3;20.4;20.5           47        0
+20  20. Elementary Graph Algorithms                             main-proof-complete                  20.1;20.2;20.3;20.4;20.5           47        0
 21  21. Minimum Spanning Trees                                  main-proof-complete                  21.1;21.2                          52        0
 22  22. Single-Source Shortest Paths                            main-proof-complete                  22.1;22.2;22.3;22.4;22.5           31        0
 23  23. All-Pairs Shortest Paths                                main-proof-complete                  23.1;23.2;23.3                     29        0
