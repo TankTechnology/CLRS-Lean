@@ -278,9 +278,15 @@ and the runtime-height stack/cell loops to the compact triples consumed by
   is identified exactly with `arithmeticStackOneHotFrames` at the semantic
   Cook--Levin parameters.
 
-The remaining outer controller must iterate this verified block over every
-fixed stack, starting from the completed label/state prefix, and then continue
-to the following row.
+- [x] Recursively assemble the single-stack component over an arbitrary fixed
+  list of cell-symbol widths.  The resulting one-program stack-family source
+  emits every height-plus-cells block in order, threads the affine offsets,
+  preserves runtime `H`, handles the empty fixed family, and has an exact
+  recursive execution-time theorem.
+
+The remaining outer controller must connect the completed label/state prefix
+to this verified stack-family source, identify the chosen fixed width list
+with the verifier machine's stacks, and then continue to the following row.
 
 - [ ] **Step 2: Compile the fixed group prefix and runtime-height stack groups**
 
