@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialUnaryFrame
+
+namespace CLRS.Chapter34.Turing.PolyBuilder
+
+#check exactPolynomialUnaryFrame
+#check exactPolynomialUnaryFrame_eq
+#check exactPolynomialUnaryFrame_computableInPolyTime
+
+#print axioms unaryFrameSymbols_sentinelInput
+#print axioms exactPolynomialUnaryFrame_eq
+#print axioms exactPolynomialUnaryFrame_computableInPolyTime
+
+end CLRS.Chapter34.Turing.PolyBuilder
