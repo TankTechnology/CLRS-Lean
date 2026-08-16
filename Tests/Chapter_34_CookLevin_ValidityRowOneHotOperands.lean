@@ -3,8 +3,16 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 open CLRS.Chapter34.Turing.CookLevin
 
 #check affineExactlyOneRuntimeFrameAt
+#check affineExactlyOnePrefixCost_succ
+#check affineExactlyOneRuntimeFrameAt_succ_start
+#check affineExactlyOneRuntimeFrameAt_add_const_start
 #check affineExactlyOneRuntimeFrames_eq_ofFn
 #check arithmeticOneHotGroupFrame
+#check arithmeticStackCellOneHotProgression
+#check arithmeticOneHotGroupFrame_stackCell_rowBase
+#check arithmeticOneHotGroupFrame_stackCell_count
+#check arithmeticOneHotGroupFrame_stackCell_start
+#check arithmeticStackCellOneHotProgression_frames
 #check arithmeticRawOneHotFrames_eq_groupFrames
 #check validityRowSeedOneHotFrames
 #check validityRowSeedOneHotFrames_eq_expand
@@ -13,4 +21,5 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #print axioms affineExactlyOneRuntimeFrames_eq_ofFn
 #print axioms arithmeticRawOneHotFrames_eq_groupFrames
+#print axioms arithmeticStackCellOneHotProgression_frames
 #print axioms validityRowSeedOneHotFamily_eq_canonical
