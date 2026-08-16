@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailRowFamilySource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -20,6 +21,35 @@ noncomputable section
 namespace CLRS.Chapter34.Turing.CookLevin
 
 open PolyBuilder
+
+/-- Initial blank-coordinate wire for the runtime cell progression.  This
+closed expression remains meaningful when the horizon is zero. -/
+def arithmeticStackCellBlankBase
+    (tm : _root_.Turing.FinTM2) (H rowBase : Nat) (k : tm.K) : Nat :=
+  rowBase + (1 + (labelCount tm + 1) + stateCount tm +
+    cfgStackBitOffset tm H k + (H + 1) +
+      (reachableAlphabet tm k).card)
+
+/-- The mixed-progression source target is exactly the canonical ordered
+cell-frame family for one Cook--Levin stack, including `H = 0`. -/
+theorem affineCellProgressionFrames_eq_arithmeticStackCellFrames
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) (k : tm.K) :
+    affineCellProgressionFrames ((reachableAlphabet tm k).card + 1) H
+        (arithmeticStackCellTraceStart tm H start k)
+        (arithmeticStackBlockStart tm H start k + H)
+        (arithmeticStackCellBlankBase tm H rowBase k) =
+      arithmeticStackCellFrames tm H start rowBase k := by
+  rw [affineCellProgressionFrames_eq_ofFn]
+  unfold arithmeticStackCellFrames
+  apply List.ofFn_inj.mpr
+  funext index
+  simp only [AffineCellFrame.mk.injEq]
+  constructor
+  · simp [arithmeticStackCellNotWire]
+  constructor
+  · simp [arithmeticStackMaskOutputWire]
+  · simp [arithmeticStackCellBlankBase, arithmeticStackBlankWire]
+    ring
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/
