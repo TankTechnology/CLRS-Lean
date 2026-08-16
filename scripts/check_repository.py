@@ -18,6 +18,8 @@ CHECK_COMMANDS = [
     ("scripts/test_check_progress_csv.py",),
     ("scripts/check_status_claims.py",),
     ("scripts/test_check_status_claims.py",),
+    ("scripts/check_book_coverage.py",),
+    ("scripts/test_check_book_coverage.py",),
     ("scripts/gen_readme_table.py", "--check"),
     ("scripts/test_gen_readme_table.py",),
     ("scripts/check_site_consistency.py",),
