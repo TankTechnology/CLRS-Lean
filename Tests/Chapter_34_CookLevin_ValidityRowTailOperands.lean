@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailOperands
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check validityRowSeedTailFrame
+#check validityRowSeedTailFrame_eq_expand
+#check validityRowSeedTailFamily
+#check validityRowSeedTailFamily_eq_canonical
+#check verifierValidityRowTailOperandFrames
+#check verifierValidityRowTailOperandFrames_eq_canonical
+
+#print axioms validityRowSeedTailFamily_eq_canonical
+#print axioms verifierValidityRowTailOperandFrames_eq_canonical
