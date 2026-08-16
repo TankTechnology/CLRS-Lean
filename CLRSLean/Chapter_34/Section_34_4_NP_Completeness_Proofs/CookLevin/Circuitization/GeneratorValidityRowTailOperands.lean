@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
 
 /-!
@@ -252,6 +253,100 @@ theorem arithmeticRuntimeStackFamilySource_steps_le
             1) ^ 2 :=
   affineRuntimeStackFamilySourceSteps_le _ _
     (arithmeticRuntimeStackSourceSeeds_length tm H start rowBase)
+
+/-! ## Closed operands of the final validity conjunction -/
+
+/-- Raw one-hot outputs in their canonical public order, obtained directly
+from the already structured runtime frames. -/
+noncomputable def arithmeticFinalConjunctionRawWires
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List Nat :=
+  (arithmeticRawOneHotFrames tm H start rowBase).map
+    affineExactlyOneFrameOutputWire
+
+/-- Stack-cell canonicality outputs in stack-major/cell-major order.  The
+formula is independent of the source wires and names the last gate of each
+six-gate cell block. -/
+noncomputable def arithmeticFinalConjunctionStackWires
+    (tm : _root_.Turing.FinTM2) (H start : Nat) : List Nat :=
+  List.ofFn fun position : Fin (arithmeticStackCount tm * H) =>
+    let pair := (finProdFinEquiv
+      (m := arithmeticStackCount tm) (n := H)).symm position
+    arithmeticStackValidityStart tm H start +
+      (H + 1 + 6 * H) * pair.1.val + (H + 1) +
+        6 * pair.2.val + 5
+
+/-- Fully arithmetic public wire list of the final conjunction: structured
+one-hot frame outputs, halted agreement, then the affine stack-cell family. -/
+noncomputable def arithmeticFinalConjunctionWires
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) : List Nat :=
+  arithmeticFinalConjunctionRawWires tm H start rowBase ++
+    (arithmeticHaltedMatchStart tm H start + 4) ::
+      arithmeticFinalConjunctionStackWires tm H start
+
+/-- The closed arithmetic list is exactly the semantic constraint list used
+by the established Cook--Levin validity circuit. -/
+theorem arithmeticFinalConjunctionWires_eq_semantic
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    arithmeticFinalConjunctionWires tm H start rowBase =
+      arithmeticValidityConstraintWires tm H start rowBase := by
+  letI : Fintype tm.K := tm.kFin
+  let wires := arithmeticCfgWires tm H rowBase
+  let raw := rawOneHotGateTrace start wires
+  let halted := CircuitBuilder.boolEqGateTrace
+    (start + raw.gates.length) wires.halted
+    (wires.label (Fin.last (labelCount tm)))
+  let stack := stackValidityFamilyGateTrace
+    (start + raw.gates.length + halted.gates.length) wires
+    (Fintype.card tm.K) (fun j => (Fintype.equivFin tm.K).symm j)
+  let groupEquiv := cfgOneHotGroupEquivFin tm H
+  let rawConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun j : Fin (cfgOneHotGroupCount tm H) =>
+      raw.outputs (groupEquiv.symm j)
+  let stackConstraints : List CircuitBuilder.Wire :=
+    List.ofFn fun p : Fin (Fintype.card tm.K * H) =>
+      let q := (finProdFinEquiv
+        (m := Fintype.card tm.K) (n := H)).symm p
+      stack.outputs q.1 q.2
+  have hraw : arithmeticFinalConjunctionRawWires tm H start rowBase =
+      rawConstraints := by
+    unfold arithmeticFinalConjunctionRawWires
+    rw [arithmeticRawOneHotFrames_eq_groupFrames, List.map_ofFn]
+    apply List.ofFn_inj.mpr
+    funext index
+    exact (arithmeticRawOneHot_output_eq_frame tm H start rowBase
+      (groupEquiv.symm index)).symm
+  have hrawLength : raw.gates.length =
+      arithmeticRawOneHotGateCount tm H := by
+    simpa [raw, wires] using
+      rawOneHotGateTrace_length_eq_arithmetic tm H start rowBase
+  have hhalted : halted.wire =
+      arithmeticHaltedMatchStart tm H start + 4 := by
+    simp [halted, CircuitBuilder.boolEqGateTrace,
+      arithmeticHaltedMatchStart, hrawLength]
+  have hstackStart : start + raw.gates.length + halted.gates.length =
+      arithmeticStackValidityStart tm H start := by
+    simp [halted, arithmeticStackValidityStart,
+      arithmeticHaltedMatchStart, hrawLength]
+  have hstack : arithmeticFinalConjunctionStackWires tm H start =
+      stackConstraints := by
+    unfold arithmeticFinalConjunctionStackWires
+    apply List.ofFn_inj.mpr
+    funext position
+    let pair := (finProdFinEquiv
+      (m := Fintype.card tm.K) (n := H)).symm position
+    change arithmeticStackValidityStart tm H start +
+        (H + 1 + 6 * H) * pair.1.val + (H + 1) +
+          6 * pair.2.val + 5 =
+      stack.outputs pair.1 pair.2
+    rw [stackValidityFamilyGateTrace_output_eq]
+    rw [hstackStart]
+  unfold arithmeticFinalConjunctionWires
+    arithmeticValidityConstraintWires
+  change arithmeticFinalConjunctionRawWires tm H start rowBase ++
+      (arithmeticHaltedMatchStart tm H start + 4) ::
+        arithmeticFinalConjunctionStackWires tm H start =
+    rawConstraints ++ halted.wire :: stackConstraints
+  rw [hraw, hhalted, hstack]
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/

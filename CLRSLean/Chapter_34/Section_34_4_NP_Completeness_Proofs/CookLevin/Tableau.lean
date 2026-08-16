@@ -798,6 +798,16 @@ def exactlyOneGateTrace (start : Nat)
     (exactlyOneGateTrace start wires).gates.length = 3 * wires.length + 4 := by
   simp [exactlyOneGateTrace, exactlyOneScanGateTrace_length]
 
+/-- The output of an exactly-one block is its last fresh gate.  This closed
+index is the arithmetic interface used by uniform serializers of families of
+exactly-one constraints. -/
+@[simp] theorem exactlyOneGateTrace_wire (start : Nat)
+    (wires : List CircuitBuilder.Wire) :
+    (exactlyOneGateTrace start wires).wire =
+      start + 3 * wires.length + 3 := by
+  simp [exactlyOneGateTrace, exactlyOneScanGateTrace_length]
+  omega
+
 /-! The fold presentation below is the executable view used by the concrete
 serializer.  It is intentionally public: clients do not need access to the
 private proof-oriented scan record in order to enumerate the exact trace. -/

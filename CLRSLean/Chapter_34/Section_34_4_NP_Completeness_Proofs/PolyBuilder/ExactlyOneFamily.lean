@@ -883,6 +883,11 @@ structure AffineExactlyOneFrame where
   count : Nat
 deriving DecidableEq, Repr
 
+/-- Last fresh wire of the `3 * count + 4` gate block represented by one
+runtime exactly-one frame. -/
+def affineExactlyOneFrameOutputWire (frame : AffineExactlyOneFrame) : Nat :=
+  frame.start + 3 * frame.count + 3
+
 /-- Delimiter-bearing input block for one affine exactly-one group. -/
 def encodeAffineExactlyOneFrame (frame : AffineExactlyOneFrame) : List UnaryFrameSym :=
   encodeUnaryFrame [frame.start, frame.start + 2, frame.rowBase, frame.count]
