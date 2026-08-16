@@ -39,6 +39,10 @@ Whole-tableau assembly now closes a well-formed circuit with exact language
 semantics and polynomial gate/input/encoding bounds.  The function-level
 Cook--Levin map and the exact finite-certificate semantics of
 {lit}`GeneralCircuitSAT` are also complete.  The certificate checker now has a
-concrete polynomial-time TM2 and yields `GeneralCircuitSAT ∈ NP`; the concrete
-polynomial-time TM2 implementation of the Cook--Levin map remains downstream.
+concrete polynomial-time TM2 and yields `GeneralCircuitSAT ∈ NP`.  The explicit
+map, its exact semantics, and its polynomial output bound are assembled into
+{lit}`cookLevin_textbookCircuitization`.  This semantic-and-size package does
+not imply NP-hardness: the concrete polynomial-time TM2 implementation of the
+map, needed for the standard {lit}`NPHard` and {lit}`NPComplete` predicates,
+remains downstream.
 -/

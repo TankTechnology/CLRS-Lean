@@ -58,7 +58,10 @@ well.  The function-level `cookLevinMap` exposes this encoding with exact
 membership semantics and a polynomial output-length theorem.
 `GeneralCircuitSAT` independently has an executable Boolean-symbol certificate
 checker whose accepted certificates of length at most the instance length
-characterize membership exactly.
+characterize membership exactly, together with a concrete polynomial-time TM2
+and the resulting `GeneralCircuitSAT ∈ NP` theorem.  The explicit Cook--Levin
+map and its semantic and size contracts are packaged for every NP language by
+{lit}`cookLevin_textbookCircuitization`.
 
 ## Coverage boundary
 
@@ -71,10 +74,12 @@ semantic core of Lemma 34.10) are proved.  General graph-plus-`k` CLIQUE and
 Section 34.5 (NP-complete problems) are not yet represented.  Within
 Cook--Levin circuitization, the whole-tableau semantic circuit and its
 polynomial gate bound are complete; the mathematical reduction map and
-finite-certificate semantics are also complete.  Concrete polynomial-time
-TM2 implementations of the circuit generator and certificate checker, and
-the final `GeneralCircuitSAT` NP-completeness wrappers, remain downstream.
-This guide remains partial and does not claim those later layers.
+finite-certificate semantics are also complete.  The semantic-and-size
+circuitization package is closed, but polynomial output length alone is not a
+polynomial-time reduction.  The concrete polynomial-time TM2 implementation of
+the circuit generator, and therefore the standard {lit}`NPHard` and
+{lit}`NPComplete GeneralCircuitSAT` theorems, remain downstream.  This guide
+remains partial and does not claim those theorems.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

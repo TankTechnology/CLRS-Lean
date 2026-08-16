@@ -51,11 +51,15 @@ repository row whose status remains {lit}`partial`.
   whole-tableau circuit, its polynomial gate/input/encoding bounds, the exact
   function-level map, and finite-certificate semantics for
   `GeneralCircuitSAT`.  A concrete TM2 now computes the exact certificate-
-  checker Boolean on every input, and its successful canonical runs have a
-  quadratic bound.  A uniform polynomial bound for all rejecting routes, the
-  concrete polynomial-time generator TM2, the final `GeneralCircuitSAT`
-  NP-completeness wrappers, general graph-plus-{lit}`k` CLIQUE, and Section
-  34.5 remain open.
+  checker Boolean on every input, and all successful, rejecting, and malformed
+  routes share an explicit polynomial runtime bound, proving
+  `GeneralCircuitSAT ∈ NP`.  The explicit Cook--Levin map, semantic equivalence,
+  and polynomial output-length bound now yield the separately named
+  {lit}`cookLevin_textbookCircuitization` semantic-and-size package.  This is
+  not NP-hardness: the concrete polynomial-time generator TM2 and hence the
+  standard {lit}`NPHard GeneralCircuitSAT` and
+  {lit}`NPComplete GeneralCircuitSAT`, general graph-plus-{lit}`k` CLIQUE, and
+  Section 34.5 remain open.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
