@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyController
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.VerifierTailController
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 
 /-!
 # Continuous Cook--Levin verifier-body controller
@@ -651,5 +652,64 @@ theorem affineVerifierBody_steps_le (script : AffineVerifierBodyScript) :
   have hlinear : 500 * n ≤ 500 * n ^ 2 := by nlinarith
   simp only [affineVerifierBodyRevSteps]
   nlinarith
+
+/-- The compiled fixed controller computes the reversed verifier-body stream
+in polynomial time from the canonical structured operand encoding. -/
+noncomputable def affineVerifierBodyRev_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineVerifierBodyScript id
+      (fun script : AffineVerifierBodyScript =>
+        (affineVerifierBodyGateStream script).reverse) where
+  tm := compile affineVerifierBodyRevProgram
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := 10000 * Polynomial.X ^ 2 + 200
+  outputsFun := fun script => by
+    have builderRun := affineVerifierBody_run script []
+    have compiledRun := compile_evalsToInTime
+      affineVerifierBodyRevProgram builderRun
+    rw [show affineVerifierBodyLoopCfg
+        (encodeAffineVerifierBodyScript script) [] =
+          initialCfg affineVerifierBodyRevProgram
+            (encodeAffineVerifierBodyScript script) by rfl] at compiledRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile affineVerifierBodyRevProgram).step
+        (_root_.Turing.initList (compile affineVerifierBodyRevProgram)
+          (encodeAffineVerifierBodyScript script))
+        (some (_root_.Turing.haltList
+          (compile affineVerifierBodyRevProgram)
+          (affineVerifierBodyGateStream script).reverse))
+        (affineVerifierBodyRevSteps script) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg,
+        List.append_nil] using compiledRun
+    have htime :
+        affineVerifierBodyRevSteps script ≤
+          (10000 * Polynomial.X ^ 2 + 200).eval
+            (encodeAffineVerifierBodyScript script).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_ofNat] using
+        affineVerifierBody_steps_le script
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile affineVerifierBodyRevProgram).step
+        (_root_.Turing.initList (compile affineVerifierBodyRevProgram)
+          (encodeAffineVerifierBodyScript script))
+        (some (_root_.Turing.haltList
+          (compile affineVerifierBodyRevProgram)
+          (affineVerifierBodyGateStream script).reverse))
+        ((10000 * Polynomial.X ^ 2 + 200).eval
+          (encodeAffineVerifierBodyScript script).length) :=
+      ⟨machineRun.toEvalsTo, le_trans machineRun.steps_le_m htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Reversing the preceding concrete output gives the forward semantic
+verifier-body gate stream under a concrete polynomial-time TM2. -/
+noncomputable def affineVerifierBodyGateStream_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineVerifierBodyScript id affineVerifierBodyGateStream := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      affineVerifierBodyRev_computableInPolyTime
+      (reverse_computableInPolyTime (Γ := CircuitSym))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.PolyBuilder
