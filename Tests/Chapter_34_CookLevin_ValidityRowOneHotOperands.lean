@@ -23,6 +23,8 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticStructuredOneHotFrames
 #check arithmeticStructuredOneHotFrames_eq_raw
 #check arithmeticRawOneHotFrames_eq_groupFrames
+#check verifierOneHotCellCounts
+#check affineExactlyOneStructuredRowFrames_eq_arithmeticRaw
 #check validityRowSeedOneHotFrames
 #check validityRowSeedOneHotFrames_eq_expand
 #check validityRowSeedOneHotFamily
@@ -30,6 +32,7 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #print axioms affineExactlyOneRuntimeFrames_eq_ofFn
 #print axioms arithmeticRawOneHotFrames_eq_groupFrames
+#print axioms affineExactlyOneStructuredRowFrames_eq_arithmeticRaw
 #print axioms arithmeticStackCellOneHotProgression_frames
 #print axioms arithmeticStructuredOneHotFrames_eq_raw
 #print axioms validityRowSeedOneHotFamily_eq_canonical
