@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleProgression
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLoader
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
@@ -802,6 +803,69 @@ noncomputable def affineExactlyOneFrameExpand_computableInPolyTime :
     _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
       affineExactlyOneFrameExpandRev_computableInPolyTime
       (reverse_computableInPolyTime (Γ := UnaryFrameSym))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-! ## Reusable affine progression source -/
+
+/-- Interpret every row of a runtime triple progression as the three
+independent fields of one exactly-one frame. -/
+def affineExactlyOneFramesOfTripleProgression
+    (progression : AffineUnaryTripleProgression) :
+    List AffineExactlyOneFrame :=
+  (affineUnaryTripleProgressionRows progression).map fun row =>
+    { start := row.1
+      rowBase := row.2.1
+      count := row.2.2 }
+
+private theorem encodeAffineExactlyOneCompactFamily_eq_flatMap
+    (frames : List AffineExactlyOneFrame) :
+    encodeAffineExactlyOneCompactFamily frames =
+      frames.flatMap encodeAffineExactlyOneCompactFrame := by
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp [encodeAffineExactlyOneCompactFamily, ih]
+
+/-- The existing triple-progression controller already emits exactly the
+compact input expected by the redundant-field expander. -/
+theorem affineUnaryTripleProgressionFrameStream_eq_compactFamily
+    (progression : AffineUnaryTripleProgression) :
+    affineUnaryTripleProgressionFrameStream progression =
+      encodeAffineExactlyOneCompactFamily
+        (affineExactlyOneFramesOfTripleProgression progression) := by
+  rw [encodeAffineExactlyOneCompactFamily_eq_flatMap]
+  simp [affineUnaryTripleProgressionFrameStream,
+    affineExactlyOneFramesOfTripleProgression, List.flatMap_map,
+    affineUnaryTripleRowValues,
+    encodeAffineExactlyOneCompactFrame]
+
+set_option maxHeartbeats 2000000 in
+/-- One fixed polynomial-time TM2 expands seven runtime progression
+parameters directly to the canonical four-field exactly-one frame family. -/
+noncomputable def
+    affineExactlyOneTripleProgressionFamily_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineUnaryTripleProgression id
+      (fun progression => encodeAffineExactlyOneFamily
+        (affineExactlyOneFramesOfTripleProgression progression)) := by
+  have compactSource : _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineUnaryTripleProgression
+      encodeAffineExactlyOneCompactFamily
+      affineExactlyOneFramesOfTripleProgression := by
+    let source :=
+      affineUnaryTripleProgressionFrameStream_computableInPolyTime
+    exact
+      { tm := source.tm
+        inputAlphabet := source.inputAlphabet
+        outputAlphabet := source.outputAlphabet
+        time := source.time
+        outputsFun := fun progression => by
+          simpa only [affineUnaryTripleProgressionFrameStream_eq_compactFamily,
+            id_eq]
+            using source.outputsFun progression }
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      compactSource affineExactlyOneFrameExpand_computableInPolyTime
   simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.PolyBuilder

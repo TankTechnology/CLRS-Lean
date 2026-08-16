@@ -202,6 +202,15 @@ compose the established reverse pass to obtain the canonical forward family
 encoding.  This reduces Task 4's remaining source problem to generating the
 ordered compact group triples from each row seed.
 
+- [x] **Step 4: Compose runtime triple progressions with the expander**
+
+Interpret each row of `AffineUnaryTripleProgression` as
+`(start, sourceBase, count)`, prove its existing concrete stream is exactly
+the compact family encoding, and compose it with the expander.  The resulting
+fixed polynomial-time TM2 directly produces canonical four-field frames from
+seven runtime progression parameters; Task 4 can instantiate it for each
+stack's `H` consecutive cell-symbol groups.
+
 ### Task 4: Runtime-height one-hot frame compiler
 
 **Files:**
