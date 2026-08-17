@@ -2,6 +2,10 @@
 /build
 /_site
 .claude/
+!.claude/
+!.claude/skills/
+!.claude/skills/semantic-fidelity-audit/
+!.claude/skills/semantic-fidelity-audit/**
 *.olean
 *.ilean
 *.c
