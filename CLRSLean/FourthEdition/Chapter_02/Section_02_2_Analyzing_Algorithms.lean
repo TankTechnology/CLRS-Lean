@@ -7,6 +7,21 @@ This file records the first lightweight cost model used in the Chapter 2
 workflow.  It does not try to formalize a full RAM model yet.  Instead it
 captures the standard insertion-sort worst-case comparison count as a triangular
 sum and proves a quadratic upper bound.
+
+## Known simplifications
+
+* `EventuallyBoundedBy` is an O-notation upper-bound predicate; the textbook
+  uses Θ-notation (both upper and lower bounds) in §2.2.  The lower-bound
+  direction is a later strengthening target.
+* The cost model tracks only the while-loop comparison count via `triangular`;
+  it does not account for for-loop overhead, assignment statements, or the
+  full line-by-line cost table in CLRS p. 25.
+* Discursive content (why worst-case analysis is preferred, RAM-model
+  instruction set enumeration) is not formalized — this is a reasonable
+  omission for a theorem-oriented companion.
+* `Nat` subtraction truncates to 0 when `n = 0`, so `triangular (n - 1)` gives
+  `triangular 0 = 0` for `n = 0`, which is consistent with the textbook
+  convention of zero comparisons for an empty input.
 -/
 
 namespace CLRS
