@@ -20,7 +20,7 @@ lemmas locally if we want a from-scratch artifact.
 
 ## Known simplifications
 
-* The algorithm delegates to Lean's verified `List.mergeSort` instead of
+* The algorithm delegates to Lean's verified {lit}`List.mergeSort` instead of
   explicitly implementing the divide/conquer/combine three-step structure
   from CLRS §2.3.
 * The MERGE procedure (the 27-line pseudocode with temporary arrays L/R and
