@@ -34,19 +34,16 @@ cat > "$T/book.txt" <<'EOF'
 Contents
 1 The Role of Algorithms
 2 Getting Started
-1
-The Role of Algorithms
+6 Chapter 1   The Role of Algorithms in Computing
 intro text
-2
-Getting Started
+42   Chapter 2       Getting Started
 2.1 Insertion sort
 algo text
-3
-Growth of Functions
+64   Chapter 3     Growth of Functions
 more
 EOF
 out=$(split_chapter "$T/book.txt" 2)
-echo "$out" | grep -q "^Getting Started" && ok || bad "ch2 should start at title line"
+echo "$out" | grep -q "42   Chapter 2" && ok || bad "ch2 should start at its opening line"
 echo "$out" | grep -q "algo text" && ok || bad "ch2 should include body"
 echo "$out" | grep -q "Growth of Functions" && bad "ch2 should exclude ch3" || ok
 
@@ -64,10 +61,8 @@ cat > "$T/bin/pdftotext" <<'EOF'
 #!/bin/bash
 # stub: write fixture text to the last argument
 cat > "${@: -1}" <<'INNER'
-1
-The Role of Algorithms
-2
-Getting Started
+6 Chapter 1   The Role of Algorithms in Computing
+42   Chapter 2       Getting Started
 algo text
 INNER
 EOF
