@@ -35,7 +35,7 @@ cache_fulltext() {
 # Line number (1-based) where chapter N starts as a bare-number line, or empty.
 chapter_start_line() {
   local txt="$1" n="$2"
-  grep -n -E "^[[:space:]]*${n}[[:space:]]*$" "$txt" | head -n1 | cut -d: -f1 || true
+  grep -n -E "^[[:space:]]*[0-9]+[[:space:]]+Chapter ${n}[[:space:]]" "$txt" | head -n1 | cut -d: -f1 || true
 }
 
 split_chapter() {
