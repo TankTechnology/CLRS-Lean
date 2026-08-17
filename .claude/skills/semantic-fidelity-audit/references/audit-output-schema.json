@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clrs-lean.dev/schemas/semantic-fidelity-audit.json",
+  "title": "Semantic Fidelity Audit Report",
+  "description": "Output schema for a semantic fidelity audit comparing a Lean formalization against a reference source.",
+  "type": "object",
+  "required": ["meta", "summary", "findings"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["target_file", "reference", "audit_timestamp", "fidelity_dimensions_version"],
+      "properties": {
+        "target_file": {
+          "type": "string",
+          "description": "Path to the .lean file under audit, relative to repo root"
+        },
+        "reference": {
+          "type": "string",
+          "description": "CLRS section number or reference file path"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["full", "theorems-only", "definitions-only", "algorithm-only"],
+          "default": "full"
+        },
+        "audit_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "fidelity_dimensions_version": {
+          "type": "string",
+          "description": "Git commit hash of the fidelity-dimensions.md used"
+        },
+        "auditor": {
+          "type": "string",
+          "description": "Agent or tool that performed the audit"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["grade", "total_findings", "by_severity", "by_confidence"],
+      "properties": {
+        "grade": {
+          "type": "string",
+          "enum": ["faithful", "minor-drift", "substantial-drift", "unfaithful"],
+          "description": "Overall fidelity grade"
+        },
+        "total_findings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_severity": {
+          "type": "object",
+          "properties": {
+            "critical": { "type": "integer" },
+            "high": { "type": "integer" },
+            "medium": { "type": "integer" },
+            "low": { "type": "integer" }
+          }
+        },
+        "by_confidence": {
+          "type": "object",
+          "properties": {
+            "certain": { "type": "integer" },
+            "likely": { "type": "integer" },
+            "possible": { "type": "integer" }
+          }
+        },
+        "dimensions_checked": {
+          "type": "integer",
+          "description": "Number of dimensions that were applicable and checked"
+        },
+        "dimensions_fired": {
+          "type": "integer",
+          "description": "Number of dimensions that produced at least one finding"
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "dimension", "severity", "confidence", "location", "summary"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique finding ID, e.g. F-001"
+          },
+          "dimension": {
+            "type": "string",
+            "description": "Dimension code, e.g. A1, B4, C2"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["certain", "likely", "possible"]
+          },
+          "location": {
+            "type": "object",
+            "required": ["file", "line"],
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "symbol": {
+                "type": "string",
+                "description": "Lean definition/theorem name"
+              }
+            }
+          },
+          "reference_location": {
+            "type": "object",
+            "description": "Where in the reference this corresponds to",
+            "properties": {
+              "section": { "type": "string" },
+              "theorem_num": { "type": "string" },
+              "page": { "type": "string" },
+              "algorithm_line": { "type": "string" }
+            }
+          },
+          "summary": {
+            "type": "string",
+            "description": "One-sentence description of the finding"
+          },
+          "details": {
+            "type": "string",
+            "description": "Detailed explanation with code snippets"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "Suggested fix or action"
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "description": "Side-by-side inventory of definitions and theorems",
+      "properties": {
+        "definitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lean_name": { "type": "string" },
+              "lean_line": { "type": "integer" },
+              "reference_name": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": ["matched", "lean-only", "reference-only", "mismatched"]
+              }
+            }
+          }
+        },
+        "theorems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lean_name": { "type": "string" },
+              "lean_line": { "type": "integer" },
+              "reference_name": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": ["matched", "lean-only", "reference-only", "mismatched"]
+              }
+            }
+          }
+        },
+        "algorithms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "lean_name": { "type": "string" },
+              "lean_line": { "type": "integer" },
+              "reference_name": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": ["matched", "lean-only", "reference-only", "mismatched"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "axiom_report": {
+      "type": "object",
+      "description": "Result of #print axioms on the headline theorems",
+      "properties": {
+        "checked_theorems": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "baseline_axioms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Expected axioms: propext, Classical.choice, Quot.sound"
+        },
+        "unexpected_axioms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "theorem": { "type": "string" },
+              "axiom": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
