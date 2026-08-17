@@ -79,7 +79,7 @@ assert_eq "$out" "$T/corpus/ch02.txt" "main should print output path"
 grep -q "algo text" "$T/corpus/ch02.txt" && ok || bad "main should extract ch2"
 
 # --- main: usage error ---
-HOME="$T" bash "$SKILL_SCRIPT" >/dev/null 2>&1; rc=$?
+if HOME="$T" bash "$SKILL_SCRIPT" >/dev/null 2>&1; then rc=0; else rc=$?; fi
 [[ $rc -eq 2 ]] && ok || bad "no args should exit 2, got $rc"
 
 echo "PASS=$PASS FAIL=$FAIL"
