@@ -2,4 +2,4 @@
 
 | 章号 | 审计日期（北京时间） | 判定分布 | 缺陷数 | 基准来源 |
 |------|---------------------|----------|--------|----------|
-| 2 | 2026-08-17 | MATCH 16 · MINOR 14 · MAJOR 4 · CRITICAL 0 · UNCERTAIN 0 | 4 MAJOR, 14 MINOR | 参考第 2.1–2.3 节 |
+| 2 | 2026-08-18 | MATCH 20 · MINOR 10 · MAJOR 4 · CRITICAL 0 · UNCERTAIN 0 | 4 MAJOR, 10 MINOR | 参考第 2.1–2.3 节 |

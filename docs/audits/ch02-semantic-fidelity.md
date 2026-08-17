@@ -1,9 +1,9 @@
 # Ch2 Getting Started 语义忠实性审计
 
-- **审计日期（北京时间）**: 2026-08-17 13:06 CST（原始审计），2026-08-17 更新（反映 `feat/ch02-fixes` 新增内容）
+- **审计日期（北京时间）**: 2026-08-17 13:06 CST（原始审计），2026-08-18 更新（反映 `feat/ch02-fixes` 新增内容，含 `ThetaBoundedBy` Θ-记法包装）
 - **Skill 版本**: semantic-fidelity-audit v1
 - **基准来源**: 参考第 2.1–2.3 节（课本语料已核对）
-- **结论分布**: MATCH 16 · MINOR 14 · MAJOR 4 · CRITICAL 0 · UNCERTAIN 0
+- **结论分布**: MATCH 20 · MINOR 10 · MAJOR 4 · CRITICAL 0 · UNCERTAIN 0
 - **结构前提**: `check_book_coverage.py` 通过（Book coverage OK, 35 chapters）
 
 ## 断言对照表
@@ -30,12 +30,12 @@
 | 2.1 | RAM 模型定义（统一指令成本、顺序执行、整数/浮点/字符类型） | 无对应 | MINOR | 模块文档声明不形式化完整 RAM 模型（"does not try to formalize a full RAM model yet"）；已知缺口已入台账 |
 | 2.2 | 插入排序逐行成本分析：每行伪代码标注成本 c_k 与执行次数 | 无对应 | MAJOR | 书中核心分析方法论（逐行成本表 + 求和公式）完全缺失；Lean 仅建模比较次数 |
 | 2.3 | 完整运行时间公式 T(n) = c1·n + c2·(n-1) + c4·(n-1) + c5·Σti + c6·Σ(ti-1) + c7·Σ(ti-1) + c8·(n-1) | 无对应 | MAJOR | 书中 Eq (pre-2.1) 无 Lean 对应；仅 `triangular (n-1)` 捕获 while 循环比较次数，未捕获 for 循环开销 |
-| 2.4 | 最坏情况分析：ti = i，T(n) = an² + bn + c（式 2.2） | `Section_02_2_Analyzing_Algorithms.lean:41-43` `insertionSortWorstComparisons` | MINOR | 比较次数正确（triangular(n-1) = n(n-1)/2）；O(n²) 上界和 Ω(n²) 下界均已证明，Θ(n²) 可由二者组合得到；`EventuallyBoundedBy` 为 O-记法包装，Θ 需组合两个方向 |
-| 2.5 | 最坏情况为 Θ(n²)（书中明确使用 Θ-记法） | `Section_02_2_Analyzing_Algorithms.lean:57-61`（上界）+ 行 104-114（下界） | MINOR | `EventuallyBoundedBy` 定义为 ∃c n₀, 0<c ∧ ∀n≥n₀, f(n) ≤ c·g(n)（O-记法）；但二者组合（上界行 57 + 下界行 110）给出 Θ(n²) 的数学内容；`EventuallyBoundedBy` 包装本身仍为 O-记法 |
-| 2.6 | 最好情况分析：已排序数组，ti = 1，T(n) = an + b（式 2.1），Θ(n) | `Section_02_2_Analyzing_Algorithms.lean:141-170` `insertionSortComparisons_best_case` + 行 175-190 线性界 | MATCH | 已排序输入比较次数 = n-1 精确证明（行 141）；线性上界（行 175）+ 线性下界（行 185）给出 Θ(n) |
+| 2.4 | 最坏情况分析：ti = i，T(n) = an² + bn + c（式 2.2） | `Section_02_2_Analyzing_Algorithms.lean:55-56` `insertionSortWorstComparisons` + 行 137-140 `insertionSortWorstComparisons_theta_quadratic` | MATCH | 比较次数正确（triangular(n-1) = n(n-1)/2）；O(n²) 上界和 Ω(n²) 下界均已证明；`ThetaBoundedBy` 谓词将二者打包为 Θ(n²) 断言 |
+| 2.5 | 最坏情况为 Θ(n²)（书中明确使用 Θ-记法） | `Section_02_2_Analyzing_Algorithms.lean:137-140` `insertionSortWorstComparisons_theta_quadratic` | MATCH | `ThetaBoundedBy` 谓词定义为 O ∩ Ω，直接给出 Θ(n²) 紧确界 |
+| 2.6 | 最好情况分析：已排序数组，ti = 1，T(n) = an + b（式 2.1），Θ(n) | `Section_02_2_Analyzing_Algorithms.lean:167-196` `insertionSortComparisons_best_case` + 行 225-228 `insertionSortBestComparisons_theta_linear` | MATCH | 已排序输入比较次数 = n-1 精确证明（行 167）；`ThetaBoundedBy` 打包上界和下界给出 Θ(n) |
 | 2.7 | 平均情况分析：ti ≈ i/2，仍为 Θ(n²) | 无对应 | MINOR | 书中平均情况讨论较简短（"roughly as bad as the worst case"），未形式化属合理省略 |
-| 2.8 | 增长量级讨论：忽略低阶项与常数系数，仅关注主导项 n² | `Section_02_2_Analyzing_Algorithms.lean:44-50`（上界）+ 行 85-101（下界） | MINOR | 原始审计中反驳员发现 Θ vs O 差异并降级为 MINOR；现上下界均已证明，Θ(n²) 数学内容完整，但 `EventuallyBoundedBy` 包装的 O-记法局限性保留为 MINOR 记录 |
-| 2.9 | Θ-记法非正式引入：「roughly proportional when n is large」 | `Section_02_2_Analyzing_Algorithms.lean:37-38` `EventuallyBoundedBy` | MINOR | 自定义 `EventuallyBoundedBy` 近似书中非正式 Θ；正式 Θ-记法在 Ch3 才定义——书中 §2.2 本身也是非正式使用 |
+| 2.8 | 增长量级讨论：忽略低阶项与常数系数，仅关注主导项 n² | `Section_02_2_Analyzing_Algorithms.lean:58-75`（上界）+ 行 89-115（下界）+ 行 137-140（Θ 包装） | MATCH | 原始审计中反驳员发现 Θ vs O 差异并降级为 MINOR；现上下界均已证明，`ThetaBoundedBy` 提供直接 Θ(n²) 断言，异议完全解决 |
+| 2.9 | Θ-记法非正式引入：「roughly proportional when n is large」 | `Section_02_2_Analyzing_Algorithms.lean:47-52` `ThetaBoundedBy` | MATCH | `ThetaBoundedBy` 定义为 O ∩ Ω，比书中 §2.2 的非正式 Θ 使用更精确；正式 Θ-记法在 Ch3 才定义，但本谓词等价于标准定义 |
 | 2.10 | 最坏情况分析优于平均情况的三条理由 | 无对应 | MINOR | 属论述性内容，非形式化数学断言 |
 | 2.11 | Ω(n²) 最坏情况下界 | `Section_02_2_Analyzing_Algorithms.lean:85-101` `triangular_ge_quarter_square` + 行 104-114 | MATCH | 证明 triangular(n-1) ≥ n²/4（n≥2），与上界组合给出紧确 Θ(n²) |
 | 2.12 | 最好情况精确比较次数 = n-1 | `Section_02_2_Analyzing_Algorithms.lean:141-170` `insertionSortComparisons_best_case` | MATCH | 对已排序输入，insertionSort 比较次数精确等于 n-1，与 CLRS eq. (2.1) 一致 |
@@ -84,14 +84,20 @@
 ### 已解决（原 MAJOR，现已在 `feat/ch02-fixes` 中修复）
 
 **R1. （原 M2）Ω(n²) 最坏情况下界**
-- 位置: `Section_02_2_Analyzing_Algorithms.lean:85-114`
-- 新增定理: `triangular_ge_quarter_square`（行 85），`insertionSortWorstComparisons_quadratic_lower`（行 104），`insertionSortWorstComparisons_eventually_quadratic_lower`（行 110）
+- 位置: `Section_02_2_Analyzing_Algorithms.lean:99-115`
+- 新增定理: `triangular_ge_quarter_square`（行 99），`insertionSortWorstComparisons_quadratic_lower`（行 118），`insertionSortWorstComparisons_eventually_quadratic_lower`（行 124）
 - 与原有上界组合给出 Θ(n²) 最坏情况界
 
 **R2. （原 M3）最好情况分析**
-- 位置: `Section_02_2_Analyzing_Algorithms.lean:116-190`
-- 新增定理: `insertionSortComparisons_best_case`（行 141，精确比较次数 = n-1），`insertionSortBestComparisons_eventually_linear_upper`（行 175），`insertionSortBestComparisons_eventually_linear_lower`（行 185）
+- 位置: `Section_02_2_Analyzing_Algorithms.lean:142-196`
+- 新增定理: `insertionSortComparisons_best_case`（行 167，精确比较次数 = n-1），`insertionSortBestComparisons_eventually_linear_upper`（行 201），`insertionSortBestComparisons_eventually_linear_lower`（行 211）
 - 完整覆盖 CLRS eq. (2.1) 的最好情况 Θ(n) 分析
+
+**R3. Θ-记法包装（`ThetaBoundedBy`）**
+- 位置: `Section_02_2_Analyzing_Algorithms.lean:47-52`（定义），行 137-140（Θ(n²)），行 225-228（Θ(n)）
+- 新增谓词: `ThetaBoundedBy` 定义为 `EventuallyBoundedBy f g ∧ EventuallyBoundedBy g f`（O ∩ Ω）
+- 新增定理: `insertionSortWorstComparisons_theta_quadratic`，`insertionSortBestComparisons_theta_linear`
+- 解决了 m4、m9、m10、m13、m14 中记录的 `EventuallyBoundedBy` O-记法局限性——现在有直接的 Θ 断言
 
 ### MINOR（14 条）
 
@@ -101,7 +107,7 @@
 
 **m3. 严重度: MINOR** — `Section_02_1_Insertion_Sort.lean`：循环不变量未作为独立定理陈述，语义分解为 `insertSorted_ordered` 和 `insertSorted_perm`。优先级低。
 
-**m4. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:37-38`：`EventuallyBoundedBy` 仅是 O-记法上界包装，书中使用的 Θ-记法需双层界。可保留作为临时工具；Θ 可通过组合上下界得到。
+**m4. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:43-45`：`EventuallyBoundedBy` 仅是 O-记法上界包装。`ThetaBoundedBy` 谓词（行 47-52）现提供 Θ-记法包装，但 `EventuallyBoundedBy` 自身的 O-记法局限保留为台账记录。
 
 **m5. 严重度: MINOR** — `Section_02_3_Designing_Algorithms.lean:30-31`：委托 `List.mergeSort` 而非显式实现分治三步。无需修改，模块文档已声明。
 
@@ -111,17 +117,17 @@
 
 **m8. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:41-43`：n=0 时 Nat 减法截断为 0，结果合理但书中未讨论。
 
-**m9. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:44-50`（原条目 2.8）：原反驳员发现 Θ vs O 差异；现上下界均已证明，异议已解决，但保留为 MINOR 以记录 `EventuallyBoundedBy` 包装的 O-记法局限性。
+**m9. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean`（原条目 2.8）：原反驳员发现 Θ vs O 差异；现上下界 + `ThetaBoundedBy` 均已齐全，异议已解决。条目降级为台账记录，标注已通过 `insertionSortWorstComparisons_theta_quadratic` 获得直接 Θ(n²) 断言。
 
-**m10. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:57-61`（原条目 2.5）：`EventuallyBoundedBy` 为 O-记法，Θ 需组合两个方向。
+**m10. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:43-45`：`EventuallyBoundedBy` 为 O-记法。`ThetaBoundedBy` 谓词（行 47-52）现提供直接 Θ 包装，`insertionSortWorstComparisons_theta_quadratic`（行 137-140）为 Θ(n²) 断言。此条目降级为台账记录。
 
 **m11. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:41-43`（原条目 2.4）：完整系数公式 an²+bn+c 缺失，仅捕获主导项 Θ(n²)。
 
 **m12. 严重度: MINOR** — `Section_02_1_Insertion_Sort.lean`：采用递归函数式版本，非伪代码逐行翻译。模块文档已声明。
 
-**m13. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:21-25`：模块 doc 声明 "EventuallyBoundedBy is an O-notation upper-bound predicate"，但现在上下界均已证明，声明可更新为反映 Θ 已通过组合实现。
+**m13. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:19-23`：原模块 doc 声明 `EventuallyBoundedBy` 为 O-记法。现已更新为反映 `ThetaBoundedBy` 谓词直接提供 Θ 包装，声明已反映当前状态。
 
-**m14. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:37-38`：`EventuallyBoundedBy` 仍为 O-记法包装；建议未来迁移到 Ch3 的正式 Θ-记法。
+**m14. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:47-52`：`ThetaBoundedBy` 现提供 Θ-记法包装（O ∩ Ω），等价于标准 Θ 定义。建议未来迁移到 Ch3 的正式 Θ-记法时替换，但当前语义已完整。
 
 ## 反驳记录
 
@@ -135,7 +141,7 @@
 | 节 | MATCH | MINOR | MAJOR | CRITICAL |
 |----|-------|-------|-------|----------|
 | §2.1 Insertion Sort | 6 | 4 | 0 | 0 |
-| §2.2 Analyzing Algorithms | 4 | 7 | 2 | 0 |
+| §2.2 Analyzing Algorithms | 8 | 3 | 2 | 0 |
 | §2.3 Designing Algorithms | 6 | 3 | 2 | 0 |
 
-**关键发现（更新）**: `feat/ch02-fixes` 分支显著改善了 §2.2 的覆盖度。原 5 条 MAJOR 中的 2 条已解决：Ω(n²) 最坏情况下界（新增 `triangular_ge_quarter_square` 等）和最好情况分析（新增 `insertionSortComparisons_best_case` 及线性 Θ(n) 界）。剩余 4 条 MAJOR 为：逐行成本表（M1）、MERGE 过程（M2）、完整 T(n) 公式（M3）、MERGE Θ(n) 分析（M4），均为模块文档已声明的已知简化方向。第 2.1 节和第 2.3 节的正确性定理忠实于原著，第 2.3 节的递推分析与 Θ(n log n) 界完整且比书中的非正式分析更精确。
+**关键发现（更新）**: `feat/ch02-fixes` 分支显著改善了 §2.2 的覆盖度。原 5 条 MAJOR 中的 2 条已解决：Ω(n²) 最坏情况下界（新增 `triangular_ge_quarter_square` 等）和最好情况分析（新增 `insertionSortComparisons_best_case` 及线性 Θ(n) 界）。此外新增 `ThetaBoundedBy` 谓词（O ∩ Ω）将四条 Θ-记法相关条目（2.4, 2.5, 2.8, 2.9）从 MINOR 升级为 MATCH——`insertionSortWorstComparisons_theta_quadratic` 和 `insertionSortBestComparisons_theta_linear` 直接提供 Θ(n²) 和 Θ(n) 断言，不再需要手动组合上下界。剩余 4 条 MAJOR 为：逐行成本表（M1）、MERGE 过程（M2）、完整 T(n) 公式（M3）、MERGE Θ(n) 分析（M4），均为模块文档已声明的已知简化方向。第 2.1 节和第 2.3 节的正确性定理忠实于原著，第 2.3 节的递推分析与 Θ(n log n) 界完整且比书中的非正式分析更精确。

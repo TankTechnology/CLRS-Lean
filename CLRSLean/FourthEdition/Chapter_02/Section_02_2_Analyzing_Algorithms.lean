@@ -11,14 +11,16 @@ sum and proves both a quadratic upper bound and a quadratic lower bound
 (together giving Θ(n²)).  It also formalizes the best-case analysis (linear
 comparison count for already-sorted input, CLRS eq. (2.1)).
 
+A `ThetaBoundedBy` predicate packages the O and Ω directions into a single
+Θ-notation claim, matching the textbook's asymptotic language in §2.2.
+
 ## Known simplifications
 
 * `EventuallyBoundedBy` is an O-notation upper-bound predicate; the textbook
-  uses Θ-notation (both upper and lower bounds) in §2.2.  The worst-case
-  Θ(n²) bound is recovered by combining the upper bound
-  `insertionSortWorstComparisons_quadratic` with the Ω(n²) lower bound
-  `insertionSortWorstComparisons_eventually_quadratic_lower`; the best-case
-  Θ(n) bound is similarly recovered from the upper and lower linear bounds.
+  uses Θ-notation (both upper and lower bounds) in §2.2.  The
+  `ThetaBoundedBy` wrapper combines both directions to recover the Θ claim.
+  The worst-case Θ(n²) bound is `insertionSortWorstComparisons_theta_quadratic`;
+  the best-case Θ(n) bound is `insertionSortBestComparisons_theta_linear`.
 * The cost model tracks only the while-loop comparison count via `triangular`;
   it does not account for for-loop overhead, assignment statements, or the
   full line-by-line cost table in CLRS p. 25.
@@ -41,6 +43,13 @@ def triangular : Nat → Nat
 /-- A small eventual upper-bound predicate for chapter-level runtime claims. -/
 def EventuallyBoundedBy (f g : Nat → Nat) : Prop :=
   ∃ c n₀, 0 < c ∧ ∀ n, n₀ ≤ n → f n ≤ c * g n
+
+/--
+A Θ-notation predicate: `f ∈ Θ(g)` when both `f ∈ O(g)` and `g ∈ O(f)`,
+i.e. `f` is asymptotically tightly bounded by `g` up to constant factors.
+-/
+def ThetaBoundedBy (f g : Nat → Nat) : Prop :=
+  EventuallyBoundedBy f g ∧ EventuallyBoundedBy g f
 
 /-- The usual worst-case comparison count for insertion sort on {lit}`n` elements. -/
 def insertionSortWorstComparisons (n : Nat) : Nat :=
@@ -118,6 +127,18 @@ theorem insertionSortWorstComparisons_eventually_quadratic_lower :
   intro n hn
   exact insertionSortWorstComparisons_quadratic_lower n hn
 
+/--
+**Θ(n²) worst-case bound for insertion sort** (CLRS §2.2).
+
+The tight asymptotic bound is obtained by combining the O(n²) upper bound
+`insertionSortWorstComparisons_eventually_quadratic` with the Ω(n²) lower bound
+`insertionSortWorstComparisons_eventually_quadratic_lower`.
+-/
+theorem insertionSortWorstComparisons_theta_quadratic :
+    ThetaBoundedBy insertionSortWorstComparisons (fun n => n * n) := by
+  refine ⟨insertionSortWorstComparisons_eventually_quadratic,
+           insertionSortWorstComparisons_eventually_quadratic_lower⟩
+
 /-! ### Best-case analysis (CLRS §2.2, eq. (2.1)) -/
 
 /-- The number of comparisons made by `insertSorted x xs`. -/
@@ -193,6 +214,18 @@ theorem insertionSortBestComparisons_eventually_linear_lower :
   intro n hn
   unfold insertionSortBestComparisons
   exact insertionSortBestComparisons_eventually_linear_lower_aux n hn
+
+/--
+**Θ(n) best-case bound for insertion sort** (CLRS eq. (2.1)).
+
+The tight asymptotic bound is obtained by combining the O(n) upper bound
+`insertionSortBestComparisons_eventually_linear_upper` with the Ω(n) lower bound
+`insertionSortBestComparisons_eventually_linear_lower`.
+-/
+theorem insertionSortBestComparisons_theta_linear :
+    ThetaBoundedBy insertionSortBestComparisons (fun n => n) := by
+  refine ⟨insertionSortBestComparisons_eventually_linear_upper,
+           insertionSortBestComparisons_eventually_linear_lower⟩
 
 end Chapter02
 end CLRS
