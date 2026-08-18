@@ -18,6 +18,15 @@ It also records the exact solution of the textbook recurrence on powers of two:
 A later strengthening can inline the merge routine and prove the split/merge
 lemmas locally if we want a from-scratch artifact.
 
+## Known simplifications
+
+* The algorithm delegates to Lean's verified {lit}`List.mergeSort` instead of
+  explicitly implementing the divide/conquer/combine three-step structure
+  from CLRS §2.3.
+* The MERGE procedure (the 27-line pseudocode with temporary arrays L/R and
+  three while loops) is not formalized here; the linear-time merge cost is
+  captured at the recurrence level instead.
+
 ## Implementation details
 
 * [Merge-sort recurrence](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence/)

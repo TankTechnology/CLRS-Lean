@@ -38,6 +38,14 @@ existing `mergeSort` definition and its correctness theorems in
 * The verified merge sort implementation: `CLRS.Chapter02.mergeSort`
 * The power-of-two closed form: `CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm`
 * The Master Theorem: `CLRS.Chapter04.master_case2_constant_forcing`
+
+## Known simplifications
+
+* `theta_n_log_n_all_inputs` requires `MonotoneAbs T` (monotonicity of the
+  absolute value of the cost function).  The CLRS textbook does not state
+  this condition explicitly, but it is a reasonable implicit assumption for
+  a running-time function: larger inputs should not cost less than smaller
+  ones.
 -/
 
 namespace CLRS
