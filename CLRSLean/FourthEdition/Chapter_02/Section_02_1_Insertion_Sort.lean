@@ -14,6 +14,15 @@ The CLRS pseudocode is array-based and is usually justified by a loop invariant.
 Here we use a recursive list algorithm, because it exposes the same invariant as
 small structural lemmas: inserting into an ordered list keeps it ordered, and it
 does not change the multiset of elements.
+
+## Known simplifications
+
+* The algorithm uses immutable `List Nat` instead of a mutable array, with
+  0-based indexing instead of the 1-based arrays in CLRS §2.1.
+* No explicit length parameter `n` — the list length is implicit in the type.
+* The loop invariant is not stated as an independent theorem; it is decomposed
+  into `insertSorted_ordered` and `insertSorted_perm`, which together prove the
+  same correctness property.
 -/
 
 namespace CLRS
