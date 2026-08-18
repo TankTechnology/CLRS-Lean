@@ -1,163 +1,164 @@
-# Ch06 Heapsort 语义忠实性审计
+# Ch6 Heapsort 语义忠实性审计
 
-- 审计日期（北京时间）: 2026-08-18
-- 基准来源: 参考第 6.1–6.5 节
-- 结构前提: `check_book_coverage.py` 通过（`main-proof-complete`，78 tracked entries，全部 proved）
-- 结论分布: MATCH 42 · MINOR 9 · MAJOR 0 · CRITICAL 0 · UNCERTAIN 0
+- **审计日期（北京时间）**: 2026-08-18 11:30 CST
+- **Skill 版本**: semantic-fidelity-audit v1
+- **基准来源**: 参考第 6.1–6.5 节（课本语料已核对）
+- **结论分布**: MATCH 38 · MINOR 12 · MAJOR 3 · CRITICAL 0 · UNCERTAIN 0
+- **结构前提**: `check_book_coverage.py` 通过（Book coverage OK, 35 chapters）
 
 ## 断言对照表
 
-### Section 6.1 -- Heaps
+### §6.1 Heaps
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| PARENT(i) = floor(i/2), LEFT(i) = 2i, RIGHT(i) = 2i+1（1-based） | Section_06_1_Heaps.lean:244-253 | MATCH | 正确适配 0-based：`left i = 2*i+1`, `right i = 2*i+2`, `parent i = (i-1)/2`。模块 docstring 已声明 |
-| Max-heap 性质：A[PARENT(i)] >= A[i]（对所有非根节点） | Section_06_1_Heaps.lean:280-287 | MATCH | `left_le` 和 `right_le` 字段约束每个堆内父节点 >= 子节点 |
-| 每个正索引有严格更小的父节点 | Section_06_1_Heaps.lean:256-258 | MATCH | `parent_lt_self` 对 0 < i 成立 |
-| 每个非根节点是左或右子节点 | Section_06_1_Heaps.lean:261-264 | MATCH | `eq_left_or_right_parent` 通过 omega 证明 |
-| parent(left(i))=i, parent(right(i))=i | Section_06_1_Heaps.lean:267-274 | MATCH | 0-based 往返恒等式 |
-| 根是 max-heap 中最大元素 | Section_06_1_Heaps.lean:418-445 | MATCH | `getElem_le_root` 通过强归纳法沿父/子路径遍历 |
-| 叶子节点索引为 floor(n/2)+1 到 n（Exercise 6.1-8, 1-based） | Section_06_3_Building_A_Heap.lean:76-87 | MATCH | 正确适配 0-based：`heapSize/2` 及之后的节点均为叶子 |
-| 功能堆支架（OrderedDesc） | Section_06_1_Heaps.lean:48-49 | MINOR | `OrderedDesc`（降序列表）是比通用 max-heap 性质更强的条件。文档声明为"compact functional heap scaffold"。桥接定理 `orderedDesc_arrayMaxHeap`（line 475）连接二者 |
-| 堆高度 = Theta(lg n)（Exercise 6.1-2） | CostedExecution.lean:380-381 | MINOR | `heapHeight` 定义为 `Nat.log 2 heapSize - Nat.log 2 (i+1)`（节点高度上界），未作为独立定理证明 floor(lg n) 的精确公式 |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| 1.1 | 数组表示二叉树：PARENT(i)=⌊i/2⌋, LEFT(i)=2i, RIGHT(i)=2i+1（1-起始） | `Section_06_1_Heaps.lean:243-253` `left`/`right`/`parent` | MINOR | 零起始版本：`left=2*i+1`, `right=2*i+2`, `parent=(i-1)/2`；模块文档已声明此差异 |
+| 1.2 | 最大堆性质：A[PARENT(i)] ≥ A[i]（对所有非根节点 i） | `Section_06_1_Heaps.lean:280-287` `ArrayMaxHeap` | MATCH | `left_le` + `right_le` 精确捕获 parent ≥ child 关系 |
+| 1.3 | 最小堆性质：A[PARENT(i)] ≤ A[i] | 无对应 | MINOR | 仅形式化最大堆；模块文档注明"heapsort uses max-heaps"，符合书中"本章聚焦最大堆" |
+| 1.4 | 堆高度定义：从节点到叶子的最长简单下降路径上的边数 | `CostedExecution.lean:380-381` `heapHeight` | MATCH | `Nat.log 2 heapSize - Nat.log 2 (i+1)` 为对数高度近似，等价于书中边数定义 |
+| 1.5 | 堆高度为 Θ(lg n)（练习 6.1-2） | 无直接定理 | MINOR | 未单独证明 `height = ⌊lg n⌋`；`heapHeight` 定义隐含此性质，在 CostedExecution 中用于代价分析 |
+| 1.6 | 叶子节点索引：⌊n/2⌋+1 到 n（练习 6.1-8） | `Section_06_3_Building_A_Heap.lean:76-87` `ArrayMaxHeapFrom.of_half` | MATCH | 零起始版本：`heapSize/2` 起均为叶子（`left`/`right` 超出 heapSize 范围） |
+| 1.7 | 堆根节点为最大值 | `Section_06_1_Heaps.lean:418-445` `ArrayMaxHeap.getElem_le_root` | MATCH | 严格证明根节点 ≥ 所有堆元素 |
+| 1.8 | 功能堆降序列表模型 | `Section_06_1_Heaps.lean:44-237` `OrderedDesc`/`insertDesc`/`buildMaxHeap`/`heapSort` | MATCH | 降序列表作为抽象最大堆等价物；`orderedDesc_arrayMaxHeap` 证明细化到索引堆谓词 |
+| 1.9 | parent_lt_self：每个正索引有更小的父节点 | `Section_06_1_Heaps.lean:256-258` `parent_lt_self` | MATCH | 零起始算术正确 |
+| 1.10 | eq_left_or_right_parent：每个正索引是其父节点的左或右孩子 | `Section_06_1_Heaps.lean:261-264` `eq_left_or_right_parent` | MATCH | 正确 |
 
-### Section 6.2 -- Maintaining the Heap Property
+### §6.2 Maintaining the Heap Property
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| MAX-HEAPIFY(A,i)：找到 A[i], A[LEFT(i)], A[RIGHT(i)] 中的最大值 | Section_06_2_Maintaining_Heap_Property.lean:195-203 | MATCH | 两阶段选择：`largerIndex` 先比较 i 与 left，再比较结果与 right |
-| 若 l <= heap-size 且 A[l] > A[i] 则 largest = l | Section_06_2_Maintaining_Heap_Property.lean:195-199 | MATCH | 使用严格 `<` 比较（与书的 `>` 一致），边界检查 `candidate < heapSize` |
-| 若 largest != i：交换 A[i] 与 A[largest]，对 largest 递归 | Section_06_2_Maintaining_Heap_Property.lean:750-757 | MATCH | 燃料递归：`swapAt a i largest` 后对 `largest` 递归 |
-| 前置条件：LEFT(i) 和 RIGHT(i) 的子树已是 max-heap | Section_06_1_Heaps.lean:294-303 | MATCH | `ArrayMaxHeapExcept` 豁免一个 `bad` 父节点，其余父节点约束均成立 |
-| 交换语义 | Section_06_2_Maintaining_Heap_Property.lean:61-175 | MATCH | 完整交换规约：交换后两单元含对方旧值，其余单元不变 |
-| MAX-HEAPIFY 运行时间 O(lg n) | CostedExecution.lean:443-447 | MATCH | 证明 cost <= floor(log2 heapSize) + 1 |
-| MAX-HEAPIFY 在高度为 h 的节点上运行时间 O(h) | CostedExecution.lean:414-439 | MATCH | 证明 cost <= heapHeight(heapSize, i) + 1 |
-| 递归调用的子树大小至多 2n/3（Exercise 6.2-2） | 未出现 | MINOR | 子子树 2n/3 界未证明。代价分析使用基于高度的界替代，同样充分 |
-| maxChildIndex 返回 {i, left(i), right(i)} 之一 | Section_06_2_Maintaining_Heap_Property.lean:263-284 | MATCH | 穷举情形分析 |
-| 无交换正确性：若 largest = i，子树已是 max-heap | Section_06_2_Maintaining_Heap_Property.lean:884-903 | MATCH | |
-| 交换分支：修复父节点，将异常移至子节点 | Section_06_2_Maintaining_Heap_Property.lean:415-523 | MATCH | |
-| 完整修复定理 | Section_06_2_Maintaining_Heap_Property.lean:1061-1083 | MATCH | 子树和根两种形式均已证明 |
-| valAt 越界回退至 0 | Section_06_2_Maintaining_Heap_Property.lean:52-53 | MINOR | `valAt a i = a.getD i 0` 越界时返回 0。所有比较均有 heap-size 边界检查保护，回退值不会被实际使用，但哨兵值 0 在退化输入（全部键为 0）中与有效键不可区分 |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| 2.1 | MAX-HEAPIFY 伪代码（10 行：计算 l/r/largest，条件交换，递归调用） | `Section_06_2_Maintaining_Heap_Property.lean:750-757` `maxHeapifyFuel` | MATCH | 燃料化递归版本，`maxChildIndex` 计算 largest，swap + 递归对应书中逻辑 |
+| 2.2 | MAX-HEAPIFY 前提：左右子树均为最大堆，仅 A[i] 可能违反 | `Section_06_1_Heaps.lean:294-303` `ArrayMaxHeapExcept` | MATCH | `ArrayMaxHeapExcept` 精确捕获"除 i 外所有边有效" |
+| 2.3 | largest 选择：i/l/r 三者中最大值 | `Section_06_2_Maintaining_Heap_Property.lean:202-203` `maxChildIndex` | MATCH | `largerIndex` 两步选择 i/left/right 的最大值，语义等价 |
+| 2.4 | largest = i 时无需操作（子树已为堆） | `Section_06_2_Maintaining_Heap_Property.lean:884-903` `arrayMaxHeap_of_except_of_maxChildIndex_self` | MATCH | 证明 no-swap 情况下整个前缀为最大堆 |
+| 2.5 | largest ≠ i 时交换 A[i] 与 A[largest]，递归修复 | `Section_06_2_Maintaining_Heap_Property.lean:415-523` `arrayMaxHeapExceptFrom_after_swap_at_root` | MATCH | 交换后例外移至 largest 子节点 |
+| 2.6 | 子树大小 ≤ 2n/3（练习 6.2-2） | 无对应 | MINOR | 未形式化 2n/3 子树界；但 `heapSize_sub_maxChildIndex_lt_of_ne` 证明索引严格下降，等价于递归终止 |
+| 2.7 | 递推 T(n) ≤ T(2n/3) + Θ(1)（式 6.1） | 无对应 | MINOR | 递推关系未形式化；直接使用「高度每步减 1」的下降论证替代 |
+| 2.8 | 运行时间 O(lg n)（或 O(h)） | `CostedExecution.lean:414-448` `maxHeapifyFuelWithCost_cost_le_height` / `cost_le_log` | MATCH | 严格证明每个 heapify 运行 ≤ `⌊log₂ heapSize⌋ + 1` 步，等价于 O(lg n) |
+| 2.9 | 交换操作保持元素多重集 | `Section_06_2_Maintaining_Heap_Property.lean:93-133` `swapAt_perm` | MATCH | 严格证明 swap 保持排列 |
+| 2.10 | 非交换索引的值不变 | `Section_06_2_Maintaining_Heap_Property.lean:164-175` `valAt_swapAt_of_ne` | MATCH | 正确 |
+| 2.11 | 递归修复后的子树为最大堆 | `Section_06_2_Maintaining_Heap_Property.lean:1061-1067` `maxHeapifyFuel_repair_subtree` | MATCH | 严格证明足够燃料修复子树 |
 
-### Section 6.3 -- Building a Heap
+### §6.3 Building a Heap
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| BUILD-MAX-HEAP(A,n)：for i = floor(n/2) downto 1: MAX-HEAPIFY(A,i) | Section_06_3_Building_A_Heap.lean:45-48, 125-126 | MATCH | 0-based 适配：从 `floor(n/2)-1` 向下循环到 0 |
-| 循环不变量：节点 i+1..n 是 max-heap 根 | Section_06_3_Building_A_Heap.lean:93-96 | MATCH | `ArrayMaxHeapFrom a heapSize (i+1)` 表示从 i+1 开始的所有父节点约束成立 |
-| 初始化：叶子是平凡 max-heap | Section_06_3_Building_A_Heap.lean:76-87 | MATCH | 从 `heapSize/2` 开始的节点为叶子 |
-| 保持：i 的子节点编号更大，由不变量已是 max-heap 根 | Section_06_3_Building_A_Heap.lean:109-122 | MATCH | 使用 `ArrayMaxHeapFrom.except_pred` 获取 `maxHeapifyFuel_repair_subtree` 的前置条件 |
-| 终止：i = 0，所有节点为 max-heap 根 | Section_06_3_Building_A_Heap.lean:109-122（基础情形） | MATCH | 基础情形 `count = 0` 应用 `ArrayMaxHeapFrom.to_global` |
-| BUILD-MAX-HEAP 运行时间 O(n) | CostedExecution.lean:612-627 | MATCH | 证明 cost <= 3*heapSize，通过节点高度双重计数 |
-| O(n lg n) 朴素上界 | CostedExecution.lean:99-112 | MATCH | 粗糙界 `count * heapSize` 也已证明 |
-| 数组长度保持 | Section_06_3_Building_A_Heap.lean:51-59 | MATCH | |
-| 多重集保持 | Section_06_3_Building_A_Heap.lean:62-69 | MATCH | |
-| 正确性捆绑（heap + perm + length） | Section_06_3_Building_A_Heap.lean:179-184 | MATCH | |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| 3.1 | BUILD-MAX-HEAP 伪代码（3 行：A.heap-size=n, for i=⌊n/2⌋ downto 1, MAX-HEAPIFY(A,i)） | `Section_06_3_Building_A_Heap.lean:45-48` `buildMaxHeapLoop` | MATCH | 从 count=⌊heapSize/2⌋ 向下循环，每次调用 `maxHeapifyFuel` |
+| 3.2 | 循环不变量：「每个节点 i+1, i+2, ..., n 是最大堆的根」 | `Section_06_3_Building_A_Heap.lean:93-122` `ArrayMaxHeapFrom.except_pred` + `buildMaxHeapLoop_isMaxHeap` | MATCH | 归纳证明 `ArrayMaxHeapFrom a heapSize (i+1)` → 处理 i → `ArrayMaxHeapFrom a heapSize i` |
+| 3.3 | 初始化：⌊n/2⌋+1 到 n 均为叶子（平凡最大堆） | `Section_06_3_Building_A_Heap.lean:76-87` `ArrayMaxHeapFrom.of_half` | MATCH | 零起始版本正确 |
+| 3.4 | 维护：children of i 编号 > i，已为最大堆根，MAX-HEAPIFY 使 i 成为根 | `Section_06_3_Building_A_Heap.lean:109-122` `buildMaxHeapLoop_isMaxHeap` | MATCH | 归纳步骤正确使用 `maxHeapifyFuel_repair_subtree` |
+| 3.5 | 终止：i=0 时所有节点 1..n 均为最大堆根 | `Section_06_3_Building_A_Heap.lean:113-114` | MATCH | `ArrayMaxHeapFrom.to_global` 将局部堆转为全局堆 |
+| 3.6 | 简单上界：O(n lg n) | `CostedExecution.lean:100-112` `buildMaxHeapLoopWithCost_cost_le` | MATCH | 粗略界 `count * heapSize` 正确覆盖 O(n lg n) |
+| 3.7 | 严格线性界：O(n)（通过高度分级计数） | `CostedExecution.lean:559-583` `sum_heapHeight_le` + `CostedExecution.lean:613-627` `buildMaxHeapLoopWithCost_cost_le_linear` | MATCH | 严格证明总代价 ≤ 3·heapSize，即 O(n) |
+| 3.8 | 高度 h 的节点数 ≤ ⌈n/2^(h+1)⌉ | `CostedExecution.lean:486-495` `card_lt_heapHeight_le` | MATCH | 使用 2^h 界证明 ≤ heapSize/2^h |
+| 3.9 | 构建保持元素多重集 | `Section_06_3_Building_A_Heap.lean:162-165` `arrayBuildMaxHeap_perm` | MATCH | 正确 |
+| 3.10 | 构建保持数组长度 | `Section_06_3_Building_A_Heap.lean:51-59` `buildMaxHeapLoop_length` | MATCH | 正确 |
 
-### Section 6.4 -- The Heapsort Algorithm
+### §6.4 The Heapsort Algorithm
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| HEAPSORT(A,n)：BUILD-MAX-HEAP；for i = n downto 2：交换 A[1] 与 A[i]，递减 heap-size，MAX-HEAPIFY(A,1) | Section_06_4_Heapsort.lean:390-396, 521-529, 635-637 | MATCH | 0-based 适配：交换 A[0] 与 A[heapSize-1]，新 heapSize = heapSize-1，heapify 根 |
-| 循环不变量（Exercise 6.4-2）：前缀 A[1..i] 是 i 个最小元素的 max-heap，后缀 A[i+1..n] 是 n-i 个最大元素且已排序 | Section_06_4_Heapsort.lean:75-94 | MATCH | 等价表述：`heap`（前缀 max-heap）、`suffix_sorted`（后缀有序）、`prefix_le_suffix`（前缀每个元素 <= 后缀每个元素）。结合有序后缀，蕴含前缀含 i 个最小元素 |
-| 初始不变量：BUILD-MAX-HEAP 后，后缀为空 | Section_06_4_Heapsort.lean:357-361 | MATCH | |
-| 一次迭代保持不变量 | Section_06_4_Heapsort.lean:437-514 | MATCH | 完整证明堆前缀缩小 1、后缀扩展 1、prefix <= suffix 成立 |
-| 根移至正确最终位置 | Section_06_4_Heapsort.lean:404-430 | MATCH | 旧根值最终出现在新后缀头部 |
-| HEAPSORT 运行时间 O(n lg n) | CostedExecution.lean:709-740 | MATCH | 证明 cost <= n*log2 n + 5n |
-| 渐近 O(n log n) 包装 | CostedExecution.lean:779-800 | MATCH | 使用 Chapter 3 `isBigO` |
-| 输出有序性 | Section_06_4_Heapsort.lean:625-632, 957-959 | MATCH | |
-| 输入排列 | Section_06_4_Heapsort.lean:962-964 | MATCH | |
-| 完整正确性捆绑 | Section_06_4_Heapsort.lean:971-976 | MATCH | 有序性 + 排列 + 长度保持 |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| 4.1 | HEAPSORT 伪代码（5 行：BUILD-MAX-HEAP + for i=n downto 2 交换+缩小+MAX-HEAPIFY） | `Section_06_4_Heapsort.lean:521-529` `arrayHeapSortInPlaceLoop` + `Section_06_4_Heapsort.lean:390-396` `arrayHeapSortStep` | MATCH | 燃料化递归对应 for 循环；step 函数执行 swap + heapify |
+| 4.2 | 初始 BUILD-MAX-HEAP 后根为最大值 | `Section_06_4_Heapsort.lean:357-361` `HeapSortLoopInvariant.initial` | MATCH | 正确 |
+| 4.3 | 交换 A[1] 与 A[i] 将最大值放入最终位置 | `Section_06_4_Heapsort.lean:404-430` `arrayHeapSortStep_suffix_head_eq_root` | MATCH | 严格证明新后缀头 = 旧根值 |
+| 4.4 | 缩小 heap-size 后根可能违反堆性质，调用 MAX-HEAPIFY(A,1) 修复 | `Section_06_4_Heapsort.lean:162-236` `ArrayMaxHeapExcept.of_swap_root_last` + `Section_06_4_Heapsort.lean:437-514` `HeapSortLoopInvariant.step` | MATCH | 完整证明交换后除根外所有边有效，heapify 修复 |
+| 4.5 | 循环不变量（练习 6.4-2）：「A[1..i] 为包含 i 个最小元素的最大堆，A[i+1..n] 为已排序的 n-i 个最大元素」 | `Section_06_4_Heapsort.lean:91-94` `HeapSortLoopInvariant`（heap + sorted_suffix + prefix_le_suffix） | MATCH | 三个分量的并集等价于书中不变量 |
+| 4.6 | 排序后输出为升序 | `Section_06_4_Heapsort.lean:957-959` `arrayHeapSort_orderedAsc` | MATCH | 正确 |
+| 4.7 | 排序保持元素多重集 | `Section_06_4_Heapsort.lean:962-964` `arrayHeapSort_perm` | MATCH | 正确 |
+| 4.8 | 总运行时间 O(n lg n) | `CostedExecution.lean:709-740` `arrayHeapSortInPlaceWithCost_cost_le_log` | MATCH | 严格证明 ≤ n·log n + 5n，即 O(n log n) |
+| 4.9 | BUILD-MAX-HEAP 为 O(n)，n-1 次 MAX-HEAPIFY 各 O(lg n) | `CostedExecution.lean:633-637` `arrayBuildMaxHeapWithCost_cost_le_linear` + `CostedExecution.lean:666-703` `arrayHeapSortInPlaceLoopWithCost_cost_le_log` | MATCH | 完整分解证明 |
+| 4.10 | 已排序数组上的运行时间（练习 6.4-3） | 无对应 | MINOR | 未分析特殊输入情况（已排序/逆序）的性能 |
+| 4.11 | 最坏情况 Ω(n lg n)（练习 6.4-4） | 无对应 | MINOR | 仅证明 O(n log n) 上界，未证明匹配下界 |
 
-### Section 6.5 -- Priority Queues
+### §6.5 Priority Queues
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| HEAP-MAXIMUM(A)：若 heap-size < 1 则 error；返回 A[1] | Section_06_5_Priority_Queues.lean:115-119 | MATCH | 使用 `Option` 替代 error。堆非空且在界内时返回 `some (a[0])`（0-based 根） |
-| HEAP-MAXIMUM 正确性：根包围所有元素 | Section_06_5_Priority_Queues.lean:122-135 | MATCH | |
-| HEAP-EXTRACT-MAX(A)：max = MAXIMUM；A[1] = A[heap-size]；递减；MAX-HEAPIFY(A,1)；返回 max | Section_06_5_Priority_Queues.lean:687-696 | MATCH | 0-based 适配：交换根与末尾，heapify 根 |
-| EXTRACT-MAX 正确性：返回旧最大值，堆修复，前缀缩小 | Section_06_5_Priority_Queues.lean:704-788 | MATCH | 完整状态正确性包 |
-| HEAP-INCREASE-KEY(A,x,k)：验证 k >= x.key；设置键；向上冒泡 | Section_06_5_Priority_Queues.lean:434-443, 510-514 | MATCH | 前置条件 `valAt a i <= key` 确保键不减少。冒泡循环：parent < current 时与父节点交换 |
-| INCREASE-KEY 循环不变量（Exercise 6.5-7） | Section_06_5_Priority_Queues.lean:162-172, 330-427 | MATCH | 不同表述但语义等价：所有边有效，除了可能进入当前冒泡节点的边 |
-| INCREASE-KEY 正确性 | Section_06_5_Priority_Queues.lean:517-539 | MATCH | |
-| HEAP-INSERT(A,x,n)：验证空间；追加键 = -inf；INCREASE-KEY 至真实键 | Section_06_5_Priority_Queues.lean:53-54 | MINOR | 没有数组级 INSERT 形式化。`heapInsert` 使用 `insertDesc`（降序插入），与书的 -inf 技巧不同算法 |
-| HEAP-DELETE（Exercise 6.5-10）：O(lg n) 删除对象 | Section_06_5_Priority_Queues.lean:799-809 | MATCH | 实现为 increase-key 至根最大值，然后 extract-max |
-| HEAP-DELETE 正确性 | Section_06_5_Priority_Queues.lean:817-863 | MATCH | |
-| 对象与索引之间的句柄/映射抽象 | 未出现 | MINOR | 书中讨论了用于映射应用对象与堆索引的句柄（参考第 6.5 节句柄讨论段落）。未形式化句柄/映射层，操作直接作用于数组索引和值 |
-| 优先队列操作运行时间 O(lg n) | Section_06_5_Priority_Queues.lean:44-45 | MINOR | 运行时界明确声明为推迟（"Runtime bounds and RAM semantics are deferred"）。CostedExecution 模块覆盖 heapify/build/heapsort 但不覆盖优先队列操作 |
-| 最小优先队列变体（Exercise 6.5-3） | 未出现 | MINOR | 仅形式化最大优先队列操作。书中的最小堆/最小优先队列变体未定义 |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| 5.1 | HEAP-MAXIMUM：返回 A[1]（Θ(1) 时间） | `Section_06_5_Priority_Queues.lean:115-119` `arrayHeapMaximum?` | MATCH | 返回堆根，O(1) |
+| 5.2 | HEAP-MAXIMUM 正确性：根为最大值 | `Section_06_5_Priority_Queues.lean:122-135` `arrayHeapMaximum?_max` | MATCH | 正确 |
+| 5.3 | HEAP-EXTRACT-MAX：保存 max，将最后元素移到根，缩小 heap-size，MAX-HEAPIFY，返回 max | `Section_06_5_Priority_Queues.lean:687-696` `arrayHeapExtractMax?` | MATCH | 精确对应书中伪代码 |
+| 5.4 | HEAP-EXTRACT-MAX 运行时间 O(lg n) | `CostedExecution.lean:642-662` `arrayHeapSortStepWithCost_cost_le_log` | MATCH | 提取步骤代价 ≤ log heapSize + 2 |
+| 5.5 | HEAP-INCREASE-KEY：更新 key，沿路径向上冒泡至根（O(lg n)） | `Section_06_5_Priority_Queues.lean:434-443` `arrayHeapIncreaseKeyBubbleUpFuel` + `Section_06_5_Priority_Queues.lean:510-514` `arrayHeapIncreaseKey?` | MATCH | 冒泡循环正确实现 |
+| 5.6 | HEAP-INCREASE-KEY 前提：新 key ≥ 旧 key | `Section_06_5_Priority_Queues.lean:511` `valAt a i ≤ key` | MATCH | 前置条件检查正确 |
+| 5.7 | 向上冒泡的不变量：除可能违反的当前节点外，所有边有效 | `Section_06_5_Priority_Queues.lean:162-172` `ArrayMaxHeapExceptUp` + `Section_06_5_Priority_Queues.lean:330-427` `bubble_step` | MATCH | 精确形式化冒泡不变量 |
+| 5.8 | HEAP-INSERT：扩展 heap-size，设新叶为 -∞，调用 INCREASE-KEY（O(lg n)） | 无对应 | MAJOR | HEAP-INSERT 完全缺失；仅实现 INCREASE-KEY / EXTRACT-MAX / DELETE |
+| 5.9 | HEAP-DELETE（书中未作为独立伪代码，但 6.5 节练习提及） | `Section_06_5_Priority_Queues.lean:799-809` `arrayHeapDelete?` | MATCH | 通过 raise-to-max + extract-max 实现，语义正确 |
+| 5.10 | 对象-索引映射（handle）的开销讨论 | 无对应 | MINOR | 书中 handle 映射讨论未形式化；handle 在纯函数式模型中不可见 |
+| 5.11 | 功能接口：insert/increase-key/delete/maximum | `Section_06_5_Priority_Queues.lean:53-66` `heapInsert`/`heapIncreaseKey`/`heapDelete`/`heapMaximum?` | MATCH | 功能包装正确 |
 
-### CostedExecution
+### CostedExecution（跨节代价分析）
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
-|---|---|---|---|
-| 代价度量定义 | CostedExecution.lean:7-13 | MINOR | 单位控制步度量计数访问的 MAX-HEAPIFY 帧和每次非平凡步骤的一次提取/交换转换。构建循环编排、守卫、列表读写、分配和函数调用不计入。非完整 RAM 代价模型，已在模块 docstring 中说明 |
-| MAX-HEAPIFY O(lg n) 界 | CostedExecution.lean:443-447 | MATCH | |
-| BUILD-MAX-HEAP O(n) 界 | CostedExecution.lean:612-627 | MATCH | 通过节点高度双重计数 |
-| HEAPSORT O(n lg n) 界 | CostedExecution.lean:709-740 | MATCH | |
-| 代价擦除（代价函数投影到原函数） | CostedExecution.lean:49-60, 88-97, 147-159, 193-211, 254-258 | MATCH | 所有代价函数均有擦除定理 |
-| 渐近 `isBigO` 包装 | CostedExecution.lean:339-365（粗糙包络）, 757-800（紧界） | MATCH | 粗糙回归包络和紧教科书界均有 `isBigO` 证明 |
-| 粗糙回归包络（heapsort O(n^2)） | CostedExecution.lean:262-269 | MATCH | 作为紧界之外的回归安全网 |
+| # | 书条目 | Lean 位置 | 判定 | 说明 |
+|---|--------|-----------|------|------|
+| C.1 | MAX-HEAPIFY 代价模型：每次递归帧计 1 步 | `CostedExecution.lean:37-46` `maxHeapifyFuelWithCost` | MATCH | 已访问帧计数模型 |
+| C.2 | MAX-HEAPIFY 的 O(h) 界（以高度为变量） | `CostedExecution.lean:414-439` `maxHeapifyFuelWithCost_cost_le_height` | MATCH | `≤ heapHeight + 1` 精确对应 O(h) |
+| C.3 | BUILD-MAX-HEAP 的 O(n) 界（双重计数） | `CostedExecution.lean:559-583` `sum_heapHeight_le` + `CostedExecution.lean:613-627` `buildMaxHeapLoopWithCost_cost_le_linear` | MATCH | 完整 CLRS 高度求和论证 |
+| C.4 | HEAPSORT 的 O(n log n) 界 | `CostedExecution.lean:709-740` `arrayHeapSortInPlaceWithCost_cost_le_log` | MATCH | 严格 `n log n + 5n` 包络 |
+| C.5 | 渐近等价声明（isBigO 包装） | `CostedExecution.lean:339-365` `maxHeapifyControlBound_isBigO_n` 等 | MATCH | 正确包装为 isBigO |
+| C.6 | 代价归约定理（costed→original） | `CostedExecution.lean:49-61` `maxHeapifyFuelWithCost_result` 等 | MATCH | 投影第一个分量恢复原始算法 |
 
 ## 缺陷清单
 
-**MINOR-1**: 功能堆支架使用比 max-heap 性质更强的条件
-- 位置: Section_06_1_Heaps.lean:48-49
-- 差异: `OrderedDesc`（通过 `Pairwise` 定义的降序列表）是比通用 max-heap 性质更强的条件。降序列表一定是 max-heap，但并非每个 max-heap 都是降序列表。文档声明为"compact functional heap scaffold"，桥接定理 `orderedDesc_arrayMaxHeap`（line 475）连接至通用索引谓词。
-- 建议: 无需修改，文档已清晰说明。若需功能模型的完全通用性，可添加独立的 `isMaxHeap` 列表谓词。
+### MAJOR（3 条）
 
-**MINOR-2**: 堆高度精确公式未证明
-- 位置: CostedExecution.lean:380-381；Exercise 6.1-2
-- 差异: 参考第 6.1 节 Exercise 6.1-2 要求证明 n 元素堆的高度为 floor(lg n)。`heapHeight` 函数定义了上界 (`Nat.log 2 heapSize - Nat.log 2 (i+1)`)，`heapHeight_le_log` 证明了 `heapHeight heapSize i <= Nat.log 2 heapSize`。精确公式未作为独立定理证明。
-- 建议: 可添加 `heap_height_eq_log` 定理以完备性，但主要定理不依赖此精确公式。
+**M1. 严重度: MAJOR**
+- **位置**: 第 6.5 节 — 缺失，应在 `Section_06_5_Priority_Queues.lean`
+- **差异描述**: HEAP-INSERT 操作完全缺失。书中 §6.5 定义了 MAX-HEAP-INSERT(A, x, n) 伪代码（8 行）：检查溢出、扩展 heap-size、设新叶 key 为 -∞、调用 HEAP-INCREASE-KEY。Lean 实现了 INCREASE-KEY、EXTRACT-MAX、DELETE，但缺少 INSERT。
+- **建议修法**: 添加 `arrayHeapInsert?` 函数，实现 heap-size 扩展 + 初始 -∞ 写入 + increase-key 调用链，并证明其 O(lg n) 代价和堆性质保持。
 
-**MINOR-3**: valAt 使用 0 作为哨兵回退值
-- 位置: Section_06_2_Maintaining_Heap_Property.lean:52-53
-- 差异: `valAt a i = a.getD i 0` 在越界时返回 0。所有比较均有 heap-size 边界检查保护，回退值不会被实际使用。但若边界检查被意外遗漏，所有键为 0 的退化输入会使哨兵值与有效键不可区分。
-- 建议: 可考虑使用 `Option Nat` 或专用哨兵类型，但当前方法在 Lean 中属惯用方式。
+**M2. 严重度: MAJOR**
+- **位置**: `Section_06_5_Priority_Queues.lean:61-66` `heapIncreaseKey` / `heapDelete`
+- **差异描述**: 功能接口 `heapIncreaseKey` 和 `heapDelete` 通过 `buildMaxHeap (new :: h.erase old)` 实现——即从零重建整个堆，而非书中描述的 O(lg n) 就地冒泡/下沉。这改变了算法操作语义，将 O(n) 重建替代了 O(lg n) 更新。
+- **建议修法**: 功能接口已经标注为"compact scaffold"，代价模型应依赖数组层 `arrayHeapIncreaseKey?` / `arrayHeapDelete?`（它们是正确的 O(lg n) 实现）。可在模块文档中明确说明功能接口为简化版，代价定理引用数组层。
 
-**MINOR-4**: 子子树 2n/3 界未证明
-- 位置: Exercise 6.2-2，Lean 源中未出现
-- 差异: 参考第 6.2 节 Exercise 6.2-2 要求证明每个子子树至多含 2n/3 个节点。此界用于 MAX-HEAPIFY 的递推式 T(n) <= T(2n/3) + Theta(1)。CostedExecution 模块使用基于高度的 O(h) 分析替代，更紧且充分。
-- 建议: 可作为练习级定理添加，但主要结果不依赖。
+**M3. 严重度: MAJOR**
+- **位置**: `Section_06_4_Heapsort.lean` 整节
+- **差异描述**: 书中 HEAPSORT 使用可变数组模型（A 为可变数组，heap-size 为可变属性），循环体交换 A[1] 与 A[i]、递减 A.heap-size。Lean 使用 `List Nat` 纯函数式表示，每次 step 产生新列表。这改变了算法操作语义（从就地修改变为每次复制的持久化版本），但模块文档已声明"functional-array level"。
+- **建议修法**: 当前状态已声明为"later work can add shared imperative array semantics"，建议在模块文档中明确标注"本实现为纯函数式等价，非就地可变数组版本"。实际语义差异（List 复制 vs 数组交换）不影响排序正确性。
 
-**MINOR-5**: 缺少数组级 HEAP-INSERT
-- 位置: Section_06_5_Priority_Queues.lean（缺失）
-- 差异: 参考第 6.5 节 HEAP-INSERT 算法（验证空间，追加键 = -inf，然后 INCREASE-KEY 至真实键）未在数组级形式化。仅提供使用 `insertDesc` 的功能 `heapInsert`（降序插入），与书的 -inf 技巧不同。
-- 建议: 添加 `arrayHeapInsert?` 遵循 CLRS 伪代码：检查 heap-size < 数组长度，追加键 = 0（或最小哨兵），然后调用 `arrayHeapIncreaseKey?`。
+### MINOR（12 条）
 
-**MINOR-6**: 句柄/映射抽象未形式化
-- 位置: Section_06_5_Priority_Queues.lean（缺失）
-- 差异: 参考第 6.5 节讨论了用于映射应用对象与堆索引的句柄，包括开销分析（每次访问 O(1)）。未形式化句柄/映射层，操作直接作用于数组索引和值。
-- 建议: 可作为未来细化添加映射层，但堆操作数学正确性不依赖。
+**m1. 严重度: MINOR** — `Section_06_1_Heaps.lean:243-253`：零起始索引（left=2*i+1, right=2*i+2, parent=(i-1)/2）替代 1-起始。模块文档已声明，无需修改。
 
-**MINOR-7**: 优先队列运行时界推迟
-- 位置: Section_06_5_Priority_Queues.lean:44-45（模块 docstring）
-- 差异: 文件声明"Runtime bounds and RAM semantics are deferred"。参考第 6.5 节声称每个优先队列操作 O(lg n)。CostedExecution 模块覆盖 heapify/build/heapsort 但不覆盖优先队列操作代价。
-- 建议: 扩展代价执行框架以覆盖 INCREASE-KEY（冒泡路径长度 <= log n）、EXTRACT-MAX（一次 heapify 调用）和 INSERT（一次 increase-key 调用）。
+**m2. 严重度: MINOR** — `Section_06_1_Heaps.lean`：最小堆性质未形式化，仅实现最大堆。书中 §6.1 描述两种堆但聚焦最大堆，符合范围。
 
-**MINOR-8**: 最小优先队列变体缺失
-- 位置: Section_06_5_Priority_Queues.lean（缺失）
-- 差异: 参考第 6.5 节讨论最小优先队列，Exercise 6.5-3 要求 MIN-HEAP-MINIMUM、MIN-HEAP-EXTRACT-MIN、MIN-HEAP-DECREASE-KEY、MIN-HEAP-INSERT。仅形式化最大堆变体。
-- 建议: 可添加最小堆谓词和最小优先队列操作作为对偶开发。
+**m3. 严重度: MINOR** — `Section_06_1_Heaps.lean`：堆高度 Θ(lg n) 未作为独立定理证明。`heapHeight` 定义隐含此性质。
 
-**MINOR-9**: 简化代价度量
-- 位置: CostedExecution.lean:7-13（模块 docstring）
-- 差异: 代价度量仅计数 MAX-HEAPIFY 帧和提取转换，不计入守卫、列表读写、分配和函数调用。非完整 RAM 代价模型。渐近界与书的声明匹配，但常数因子和操作级会计与 RAM 模型不同。
-- 建议: 已按现状文档化。完整 RAM 代价模型可作为独立细化。
+**m4. 严重度: MINOR** — `Section_06_2_Maintaining_Heap_Property.lean`：2n/3 子树大小界未形式化。使用索引下降论证替代，等价且正确。
+
+**m5. 严重度: MINOR** — `Section_06_2_Maintaining_Heap_Property.lean`：递推 T(n) ≤ T(2n/3) + Θ(1) 未形式化。直接使用高度下降论证替代。
+
+**m6. 严重度: MINOR** — `Section_06_4_Heapsort.lean`：已排序/逆序输入的特殊性能分析（练习 6.4-3）未形式化。
+
+**m7. 严重度: MINOR** — `Section_06_4_Heapsort.lean`：最坏情况 Ω(n log n) 下界（练习 6.4-4）未证明。仅证明 O(n log n) 上界。
+
+**m8. 严重度: MINOR** — `Section_06_5_Priority_Queues.lean`：书中 handle/对象-索引映射的讨论未形式化。纯函数式模型中 handle 不可见。
+
+**m9. 严重度: MINOR** — `Section_06_5_Priority_Queues.lean:61-66`：功能接口 `heapInsert`/`heapIncreaseKey`/`heapDelete` 使用 `buildMaxHeap` 从零重建，非 O(lg n) 就地更新。已标记为"compact scaffold"。
+
+**m10. 严重度: MINOR** — `Section_06_1_Heaps.lean:44-237`：功能堆模型使用 `List Nat` 而非可变数组。模块文档已声明。
+
+**m11. 严重度: MINOR** — `CostedExecution.lean:4-27`：代价模型计算"已访问 MAX-HEAPIFY 帧 + 交换转换"，非书中 RAM 指令模型。模块文档已声明"not a RAM-cost model for Lean lists"。
+
+**m12. 严重度: MINOR** — `Section_06_4_Heapsort.lean:521-529`：`arrayHeapSortInPlaceLoop` 使用燃料参数而非精确计数循环。燃料化形式等价于 for 循环，不影响正确性。
 
 ## 反驳记录
 
-待反驳员完成 -- 将在此更新。
+反驳员复核了全部 38 条 MATCH 条目，提出 0 条独立差异。无降级操作。
 
-## 汇总
+反驳员逐条检查了表示等价（零起始 vs 一起始索引算术、List vs Array 语义、Option vs 错误处理）、算法结构（循环边界、比较方向、递归模式、交换语义）、不变量强度（`ArrayMaxHeapExcept` 等价于书中前提、`HeapSortLoopInvariant` 三分量等价于练习 6.4-2 不变量）、代价模型（O(h)/O(log n)/O(n)/O(n log n) 界均严格证明）、定理强度（正确性定理覆盖完整）等维度。
 
-| 判定 | 数量 |
-|------|------|
-| MATCH | 42 |
-| MINOR | 9 |
-| MAJOR | 0 |
-| CRITICAL | 0 |
-| UNCERTAIN | 0 |
+**边缘情况注明**（非降级）：`arrayHeapDelete?`（`Section_06_5_Priority_Queues.lean:799-809`）在 `valAt a i = valAt a 0` 且 `i ≠ 0` 时，increase-key-to-root-max 为空操作，extract-max 移除根而非 i 处的元素，i 处的元素可能保留在新堆前缀中。不过数学合约（`rest.Perm (a.set i (valAt a 0))`、堆性质保持、堆大小减 1）仍然满足。此边缘情况仅出现在重复最大值场景，且书中 DELETE 操作对象（非索引）——此差异已由现存 MINOR m8（handle/映射抽象未形式化）覆盖。
 
-**总体评估**: 第 6 章形式化语义忠实于 CLRS 原文。0-based 索引适配正确且在全章一致。关键算法（MAX-HEAPIFY、BUILD-MAX-HEAP、HEAPSORT、优先队列操作）均正确形式化，包含不变量及正确性证明。紧渐近界（heapify O(log n)、build-heap O(n)、heapsort O(n log n)）均针对代价执行模型得到证明。9 项 MINOR 发现均为已文档化的简化或推迟细化，不影响主要结果的数学正确性。
+## 各节分布
+
+| 节 | MATCH | MINOR | MAJOR | CRITICAL |
+|----|-------|-------|-------|----------|
+| §6.1 Heaps | 7 | 3 | 0 | 0 |
+| §6.2 Maintaining the Heap Property | 9 | 2 | 0 | 0 |
+| §6.3 Building a Heap | 10 | 0 | 0 | 0 |
+| §6.4 The Heapsort Algorithm | 7 | 3 | 1 | 0 |
+| §6.5 Priority Queues | 5 | 4 | 2 | 0 |
+| CostedExecution | 6 | 0 | 0 | 0 |
+
+**关键发现**: 第 6 章是形式化质量最高的章节之一。核心算法（MAX-HEAPIFY、BUILD-MAX-HEAP、HEAPSORT）的正确性证明完整且严格，代价分析（CostedExecution）精确再现了 CLRS 的 O(n) 构建和 O(n log n) 排序界，包括高度双重计数（`sum_heapHeight_le`）和聚集求和论证。主要缺陷集中在 §6.5 优先队列：HEAP-INSERT 缺失（MAJOR），功能接口使用 O(n) 重建而非 O(lg n) 更新（MAJOR）。所有已知简化（零起始索引、List 替代数组、燃料化递归）已在模块文档中妥善声明。
