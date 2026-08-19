@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeed
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListMap
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark
 
 /-!
 # Canonical complete transition-family input
@@ -109,6 +110,63 @@ theorem verifierTransitionFamilyUnaryInputTarget_eq_flatMap
         .frameEnd :: transitionSeedLocalUnaryInput W.machine.tm seed := by
   exact transitionSeedFamilyUnaryInput_eq_flatMap W.machine.tm
     (verifierTransitionRowSeeds W input)
+
+/-! ## Concrete marked seed source -/
+
+/-- Ordinary value-level triples underlying a transition seed family. -/
+def transitionRowSeedTriples (seeds : List TransitionRowSeed) :
+    List (Nat × Nat × Nat) :=
+  seeds.map fun seed => (seed.height, seed.start, seed.rowBase)
+
+/-- The raw seed source is exactly the ordinary flat triple encoding expected
+by the reusable row marker. -/
+theorem verifierTransitionRowSeedFrames_eq_triples
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionRowSeedFrames W input =
+      encodeUnaryTripleRows
+        (transitionRowSeedTriples (verifierTransitionRowSeeds W input)) := by
+  rw [verifierTransitionRowSeedFrames_eq_seeds]
+  simp [encodeUnaryTripleRows, transitionRowSeedTriples,
+    List.flatMap_map]
+
+/-- Row-delimited transition seeds produced from the raw verifier word.  The
+marker follows each complete three-field seed and is consumed by the local-row
+source controller, so it cannot be confused with field separators. -/
+def verifierTransitionRowMarkedSeedFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  markUnaryTripleRows (verifierTransitionRowSeedFrames W input)
+
+/-- Exact semantic packet order of the marked raw-input seed source. -/
+theorem verifierTransitionRowMarkedSeedFrames_eq_seeds
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionRowMarkedSeedFrames W input =
+      (verifierTransitionRowSeeds W input).flatMap fun seed =>
+        encodeUnaryFrame [seed.height, seed.start, seed.rowBase] ++
+          [.frameEnd] := by
+  unfold verifierTransitionRowMarkedSeedFrames
+  rw [verifierTransitionRowSeedFrames_eq_triples,
+    markUnaryTripleRows_encode]
+  simp [encodeUnaryTripleMarkedRows, transitionRowSeedTriples,
+    List.flatMap_map]
+
+/-- A concrete fixed polynomial-time TM2 generates the row-delimited seed
+packets directly from the raw verifier word. -/
+noncomputable def
+    verifierTransitionRowMarkedSeedFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionRowMarkedSeedFrames W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierTransitionRowSeedFrames_computableInPolyTime W)
+      markUnaryTripleRows_computableInPolyTime
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input => markUnaryTripleRows
+      (verifierTransitionRowSeedFrames W input))
+  simpa [Function.comp_def] using Classical.choice composed
 
 /-- Expanding the polynomial-time row seeds recovers the canonical semantic
 transition-family script, field for field. -/
