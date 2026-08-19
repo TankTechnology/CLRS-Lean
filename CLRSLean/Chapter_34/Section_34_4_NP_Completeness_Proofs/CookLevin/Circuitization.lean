@@ -16,6 +16,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransition
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
@@ -50,5 +51,7 @@ the row-major `(height, gateStart, rowBase)` seeds whose arithmetic expansion
 is exactly the full semantic row-frame family.  The continuous one-hot seed
 expander is polynomial-time and produces the canonical four-field operands.
 The remaining tail target is pinned byte-for-byte to the canonical stack/cell
-and final-conjunction frames; its fixed source compiler is the next boundary.
+and final-conjunction frames.  Its fixed stack and final-prefix operands are
+now compiled directly from the raw word; delimiter rewriting and insertion of
+the runtime-height one-hot family remain the next boundary.
 -/

@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticValidityTailFixedOperandForms
+#check arithmeticValidityTailFixedOperandValues
+#check arithmeticValidityTailFixedOperandForms_eq
+#check verifierValidityRowTailFixedOperandFrames_computableInPolyTime
+
+#print axioms arithmeticValidityTailFixedOperandForms_eq
+#print axioms verifierValidityRowTailFixedOperandFrames_computableInPolyTime
