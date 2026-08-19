@@ -26,6 +26,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check arithmeticFinalConjunctionStackWires
 #check arithmeticFinalConjunctionWires
 #check arithmeticFinalConjunctionWires_eq_semantic
+#check arithmeticValidityFinalConjunctionSourceFrame
+#check arithmeticStackOutputWires_eq_finalConjunction
+#check arithmeticValidityFinalConjunctionSourceFrame_eq
+#check arithmeticValidityFinalConjunctionSource_runToFinish
+#check arithmeticValidityFinalConjunctionSource_steps_le
 #check validityRowSeedTailFrame_eq_expand
 #check validityRowSeedTailFamily
 #check validityRowSeedTailFamily_eq_canonical
@@ -42,6 +47,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms arithmeticRuntimeStackFamilySource_runToFinish
 #print axioms arithmeticRuntimeStackFamilySource_steps_le
 #print axioms arithmeticFinalConjunctionWires_eq_semantic
+#print axioms arithmeticStackOutputWires_eq_finalConjunction
+#print axioms arithmeticValidityFinalConjunctionSourceFrame_eq
+#print axioms arithmeticValidityFinalConjunctionSource_runToFinish
+#print axioms arithmeticValidityFinalConjunctionSource_steps_le
 #print axioms arithmeticRawOneHotOutputSource_runToFinish
 #print axioms arithmeticRawOneHotOutputSource_steps_le
 #print axioms arithmeticRawOneHotOutputSourceFamilyStream_eq

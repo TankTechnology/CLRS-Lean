@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityFinalConjunctionSource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -431,6 +432,82 @@ theorem arithmeticFinalConjunctionWires_eq_semantic
         arithmeticFinalConjunctionStackWires tm H start =
     rawConstraints ++ halted.wire :: stackConstraints
   rw [hraw, hhalted, hstack]
+
+/-- Compact runtime operands of the complete final-conjunction source. -/
+noncomputable def arithmeticValidityFinalConjunctionSourceFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    AffineValidityFinalConjunctionSourceFrame :=
+  { rawFrames := arithmeticRawOneHotFrames tm H start rowBase
+    haltedWire := arithmeticHaltedMatchStart tm H start + 4
+    stackFrame :=
+      { height := H
+        base := arithmeticStackValidityStart tm H start }
+    finalStart := arithmeticValidityFinalStart tm H start }
+
+/-- The generic descending source traversal denotes the established closed
+stack-major/cell-major arithmetic family. -/
+theorem arithmeticStackOutputWires_eq_finalConjunction
+    (tm : _root_.Turing.FinTM2) (H start : Nat) :
+    affineStackOutputWires (arithmeticStackCount tm) H
+        (arithmeticStackValidityStart tm H start) =
+      arithmeticFinalConjunctionStackWires tm H start := by
+  rw [affineStackOutputWires_eq_ofFn]
+  rfl
+
+/-- Specializing the linked source recovers exactly the pre-existing
+Cook--Levin final conjunction frame. -/
+theorem arithmeticValidityFinalConjunctionSourceFrame_eq
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityFinalConjunctionFrame (arithmeticStackCount tm)
+        (arithmeticValidityFinalConjunctionSourceFrame
+          tm H start rowBase) =
+      (arithmeticValidityTailFrame tm H start rowBase).finalFrame := by
+  unfold affineValidityFinalConjunctionFrame
+    arithmeticValidityFinalConjunctionSourceFrame
+    arithmeticValidityTailFrame arithmeticValidityFinalConjunctionFrame
+  congr 1
+  unfold affineValidityFinalConjunctionWires
+  rw [arithmeticStackOutputWires_eq_finalConjunction]
+  rw [← arithmeticFinalConjunctionWires_eq_semantic]
+  rfl
+
+/-- The linked fixed controller generates the exact established arithmetic
+final conjunction frame and preserves the following invocation. -/
+noncomputable def arithmeticValidityFinalConjunctionSource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineValidityFinalConjunctionSourceRevProgram
+        (arithmeticStackCount tm)))
+      (affineValidityFinalConjunctionSourceLoopCfg (arithmeticStackCount tm)
+        (encodeAffineValidityFinalConjunctionSourceInvocation
+          (arithmeticValidityFinalConjunctionSourceFrame
+            tm H start rowBase) ++ tail) output)
+      (some (affineValidityFinalConjunctionSourceFinishCfg
+        (arithmeticStackCount tm) tail
+        ((encodeAffineConjunctionFrame
+          (arithmeticValidityTailFrame tm H start rowBase).finalFrame).reverse ++
+            output)))
+      (affineValidityFinalConjunctionSourceSteps (arithmeticStackCount tm)
+        (arithmeticValidityFinalConjunctionSourceFrame
+          tm H start rowBase)) := by
+  simpa only [arithmeticValidityFinalConjunctionSourceFrame_eq] using
+    affineValidityFinalConjunctionSource_runToFinish
+      (arithmeticStackCount tm)
+      (arithmeticValidityFinalConjunctionSourceFrame tm H start rowBase)
+      tail output
+
+/-- The specialized arithmetic source inherits the generic quadratic bound. -/
+theorem arithmeticValidityFinalConjunctionSource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityFinalConjunctionSourceSteps (arithmeticStackCount tm)
+        (arithmeticValidityFinalConjunctionSourceFrame tm H start rowBase) ≤
+      affineValidityFinalConjunctionSourceStepCoeff
+          (arithmeticStackCount tm) *
+        (encodeAffineValidityFinalConjunctionSourceInvocation
+          (arithmeticValidityFinalConjunctionSourceFrame
+            tm H start rowBase)).length ^ 2 + 50 :=
+  affineValidityFinalConjunctionSource_steps_le _ _
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/
