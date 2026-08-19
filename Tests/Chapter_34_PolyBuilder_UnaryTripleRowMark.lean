@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check markUnaryTripleRows
+#check encodeUnaryTripleRows
+#check encodeUnaryTripleMarkedRows
+#check markUnaryTripleRows_encode
+#check unaryTripleRowMarkExpand_computableInPolyTime
+#check markUnaryTripleRows_computableInPolyTime
+
+#print axioms markUnaryTripleRows_encode
+#print axioms unaryTripleRowMarkExpand_computableInPolyTime
+#print axioms markUnaryTripleRows_computableInPolyTime
