@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchLayout
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyScript
 
 /-!
 # Seed-derived leading phases of transition statements
@@ -275,5 +276,63 @@ theorem compileDispatchScript_phaseKinds_eq
       transitionDispatchPhaseKinds tm := by
   exact compileDispatchLabelsListScript_phaseKinds_eq tm height base pool
     source source hvalid hvalid (programLabels tm)
+
+/-- Operand-erased dispatch schedule extracted from one local transition
+script. -/
+def transitionScriptDispatchPhaseKinds
+    (script : AffineTransitionScript) : List TransitionStmtPhaseKind :=
+  script.dispatch.map transitionStmtPhaseKind
+
+/-- Every canonical local transition uses the same verifier-specific dispatch
+schedule, independently of both tableau rows and the builder prefix. -/
+theorem compileTransitionScript_dispatchPhaseKinds_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    transitionScriptDispatchPhaseKinds
+        (compileTransitionScript tm height base current next hcurrent hnext) =
+      transitionDispatchPhaseKinds tm := by
+  unfold transitionScriptDispatchPhaseKinds compileTransitionScript
+  exact compileDispatchScript_phaseKinds_eq tm height
+    (widenCfg base current hcurrent).builder
+    (widenCfg base current hcurrent).constants
+    (widenCfg base current hcurrent).wires
+    (widenCfg base current hcurrent).valid
+
+/-- Prefix recursion repeats that fixed schedule once per adjacent-row
+transition, in exact row order. -/
+theorem compileTransitionFamilyScripts_dispatchPhaseKinds_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (T : Nat)
+    (rows : Fin (T + 1) → CfgWires tm height)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    (compileTransitionFamilyScripts tm height base T rows hrows).map
+        transitionScriptDispatchPhaseKinds =
+      List.ofFn fun _step : Fin T => transitionDispatchPhaseKinds tm := by
+  induction T generalizing base with
+  | zero => rfl
+  | succ T ih =>
+      simp only [compileTransitionFamilyScripts, List.map_append,
+        List.map_singleton]
+      rw [ih]
+      rw [compileTransitionScript_dispatchPhaseKinds_eq]
+      rw [List.ofFn_succ']
+      simp
+
+/-- The dimension-only transition family therefore has a completely static
+phase-tag matrix: one identical fixed schedule per horizon step. -/
+theorem compileTransitionFamilyScriptsAt_dispatchPhaseKinds_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height T : Nat) :
+    (compileTransitionFamilyScriptsAt tm height T).map
+        transitionScriptDispatchPhaseKinds =
+      List.ofFn fun _step : Fin T => transitionDispatchPhaseKinds tm := by
+  unfold compileTransitionFamilyScriptsAt
+  exact compileTransitionFamilyScripts_dispatchPhaseKinds_eq_ofFn tm height
+    (arithmeticValidityAt tm height T).builder T
+    (arithmeticRowsAt tm height T).rows
+    (fun row =>
+      ((arithmeticRowsAt tm height T).rowValid row).mono
+        ((arithmeticPoolAt tm height T).extension.trans
+          (arithmeticValidityAt tm height T).extension))
 
 end CLRS.Chapter34.Turing.CookLevin

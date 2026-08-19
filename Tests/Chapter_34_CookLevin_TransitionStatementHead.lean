@@ -17,6 +17,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionDispatchPhaseKinds
 #check compileDispatchLabelsListScript_phaseKinds_eq
 #check compileDispatchScript_phaseKinds_eq
+#check transitionScriptDispatchPhaseKinds
+#check compileTransitionScript_dispatchPhaseKinds_eq
+#check compileTransitionFamilyScripts_dispatchPhaseKinds_eq_ofFn
+#check compileTransitionFamilyScriptsAt_dispatchPhaseKinds_eq_ofFn
 
 #print axioms compileStmtScript_head?_eq_transitionStmtHeadPhase
 #print axioms compileDispatchLabelsListArtifacts_statementHeads_eq
@@ -24,3 +28,6 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms compileStmtScript_phaseKinds_eq
 #print axioms compileDispatchLabelsListScript_phaseKinds_eq
 #print axioms compileDispatchScript_phaseKinds_eq
+#print axioms compileTransitionScript_dispatchPhaseKinds_eq
+#print axioms compileTransitionFamilyScripts_dispatchPhaseKinds_eq_ofFn
+#print axioms compileTransitionFamilyScriptsAt_dispatchPhaseKinds_eq_ofFn
