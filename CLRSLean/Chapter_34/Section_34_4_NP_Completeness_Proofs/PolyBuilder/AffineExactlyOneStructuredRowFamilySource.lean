@@ -1807,4 +1807,1389 @@ noncomputable def
       (reverse_computableInPolyTime (Γ := UnaryFrameSym))
   simpa [Function.comp_def] using Classical.choice composed
 
+/-! ## Seed-preserving marked rows -/
+
+/-- A row packet retaining both the original three-field seed and the compact
+one-hot row.  The two `frameEnd` markers distinguish the seed/row boundary and
+the row/row boundary after reversal. -/
+def encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    List AffineExactlyOneStructuredRowSeed → List UnaryFrameSym
+  | [] => []
+  | seed :: rest =>
+      encodeAffineExactlyOneStructuredRowSeed seed ++ [.frameEnd] ++
+        encodeAffineExactlyOneCompactFamily
+          (affineExactlyOneStructuredRowFrames labelWidth stateWidth
+            cellCounts seed.height seed.start seed.rowBase) ++
+        [.frameEnd] ++
+        encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+          labelWidth stateWidth cellCounts rest
+
+/-- Counter-preserving phases that echo a loaded row seed to the prepend
+output before entering the existing structured-row controller. -/
+inductive AffineExactlyOneStructuredRowSeedEchoLabel
+  | height | heightSave | heightPush | heightSeparator
+  | heightRestore | heightRestoreInc
+  | start | startSave | startPush | startSeparator
+  | startRestore | startRestoreInc
+  | rowBase | rowBaseSave | rowBasePush | rowBaseSeparator
+  | rowBaseRestore | rowBaseRestoreInc
+  | markSeed | bridge
+deriving DecidableEq, Fintype
+
+/-- The seed-preserving source reuses the complete marked-row program.  It
+overrides only the loader's public ready edge, echoes/restores the three loaded
+counters, inserts the seed delimiter, and then jumps back to the established
+row entry. -/
+def affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    Program UnaryFrameSym UnaryFrameSym :=
+  let base := affineExactlyOneStructuredRowMarkedFamilyRevProgram
+    labelWidth stateWidth cellCounts
+  let row := affineExactlyOneStructuredRowRevProgram
+    labelWidth stateWidth cellCounts
+  letI := base.labelDecidableEq
+  letI := base.labelFintype
+  { Label := Sum base.Label AffineExactlyOneStructuredRowSeedEchoLabel
+    main := .inl base.main
+    op := fun
+      | .inl (.inl .ready) => .jump (.inr .height)
+      | .inl label => structuredRowFamilyRelabelOp .inl (base.op label)
+      | .inr .height => .dec₁ (.inr .heightSeparator) (.inr .heightSave)
+      | .inr .heightSave => .pushWork₁ .tick (.inr .heightPush)
+      | .inr .heightPush => .pushOutput .tick (.inr .height)
+      | .inr .heightSeparator =>
+          .pushOutput .separator (.inr .heightRestore)
+      | .inr .heightRestore => .popWork₁ (.inr .start) fun
+          | .tick => .inr .heightRestoreInc
+          | _ => .inr .start
+      | .inr .heightRestoreInc => .inc₁ (.inr .heightRestore)
+      | .inr .start => .dec₂ (.inr .startSeparator) (.inr .startSave)
+      | .inr .startSave => .pushWork₁ .tick (.inr .startPush)
+      | .inr .startPush => .pushOutput .tick (.inr .start)
+      | .inr .startSeparator =>
+          .pushOutput .separator (.inr .startRestore)
+      | .inr .startRestore => .popWork₁ (.inr .rowBase) fun
+          | .tick => .inr .startRestoreInc
+          | _ => .inr .rowBase
+      | .inr .startRestoreInc => .inc₂ (.inr .startRestore)
+      | .inr .rowBase =>
+          .dec₃ (.inr .rowBaseSeparator) (.inr .rowBaseSave)
+      | .inr .rowBaseSave => .pushWork₁ .tick (.inr .rowBasePush)
+      | .inr .rowBasePush => .pushOutput .tick (.inr .rowBase)
+      | .inr .rowBaseSeparator =>
+          .pushOutput .separator (.inr .rowBaseRestore)
+      | .inr .rowBaseRestore => .popWork₁ (.inr .markSeed) fun
+          | .tick => .inr .rowBaseRestoreInc
+          | _ => .inr .markSeed
+      | .inr .rowBaseRestoreInc => .inc₃ (.inr .rowBaseRestore)
+      | .inr .markSeed => .pushOutput .frameEnd (.inr .bridge)
+      | .inr .bridge => .jump (.inl (.inr (.inl row.main))) }
+
+private def affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (label : (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts).Label)
+    (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (height start rowBase : List Unit) :
+    BuilderCfg (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) where
+  label := some label
+  buffer₁ := buffer₁
+  buffer₂ := buffer₂
+  test := test
+  input := input
+  output := output
+  work₁ := work₁
+  work₂ := work₂
+  counter₁ := height
+  counter₂ := start
+  counter₃ := rowBase
+
+private def affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (input output : List UnaryFrameSym) :
+    BuilderCfg (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) :=
+  affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (.inl (.inl .load₁)) none none false input output [] [] [] [] []
+
+private def liftStructuredRowSeedMarkedFamilyLoaderCfg
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (c : BuilderCfg (unaryTripleLoaderProgramFor UnaryFrameSym)) :
+    BuilderCfg (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) :=
+  structuredRowFamilyRelabelCfg (fun label => .inl (.inl label)) c
+
+private def liftStructuredRowSeedMarkedFamilyRowCfg
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (c : BuilderCfg (affineExactlyOneStructuredRowRevProgram
+      labelWidth stateWidth cellCounts)) :
+    BuilderCfg (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) :=
+  structuredRowFamilyRelabelCfg
+    (fun label => .inl (.inr (.inl label))) c
+
+private theorem structuredRowFamilyRelabelOp_comp
+    {Γ Δ Λ Μ Ν : Type} (outer : Μ → Ν) (inner : Λ → Μ)
+    (op : Op Γ Δ Λ) :
+    structuredRowFamilyRelabelOp outer
+        (structuredRowFamilyRelabelOp inner op) =
+      structuredRowFamilyRelabelOp (fun label => outer (inner label)) op := by
+  cases op <;> rfl
+
+private theorem liftStructuredRowSeedMarkedFamilyLoader_step
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (c : BuilderCfg (unaryTripleLoaderProgramFor UnaryFrameSym))
+    (hexit : c.label ≠ some .ready) :
+    step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)
+        (liftStructuredRowSeedMarkedFamilyLoaderCfg c) =
+      Option.map liftStructuredRowSeedMarkedFamilyLoaderCfg
+        (step (unaryTripleLoaderProgramFor UnaryFrameSym) c) := by
+  unfold step
+  rw [show (liftStructuredRowSeedMarkedFamilyLoaderCfg c).label =
+    c.label.map (fun label => .inl (.inl label)) by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ .ready := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      have hop :
+          (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts).op (.inl (.inl label)) =
+            structuredRowFamilyRelabelOp (fun next => .inl (.inl next))
+              ((unaryTripleLoaderProgramFor UnaryFrameSym).op label) := by
+        cases label <;>
+          simp_all [affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram,
+            affineExactlyOneStructuredRowMarkedFamilyRevProgram,
+            structuredRowFamilyRelabelOp_comp]
+      rw [hop]
+      exact congrArg some
+        (structuredRowFamilyRelabel_stepOp
+          (Q := affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)
+          (fun next => .inl (.inl next))
+          ((unaryTripleLoaderProgramFor UnaryFrameSym).op label) c)
+
+private theorem liftStructuredRowSeedMarkedFamilyRow_step
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (c : BuilderCfg (affineExactlyOneStructuredRowRevProgram
+      labelWidth stateWidth cellCounts))
+    (hexit : c.label ≠ some (affineExactlyOneStructuredRowFinishLabel
+      labelWidth stateWidth cellCounts)) :
+    step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)
+        (liftStructuredRowSeedMarkedFamilyRowCfg c) =
+      Option.map liftStructuredRowSeedMarkedFamilyRowCfg
+        (step (affineExactlyOneStructuredRowRevProgram
+          labelWidth stateWidth cellCounts) c) := by
+  unfold step
+  rw [show (liftStructuredRowSeedMarkedFamilyRowCfg c).label =
+    c.label.map (fun label => .inl (.inr (.inl label))) by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ affineExactlyOneStructuredRowFinishLabel
+          labelWidth stateWidth cellCounts := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      have hop :
+          (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts).op
+              (.inl (.inr (.inl label))) =
+            structuredRowFamilyRelabelOp
+              (fun next => .inl (.inr (.inl next)))
+              ((affineExactlyOneStructuredRowRevProgram
+                labelWidth stateWidth cellCounts).op label) := by
+        simp [affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram,
+          affineExactlyOneStructuredRowMarkedFamilyRevProgram,
+          structuredRowFamilyRelabelOp_comp, hlabelExit]
+      rw [hop]
+      exact congrArg some
+        (structuredRowFamilyRelabel_stepOp
+          (Q := affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)
+          (fun next => .inl (.inr (.inl next)))
+          ((affineExactlyOneStructuredRowRevProgram
+            labelWidth stateWidth cellCounts).op label) c)
+
+private def affineExactlyOneStructuredRowSeedMarkedFamily_loader_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (height start rowBase : Nat) (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts
+        (encodeUnaryFrame [height, start, rowBase] ++ tail) output)
+      (some (liftStructuredRowSeedMarkedFamilyLoaderCfg
+        (unaryTripleLoaderReadyCfgFor height start rowBase tail output
+          [] [])))
+      (unaryTripleLoaderSteps height start rowBase) := by
+  have sourceRun := unaryTripleLoader_runFor
+    (Δ := UnaryFrameSym) height start rowBase tail output [] []
+  have htarget :
+      (unaryTripleLoaderReadyCfgFor height start rowBase tail output
+        ([] : List UnaryFrameSym) []).label = some .ready := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  have hstart :
+      liftStructuredRowSeedMarkedFamilyLoaderCfg
+          (unaryTripleLoaderCfgFor .load₁ none
+            (encodeUnaryFrame [height, start, rowBase] ++ tail)
+            output [] [] [] [] []) =
+        affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+          labelWidth stateWidth cellCounts
+          (encodeUnaryFrame [height, start, rowBase] ++ tail) output := rfl
+  rw [← hstart]
+  exact structuredRowFamily_lift_iterations_to_haltExit
+      UnaryTripleLoaderLabel.ready rfl
+      liftStructuredRowSeedMarkedFamilyLoaderCfg
+      liftStructuredRowSeedMarkedFamilyLoader_step
+      htarget sourceRun.steps sourceRun.evals_in_steps
+
+private def affineExactlyOneStructuredRowSeedMarkedFamily_row_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (height start rowBase : Nat) (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (liftStructuredRowSeedMarkedFamilyRowCfg
+        (affineExactlyOneStructuredRowLoadedCfg
+          labelWidth stateWidth cellCounts height start rowBase tail output))
+      (some (liftStructuredRowSeedMarkedFamilyRowCfg
+        (affineExactlyOneStructuredRowFinishCfg
+          labelWidth stateWidth cellCounts height start rowBase tail
+          ((encodeAffineExactlyOneCompactFamily
+            (affineExactlyOneStructuredRowFrames labelWidth stateWidth
+              cellCounts height start rowBase)).reverse ++ output))))
+      (affineExactlyOneStructuredRowSteps
+        labelWidth stateWidth cellCounts height start rowBase) := by
+  have sourceRun := affineExactlyOneStructuredRow_runToFinish
+    labelWidth stateWidth cellCounts height start rowBase tail output
+  have htarget :
+      (affineExactlyOneStructuredRowFinishCfg
+        labelWidth stateWidth cellCounts height start rowBase tail
+        ((encodeAffineExactlyOneCompactFamily
+          (affineExactlyOneStructuredRowFrames labelWidth stateWidth
+            cellCounts height start rowBase)).reverse ++ output)).label =
+        some (affineExactlyOneStructuredRowFinishLabel
+          labelWidth stateWidth cellCounts) := rfl
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact structuredRowFamily_lift_iterations_to_haltExit
+    (affineExactlyOneStructuredRowFinishLabel
+      labelWidth stateWidth cellCounts)
+    (affineExactlyOneStructuredRow_finish_op
+      labelWidth stateWidth cellCounts)
+    liftStructuredRowSeedMarkedFamilyRowCfg
+    liftStructuredRowSeedMarkedFamilyRow_step
+    htarget sourceRun.steps sourceRun.evals_in_steps
+
+private theorem affineExactlyOneStructuredRowSeedMarkedFamily_finish_step
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (c : BuilderCfg (affineExactlyOneStructuredRowRevProgram
+      labelWidth stateWidth cellCounts))
+    (hlabel : c.label = some (affineExactlyOneStructuredRowFinishLabel
+      labelWidth stateWidth cellCounts)) :
+    step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)
+        (liftStructuredRowSeedMarkedFamilyRowCfg c) =
+      some { liftStructuredRowSeedMarkedFamilyRowCfg c with
+        label := some (.inl (.inr (.inr
+          AffineExactlyOneStructuredRowFamilyClearLabel.height)))
+        output := .frameEnd :: c.output } := by
+  unfold step
+  rw [show (liftStructuredRowSeedMarkedFamilyRowCfg c).label =
+    c.label.map (fun label => .inl (.inr (.inl label))) by rfl]
+  rw [hlabel]
+  simp [affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram,
+    affineExactlyOneStructuredRowMarkedFamilyRevProgram, stepOp,
+    structuredRowFamilyRelabelOp, liftStructuredRowSeedMarkedFamilyRowCfg,
+    structuredRowFamilyRelabelCfg]
+
+private theorem structuredRowSeedMarked_replicate_append_cons
+    {alpha : Type} (item : alpha) (count : Nat) (tail : List alpha) :
+    List.replicate count item ++ item :: tail =
+      item :: (List.replicate count item ++ tail) := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp only [List.replicate_succ, List.cons_append]
+      exact congrArg (List.cons item) ih
+
+private theorem structuredRowSeedMarked_echoHeight_scan_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (start rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[3 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .height) buffer₁ buffer₂ test input output work₁ work₂
+        (List.replicate value ()) start rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .heightSeparator) buffer₁ buffer₂ false input
+        (List.replicate value .tick ++ output)
+        (List.replicate value .tick ++ work₁) work₂ [] start rowBase) := by
+  induction value generalizing test output work₁ with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 3 * (value + 1) + 1 = (3 * value + 1) + 1 + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[3 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .height) buffer₁ buffer₂ true input (.tick :: output)
+            (.tick :: work₁) work₂ (List.replicate value ()) start
+            rowBase)) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih true (.tick :: output) (.tick :: work₁)
+
+private theorem structuredRowSeedMarked_echoHeight_restore_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (height start rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[2 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .heightRestore) buffer₁ buffer₂ test input output
+        (List.replicate value .tick) work₂ height start rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .start) none buffer₂ test input output [] work₂
+        (List.replicate value () ++ height) start rowBase) := by
+  induction value generalizing buffer₁ height with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[2 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .heightRestore) none buffer₂ test input output
+            (List.replicate value .tick) work₂ (() :: height) start
+            rowBase)) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih none (() :: height)
+
+private theorem structuredRowSeedMarked_echoStart_scan_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (height rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[3 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .start) buffer₁ buffer₂ test input output work₁ work₂
+        height (List.replicate value ()) rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .startSeparator) buffer₁ buffer₂ false input
+        (List.replicate value .tick ++ output)
+        (List.replicate value .tick ++ work₁) work₂ height [] rowBase) := by
+  induction value generalizing test output work₁ with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 3 * (value + 1) + 1 = (3 * value + 1) + 1 + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[3 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .start) buffer₁ buffer₂ true input (.tick :: output)
+            (.tick :: work₁) work₂ height (List.replicate value ())
+            rowBase)) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih true (.tick :: output) (.tick :: work₁)
+
+private theorem structuredRowSeedMarked_echoStart_restore_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (height start rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[2 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .startRestore) buffer₁ buffer₂ test input output
+        (List.replicate value .tick) work₂ height start rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .rowBase) none buffer₂ test input output [] work₂ height
+        (List.replicate value () ++ start) rowBase) := by
+  induction value generalizing buffer₁ start with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[2 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .startRestore) none buffer₂ test input output
+            (List.replicate value .tick) work₂ height (() :: start)
+            rowBase)) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih none (() :: start)
+
+private theorem structuredRowSeedMarked_echoRowBase_scan_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (height start : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[3 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .rowBase) buffer₁ buffer₂ test input output work₁ work₂
+        height start (List.replicate value ()))) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .rowBaseSeparator) buffer₁ buffer₂ false input
+        (List.replicate value .tick ++ output)
+        (List.replicate value .tick ++ work₁) work₂ height start []) := by
+  induction value generalizing test output work₁ with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 3 * (value + 1) + 1 = (3 * value + 1) + 1 + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[3 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .rowBase) buffer₁ buffer₂ true input (.tick :: output)
+            (.tick :: work₁) work₂ height start
+            (List.replicate value ()))) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih true (.tick :: output) (.tick :: work₁)
+
+private theorem structuredRowSeedMarked_echoRowBase_restore_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (height start rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[2 * value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .rowBaseRestore) buffer₁ buffer₂ test input output
+        (List.replicate value .tick) work₂ height start rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inr .markSeed) none buffer₂ test input output [] work₂ height
+        start (List.replicate value () ++ rowBase)) := by
+  induction value generalizing buffer₁ rowBase with
+  | zero => rfl
+  | succ value ih =>
+      rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[2 * value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inr .rowBaseRestore) none buffer₂ test input output
+            (List.replicate value .tick) work₂ height start
+            (() :: rowBase))) = _
+      simpa only [List.replicate_succ, List.cons_append,
+        structuredRowSeedMarked_replicate_append_cons] using
+        ih none (() :: rowBase)
+
+private def affineExactlyOneStructuredRowSeedMarked_echoHeight_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (height : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (start rowBase : List Unit) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .height)
+        buffer₁ buffer₂ test input output [] work₂
+        (List.replicate height ()) start rowBase)
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .start)
+        none buffer₂ false input
+        (.separator :: (List.replicate height .tick ++ output)) [] work₂
+        (List.replicate height ()) start rowBase))
+      (5 * height + 3) := by
+  let scanned := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .heightSeparator) buffer₁ buffer₂
+    false input (List.replicate height .tick ++ output)
+    (List.replicate height .tick) work₂ [] start rowBase
+  let restoring := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .heightRestore) buffer₁ buffer₂
+    false input (.separator :: (List.replicate height .tick ++ output))
+    (List.replicate height .tick) work₂ [] start rowBase
+  have hscan : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .height)
+        buffer₁ buffer₂ test input output [] work₂
+        (List.replicate height ()) start rowBase)
+      (some scanned) (3 * height + 1) :=
+    ⟨⟨3 * height + 1, by
+      simpa [scanned] using structuredRowSeedMarked_echoHeight_scan_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) height buffer₁ buffer₂ test input output
+        [] work₂ start rowBase⟩, le_rfl⟩
+  have hseparator : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) scanned (some restoring) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    rfl
+  have hrestore : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) restoring
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .start)
+        none buffer₂ false input
+        (.separator :: (List.replicate height .tick ++ output)) [] work₂
+        (List.replicate height ()) start rowBase))
+      (2 * height + 1) :=
+    ⟨⟨2 * height + 1, by
+      simpa [restoring] using structuredRowSeedMarked_echoHeight_restore_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) height buffer₁ buffer₂ false input
+        (.separator :: (List.replicate height .tick ++ output)) work₂ [] start
+        rowBase⟩, le_rfl⟩
+  let throughSeparator := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ scanned _ hscan hseparator
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ restoring _ throughSeparator
+      hrestore
+  convert full using 1 <;> omega
+
+private def affineExactlyOneStructuredRowSeedMarked_echoStart_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (start : Nat) (buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (height rowBase : List Unit) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .start)
+        none buffer₂ test input output [] work₂ height
+        (List.replicate start ()) rowBase)
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .rowBase)
+        none buffer₂ false input
+        (.separator :: (List.replicate start .tick ++ output)) [] work₂ height
+        (List.replicate start ()) rowBase))
+      (5 * start + 3) := by
+  let scanned := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .startSeparator) none buffer₂ false
+    input (List.replicate start .tick ++ output)
+    (List.replicate start .tick) work₂ height [] rowBase
+  let restoring := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .startRestore) none buffer₂ false input
+    (.separator :: (List.replicate start .tick ++ output))
+    (List.replicate start .tick) work₂ height [] rowBase
+  have hscan : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .start)
+        none buffer₂ test input output [] work₂ height
+        (List.replicate start ()) rowBase)
+      (some scanned) (3 * start + 1) :=
+    ⟨⟨3 * start + 1, by
+      simpa [scanned] using structuredRowSeedMarked_echoStart_scan_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) start none buffer₂ test input output []
+        work₂ height rowBase⟩, le_rfl⟩
+  have hseparator : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) scanned (some restoring) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    rfl
+  have hrestore : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) restoring
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .rowBase)
+        none buffer₂ false input
+        (.separator :: (List.replicate start .tick ++ output)) [] work₂ height
+        (List.replicate start ()) rowBase))
+      (2 * start + 1) :=
+    ⟨⟨2 * start + 1, by
+      simpa [restoring] using structuredRowSeedMarked_echoStart_restore_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) start none buffer₂ false input
+        (.separator :: (List.replicate start .tick ++ output)) work₂ height []
+        rowBase⟩, le_rfl⟩
+  let throughSeparator := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ scanned _ hscan hseparator
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ restoring _ throughSeparator
+      hrestore
+  convert full using 1 <;> omega
+
+private def affineExactlyOneStructuredRowSeedMarked_echoRowBase_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (rowBase : Nat) (buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₂ : List UnaryFrameSym)
+    (height start : List Unit) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .rowBase)
+        none buffer₂ test input output [] work₂ height start
+        (List.replicate rowBase ()))
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .markSeed)
+        none buffer₂ false input
+        (.separator :: (List.replicate rowBase .tick ++ output)) [] work₂
+        height start (List.replicate rowBase ())))
+      (5 * rowBase + 3) := by
+  let scanned := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .rowBaseSeparator) none buffer₂ false
+    input (List.replicate rowBase .tick ++ output)
+    (List.replicate rowBase .tick) work₂ height start []
+  let restoring := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .rowBaseRestore) none buffer₂ false
+    input (.separator :: (List.replicate rowBase .tick ++ output))
+    (List.replicate rowBase .tick) work₂ height start []
+  have hscan : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .rowBase)
+        none buffer₂ test input output [] work₂ height start
+        (List.replicate rowBase ()))
+      (some scanned) (3 * rowBase + 1) :=
+    ⟨⟨3 * rowBase + 1, by
+      simpa [scanned] using structuredRowSeedMarked_echoRowBase_scan_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) rowBase none buffer₂ test input output []
+        work₂ height start⟩, le_rfl⟩
+  have hseparator : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) scanned (some restoring) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    rfl
+  have hrestore : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) restoring
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg (.inr .markSeed)
+        none buffer₂ false input
+        (.separator :: (List.replicate rowBase .tick ++ output)) [] work₂
+        height start (List.replicate rowBase ())))
+      (2 * rowBase + 1) :=
+    ⟨⟨2 * rowBase + 1, by
+      simpa [restoring] using structuredRowSeedMarked_echoRowBase_restore_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) rowBase none buffer₂ false input
+        (.separator :: (List.replicate rowBase .tick ++ output)) work₂ height
+        start []⟩, le_rfl⟩
+  let throughSeparator := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ scanned _ hscan hseparator
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ restoring _ throughSeparator
+      hrestore
+  convert full using 1 <;> omega
+
+/-- Exact cost from the loader's ready state through seed echo and back to the
+established structured-row entry. -/
+def affineExactlyOneStructuredRowSeedEchoSteps
+    (height start rowBase : Nat) : Nat :=
+  5 * (height + start + rowBase) + 12
+
+private def affineExactlyOneStructuredRowSeedMarked_echo_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (height start rowBase : Nat) (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (liftStructuredRowSeedMarkedFamilyLoaderCfg
+        (unaryTripleLoaderReadyCfgFor height start rowBase tail output [] []))
+      (some (liftStructuredRowSeedMarkedFamilyRowCfg
+        (affineExactlyOneStructuredRowLoadedCfg
+          labelWidth stateWidth cellCounts height start rowBase tail
+          (.frameEnd ::
+            (encodeUnaryFrame [height, start, rowBase]).reverse ++ output))))
+      (affineExactlyOneStructuredRowSeedEchoSteps height start rowBase) := by
+  let afterReady := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .height) (some .separator) none false
+    tail output [] [] (List.replicate height ()) (List.replicate start ())
+    (List.replicate rowBase ())
+  let afterHeight := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .start) none none false tail
+    (.separator :: (List.replicate height .tick ++ output)) [] []
+    (List.replicate height ()) (List.replicate start ())
+    (List.replicate rowBase ())
+  let afterStart := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .rowBase) none none false tail
+    (.separator :: (List.replicate start .tick ++
+      (.separator :: (List.replicate height .tick ++ output)))) [] []
+    (List.replicate height ()) (List.replicate start ())
+    (List.replicate rowBase ())
+  let afterBase := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .markSeed) none none false tail
+    (.separator :: (List.replicate rowBase .tick ++
+      (.separator :: (List.replicate start .tick ++
+        (.separator :: (List.replicate height .tick ++ output)))))) [] []
+    (List.replicate height ()) (List.replicate start ())
+    (List.replicate rowBase ())
+  let afterMark := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inr .bridge) none none false tail
+    (.frameEnd :: .separator :: (List.replicate rowBase .tick ++
+      (.separator :: (List.replicate start .tick ++
+        (.separator :: (List.replicate height .tick ++ output)))))) [] []
+    (List.replicate height ()) (List.replicate start ())
+    (List.replicate rowBase ())
+  have hready : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (liftStructuredRowSeedMarkedFamilyLoaderCfg
+        (unaryTripleLoaderReadyCfgFor height start rowBase tail output [] []))
+      (some afterReady) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    rfl
+  have hheight : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterReady (some afterHeight)
+      (5 * height + 3) := by
+    simpa [afterReady, afterHeight] using
+      affineExactlyOneStructuredRowSeedMarked_echoHeight_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) height (some .separator) none false tail
+        output [] (List.replicate start ()) (List.replicate rowBase ())
+  have hstart : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterHeight (some afterStart)
+      (5 * start + 3) := by
+    simpa [afterHeight, afterStart] using
+      affineExactlyOneStructuredRowSeedMarked_echoStart_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) start none false tail
+        (.separator :: (List.replicate height .tick ++ output)) []
+        (List.replicate height ()) (List.replicate rowBase ())
+  have hbase : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterStart (some afterBase)
+      (5 * rowBase + 3) := by
+    simpa [afterStart, afterBase] using
+      affineExactlyOneStructuredRowSeedMarked_echoRowBase_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) rowBase none false tail
+        (.separator :: (List.replicate start .tick ++
+          (.separator :: (List.replicate height .tick ++ output)))) []
+        (List.replicate height ()) (List.replicate start ())
+  have hmark : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterBase (some afterMark) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    rfl
+  have hbridge : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterMark
+      (some (liftStructuredRowSeedMarkedFamilyRowCfg
+        (affineExactlyOneStructuredRowLoadedCfg
+          labelWidth stateWidth cellCounts height start rowBase tail
+          (.frameEnd ::
+            (encodeUnaryFrame [height, start, rowBase]).reverse ++ output))))
+      1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    change step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) afterMark = _
+    simp only [afterMark, encodeUnaryFrame, List.flatMap_cons,
+      List.flatMap_nil, encodeUnaryFrameBlock, List.reverse_append,
+      List.reverse_cons, List.reverse_nil, List.nil_append, List.append_assoc,
+      List.reverse_replicate, List.cons_append]
+    rfl
+  let h₁ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) 1 _ _ afterReady _ hready hheight
+  let h₂ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ afterHeight _ h₁ hstart
+  let h₃ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ afterStart _ h₂ hbase
+  let h₄ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ afterBase _ h₃ hmark
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ afterMark _ h₄ hbridge
+  convert full using 1 <;>
+    simp [affineExactlyOneStructuredRowSeedEchoSteps] <;> omega
+
+private theorem structuredRowSeedMarkedFamily_clearHeight_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (start rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .height))) buffer₁ buffer₂ test input output
+        work₁ work₂ (List.replicate value ()) start rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .start))) buffer₁ buffer₂ false input output
+        work₁ work₂ [] start rowBase) := by
+  induction value generalizing test with
+  | zero => rfl
+  | succ value ih =>
+      rw [show value + 1 + 1 = (value + 1) + 1 by omega,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inl (.inr (.inr .height))) buffer₁ buffer₂ true input output
+            work₁ work₂ (List.replicate value ()) start rowBase)) = _
+      simpa using ih true
+
+private theorem structuredRowSeedMarkedFamily_clearStart_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (height rowBase : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .start))) buffer₁ buffer₂ test input output
+        work₁ work₂ height (List.replicate value ()) rowBase)) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .rowBase))) buffer₁ buffer₂ false input output
+        work₁ work₂ height [] rowBase) := by
+  induction value generalizing test with
+  | zero => rfl
+  | succ value ih =>
+      rw [show value + 1 + 1 = (value + 1) + 1 by omega,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inl (.inr (.inr .start))) buffer₁ buffer₂ true input output
+            work₁ work₂ height (List.replicate value ()) rowBase)) = _
+      simpa using ih true
+
+private theorem structuredRowSeedMarkedFamily_clearRowBase_eval
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (value : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (height start : List Unit) :
+    (flip Option.bind
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)))^[value + 1]
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .rowBase))) buffer₁ buffer₂ test input output
+        work₁ work₂ height start (List.replicate value ()))) =
+      some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inl .load₁)) buffer₁ buffer₂ false input output work₁
+        work₂ height start []) := by
+  induction value generalizing test with
+  | zero => rfl
+  | succ value ih =>
+      rw [show value + 1 + 1 = (value + 1) + 1 by omega,
+        Function.iterate_succ_apply]
+      change
+        (flip Option.bind
+          (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)))^[value + 1]
+          (some (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+            (.inl (.inr (.inr .rowBase))) buffer₁ buffer₂ true input output
+            work₁ work₂ height start (List.replicate value ()))) = _
+      simpa using ih true
+
+private def affineExactlyOneStructuredRowSeedMarkedFamily_clear_run
+    {labelWidth stateWidth : Nat} {cellCounts : List Nat}
+    (height start rowBase : Nat) (input output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .height))) none none false input output [] []
+        (List.replicate height ()) (List.replicate start ())
+        (List.replicate rowBase ()))
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts input output))
+      ((height + 1) + (start + 1) + (rowBase + 1)) := by
+  let afterHeight := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inl (.inr (.inr .start))) none none false
+    input output [] [] [] (List.replicate start ())
+    (List.replicate rowBase ())
+  let afterStart := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inl (.inr (.inr .rowBase))) none none false
+    input output [] [] [] [] (List.replicate rowBase ())
+  have hheight : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+        (.inl (.inr (.inr .height))) none none false input output [] []
+        (List.replicate height ()) (List.replicate start ())
+        (List.replicate rowBase ()))
+      (some afterHeight) (height + 1) :=
+    ⟨⟨height + 1, by
+      simpa [afterHeight] using structuredRowSeedMarkedFamily_clearHeight_eval
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) height none none false input output [] []
+        (List.replicate start ()) (List.replicate rowBase ())⟩, le_rfl⟩
+  have hstart : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterHeight (some afterStart)
+      (start + 1) :=
+    ⟨⟨start + 1, by
+      simpa [afterHeight, afterStart] using
+        structuredRowSeedMarkedFamily_clearStart_eval
+          (labelWidth := labelWidth) (stateWidth := stateWidth)
+          (cellCounts := cellCounts) start none none false input output [] []
+          [] (List.replicate rowBase ())⟩, le_rfl⟩
+  have hbase : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) afterStart
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts input output)) (rowBase + 1) :=
+    ⟨⟨rowBase + 1, by
+      simpa [afterStart,
+        affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg] using
+        structuredRowSeedMarkedFamily_clearRowBase_eval
+          (labelWidth := labelWidth) (stateWidth := stateWidth)
+          (cellCounts := cellCounts) rowBase none none false input output
+          [] [] [] []⟩, le_rfl⟩
+  let throughStart := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ afterHeight _ hheight hstart
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ afterStart _ throughStart hbase
+  convert full using 1 <;> omega
+
+/-- Exact cost of one seed-preserving row packet. -/
+def affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) : Nat :=
+  affineExactlyOneStructuredRowFamilyOneSteps
+      labelWidth stateWidth cellCounts seed +
+    5 * (seed.height + seed.start + seed.rowBase) + 11
+
+private def affineExactlyOneStructuredRowSeedMarkedFamily_one
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts
+        (encodeAffineExactlyOneStructuredRowSeed seed ++ tail) output)
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts tail
+        (.frameEnd ::
+          (encodeAffineExactlyOneCompactFamily
+            (affineExactlyOneStructuredRowFrames labelWidth stateWidth
+              cellCounts seed.height seed.start seed.rowBase)).reverse ++
+          .frameEnd ::
+          (encodeAffineExactlyOneStructuredRowSeed seed).reverse ++ output)))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+        labelWidth stateWidth cellCounts seed) := by
+  let seedOutput := .frameEnd ::
+    (encodeAffineExactlyOneStructuredRowSeed seed).reverse ++ output
+  let rowOutput :=
+    (encodeAffineExactlyOneCompactFamily
+      (affineExactlyOneStructuredRowFrames labelWidth stateWidth cellCounts
+        seed.height seed.start seed.rowBase)).reverse ++ seedOutput
+  let markedRowOutput := .frameEnd :: rowOutput
+  let loaderReady := liftStructuredRowSeedMarkedFamilyLoaderCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts)
+    (unaryTripleLoaderReadyCfgFor seed.height seed.start seed.rowBase
+      tail output [] [])
+  let rowStart := liftStructuredRowSeedMarkedFamilyRowCfg
+    (affineExactlyOneStructuredRowLoadedCfg
+      labelWidth stateWidth cellCounts seed.height seed.start seed.rowBase
+      tail seedOutput)
+  let rowDone := liftStructuredRowSeedMarkedFamilyRowCfg
+    (affineExactlyOneStructuredRowFinishCfg
+      labelWidth stateWidth cellCounts seed.height seed.start seed.rowBase
+      tail rowOutput)
+  let endStart := affineExactlyOneStackFamilyEndStart cellCounts seed.height
+    (affineExactlyOneStructuredRowStackStart
+      labelWidth stateWidth seed.start)
+  let endBase := affineExactlyOneStackFamilyEndBase cellCounts seed.height
+    (affineExactlyOneStructuredRowStackBase
+      labelWidth stateWidth seed.rowBase)
+  let clearStart := affineExactlyOneStructuredRowSeedMarkedFamilyCfg
+    (labelWidth := labelWidth) (stateWidth := stateWidth)
+    (cellCounts := cellCounts) (.inl (.inr (.inr .height))) none none false
+    tail markedRowOutput [] [] (List.replicate seed.height ())
+    (List.replicate endStart ()) (List.replicate endBase ())
+  have hloader : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts
+        (encodeAffineExactlyOneStructuredRowSeed seed ++ tail) output)
+      (some loaderReady)
+      (unaryTripleLoaderSteps seed.height seed.start seed.rowBase) := by
+    simpa [encodeAffineExactlyOneStructuredRowSeed, loaderReady] using
+      affineExactlyOneStructuredRowSeedMarkedFamily_loader_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) seed.height seed.start seed.rowBase
+        tail output
+  have hecho : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) loaderReady (some rowStart)
+      (affineExactlyOneStructuredRowSeedEchoSteps
+        seed.height seed.start seed.rowBase) := by
+    simpa [loaderReady, rowStart, seedOutput,
+      encodeAffineExactlyOneStructuredRowSeed] using
+      affineExactlyOneStructuredRowSeedMarked_echo_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) seed.height seed.start seed.rowBase
+        tail output
+  have hrow : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) rowStart (some rowDone)
+      (affineExactlyOneStructuredRowSteps labelWidth stateWidth cellCounts
+        seed.height seed.start seed.rowBase) := by
+    simpa [rowStart, rowDone, rowOutput, seedOutput] using
+      affineExactlyOneStructuredRowSeedMarkedFamily_row_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) seed.height seed.start seed.rowBase
+        tail seedOutput
+  have hexit : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) rowDone (some clearStart) 1 := by
+    refine ⟨⟨1, ?_⟩, le_rfl⟩
+    change step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts) rowDone = some clearStart
+    rw [show rowDone = liftStructuredRowSeedMarkedFamilyRowCfg
+      (affineExactlyOneStructuredRowFinishCfg
+        labelWidth stateWidth cellCounts seed.height seed.start seed.rowBase
+        tail rowOutput) by rfl]
+    rw [affineExactlyOneStructuredRowSeedMarkedFamily_finish_step _ rfl]
+    congr 2
+  have hclear : EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts)) clearStart
+      (some (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts tail markedRowOutput))
+      ((seed.height + 1) + (endStart + 1) + (endBase + 1)) := by
+    simpa [clearStart] using
+      affineExactlyOneStructuredRowSeedMarkedFamily_clear_run
+        (labelWidth := labelWidth) (stateWidth := stateWidth)
+        (cellCounts := cellCounts) seed.height endStart endBase
+        tail markedRowOutput
+  let h₁ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ loaderReady _ hloader hecho
+  let h₂ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ rowStart _ h₁ hrow
+  let h₃ := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ 1 _ rowDone _ h₂ hexit
+  let full := EvalsToInTime.trans
+    (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+      labelWidth stateWidth cellCounts)) _ _ _ clearStart _ h₃ hclear
+  convert full using 1 <;>
+    simp [affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps,
+      affineExactlyOneStructuredRowFamilyOneSteps,
+      affineExactlyOneStructuredRowSeedEchoSteps, markedRowOutput, rowOutput,
+      seedOutput, endStart, endBase] <;> omega
+
+/-- Exact runtime for the complete seed-preserving marked family. -/
+def affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    List AffineExactlyOneStructuredRowSeed → Nat
+  | [] => 2
+  | seed :: rest =>
+      affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+          labelWidth stateWidth cellCounts seed +
+        affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+          labelWidth stateWidth cellCounts rest
+
+private def affineExactlyOneStructuredRowSeedMarkedFamily_runFrom
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed)
+    (output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+        labelWidth stateWidth cellCounts
+        (encodeAffineExactlyOneStructuredRowSeedFamily seeds) output)
+      (some (haltCfg
+        (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts)
+        ((encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse ++ output)))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds) := by
+  induction seeds generalizing output with
+  | nil =>
+      refine ⟨⟨2, ?_⟩, le_rfl⟩
+      rfl
+  | cons seed rest ih =>
+      let rowFrames := affineExactlyOneStructuredRowFrames
+        labelWidth stateWidth cellCounts
+        seed.height seed.start seed.rowBase
+      let rowOutput := .frameEnd ::
+        (encodeAffineExactlyOneCompactFamily rowFrames).reverse ++
+        .frameEnd :: (encodeAffineExactlyOneStructuredRowSeed seed).reverse ++
+        output
+      have hfirst := affineExactlyOneStructuredRowSeedMarkedFamily_one
+        labelWidth stateWidth cellCounts seed
+        (encodeAffineExactlyOneStructuredRowSeedFamily rest) output
+      have hrest := ih rowOutput
+      let full := EvalsToInTime.trans
+        (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts))
+        (affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+          labelWidth stateWidth cellCounts seed)
+        (affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+          labelWidth stateWidth cellCounts rest)
+        _ (affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+          labelWidth stateWidth cellCounts
+          (encodeAffineExactlyOneStructuredRowSeedFamily rest) rowOutput)
+        _ hfirst hrest
+      convert full using 1
+      · simp [encodeAffineExactlyOneStructuredRowSeedFamily,
+          encodeAffineExactlyOneStructuredRowSeed]
+      · simp [encodeAffineExactlyOneStructuredRowSeedMarkedFamily,
+          rowFrames, rowOutput, List.reverse_append, List.append_assoc]
+      · simp [affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps]
+        omega
+
+/-- The fixed seed-preserving source halts with the reverse of all delimited
+row packets on its prepend output. -/
+def affineExactlyOneStructuredRowSeedMarkedFamilyRev_run
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    EvalsToInTime
+      (step (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts))
+      (initialCfg
+        (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts)
+        (encodeAffineExactlyOneStructuredRowSeedFamily seeds))
+      (some (haltCfg
+        (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts)
+        (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse))
+      (affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds) := by
+  have hinit : affineExactlyOneStructuredRowSeedMarkedFamilyLoopCfg
+      labelWidth stateWidth cellCounts
+      (encodeAffineExactlyOneStructuredRowSeedFamily seeds) [] =
+        initialCfg
+          (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts)
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds) := rfl
+  rw [← hinit]
+  simpa only [List.append_nil] using
+    affineExactlyOneStructuredRowSeedMarkedFamily_runFrom
+      labelWidth stateWidth cellCounts seeds []
+
+/-- Fixed quadratic coefficient for the seed-preserving marked source. -/
+def affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) : Nat :=
+  affineExactlyOneStructuredRowFamilyStepCoeff
+      labelWidth stateWidth cellCounts + 16
+
+theorem affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+        labelWidth stateWidth cellCounts seed ≤
+      affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+          labelWidth stateWidth cellCounts *
+        (seed.height + seed.start + seed.rowBase + 1) ^ 2 := by
+  let payload := seed.height + seed.start + seed.rowBase + 1
+  have hold := affineExactlyOneStructuredRowFamilyOneSteps_le
+    labelWidth stateWidth cellCounts seed
+  have hpayload : 1 ≤ payload := by simp [payload]
+  have hextra : 5 * (seed.height + seed.start + seed.rowBase) + 11 ≤
+      16 * payload ^ 2 := by
+    dsimp only [payload]
+    nlinarith
+  calc
+    affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+        labelWidth stateWidth cellCounts seed =
+        affineExactlyOneStructuredRowFamilyOneSteps
+            labelWidth stateWidth cellCounts seed +
+          (5 * (seed.height + seed.start + seed.rowBase) + 11) := by
+      rfl
+    _ ≤ affineExactlyOneStructuredRowFamilyStepCoeff
+            labelWidth stateWidth cellCounts * payload ^ 2 +
+          16 * payload ^ 2 := Nat.add_le_add hold hextra
+    _ = affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+          labelWidth stateWidth cellCounts * payload ^ 2 := by
+      simp [affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff]
+      ring
+
+theorem affineExactlyOneStructuredRowSeedMarkedFamilyRev_steps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds ≤
+      affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+          labelWidth stateWidth cellCounts *
+        (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length ^ 2 + 2 := by
+  induction seeds with
+  | nil => simp [affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps,
+      encodeAffineExactlyOneStructuredRowSeedFamily]
+  | cons seed rest ih =>
+      let headLength := (encodeAffineExactlyOneStructuredRowSeed seed).length
+      let restLength :=
+        (encodeAffineExactlyOneStructuredRowSeedFamily rest).length
+      let coeff := affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+        labelWidth stateWidth cellCounts
+      have honeSource :=
+        affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps_le
+          labelWidth stateWidth cellCounts seed
+      have hpayload : seed.height + seed.start + seed.rowBase + 1 ≤
+          headLength := by
+        simp [headLength]
+      have hsquare :
+          (seed.height + seed.start + seed.rowBase + 1) ^ 2 ≤
+            headLength ^ 2 := by nlinarith
+      have hone : affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+          labelWidth stateWidth cellCounts seed ≤ coeff * headLength ^ 2 :=
+        honeSource.trans (Nat.mul_le_mul_left coeff hsquare)
+      calc
+        affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+            labelWidth stateWidth cellCounts (seed :: rest) =
+            affineExactlyOneStructuredRowSeedMarkedFamilyOneSteps
+                labelWidth stateWidth cellCounts seed +
+              affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+                labelWidth stateWidth cellCounts rest := by rfl
+        _ ≤ coeff * headLength ^ 2 + (coeff * restLength ^ 2 + 2) :=
+          Nat.add_le_add hone (by simpa [coeff, restLength] using ih)
+        _ = coeff * (headLength ^ 2 + restLength ^ 2) + 2 := by ring
+        _ ≤ coeff * (headLength + restLength) ^ 2 + 2 := by
+          apply Nat.add_le_add_right
+          apply Nat.mul_le_mul_left
+          nlinarith [Nat.zero_le (2 * headLength * restLength)]
+        _ = coeff *
+            (encodeAffineExactlyOneStructuredRowSeedFamily
+              (seed :: rest)).length ^ 2 + 2 := by
+          simp [encodeAffineExactlyOneStructuredRowSeedFamily,
+            headLength, restLength]
+
+/-- The raw seed stream is mapped to the exact reversed seed-preserving row
+packets by one fixed polynomial-time TM2. -/
+noncomputable def
+    affineExactlyOneStructuredRowSeedMarkedFamilyRev_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily id
+      (fun seeds : List AffineExactlyOneStructuredRowSeed =>
+        (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse) where
+  tm := compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+    labelWidth stateWidth cellCounts)
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := Polynomial.C
+      (affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+        labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2
+  outputsFun := fun seeds => by
+    have builderRun := affineExactlyOneStructuredRowSeedMarkedFamilyRev_run
+      labelWidth stateWidth cellCounts seeds
+    have compiledRun := compile_evalsToInTime
+      (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+        labelWidth stateWidth cellCounts) builderRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts)).step
+        (_root_.Turing.initList
+          (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds))
+        (some (_root_.Turing.haltList
+          (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          ((encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+            labelWidth stateWidth cellCounts seeds).reverse)))
+        (affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+          labelWidth stateWidth cellCounts seeds) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg] using compiledRun
+    have htime : affineExactlyOneStructuredRowSeedMarkedFamilyRevSteps
+        labelWidth stateWidth cellCounts seeds ≤
+        (Polynomial.C
+            (affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+              labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_C,
+        Polynomial.eval_ofNat] using
+        affineExactlyOneStructuredRowSeedMarkedFamilyRev_steps_le
+          labelWidth stateWidth cellCounts seeds
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+          labelWidth stateWidth cellCounts)).step
+        (_root_.Turing.initList
+          (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds))
+        (some (_root_.Turing.haltList
+          (compile (affineExactlyOneStructuredRowSeedMarkedFamilyRevProgram
+            labelWidth stateWidth cellCounts))
+          ((encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+            labelWidth stateWidth cellCounts seeds).reverse)))
+        ((Polynomial.C
+            (affineExactlyOneStructuredRowSeedMarkedFamilyStepCoeff
+              labelWidth stateWidth cellCounts) * Polynomial.X ^ 2 + 2).eval
+          (encodeAffineExactlyOneStructuredRowSeedFamily seeds).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Reversing the prepend result exposes forward seed-preserving row packets
+for the next fixed controller. -/
+noncomputable def
+    affineExactlyOneStructuredRowSeedMarkedFamily_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily id
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        labelWidth stateWidth cellCounts) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (affineExactlyOneStructuredRowSeedMarkedFamilyRev_computableInPolyTime
+        labelWidth stateWidth cellCounts)
+      (reverse_computableInPolyTime (Γ := UnaryFrameSym))
+  simpa [Function.comp_def] using Classical.choice composed
+
 end CLRS.Chapter34.Turing.PolyBuilder
