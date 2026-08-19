@@ -1656,4 +1656,55 @@ noncomputable def
           verifierValidityRowCompleteInputFrames_eq_target W input]
           using source.outputsFun input }
 
+/-- Running the canonical row-family controller over the generated input
+produces exactly the verifier's semantic validity gate stream. -/
+theorem verifierValidityRowFamilyGateStream_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    affineValidityRowFamilyGateStream
+        (verifierValidityRowFramesByLength W input.length) =
+      verifierValidityGateStream W input := by
+  rw [verifierValidityGateStream_eq_byLength]
+  unfold verifierValidityRowFramesByLength
+    verifierValidityGateStreamByLength
+  exact arithmeticValidityRowsGateStream_eq_semantic W.machine.tm
+    ((verifierHeight W).eval input.length)
+    ((verifierHorizon W).eval input.length)
+
+/-- Concrete polynomial-time validity-phase generator from the raw verifier
+word to the exact forward circuit-gate encoding. -/
+noncomputable def verifierValidityGateStream_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityGateStream W) := by
+  let inputSource :=
+    verifierValidityRowFamilyInputTarget_computableInPolyTime W
+  let typedInputSource :
+      _root_.Turing.TM2ComputableInPolyTime id
+        encodeAffineValidityRowFamilyInput
+        (fun input : List Γ =>
+          verifierValidityRowFramesByLength W input.length) :=
+    { tm := inputSource.tm
+      inputAlphabet := inputSource.inputAlphabet
+      outputAlphabet := inputSource.outputAlphabet
+      time := inputSource.time
+      outputsFun := fun input => by
+        simpa only [id_eq,
+          verifierValidityRowFamilyInputTarget_eq_canonical W input]
+          using inputSource.outputsFun input }
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      typedInputSource
+      affineValidityRowFamilyGateStream_computableInPolyTime
+  let result := Classical.choice composed
+  exact
+    { tm := result.tm
+      inputAlphabet := result.inputAlphabet
+      outputAlphabet := result.outputAlphabet
+      time := result.time
+      outputsFun := fun input => by
+        have run := result.outputsFun input
+        simpa only [Function.comp_apply, id_eq,
+          verifierValidityRowFamilyGateStream_eq W input] using run }
+
 end CLRS.Chapter34.Turing.CookLevin
