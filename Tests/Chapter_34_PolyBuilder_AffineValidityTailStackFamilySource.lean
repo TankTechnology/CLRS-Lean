@@ -1,0 +1,29 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
+
+open StateTransition
+
+namespace CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeAffineRuntimeStackStandaloneInvocation
+#check AffineRuntimeStackStandaloneLabel
+#check affineRuntimeStackStandaloneRevProgram
+#check affineRuntimeStackStandaloneLoopCfg
+#check affineRuntimeStackStandaloneFinishCfg
+#check affineRuntimeStackStandalone_runToFinish
+#check affineRuntimeStackStandaloneSteps_le
+#check affineRuntimeStackStandaloneSteps_le_encoding
+
+#print axioms affineRuntimeStackStandalone_runToFinish
+#print axioms affineRuntimeStackStandaloneSteps_le
+#print axioms affineRuntimeStackStandaloneSteps_le_encoding
+
+#check encodeAffineRuntimeStackStandaloneInvocationFamily
+#check affineRuntimeStackSourceFamilyFrames
+#check affineRuntimeStackFamilySourceRevProgram
+#check affineRuntimeStackFamilySource_runToFinish
+#check affineRuntimeStackFamilySourceSteps_le
+
+#print axioms affineRuntimeStackFamilySource_runToFinish
+#print axioms affineRuntimeStackFamilySourceSteps_le
+
+end CLRS.Chapter34.Turing.PolyBuilder

@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Textbook
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP
+
+#check CLRS.Chapter34.PolynomialOutputReduction
+#check CLRS.Chapter34.PolynomialOutputReduction.toPolyTimeReducible
+
+#check CLRS.Chapter34.Turing.CookLevin.cookLevinPolynomialOutputReduction
+#check CLRS.Chapter34.Turing.CookLevin.cookLevinPolynomialOutputReduction_of_verifiable
+#check CLRS.Chapter34.Turing.CookLevin.cookLevin_polyTimeReducible_of_computable
+#check CLRS.Chapter34.Turing.CookLevin.cookLevin_textbookCircuitization
+
+#check CLRS.Chapter34.generalCircuitSAT_polyTimeVerifiable
+#check CLRS.Chapter34.generalCircuitSAT_mem_ClassNP
+
+#print axioms CLRS.Chapter34.Turing.CookLevin.cookLevin_textbookCircuitization
+#print axioms CLRS.Chapter34.Turing.CookLevin.cookLevin_polyTimeReducible_of_computable

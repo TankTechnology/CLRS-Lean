@@ -5654,13 +5654,17 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/Bounds.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/Assembly/EncodingBounds.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization/ReductionMap.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Textbook.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/VerifierMachine.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/NP.lean`
 - Status: `partial` — general-circuit semantics and an honest canonical wire
   format and exact finite-certificate semantics are available.  The
-  function-level Cook--Levin map is complete.  The certificate checker now has
-  a total concrete TM2 implementation, but its all-input polynomial runtime
-  wrapper, the map's concrete TM2 implementation, and the final
-  `GeneralCircuitSAT` NP wrappers remain open.
+  function-level Cook--Levin map is complete.  The certificate checker has a
+  total concrete polynomial-time TM2 and proves `GeneralCircuitSAT ∈ NP`.
+  The explicit map, its exact semantics, and polynomial output bound close the
+  separately named textbook circuitization package.  This package does not
+  assert NP-hardness; the map's concrete TM2 implementation and the standard
+  `NPHard` / `NPComplete` theorems remain open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5679,9 +5683,11 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `GeneralCircuitVerifier.machine` computes this exact Boolean on every input:
   `verifier_run` covers canonical and malformed encodings, and
   `generalCircuitVerifierComputable` packages total TM2 computability.
-  `successfulSteps_le` gives a uniform quadratic bound for the successful
-  canonical route; it intentionally does not claim a bound for every rejecting
-  route.  Separately,
+  `generalCircuitVerifierComputableInPolyTime` covers every successful,
+  rejecting, and malformed route with one explicit polynomial bound;
+  `generalCircuitSAT_polyTimeVerifiable` and
+  `generalCircuitSAT_mem_ClassNP` package the resulting NP membership.
+  Separately,
   `circuitSAT_reducible_to_SAT` proves `CIRCUIT-SAT ≤_P SAT` (Lemma 34.6, via
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the `Turing.TM2CS`
   machine), `cnfSatisfiable_iff_hasClique` gives the represented Lemma 34.10
@@ -5829,12 +5835,24 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `cookLevinMap` serializes the verifier circuit;
   `cookLevinMap_mem_generalCircuitSAT_iff` proves its exact reduction
   semantics and `cookLevinMap_length_le` proves its polynomial output bound.
-- Current gaps: the certificate-checker machine still needs one uniform
-  polynomial runtime theorem covering every malformed and rejecting route
-  before it can be packaged as `TM2ComputableInPolyTime`; the circuit generator
-  still needs its concrete polynomial-time TM2 implementation.  Consequently
-  NP membership, NP-hardness, and NP-completeness wrappers for
-  `GeneralCircuitSAT` remain open.
+  `cookLevin_textbookCircuitization` packages these facts for every
+  polynomially verifiable language.  It is intentionally not called
+  NP-hardness: `PolynomialOutputReduction.toPolyTimeReducible` states the exact
+  upgrade to the standard reduction interface and requires polynomial-time
+  computability of the map as a separate premise.
+- Current gaps: the circuit generator still needs its concrete polynomial-time
+  TM2 implementation.  The script-consuming generator body and tail already
+  have exact continuous-run theorems and polynomial script-time bounds.  On
+  the raw-input side, validity-row seeds, halted operands, structured one-hot
+  families, runtime-height stack/cell families, the exact final-conjunction
+  wire order (`arithmeticFinalConjunctionWires_eq_semantic`), and the continuous
+  raw one-hot output-wire source are now proved.  The next missing theorem must
+  assemble those sources into the complete validity-tail input, interleave the
+  row fragments, and derive a polynomial-time machine from the original input
+  length.  Transition-family and verifier-tail script compilation then remain
+  before the whole `cookLevinMap` generator can be packaged.  Consequently the
+  repository's stronger `NPHard` and `NPComplete GeneralCircuitSAT` wrappers
+  remain open; the separately named circuitization package does not claim them.
   `SatTo3CNFMachine` imports the complete compiling B1--B13 chain;
   `Dev.B12_Bounds` proves the polynomial bounds and `Dev.B13_OutputsFun`
   packages the complete run as `TM2ComputableInPolyTime`.

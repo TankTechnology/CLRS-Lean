@@ -130,7 +130,7 @@ def affineStackRevProgram : Program UnaryFrameSym CircuitSym where
     | .load .load₁ => .popInput .finish fun
         | .tick => .load .inc₁
         | .separator => .load .load₂
-        | .frameEnd => .invalid
+        | .frameEnd => .finish
     | .load .inc₁ => .pushWork₂ .tick (.load .load₁)
     | .load .load₂ => .popInput .invalid fun
         | .tick => .load .inc₂
@@ -1025,6 +1025,53 @@ def affineStackFamilyRevSteps : List AffineStackFrame → Nat
   | frame :: rest =>
       affineStackFrameRevSteps frame + affineStackFamilyRevSteps rest
 
+/-- Exact outer-family cost through an explicit `frameEnd` terminator, stopping
+at the clean redirectable finish label instead of executing its halt. -/
+def affineStackFamilyUntilTerminatorSteps : List AffineStackFrame → Nat
+  | [] => 1
+  | frame :: rest =>
+      affineStackFrameRevSteps frame +
+        affineStackFamilyUntilTerminatorSteps rest
+
+/-- Redirectable endpoint after consuming the explicit outer-family
+terminator.  The terminator remains in `buffer₁` so a parent controller can
+clear it in one checked bridge step. -/
+def affineStackFamilyTerminatorCfg (tail : List UnaryFrameSym)
+    (output : List CircuitSym) : BuilderCfg affineStackRevProgram :=
+  affineStackCfg .finish (some .frameEnd) none false tail output
+    [] [] [] [] []
+
+/-- Execute an arbitrary stack family through a delimiter-bearing outer
+terminator while preserving the input owned by a following controller. -/
+def affineStackFamily_runToTerminator (frames : List AffineStackFrame)
+    (tail : List UnaryFrameSym) (output : List CircuitSym) :
+    EvalsToInTime (step affineStackRevProgram)
+      (affineStackLoopCfg
+        (encodeAffineStackFamily frames ++ .frameEnd :: tail) output)
+      (some (affineStackFamilyTerminatorCfg tail
+        ((affineStackFamilyGateStream frames).reverse ++ output)))
+      (affineStackFamilyUntilTerminatorSteps frames) := by
+  induction frames generalizing output with
+  | nil =>
+      exact ⟨⟨1, rfl⟩, le_rfl⟩
+  | cons frame rest ih =>
+      let frameOutput := (affineStackGateStream frame).reverse ++ output
+      have hfirst := affineStack_runOne frame
+        (encodeAffineStackFamily rest ++ .frameEnd :: tail) output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans (step affineStackRevProgram)
+        (affineStackFrameRevSteps frame)
+        (affineStackFamilyUntilTerminatorSteps rest)
+        _ (affineStackLoopCfg
+          (encodeAffineStackFamily rest ++ .frameEnd :: tail) frameOutput)
+        _ hfirst hrest
+      convert full using 1
+      · simp [encodeAffineStackFamily, List.append_assoc]
+      · simp [affineStackFamilyGateStream, frameOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineStackFamilyUntilTerminatorSteps]
+        omega
+
 /-- Empty outer family terminates successfully without changing output. -/
 def affineStackFamily_empty_run (output : List CircuitSym) :
     EvalsToInTime (step affineStackRevProgram)
@@ -1187,6 +1234,23 @@ theorem affineStackFamilyRev_steps_le (frames : List AffineStackFrame) :
         _ ≤ 400 * ((encodeAffineStackFrame frame).length +
               (encodeAffineStackFamily rest).length) ^ 2 + 2 :=
           Nat.add_le_add_right (Nat.mul_le_mul_left 400 hsquare) 2
+
+/-- Stopping at the explicit outer terminator costs no more than the existing
+standalone family run. -/
+theorem affineStackFamilyUntilTerminatorSteps_le
+    (frames : List AffineStackFrame) :
+    affineStackFamilyUntilTerminatorSteps frames ≤
+      400 * (encodeAffineStackFamily frames).length ^ 2 + 2 := by
+  have hle : affineStackFamilyUntilTerminatorSteps frames ≤
+      affineStackFamilyRevSteps frames := by
+    induction frames with
+    | nil => simp [affineStackFamilyUntilTerminatorSteps,
+        affineStackFamilyRevSteps]
+    | cons frame rest ih =>
+        simp only [affineStackFamilyUntilTerminatorSteps,
+          affineStackFamilyRevSteps]
+        omega
+  exact hle.trans (affineStackFamilyRev_steps_le frames)
 
 /-- The standalone one-stack interface is a specialization of the family
 controller and inherits its quadratic bound. -/

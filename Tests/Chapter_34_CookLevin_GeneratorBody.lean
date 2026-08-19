@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorBody
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check compileVerifierBodyScript
+#check compileVerifierBodyScript_gateStream_eq
+#check verifierCircuitPoolPrefix_append_body
+#check verifierCircuitBody_run
+#check verifierCircuitBody_run_afterPool
+#check verifierCircuitBody_steps_le
+#check verifierCircuitBodyGateStream_computableInPolyTime_of_scriptCompiler
+
+#print axioms compileVerifierBodyScript_gateStream_eq
+#print axioms verifierCircuitPoolPrefix_append_body
+#print axioms verifierCircuitBody_run
+#print axioms verifierCircuitBody_run_afterPool
+#print axioms verifierCircuitBody_steps_le
+#print axioms verifierCircuitBodyGateStream_computableInPolyTime_of_scriptCompiler

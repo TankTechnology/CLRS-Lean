@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorInitialBoundary
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierInitialBoundaryGateTrace
+#check verifierInitialBoundary_gates_eq
+#check verifierInitialBoundaryGateStream
+#check compileVerifierInitialBoundaryFrames
+#check compileVerifierInitialBoundaryFrames_gateStream_eq
+#check compileVerifierInitialBoundaryFrames_run
+
+#print axioms verifierInitialBoundary_gates_eq
+#print axioms compileVerifierInitialBoundaryFrames_gateStream_eq
+#print axioms compileVerifierInitialBoundaryFrames_run

@@ -14,6 +14,9 @@ Main results:
   with exact gate delta {lit}`3 * n + 1`.
 - Definition {lit}`CircuitBuilder.eqFin`: a proof-carrying pointwise equality
   test with exact gate delta {lit}`6 * n + 1`.
+- Definitions {lit}`muxFinGateTrace` and {lit}`eqFinGateTrace`, together with
+  {lit}`muxFin_gates_eq` and {lit}`eqFin_gates_eq`: exact ordered gate streams,
+  fresh-wire references, and output-wire identity for both kernels.
 - Theorems {lit}`CircuitBuilder.muxFin_eval` and
   {lit}`CircuitBuilder.eqFin_eval_iff`: exact evaluation contracts, including
   the empty family.
@@ -33,6 +36,45 @@ namespace CLRS.Chapter34.Turing.CookLevin
 namespace CircuitBuilder
 
 /-! ## A shared-negation finite-family multiplexer -/
+
+/-- Exact gate suffix emitted by the coordinate body of {lit}`muxFin`.  The
+starting index is the first gate after the shared selector negation. -/
+def muxFinBodyGateTrace (start selector selectorNot : Nat) :
+    (n : Nat) → (whenTrue whenFalse : Fin n → Wire) → List CircuitGate
+  | 0, _, _ => []
+  | n + 1, whenTrue, whenFalse =>
+      let previous := muxFinBodyGateTrace start selector selectorNot n
+        (fun i => whenTrue i.castSucc) (fun i => whenFalse i.castSucc)
+      let trueArm := start + previous.length
+      let falseArm := trueArm + 1
+      previous ++
+        [.and selector (whenTrue (Fin.last n)),
+          .and selectorNot (whenFalse (Fin.last n)),
+          .or trueArm falseArm]
+
+/-- Exact gate order of {lit}`muxFin`, including its shared selector negation. -/
+def muxFinGateTrace (start selector : Nat) {n : Nat}
+    (whenTrue whenFalse : Fin n → Wire) : List CircuitGate :=
+  .not selector :: muxFinBodyGateTrace (start + 1) selector start n
+    whenTrue whenFalse
+
+/-- The multiplexer body emits exactly three gates per coordinate. -/
+@[simp] theorem muxFinBodyGateTrace_length (start selector selectorNot : Nat)
+    (n : Nat) (whenTrue whenFalse : Fin n → Wire) :
+    (muxFinBodyGateTrace start selector selectorNot n
+      whenTrue whenFalse).length = 3 * n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      simp [muxFinBodyGateTrace, ih]
+      omega
+
+/-- The complete multiplexer trace has one shared negation and three gates
+per coordinate. -/
+@[simp] theorem muxFinGateTrace_length (start selector : Nat) {n : Nat}
+    (whenTrue whenFalse : Fin n → Wire) :
+    (muxFinGateTrace start selector whenTrue whenFalse).length = 3 * n + 1 := by
+  simp [muxFinGateTrace]
 
 /-- Proof-carrying result of multiplexing two finite wire families. -/
 structure MuxFinResult (base : CircuitBuilder) {n : Nat}
@@ -162,6 +204,34 @@ private def muxFinBody (start : CircuitBuilder)
           rw [previous.extension.evalWire_eq inputs hselectorNot]
           rw [previous.extension.evalWire_eq inputs (hfalse (Fin.last n))]
 
+private theorem muxFinBody_gates_eq (start : CircuitBuilder)
+    (selector selectorNot : Wire) :
+    (n : Nat) → (whenTrue whenFalse : Fin n → Wire) →
+      (hselector : start.WireValid selector) →
+      (hselectorNot : start.WireValid selectorNot) →
+      (htrue : ∀ i, start.WireValid (whenTrue i)) →
+      (hfalse : ∀ i, start.WireValid (whenFalse i)) →
+      (muxFinBody start selector selectorNot n whenTrue whenFalse
+        hselector hselectorNot htrue hfalse).builder.gates =
+        start.gates ++ muxFinBodyGateTrace start.gates.length selector
+          selectorNot n whenTrue whenFalse := by
+  intro n
+  induction n with
+  | zero =>
+      intro whenTrue whenFalse hselector hselectorNot htrue hfalse
+      simp [muxFinBody, muxFinBodyGateTrace]
+  | succ n ih =>
+      intro whenTrue whenFalse hselector hselectorNot htrue hfalse
+      simp only [muxFinBody]
+      have hprevious := ih (fun i => whenTrue i.castSucc)
+        (fun i => whenFalse i.castSucc) hselector hselectorNot
+        (fun i => htrue i.castSucc) (fun i => hfalse i.castSucc)
+      rw [or_gates, and_gates, and_gates, hprevious]
+      simp only [and_wire_eq]
+      have hpreviousLength := congrArg List.length hprevious
+      simp only [List.length_append] at hpreviousLength
+      simp [muxFinBodyGateTrace, List.append_assoc, hpreviousLength]
+
 /-- Multiplex two finite wire families using one shared selector negation.
 
 The construction follows the same one-negation path when {lean}`n = 0`, so its
@@ -234,8 +304,22 @@ theorem muxFin_eval (base : CircuitBuilder) {n : Nat} (selector : Wire)
       if base.evalWire inputs selector then
         base.evalWire inputs (whenTrue i)
       else
-        base.evalWire inputs (whenFalse i) :=
+      base.evalWire inputs (whenFalse i) :=
   (muxFin base selector whenTrue whenFalse hselector htrue hfalse).eval inputs i
+
+/-- The finite-family multiplexer appends exactly its public gate trace, not
+merely the same number of gates. -/
+theorem muxFin_gates_eq (base : CircuitBuilder) {n : Nat} (selector : Wire)
+    (whenTrue whenFalse : Fin n → Wire) (hselector : base.WireValid selector)
+    (htrue : ∀ i, base.WireValid (whenTrue i))
+    (hfalse : ∀ i, base.WireValid (whenFalse i)) :
+    (muxFin base selector whenTrue whenFalse hselector htrue hfalse).builder.gates =
+      base.gates ++ muxFinGateTrace base.gates.length selector
+        whenTrue whenFalse := by
+  unfold muxFin muxFinGateTrace
+  dsimp only
+  rw [muxFinBody_gates_eq, not_gates]
+  simp [not_wire_eq, List.append_assoc]
 
 /-- The finite-family multiplexer result is independent of validity-proof
 choices. -/
@@ -249,6 +333,53 @@ theorem muxFin_proof_irrel (base : CircuitBuilder) {n : Nat} (selector : Wire)
   rfl
 
 /-! ## Streaming finite-family equality -/
+
+/-- Pure trace package for the streaming body of {lit}`eqFin`. -/
+structure EqFinGateTrace where
+  /-- Gates emitted after the caller-supplied seed. -/
+  gates : List CircuitGate
+  /-- Wire containing the aggregate equality result. -/
+  wire : Wire
+deriving DecidableEq, Repr
+
+/-- Exact recursive trace of the equality body.  Each coordinate emits the
+five-gate Boolean equality followed immediately by one aggregate AND. -/
+def eqFinBodyGateTrace (start seed : Nat) :
+    (n : Nat) → (left right : Fin n → Wire) → EqFinGateTrace
+  | 0, _, _ => { gates := [], wire := seed }
+  | n + 1, left, right =>
+      let previous := eqFinBodyGateTrace start seed n
+        (fun i => left i.castSucc) (fun i => right i.castSucc)
+      let matched := boolEqGateTrace (start + previous.gates.length)
+        (left (Fin.last n)) (right (Fin.last n))
+      { gates := previous.gates ++ matched.gates ++
+          [.and previous.wire matched.wire]
+        wire := start + previous.gates.length + matched.gates.length }
+
+/-- Exact gate trace of {lit}`eqFin`, including its initial true seed. -/
+def eqFinGateTrace (start : Nat) {n : Nat}
+    (left right : Fin n → Wire) : EqFinGateTrace :=
+  let body := eqFinBodyGateTrace (start + 1) start n left right
+  { gates := .const true :: body.gates
+    wire := body.wire }
+
+/-- The streaming equality body emits five XNOR gates and one aggregate AND
+per coordinate. -/
+@[simp] theorem eqFinBodyGateTrace_length (start seed : Nat) (n : Nat)
+    (left right : Fin n → Wire) :
+    (eqFinBodyGateTrace start seed n left right).gates.length = 6 * n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      simp [eqFinBodyGateTrace, ih]
+      omega
+
+/-- The complete family-equality trace has one true seed and six gates per
+coordinate. -/
+@[simp] theorem eqFinGateTrace_length (start : Nat) {n : Nat}
+    (left right : Fin n → Wire) :
+    (eqFinGateTrace start left right).gates.length = 6 * n + 1 := by
+  simp [eqFinGateTrace]
 
 /-- Proof-carrying result of comparing two finite wire families pointwise. -/
 structure EqFinResult (base : CircuitBuilder) {n : Nat}
@@ -332,6 +463,36 @@ private def eqFinBody (start : CircuitBuilder) (seed : Wire) :
         rw [Fin.forall_fin_succ']
         simp only [and_assoc]
 
+private theorem eqFinBody_trace_eq (start : CircuitBuilder) (seed : Wire) :
+    (n : Nat) → (left right : Fin n → Wire) →
+      (hseed : start.WireValid seed) →
+      (hleft : ∀ i, start.WireValid (left i)) →
+      (hright : ∀ i, start.WireValid (right i)) →
+      let built := eqFinBody start seed n left right hseed hleft hright
+      let trace := eqFinBodyGateTrace start.gates.length seed n left right
+      built.builder.gates = start.gates ++ trace.gates ∧
+        built.wire = trace.wire := by
+  intro n
+  induction n with
+  | zero =>
+      intro left right hseed hleft hright
+      simp [eqFinBody, eqFinBodyGateTrace]
+  | succ n ih =>
+      intro left right hseed hleft hright
+      simp only [eqFinBody]
+      have hprevious := ih (fun i => left i.castSucc)
+        (fun i => right i.castSucc) hseed
+        (fun i => hleft i.castSucc) (fun i => hright i.castSucc)
+      rcases hprevious with ⟨hpreviousGates, hpreviousWire⟩
+      rw [and_gates, eq_gates_eq, hpreviousGates]
+      simp only [eq_wire_eq_trace, and_wire_eq, List.length_append]
+      constructor
+      · simp [eqFinBodyGateTrace, hpreviousWire, hpreviousGates,
+          List.append_assoc]
+      · rw [eq_gates_eq, hpreviousGates]
+        simp [eqFinBodyGateTrace]
+        simp [Nat.add_assoc]
+
 /-- Compare two finite wire families with a streaming true-seeded aggregate.
 
 The empty family still allocates its true seed, yielding the uniform exact
@@ -400,6 +561,37 @@ theorem eqFin_eval_iff (base : CircuitBuilder) {n : Nat}
         (eqFin base left right hleft hright).wire = true ↔
       ∀ i, base.evalWire inputs (left i) = base.evalWire inputs (right i) :=
   (eqFin base left right hleft hright).eval inputs
+
+/-- The streaming family equality appends exactly its public interleaved gate
+trace, including both the true seed and every aggregate AND. -/
+theorem eqFin_gates_eq (base : CircuitBuilder) {n : Nat}
+    (left right : Fin n → Wire) (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ i, base.WireValid (right i)) :
+    (eqFin base left right hleft hright).builder.gates =
+      base.gates ++ (eqFinGateTrace base.gates.length left right).gates := by
+  unfold eqFin eqFinGateTrace
+  dsimp only
+  have hbody := eqFinBody_trace_eq (base.const true).1
+    (base.const true).2 n left right (const_wireValid base true)
+    (fun i => (const_extends base true).wireValid (hleft i))
+    (fun i => (const_extends base true).wireValid (hright i))
+  rw [hbody.1, const_gates]
+  simp [const_wire_eq, List.append_assoc]
+
+/-- The streaming family equality's output wire is the one named by its
+public trace. -/
+theorem eqFin_wire_eq_trace (base : CircuitBuilder) {n : Nat}
+    (left right : Fin n → Wire) (hleft : ∀ i, base.WireValid (left i))
+    (hright : ∀ i, base.WireValid (right i)) :
+    (eqFin base left right hleft hright).wire =
+      (eqFinGateTrace base.gates.length left right).wire := by
+  unfold eqFin eqFinGateTrace
+  dsimp only
+  simpa [const_wire_eq] using
+    (eqFinBody_trace_eq (base.const true).1
+      (base.const true).2 n left right (const_wireValid base true)
+      (fun i => (const_extends base true).wireValid (hleft i))
+      (fun i => (const_extends base true).wireValid (hright i))).2
 
 /-- The finite-family equality result is independent of validity-proof
 choices. -/

@@ -57,6 +57,7 @@ inductive SequentialExactlyOneCont
   | suffixOrCarry | suffixOrWire
   | affineNotWire
   | affineCellNotWire
+  | conjunctionSource | conjunctionCarry
 deriving DecidableEq, Fintype
 
 /-- Fixed finite-control phases of contextual Boolean equality. -/
@@ -84,6 +85,11 @@ inductive SequentialCellLabel
   | notPush
   | clearWire | copyStart | copyPush | copyInc
   | restoreStart | restoreInc | incStart
+deriving DecidableEq, Fintype
+
+/-- Fixed finite-control phases of one contextual conjunction AND gate. -/
+inductive SequentialConjunctionLabel
+  | push | clearWire | incCarry | done
 deriving DecidableEq, Fintype
 
 /-- Finite control for the reversed sequential exactly-one serializer. -/
@@ -116,6 +122,7 @@ inductive SequentialExactlyOneLabel
   | suffixOr (phase : SequentialSuffixOrLabel)
   | singleNot (phase : SequentialNotLabel)
   | cell (phase : SequentialCellLabel)
+  | conjunction (phase : SequentialConjunctionLabel)
   | clear₁ | clear₂ | clear₃ | halt | invalid
 deriving DecidableEq, Fintype
 
@@ -195,6 +202,10 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
     | .resume .suffixOrWire => .jump (.suffixOr .incCarry)
     | .resume .affineNotWire => .jump .clear₁
     | .resume .affineCellNotWire => .jump (.cell .clearWire)
+    | .resume .conjunctionSource =>
+        .jump (.encode .seen .conjunctionCarry)
+    | .resume .conjunctionCarry =>
+        .jump (.conjunction .clearWire)
     | .incFirstDuplicate => .inc₁ (.encode .seen .firstBDuplicate)
     | .restoreFirstDuplicate => .jump .invalid
     | .decLaterDuplicate =>
@@ -268,6 +279,13 @@ def sequentialExactlyOneRevProgram : Program Unit CircuitSym where
         .popWork₁ (.cell .incStart) (fun _ => .cell .restoreInc)
     | .cell .restoreInc => .inc₁ (.cell .restoreStart)
     | .cell .incStart => .inc₁ (.boolEq .notLeft)
+    | .conjunction .push =>
+        .pushOutput .andMark (.encode .wire .conjunctionSource)
+    | .conjunction .clearWire =>
+        .dec₃ (.conjunction .incCarry) (.conjunction .clearWire)
+    | .conjunction .incCarry =>
+        .inc₁ (.conjunction .done)
+    | .conjunction .done => .halt
     | .clear₁ => .dec₁ .clear₂ .clear₁
     | .clear₂ => .dec₂ .clear₃ .clear₂
     | .clear₃ => .dec₃ .halt .clear₃

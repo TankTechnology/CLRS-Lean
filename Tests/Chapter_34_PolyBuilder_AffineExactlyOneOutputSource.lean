@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeAffineExactlyOneOutputSourceInvocation
+#check affineExactlyOneOutputSourceRevProgram
+#check affineExactlyOneOutputSource_runToFinish
+#check affineExactlyOneOutputSourceSteps_le
+
+#print axioms affineExactlyOneOutputSource_runToFinish
+#print axioms affineExactlyOneOutputSourceSteps_le

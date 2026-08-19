@@ -29,7 +29,7 @@ deriving DecidableEq, Fintype
 /-- Concrete three-field frame loader.  The `ready` instruction is a halt only
 for standalone safety; the family controller will replace that continuation
 when it embeds this prelude. -/
-def unaryTripleLoaderProgram : Program UnaryFrameSym CircuitSym where
+def unaryTripleLoaderProgramFor (Δ : Type) : Program UnaryFrameSym Δ where
   Label := UnaryTripleLoaderLabel
   main := .load₁
   op
@@ -53,11 +53,11 @@ def unaryTripleLoaderProgram : Program UnaryFrameSym CircuitSym where
 
 /-- Independent loader configuration with all persistent symbol stacks
 visible. -/
-def unaryTripleLoaderCfg (label : UnaryTripleLoaderLabel)
+def unaryTripleLoaderCfgFor {Δ : Type} (label : UnaryTripleLoaderLabel)
     (buffer₁ : Option UnaryFrameSym) (input : List UnaryFrameSym)
-    (output : List CircuitSym) (work₁ work₂ : List UnaryFrameSym)
+    (output : List Δ) (work₁ work₂ : List UnaryFrameSym)
     (first second third : List Unit) :
-    BuilderCfg unaryTripleLoaderProgram where
+    BuilderCfg (unaryTripleLoaderProgramFor Δ) where
   label := some label
   buffer₁ := buffer₁
   buffer₂ := none
@@ -71,11 +71,11 @@ def unaryTripleLoaderCfg (label : UnaryTripleLoaderLabel)
   counter₃ := third
 
 /-- Public continuation configuration after all three fields have loaded. -/
-def unaryTripleLoaderReadyCfg (first second third : Nat)
-    (tail : List UnaryFrameSym) (output : List CircuitSym)
+def unaryTripleLoaderReadyCfgFor {Δ : Type} (first second third : Nat)
+    (tail : List UnaryFrameSym) (output : List Δ)
     (work₁ work₂ : List UnaryFrameSym) :
-    BuilderCfg unaryTripleLoaderProgram :=
-  unaryTripleLoaderCfg .ready (some .separator) tail output work₁ work₂
+    BuilderCfg (unaryTripleLoaderProgramFor Δ) :=
+  unaryTripleLoaderCfgFor .ready (some .separator) tail output work₁ work₂
     (List.replicate first ()) (List.replicate second ())
     (List.replicate third ())
 
@@ -92,15 +92,15 @@ private theorem replicate_append_cons (count : Nat) (tail : List Unit) :
       simp only [List.replicate_succ, List.cons_append]
       exact congrArg (List.cons ()) ih
 
-private theorem loadFirst_eval (value : Nat)
+private theorem loadFirst_eval {Δ : Type} (value : Nat)
     (buffer₁ : Option UnaryFrameSym) (tail : List UnaryFrameSym)
-    (output : List CircuitSym) (work₁ work₂ : List UnaryFrameSym)
+    (output : List Δ) (work₁ work₂ : List UnaryFrameSym)
     (first second third : List Unit) :
-    (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-      (some (unaryTripleLoaderCfg .load₁ buffer₁
+    (flip Option.bind (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+      (some (unaryTripleLoaderCfgFor .load₁ buffer₁
         (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
         first second third)) =
-      some (unaryTripleLoaderCfg .load₂ (some .separator) tail output
+      some (unaryTripleLoaderCfgFor .load₂ (some .separator) tail output
         work₁ work₂ (List.replicate value () ++ first) second third) := by
   induction value generalizing buffer₁ first with
   | zero => rfl
@@ -108,22 +108,23 @@ private theorem loadFirst_eval (value : Nat)
       rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
         Function.iterate_succ_apply, Function.iterate_succ_apply]
       change
-        (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-          (some (unaryTripleLoaderCfg .load₁ (some .tick)
+        (flip Option.bind
+          (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+          (some (unaryTripleLoaderCfgFor .load₁ (some .tick)
             (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
             (() :: first) second third)) = _
       simpa only [List.replicate_succ, replicate_append_cons,
         List.cons_append] using ih (some .tick) (() :: first)
 
-private theorem loadSecond_eval (value : Nat)
+private theorem loadSecond_eval {Δ : Type} (value : Nat)
     (buffer₁ : Option UnaryFrameSym) (tail : List UnaryFrameSym)
-    (output : List CircuitSym) (work₁ work₂ : List UnaryFrameSym)
+    (output : List Δ) (work₁ work₂ : List UnaryFrameSym)
     (first second third : List Unit) :
-    (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-      (some (unaryTripleLoaderCfg .load₂ buffer₁
+    (flip Option.bind (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+      (some (unaryTripleLoaderCfgFor .load₂ buffer₁
         (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
         first second third)) =
-      some (unaryTripleLoaderCfg .load₃ (some .separator) tail output
+      some (unaryTripleLoaderCfgFor .load₃ (some .separator) tail output
         work₁ work₂ first (List.replicate value () ++ second) third) := by
   induction value generalizing buffer₁ second with
   | zero => rfl
@@ -131,22 +132,23 @@ private theorem loadSecond_eval (value : Nat)
       rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
         Function.iterate_succ_apply, Function.iterate_succ_apply]
       change
-        (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-          (some (unaryTripleLoaderCfg .load₂ (some .tick)
+        (flip Option.bind
+          (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+          (some (unaryTripleLoaderCfgFor .load₂ (some .tick)
             (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
             first (() :: second) third)) = _
       simpa only [List.replicate_succ, replicate_append_cons,
         List.cons_append] using ih (some .tick) (() :: second)
 
-private theorem loadThird_eval (value : Nat)
+private theorem loadThird_eval {Δ : Type} (value : Nat)
     (buffer₁ : Option UnaryFrameSym) (tail : List UnaryFrameSym)
-    (output : List CircuitSym) (work₁ work₂ : List UnaryFrameSym)
+    (output : List Δ) (work₁ work₂ : List UnaryFrameSym)
     (first second third : List Unit) :
-    (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-      (some (unaryTripleLoaderCfg .load₃ buffer₁
+    (flip Option.bind (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+      (some (unaryTripleLoaderCfgFor .load₃ buffer₁
         (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
         first second third)) =
-      some (unaryTripleLoaderCfg .ready (some .separator) tail output
+      some (unaryTripleLoaderCfgFor .ready (some .separator) tail output
         work₁ work₂ first second (List.replicate value () ++ third)) := by
   induction value generalizing buffer₁ third with
   | zero => rfl
@@ -154,8 +156,9 @@ private theorem loadThird_eval (value : Nat)
       rw [show 2 * (value + 1) + 1 = (2 * value + 1) + 1 + 1 by omega,
         Function.iterate_succ_apply, Function.iterate_succ_apply]
       change
-        (flip Option.bind (step unaryTripleLoaderProgram))^[2 * value + 1]
-          (some (unaryTripleLoaderCfg .load₃ (some .tick)
+        (flip Option.bind
+          (step (unaryTripleLoaderProgramFor Δ)))^[2 * value + 1]
+          (some (unaryTripleLoaderCfgFor .load₃ (some .tick)
             (encodeUnaryFrameBlock value ++ tail) output work₁ work₂
             first second (() :: third))) = _
       simpa only [List.replicate_succ, replicate_append_cons,
@@ -163,24 +166,25 @@ private theorem loadThird_eval (value : Nat)
 
 /-- Load exactly three framed naturals, preserve the unconsumed frame and both
 work stacks, and enter the non-halting continuation with exact unary values. -/
-def unaryTripleLoader_run (first second third : Nat)
-    (tail : List UnaryFrameSym) (output : List CircuitSym)
+def unaryTripleLoader_runFor {Δ : Type} (first second third : Nat)
+    (tail : List UnaryFrameSym) (output : List Δ)
     (work₁ work₂ : List UnaryFrameSym) :
-    EvalsToInTime (step unaryTripleLoaderProgram)
-      (unaryTripleLoaderCfg .load₁ none
+    EvalsToInTime (step (unaryTripleLoaderProgramFor Δ))
+      (unaryTripleLoaderCfgFor .load₁ none
         (encodeUnaryFrame [first, second, third] ++ tail)
         output work₁ work₂ [] [] [])
-      (some (unaryTripleLoaderReadyCfg first second third tail output
+      (some (unaryTripleLoaderReadyCfgFor first second third tail output
         work₁ work₂))
       (unaryTripleLoaderSteps first second third) := by
-  let afterFirst := unaryTripleLoaderCfg .load₂ (some .separator)
+  let afterFirst := unaryTripleLoaderCfgFor .load₂ (some .separator)
     (encodeUnaryFrameBlock second ++ encodeUnaryFrameBlock third ++ tail)
     output work₁ work₂ (List.replicate first ()) [] []
-  let afterSecond := unaryTripleLoaderCfg .load₃ (some .separator)
+  let afterSecond := unaryTripleLoaderCfgFor .load₃ (some .separator)
     (encodeUnaryFrameBlock third ++ tail) output work₁ work₂
     (List.replicate first ()) (List.replicate second ()) []
-  have hfirst : EvalsToInTime (step unaryTripleLoaderProgram)
-      (unaryTripleLoaderCfg .load₁ none
+  have hfirst : EvalsToInTime
+      (step (unaryTripleLoaderProgramFor Δ))
+      (unaryTripleLoaderCfgFor .load₁ none
         (encodeUnaryFrame [first, second, third] ++ tail)
         output work₁ work₂ [] [] [])
       (some afterFirst) (2 * first + 1) := by
@@ -189,28 +193,49 @@ def unaryTripleLoader_run (first second third : Nat)
       loadFirst_eval first none
         (encodeUnaryFrameBlock second ++ encodeUnaryFrameBlock third ++ tail)
         output work₁ work₂ [] [] []
-  have hsecond : EvalsToInTime (step unaryTripleLoaderProgram)
+  have hsecond : EvalsToInTime
+      (step (unaryTripleLoaderProgramFor Δ))
       afterFirst (some afterSecond) (2 * second + 1) := by
     refine ⟨⟨2 * second + 1, ?_⟩, le_rfl⟩
     simpa [afterFirst, afterSecond, List.append_assoc] using
       loadSecond_eval second (some .separator)
         (encodeUnaryFrameBlock third ++ tail) output work₁ work₂
         (List.replicate first ()) [] []
-  have hthird : EvalsToInTime (step unaryTripleLoaderProgram)
+  have hthird : EvalsToInTime
+      (step (unaryTripleLoaderProgramFor Δ))
       afterSecond
-      (some (unaryTripleLoaderReadyCfg first second third tail output
+      (some (unaryTripleLoaderReadyCfgFor first second third tail output
         work₁ work₂)) (2 * third + 1) := by
     refine ⟨⟨2 * third + 1, ?_⟩, le_rfl⟩
-    simpa [afterSecond, unaryTripleLoaderReadyCfg] using
+    simpa [afterSecond, unaryTripleLoaderReadyCfgFor] using
       loadThird_eval third (some .separator) tail output work₁ work₂
         (List.replicate first ()) (List.replicate second ()) []
-  let throughSecond := EvalsToInTime.trans (step unaryTripleLoaderProgram)
+  let throughSecond := EvalsToInTime.trans
+    (step (unaryTripleLoaderProgramFor Δ))
     (2 * first + 1) (2 * second + 1) _ afterFirst _ hfirst hsecond
-  let full := EvalsToInTime.trans (step unaryTripleLoaderProgram)
+  let full := EvalsToInTime.trans
+    (step (unaryTripleLoaderProgramFor Δ))
     ((2 * second + 1) + (2 * first + 1)) (2 * third + 1)
     _ afterSecond _ throughSecond hthird
   convert full using 1
   simp [unaryTripleLoaderSteps]
   omega
+
+/-- Backward-compatible circuit-output specialization used by the existing
+gate serializers. -/
+abbrev unaryTripleLoaderProgram : Program UnaryFrameSym CircuitSym :=
+  unaryTripleLoaderProgramFor CircuitSym
+
+/-- Backward-compatible circuit-output configuration. -/
+abbrev unaryTripleLoaderCfg :=
+  @unaryTripleLoaderCfgFor CircuitSym
+
+/-- Backward-compatible circuit-output ready configuration. -/
+abbrev unaryTripleLoaderReadyCfg :=
+  @unaryTripleLoaderReadyCfgFor CircuitSym
+
+/-- Backward-compatible circuit-output correctness theorem. -/
+abbrev unaryTripleLoader_run :=
+  @unaryTripleLoader_runFor CircuitSym
 
 end CLRS.Chapter34.Turing.PolyBuilder
