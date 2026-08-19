@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchSeed
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchLabelArtifacts
+#check compileDispatchLabelsListArtifacts_eq_arithmetic
+#check transitionDispatchArtifactsFromSeed
+#check arithmeticWidening_dispatchArtifacts_eq_seed
+
+#print axioms compileDispatchLabelsListArtifacts_eq_arithmetic
+#print axioms arithmeticWidening_dispatchArtifacts_eq_seed
