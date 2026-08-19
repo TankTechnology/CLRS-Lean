@@ -1798,4 +1798,727 @@ noncomputable def affineUnaryTripleMapFamily_computableInPolyTime
       (reverse_computableInPolyTime (Γ := UnaryFrameSym))
   simpa [Function.comp_def] using Classical.choice composed
 
+/-! ## Payload-preserving row specialization -/
+
+/-- One affine runtime triple together with a row-local byte payload.  The
+payload is protected by an internal `frameEnd`; on the intended inputs it
+contains no `frameEnd` of its own. -/
+structure AffineUnaryTriplePayloadRow where
+  seed : AffineUnaryTripleSeed
+  payload : List UnaryFrameSym
+deriving DecidableEq, Repr
+
+/-- Seed-first input row consumed by the payload-preserving affine source. -/
+def encodeAffineUnaryTriplePayloadRow
+    (row : AffineUnaryTriplePayloadRow) : List UnaryFrameSym :=
+  encodeAffineUnaryTripleSeed row.seed ++ [.frameEnd] ++
+    row.payload ++ [.frameEnd]
+
+/-- Concatenated seed-first row family. -/
+def encodeAffineUnaryTriplePayloadRowFamily :
+    List AffineUnaryTriplePayloadRow → List UnaryFrameSym
+  | [] => []
+  | row :: rest =>
+      encodeAffineUnaryTriplePayloadRow row ++
+        encodeAffineUnaryTriplePayloadRowFamily rest
+
+/-- Intended output row: the affine image first, then the internal boundary,
+the untouched payload, and the outer row boundary. -/
+def affineUnaryTriplePayloadRowOutput
+    (forms : List AffineUnaryTripleForm)
+    (row : AffineUnaryTriplePayloadRow) : List UnaryFrameSym :=
+  encodeUnaryFrame (affineUnaryTripleMap forms row.seed) ++ [.frameEnd] ++
+    row.payload ++ [.frameEnd]
+
+/-- Row-major output family of the payload-preserving affine source. -/
+def affineUnaryTriplePayloadRowOutputFamily
+    (forms : List AffineUnaryTripleForm) :
+    List AffineUnaryTriplePayloadRow → List UnaryFrameSym
+  | [] => []
+  | row :: rest =>
+      affineUnaryTriplePayloadRowOutput forms row ++
+        affineUnaryTriplePayloadRowOutputFamily forms rest
+
+/-- The affine-map core is reused verbatim.  `boundary` replaces only the
+core's otherwise-halting malformed-loader target: on well-formed rows that
+target is reached precisely after the internal `frameEnd`. -/
+private inductive AffineUnaryTriplePayloadLabel
+    (forms : List AffineUnaryTripleForm)
+  | core (label : AffineUnaryTripleMapLabel forms)
+  | boundary
+  | emitBoundary (symbol : UnaryFrameSym)
+  | payload
+  | emitPayload (symbol : UnaryFrameSym)
+  | clearPayloadBuffer
+  | finish
+deriving Fintype
+
+private noncomputable instance (forms : List AffineUnaryTripleForm) :
+    DecidableEq (AffineUnaryTriplePayloadLabel forms) := Classical.decEq _
+
+/-- Relabel the complete existing affine core, redirecting only its loader's
+invalid label to the new row-boundary continuation. -/
+private def affineUnaryTriplePayloadTag
+    (forms : List AffineUnaryTripleForm) :
+    AffineUnaryTripleMapLabel forms → AffineUnaryTriplePayloadLabel forms
+  | .loader .invalid => .boundary
+  | label => .core label
+
+/-- Fixed payload-preserving affine-map controller. -/
+def affineUnaryTriplePayloadFamilyRevProgram
+    (forms : List AffineUnaryTripleForm) :
+    Program UnaryFrameSym UnaryFrameSym where
+  Label := AffineUnaryTriplePayloadLabel forms
+  main := .core (.loader .load₁)
+  op
+    | .core label => affineUnaryTripleMapRelabelOp
+        (affineUnaryTriplePayloadTag forms)
+        ((affineUnaryTripleMapFamilyRevProgram forms).op label)
+    | .boundary => .popInput .finish (.emitBoundary)
+    | .emitBoundary symbol => .pushOutput .frameEnd (.emitPayload symbol)
+    | .payload => .popInput .finish (.emitPayload)
+    | .emitPayload symbol => .pushOutput symbol
+        (if symbol = .frameEnd then .clearPayloadBuffer else .payload)
+    | .clearPayloadBuffer => .popWork₁
+        (.core (.loader .load₁)) (fun _ => .finish)
+    | .finish => .halt
+
+private def affineUnaryTriplePayloadCfg
+    {forms : List AffineUnaryTripleForm}
+    (label : AffineUnaryTriplePayloadLabel forms)
+    (buffer₁ : Option UnaryFrameSym) (input output work₁ : List UnaryFrameSym)
+    (first second third : List Unit) :
+    BuilderCfg (affineUnaryTriplePayloadFamilyRevProgram forms) where
+  label := some label
+  buffer₁ := buffer₁
+  buffer₂ := none
+  test := false
+  input := input
+  output := output
+  work₁ := work₁
+  work₂ := []
+  counter₁ := first
+  counter₂ := second
+  counter₃ := third
+
+/-- Clean row entry of the payload-preserving source. -/
+def affineUnaryTriplePayloadFamilyLoopCfg
+    (forms : List AffineUnaryTripleForm)
+    (input output : List UnaryFrameSym) :
+    BuilderCfg (affineUnaryTriplePayloadFamilyRevProgram forms) :=
+  affineUnaryTriplePayloadCfg (.core (.loader .load₁)) none input output
+    [] [] [] []
+
+private def liftAffineUnaryTriplePayloadCfg
+    {forms : List AffineUnaryTripleForm}
+    (c : BuilderCfg (affineUnaryTripleMapFamilyRevProgram forms)) :
+    BuilderCfg (affineUnaryTriplePayloadFamilyRevProgram forms) :=
+  affineUnaryTripleMapRelabelCfg
+    (affineUnaryTriplePayloadTag forms) c
+
+private theorem affineUnaryTriplePayload_op_core
+    {forms : List AffineUnaryTripleForm}
+    (label : AffineUnaryTripleMapLabel forms)
+    (hexit : label ≠ .loader .invalid) :
+    (affineUnaryTriplePayloadFamilyRevProgram forms).op
+        (affineUnaryTriplePayloadTag forms label) =
+      affineUnaryTripleMapRelabelOp (affineUnaryTriplePayloadTag forms)
+        ((affineUnaryTripleMapFamilyRevProgram forms).op label) := by
+  cases label <;>
+    simp_all [affineUnaryTriplePayloadTag,
+      affineUnaryTriplePayloadFamilyRevProgram]
+
+private theorem liftAffineUnaryTriplePayload_step
+    {forms : List AffineUnaryTripleForm}
+    (c : BuilderCfg (affineUnaryTripleMapFamilyRevProgram forms))
+    (hexit : c.label ≠ some (.loader .invalid)) :
+    step (affineUnaryTriplePayloadFamilyRevProgram forms)
+        (liftAffineUnaryTriplePayloadCfg c) =
+      Option.map liftAffineUnaryTriplePayloadCfg
+        (step (affineUnaryTripleMapFamilyRevProgram forms) c) := by
+  unfold step
+  rw [show (liftAffineUnaryTriplePayloadCfg c).label =
+    c.label.map (affineUnaryTriplePayloadTag forms) by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠
+          (AffineUnaryTripleMapLabel.loader .invalid :
+            AffineUnaryTripleMapLabel forms) := by
+        intro h
+        subst label
+        exact hexit hlabel
+      change some (stepOp
+          ((affineUnaryTriplePayloadFamilyRevProgram forms).op
+            (affineUnaryTriplePayloadTag forms label))
+          (liftAffineUnaryTriplePayloadCfg c)) =
+        some (liftAffineUnaryTriplePayloadCfg
+          (stepOp ((affineUnaryTripleMapFamilyRevProgram forms).op label) c))
+      rw [affineUnaryTriplePayload_op_core label hlabelExit]
+      exact congrArg some
+        (affineUnaryTripleMapRelabel_stepOp
+          (Q := affineUnaryTriplePayloadFamilyRevProgram forms)
+          (affineUnaryTriplePayloadTag forms)
+          ((affineUnaryTripleMapFamilyRevProgram forms).op label) c)
+
+private theorem affineUnaryTriplePayload_haltExit_no_return
+    {Gamma Delta : Type} {P : Program Gamma Delta} (exit : P.Label)
+    (hop : P.op exit = Op.halt) (a b : BuilderCfg P)
+    (ha : a.label = some exit) (hb : b.label ≠ none) : ∀ n : Nat,
+    (flip Option.bind (step P))^[n] (step P a) ≠ some b := by
+  intro n
+  let halted : BuilderCfg P :=
+    { a with label := none, buffer₁ := none, buffer₂ := none, test := false }
+  have hstep : step P a = some halted := by
+    unfold step
+    rw [ha]
+    simp [hop, stepOp, halted]
+  cases n with
+  | zero =>
+      rw [hstep]
+      intro h
+      have hlabel := congrArg (fun cfg => cfg.label) (Option.some.inj h)
+      apply hb
+      simpa [halted] using hlabel.symm
+  | succ n =>
+      rw [hstep, Function.iterate_succ_apply]
+      change (flip Option.bind (step P))^[n] (step P halted) ≠ some b
+      have hnone : step P halted = none := rfl
+      rw [hnone, affineUnaryTripleMap_iterate_bind_none]
+      simp
+
+private theorem affineUnaryTriplePayload_lift_iterations
+    {Gamma Delta : Type} {P Q : Program Gamma Delta} (exit : P.Label)
+    (hop : P.op exit = Op.halt) (tr : BuilderCfg P → BuilderCfg Q)
+    (hstep : ∀ c, c.label ≠ some exit →
+      step Q (tr c) = Option.map tr (step P c))
+    {a b : BuilderCfg P} (hb : b.label ≠ none) : ∀ n : Nat,
+    (flip Option.bind (step P))^[n] (some a) = some b →
+      (flip Option.bind (step Q))^[n] (some (tr a)) = some (tr b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      simp [hab]
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change (flip Option.bind (step P))^[n] (step P a) = some b at h
+      change (flip Option.bind (step Q))^[n] (step Q (tr a)) = some (tr b)
+      have haexit : a.label ≠ some exit := by
+        intro ha
+        exact affineUnaryTriplePayload_haltExit_no_return
+          exit hop a b ha hb n h
+      cases hsource : step P a with
+      | none =>
+          rw [hsource, affineUnaryTripleMap_iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := hstep a haexit
+          rw [hsource] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hsource] at h
+          exact ih h
+
+private def affineUnaryTriplePayload_core_one
+    (forms : List AffineUnaryTripleForm) (seed : AffineUnaryTripleSeed)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+      (affineUnaryTriplePayloadFamilyLoopCfg forms
+        (encodeAffineUnaryTripleSeed seed ++ tail) output)
+      (some (affineUnaryTriplePayloadFamilyLoopCfg forms tail
+        ((encodeUnaryFrame (affineUnaryTripleMap forms seed)).reverse ++
+          output)))
+      (affineUnaryTripleMapFamilyOneSteps forms seed) := by
+  have sourceRun := affineUnaryTripleMapFamily_one forms seed tail output
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  have hlift := affineUnaryTriplePayload_lift_iterations
+    (P := affineUnaryTripleMapFamilyRevProgram forms)
+    (Q := affineUnaryTriplePayloadFamilyRevProgram forms)
+    (.loader .invalid) rfl liftAffineUnaryTriplePayloadCfg
+    liftAffineUnaryTriplePayload_step (a :=
+      affineUnaryTripleMapFamilyLoopCfg forms
+        (encodeAffineUnaryTripleSeed seed ++ tail) output)
+    (b := affineUnaryTripleMapFamilyLoopCfg forms tail
+      ((encodeUnaryFrame (affineUnaryTripleMap forms seed)).reverse ++
+        output)) (by
+          change some (AffineUnaryTripleMapLabel.loader
+            UnaryTripleLoaderLabel.load₁) ≠ none
+          simp)
+    sourceRun.steps sourceRun.evals_in_steps
+  simpa [affineUnaryTriplePayloadFamilyLoopCfg,
+    affineUnaryTriplePayloadCfg, liftAffineUnaryTriplePayloadCfg,
+    affineUnaryTripleMapFamilyLoopCfg, affineUnaryTripleMapFamilyCfg,
+    affineUnaryTripleMapRelabelCfg,
+    affineUnaryTriplePayloadTag] using hlift
+
+private theorem affineUnaryTriplePayload_payload_eval
+    {forms : List AffineUnaryTripleForm}
+    (payload tail output : List UnaryFrameSym)
+    (buffer₁ : Option UnaryFrameSym)
+    (hpayload : ∀ symbol ∈ payload, symbol ≠ .frameEnd) :
+    (flip Option.bind
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms)))^[
+        2 * payload.length + 3]
+      (some (affineUnaryTriplePayloadCfg .payload buffer₁
+        (payload ++ .frameEnd :: tail) output [] [] [] [])) =
+      some (affineUnaryTriplePayloadFamilyLoopCfg forms tail
+        (.frameEnd :: payload.reverse ++ output)) := by
+  induction payload generalizing buffer₁ output with
+  | nil => rfl
+  | cons symbol rest ih =>
+      have hsymbol : symbol ≠ .frameEnd := hpayload symbol (by simp)
+      have hrest : ∀ item ∈ rest, item ≠ .frameEnd := by
+        intro item hitem
+        exact hpayload item (by simp [hitem])
+      rw [show 2 * (symbol :: rest).length + 3 =
+          (2 * rest.length + 3) + 1 + 1 by simp; omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply]
+      have htwo :
+          flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+            (flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+              (some (affineUnaryTriplePayloadCfg .payload buffer₁
+                ((symbol :: rest) ++ .frameEnd :: tail)
+                output [] [] [] []))) =
+            some (affineUnaryTriplePayloadCfg .payload (some symbol)
+              (rest ++ .frameEnd :: tail) (symbol :: output) [] [] [] []) := by
+        have hpop :
+            step (affineUnaryTriplePayloadFamilyRevProgram forms)
+                (affineUnaryTriplePayloadCfg .payload buffer₁
+                  ((symbol :: rest) ++ .frameEnd :: tail)
+                  output [] [] [] []) =
+              some (affineUnaryTriplePayloadCfg (.emitPayload symbol)
+                (some symbol) (rest ++ .frameEnd :: tail)
+                output [] [] [] []) := by
+          rfl
+        have hemit :
+            step (affineUnaryTriplePayloadFamilyRevProgram forms)
+                (affineUnaryTriplePayloadCfg (.emitPayload symbol)
+                  (some symbol) (rest ++ .frameEnd :: tail)
+                  output [] [] [] []) =
+              some (affineUnaryTriplePayloadCfg .payload (some symbol)
+                (rest ++ .frameEnd :: tail) (symbol :: output)
+                [] [] [] []) := by
+          change some (affineUnaryTriplePayloadCfg
+            (if symbol = .frameEnd then .clearPayloadBuffer else .payload)
+            (some symbol) (rest ++ .frameEnd :: tail)
+            (symbol :: output) [] [] [] []) = _
+          rw [if_neg hsymbol]
+        have hinner :
+            flip Option.bind
+                (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+                (some (affineUnaryTriplePayloadCfg .payload buffer₁
+                  ((symbol :: rest) ++ .frameEnd :: tail)
+                  output [] [] [] [])) =
+              some (affineUnaryTriplePayloadCfg (.emitPayload symbol)
+                (some symbol) (rest ++ .frameEnd :: tail)
+                output [] [] [] []) := by
+          change step (affineUnaryTriplePayloadFamilyRevProgram forms)
+            (affineUnaryTriplePayloadCfg .payload buffer₁
+              ((symbol :: rest) ++ .frameEnd :: tail)
+              output [] [] [] []) = _
+          exact hpop
+        rw [hinner]
+        change step (affineUnaryTriplePayloadFamilyRevProgram forms)
+          (affineUnaryTriplePayloadCfg (.emitPayload symbol)
+            (some symbol) (rest ++ .frameEnd :: tail)
+            output [] [] [] []) = _
+        exact hemit
+      rw [htwo]
+      simpa [List.reverse_cons, List.append_assoc] using
+        ih (symbol :: output) (some symbol) hrest
+
+private theorem affineUnaryTriplePayload_boundary_eval
+    {forms : List AffineUnaryTripleForm}
+    (payload tail output : List UnaryFrameSym)
+    (hpayload : ∀ symbol ∈ payload, symbol ≠ .frameEnd) :
+    (flip Option.bind
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms)))^[
+        2 * payload.length + 5]
+      (some (affineUnaryTriplePayloadFamilyLoopCfg forms
+        (.frameEnd :: (payload ++ .frameEnd :: tail)) output)) =
+      some (affineUnaryTriplePayloadFamilyLoopCfg forms tail
+        (.frameEnd :: payload.reverse ++ .frameEnd :: output)) := by
+  cases payload with
+  | nil => rfl
+  | cons symbol rest =>
+      have hsymbol : symbol ≠ .frameEnd := hpayload symbol (by simp)
+      have hrest : ∀ item ∈ rest, item ≠ .frameEnd := by
+        intro item hitem
+        exact hpayload item (by simp [hitem])
+      rw [show 2 * (symbol :: rest).length + 5 =
+          (2 * rest.length + 3) + 1 + 1 + 1 + 1 by simp; omega,
+        Function.iterate_succ_apply, Function.iterate_succ_apply,
+        Function.iterate_succ_apply, Function.iterate_succ_apply]
+      have hfour :
+          flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+            (flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+              (flip Option.bind
+                (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+                (flip Option.bind
+                  (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+                  (some (affineUnaryTriplePayloadFamilyLoopCfg forms
+                    (.frameEnd ::
+                      (symbol :: rest ++ .frameEnd :: tail)) output))))) =
+            some (affineUnaryTriplePayloadCfg .payload (some symbol)
+              (rest ++ .frameEnd :: tail)
+              (symbol :: .frameEnd :: output) [] [] [] []) := by
+        let c₁ := affineUnaryTriplePayloadCfg (forms := forms) .boundary
+          (some .frameEnd) (symbol :: (rest ++ .frameEnd :: tail))
+          output [] [] [] []
+        let c₂ := affineUnaryTriplePayloadCfg (forms := forms)
+          (.emitBoundary symbol) (some symbol)
+          (rest ++ .frameEnd :: tail) output [] [] [] []
+        let c₃ := affineUnaryTriplePayloadCfg (forms := forms)
+          (.emitPayload symbol) (some symbol)
+          (rest ++ .frameEnd :: tail) (.frameEnd :: output) [] [] [] []
+        let c₄ := affineUnaryTriplePayloadCfg (forms := forms) .payload
+          (some symbol) (rest ++ .frameEnd :: tail)
+          (symbol :: .frameEnd :: output) [] [] [] []
+        have hs₁ : step (affineUnaryTriplePayloadFamilyRevProgram forms)
+            (affineUnaryTriplePayloadFamilyLoopCfg forms
+              (.frameEnd :: (symbol :: rest ++ .frameEnd :: tail)) output) =
+            some c₁ := by
+          rfl
+        have hs₂ : step (affineUnaryTriplePayloadFamilyRevProgram forms) c₁ =
+            some c₂ := by
+          rfl
+        have hs₃ : step (affineUnaryTriplePayloadFamilyRevProgram forms) c₂ =
+            some c₃ := by
+          rfl
+        have hs₄ : step (affineUnaryTriplePayloadFamilyRevProgram forms) c₃ =
+            some c₄ := by
+          change some (affineUnaryTriplePayloadCfg
+            (if symbol = .frameEnd then .clearPayloadBuffer else .payload)
+            (some symbol) (rest ++ .frameEnd :: tail)
+            (symbol :: .frameEnd :: output) [] [] [] []) = some c₄
+          rw [if_neg hsymbol]
+        have hi₁ : flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+              (some (affineUnaryTriplePayloadFamilyLoopCfg forms
+                (.frameEnd :: (symbol :: rest ++ .frameEnd :: tail)) output)) =
+            some c₁ := by
+          change step (affineUnaryTriplePayloadFamilyRevProgram forms)
+            (affineUnaryTriplePayloadFamilyLoopCfg forms
+              (.frameEnd :: (symbol :: rest ++ .frameEnd :: tail)) output) = _
+          exact hs₁
+        have hi₂ : flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+              (some c₁) = some c₂ := by
+          change step (affineUnaryTriplePayloadFamilyRevProgram forms) c₁ = _
+          exact hs₂
+        have hi₃ : flip Option.bind
+              (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+              (some c₂) = some c₃ := by
+          change step (affineUnaryTriplePayloadFamilyRevProgram forms) c₂ = _
+          exact hs₃
+        rw [hi₁, hi₂, hi₃]
+        change step (affineUnaryTriplePayloadFamilyRevProgram forms) c₃ = _
+        simpa [c₄] using hs₄
+      rw [hfour]
+      simpa [List.reverse_cons, List.append_assoc] using
+        affineUnaryTriplePayload_payload_eval
+          rest tail (symbol :: .frameEnd :: output) (some symbol) hrest
+
+/-- Exact cost of one seed-plus-payload row. -/
+def affineUnaryTriplePayloadFamilyOneSteps
+    (forms : List AffineUnaryTripleForm)
+    (row : AffineUnaryTriplePayloadRow) : Nat :=
+  affineUnaryTripleMapFamilyOneSteps forms row.seed +
+    (2 * row.payload.length + 5)
+
+private def affineUnaryTriplePayloadFamily_one
+    (forms : List AffineUnaryTripleForm)
+    (row : AffineUnaryTriplePayloadRow) (tail output : List UnaryFrameSym)
+    (hpayload : ∀ symbol ∈ row.payload, symbol ≠ .frameEnd) :
+    EvalsToInTime
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+      (affineUnaryTriplePayloadFamilyLoopCfg forms
+        (encodeAffineUnaryTriplePayloadRow row ++ tail) output)
+      (some (affineUnaryTriplePayloadFamilyLoopCfg forms tail
+        ((affineUnaryTriplePayloadRowOutput forms row).reverse ++ output)))
+      (affineUnaryTriplePayloadFamilyOneSteps forms row) := by
+  let rowTail :=
+    .frameEnd :: (row.payload ++ .frameEnd :: tail)
+  let prefixOutput :=
+    (encodeUnaryFrame (affineUnaryTripleMap forms row.seed)).reverse ++ output
+  have hcore := affineUnaryTriplePayload_core_one
+    forms row.seed rowTail output
+  have hboundary := affineUnaryTriplePayload_boundary_eval
+    (forms := forms) row.payload tail prefixOutput hpayload
+  have hboundaryRun : EvalsToInTime
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+      (affineUnaryTriplePayloadFamilyLoopCfg forms rowTail prefixOutput)
+      (some (affineUnaryTriplePayloadFamilyLoopCfg forms tail
+        (.frameEnd :: row.payload.reverse ++ .frameEnd :: prefixOutput)))
+      (2 * row.payload.length + 5) := by
+    exact ⟨⟨2 * row.payload.length + 5, by
+      simpa [rowTail] using hboundary⟩, le_rfl⟩
+  let full := EvalsToInTime.trans
+    (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+    (affineUnaryTripleMapFamilyOneSteps forms row.seed)
+    (2 * row.payload.length + 5) _
+    (affineUnaryTriplePayloadFamilyLoopCfg forms rowTail prefixOutput) _
+    (by simpa [rowTail, prefixOutput,
+      encodeAffineUnaryTriplePayloadRow, List.append_assoc] using hcore)
+    hboundaryRun
+  convert full using 1
+  · simp [rowTail, encodeAffineUnaryTriplePayloadRow, List.append_assoc]
+  · simp [prefixOutput, affineUnaryTriplePayloadRowOutput,
+      List.reverse_append, List.append_assoc]
+  · simp [affineUnaryTriplePayloadFamilyOneSteps]
+    omega
+
+/-- Exact complete-family cost, including the three-step empty-input halt. -/
+def affineUnaryTriplePayloadFamilySteps
+    (forms : List AffineUnaryTripleForm) :
+    List AffineUnaryTriplePayloadRow → Nat
+  | [] => 3
+  | row :: rest =>
+      affineUnaryTriplePayloadFamilyOneSteps forms row +
+        affineUnaryTriplePayloadFamilySteps forms rest
+
+private def affineUnaryTriplePayloadFamily_runFrom
+    (forms : List AffineUnaryTripleForm)
+    (rows : List AffineUnaryTriplePayloadRow)
+    (output : List UnaryFrameSym)
+    (hpayload : ∀ row ∈ rows, ∀ symbol ∈ row.payload,
+      symbol ≠ .frameEnd) :
+    EvalsToInTime
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+      (affineUnaryTriplePayloadFamilyLoopCfg forms
+        (encodeAffineUnaryTriplePayloadRowFamily rows) output)
+      (some (haltCfg (affineUnaryTriplePayloadFamilyRevProgram forms)
+        ((affineUnaryTriplePayloadRowOutputFamily forms rows).reverse ++
+          output)))
+      (affineUnaryTriplePayloadFamilySteps forms rows) := by
+  induction rows generalizing output with
+  | nil =>
+      exact ⟨⟨3, rfl⟩, le_rfl⟩
+  | cons row rest ih =>
+      let rowOutput :=
+        (affineUnaryTriplePayloadRowOutput forms row).reverse ++ output
+      have hrow : ∀ symbol ∈ row.payload, symbol ≠ .frameEnd := by
+        intro symbol hsymbol
+        exact hpayload row (by simp) symbol hsymbol
+      have hrest : ∀ item ∈ rest, ∀ symbol ∈ item.payload,
+          symbol ≠ .frameEnd := by
+        intro item hitem symbol hsymbol
+        exact hpayload item (by simp [hitem]) symbol hsymbol
+      have hfirst := affineUnaryTriplePayloadFamily_one
+        forms row (encodeAffineUnaryTriplePayloadRowFamily rest) output hrow
+      have htail := ih rowOutput hrest
+      let full := EvalsToInTime.trans
+        (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+        (affineUnaryTriplePayloadFamilyOneSteps forms row)
+        (affineUnaryTriplePayloadFamilySteps forms rest) _
+        (affineUnaryTriplePayloadFamilyLoopCfg forms
+          (encodeAffineUnaryTriplePayloadRowFamily rest) rowOutput) _
+        hfirst htail
+      convert full using 1
+      · simp [encodeAffineUnaryTriplePayloadRowFamily]
+      · simp [affineUnaryTriplePayloadRowOutputFamily, rowOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineUnaryTriplePayloadFamilySteps]
+        omega
+
+/-- One fixed machine maps every well-formed seed-first row family to its
+affine-prefix-plus-payload stream and halts with clean scratch state. -/
+def affineUnaryTriplePayloadFamily_run
+    (forms : List AffineUnaryTripleForm)
+    (rows : List AffineUnaryTriplePayloadRow)
+    (hpayload : ∀ row ∈ rows, ∀ symbol ∈ row.payload,
+      symbol ≠ .frameEnd) :
+    EvalsToInTime
+      (step (affineUnaryTriplePayloadFamilyRevProgram forms))
+      (initialCfg (affineUnaryTriplePayloadFamilyRevProgram forms)
+        (encodeAffineUnaryTriplePayloadRowFamily rows))
+      (some (haltCfg (affineUnaryTriplePayloadFamilyRevProgram forms)
+        (affineUnaryTriplePayloadRowOutputFamily forms rows).reverse))
+      (affineUnaryTriplePayloadFamilySteps forms rows) := by
+  have hinit : affineUnaryTriplePayloadFamilyLoopCfg forms
+      (encodeAffineUnaryTriplePayloadRowFamily rows) [] =
+        initialCfg (affineUnaryTriplePayloadFamilyRevProgram forms)
+          (encodeAffineUnaryTriplePayloadRowFamily rows) := rfl
+  rw [← hinit]
+  simpa only [List.append_nil] using
+    affineUnaryTriplePayloadFamily_runFrom forms rows [] hpayload
+
+/-- Fixed coefficient for the payload-preserving quadratic bound. -/
+def affineUnaryTriplePayloadFamilyStepCoeff
+    (forms : List AffineUnaryTripleForm) : Nat :=
+  affineUnaryTripleMapFamilyStepCoeff forms + 6
+
+@[simp] theorem encodeAffineUnaryTriplePayloadRow_length
+    (row : AffineUnaryTriplePayloadRow) :
+    (encodeAffineUnaryTriplePayloadRow row).length =
+      row.seed.first + row.seed.second + row.seed.third +
+        row.payload.length + 5 := by
+  simp [encodeAffineUnaryTriplePayloadRow]
+  omega
+
+/-- One row remains quadratic in its complete explicit byte encoding. -/
+theorem affineUnaryTriplePayloadFamilyOneSteps_le
+    (forms : List AffineUnaryTripleForm)
+    (row : AffineUnaryTriplePayloadRow) :
+    affineUnaryTriplePayloadFamilyOneSteps forms row ≤
+      affineUnaryTriplePayloadFamilyStepCoeff forms *
+        (encodeAffineUnaryTriplePayloadRow row).length ^ 2 := by
+  let rowLength := (encodeAffineUnaryTriplePayloadRow row).length
+  let seedLength := row.seed.first + row.seed.second + row.seed.third + 1
+  let coeff := affineUnaryTripleMapFamilyStepCoeff forms
+  have hrow : 1 ≤ rowLength := by
+    simp [rowLength]
+  have hrowSquare : rowLength ≤ rowLength ^ 2 := by
+    nlinarith
+  have hseedLength : seedLength ≤ rowLength := by
+    simp [seedLength, rowLength]
+    omega
+  have hseedSquare : seedLength ^ 2 ≤ rowLength ^ 2 := by
+    nlinarith
+  have hcoreSource := affineUnaryTripleMapFamilyOneSteps_le forms row.seed
+  have hcore : affineUnaryTripleMapFamilyOneSteps forms row.seed ≤
+      coeff * rowLength ^ 2 :=
+    hcoreSource.trans (Nat.mul_le_mul_left coeff (by
+      simpa [seedLength] using hseedSquare))
+  have hpayload : row.payload.length ≤ rowLength := by
+    simp [rowLength]
+    omega
+  have hrowFive : 5 ≤ rowLength := by
+    simp [rowLength]
+  have hcopy : 2 * row.payload.length + 5 ≤ 6 * rowLength ^ 2 := by
+    calc
+      2 * row.payload.length + 5 ≤ 2 * rowLength + 5 := by omega
+      _ ≤ 3 * rowLength := by omega
+      _ ≤ 6 * rowLength ^ 2 := by nlinarith
+  calc
+    affineUnaryTriplePayloadFamilyOneSteps forms row =
+        affineUnaryTripleMapFamilyOneSteps forms row.seed +
+          (2 * row.payload.length + 5) := by rfl
+    _ ≤ coeff * rowLength ^ 2 + 6 * rowLength ^ 2 :=
+      Nat.add_le_add hcore hcopy
+    _ = affineUnaryTriplePayloadFamilyStepCoeff forms *
+        (encodeAffineUnaryTriplePayloadRow row).length ^ 2 := by
+      simp [affineUnaryTriplePayloadFamilyStepCoeff, coeff, rowLength]
+      ring
+
+/-- Complete-family cost is quadratic in the concatenated seed-and-payload
+stream. -/
+theorem affineUnaryTriplePayloadFamilySteps_le
+    (forms : List AffineUnaryTripleForm)
+    (rows : List AffineUnaryTriplePayloadRow) :
+    affineUnaryTriplePayloadFamilySteps forms rows ≤
+      affineUnaryTriplePayloadFamilyStepCoeff forms *
+        (encodeAffineUnaryTriplePayloadRowFamily rows).length ^ 2 + 3 := by
+  induction rows with
+  | nil => simp [affineUnaryTriplePayloadFamilySteps,
+      encodeAffineUnaryTriplePayloadRowFamily]
+  | cons row rest ih =>
+      let headLength := (encodeAffineUnaryTriplePayloadRow row).length
+      let restLength :=
+        (encodeAffineUnaryTriplePayloadRowFamily rest).length
+      let coeff := affineUnaryTriplePayloadFamilyStepCoeff forms
+      have hhead := affineUnaryTriplePayloadFamilyOneSteps_le forms row
+      calc
+        affineUnaryTriplePayloadFamilySteps forms (row :: rest) =
+            affineUnaryTriplePayloadFamilyOneSteps forms row +
+              affineUnaryTriplePayloadFamilySteps forms rest := by rfl
+        _ ≤ coeff * headLength ^ 2 + (coeff * restLength ^ 2 + 3) :=
+          Nat.add_le_add (by simpa [coeff, headLength] using hhead)
+            (by simpa [coeff, restLength] using ih)
+        _ = coeff * (headLength ^ 2 + restLength ^ 2) + 3 := by ring
+        _ ≤ coeff * (headLength + restLength) ^ 2 + 3 := by
+          apply Nat.add_le_add_right
+          apply Nat.mul_le_mul_left
+          nlinarith [Nat.zero_le (2 * headLength * restLength)]
+        _ = affineUnaryTriplePayloadFamilyStepCoeff forms *
+            (encodeAffineUnaryTriplePayloadRowFamily (row :: rest)).length ^ 2 +
+              3 := by
+          simp [coeff, headLength, restLength,
+            encodeAffineUnaryTriplePayloadRowFamily]
+
+/-- Typed domain used by the compiled total machine: every row payload is
+free of the outer boundary marker. -/
+structure AffineUnaryTriplePayloadFamily where
+  rows : List AffineUnaryTriplePayloadRow
+  payload_frameEnd_free : ∀ row ∈ rows, ∀ symbol ∈ row.payload,
+    symbol ≠ UnaryFrameSym.frameEnd
+
+/-- Concrete input encoding of a well-formed payload family. -/
+def encodeAffineUnaryTriplePayloadFamily
+    (family : AffineUnaryTriplePayloadFamily) : List UnaryFrameSym :=
+  encodeAffineUnaryTriplePayloadRowFamily family.rows
+
+/-- The compiled fixed controller computes the reversed affine-prefix and
+payload family in quadratic time. -/
+noncomputable def
+    affineUnaryTriplePayloadFamilyRev_computableInPolyTime
+    (forms : List AffineUnaryTripleForm) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineUnaryTriplePayloadFamily id
+      (fun family : AffineUnaryTriplePayloadFamily =>
+        (affineUnaryTriplePayloadRowOutputFamily forms family.rows).reverse) where
+  tm := compile (affineUnaryTriplePayloadFamilyRevProgram forms)
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := Polynomial.C (affineUnaryTriplePayloadFamilyStepCoeff forms) *
+    Polynomial.X ^ 2 + 3
+  outputsFun := fun family => by
+    have builderRun := affineUnaryTriplePayloadFamily_run forms family.rows
+      family.payload_frameEnd_free
+    have compiledRun := compile_evalsToInTime
+      (affineUnaryTriplePayloadFamilyRevProgram forms) builderRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineUnaryTriplePayloadFamilyRevProgram forms)).step
+        (_root_.Turing.initList
+          (compile (affineUnaryTriplePayloadFamilyRevProgram forms))
+          (encodeAffineUnaryTriplePayloadRowFamily family.rows))
+        (some (_root_.Turing.haltList
+          (compile (affineUnaryTriplePayloadFamilyRevProgram forms))
+          (affineUnaryTriplePayloadRowOutputFamily forms family.rows).reverse))
+        (affineUnaryTriplePayloadFamilySteps forms family.rows) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg] using compiledRun
+    have htime : affineUnaryTriplePayloadFamilySteps forms family.rows ≤
+        (Polynomial.C (affineUnaryTriplePayloadFamilyStepCoeff forms) *
+          Polynomial.X ^ 2 + 3).eval
+            (encodeAffineUnaryTriplePayloadRowFamily family.rows).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_pow, Polynomial.eval_X, Polynomial.eval_C,
+        Polynomial.eval_ofNat] using
+        affineUnaryTriplePayloadFamilySteps_le forms family.rows
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile (affineUnaryTriplePayloadFamilyRevProgram forms)).step
+        (_root_.Turing.initList
+          (compile (affineUnaryTriplePayloadFamilyRevProgram forms))
+          (encodeAffineUnaryTriplePayloadRowFamily family.rows))
+        (some (_root_.Turing.haltList
+          (compile (affineUnaryTriplePayloadFamilyRevProgram forms))
+          (affineUnaryTriplePayloadRowOutputFamily forms family.rows).reverse))
+        ((Polynomial.C (affineUnaryTriplePayloadFamilyStepCoeff forms) *
+          Polynomial.X ^ 2 + 3).eval
+            (encodeAffineUnaryTriplePayloadRowFamily family.rows).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [encodeAffineUnaryTriplePayloadFamily,
+      _root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Forward payload-preserving affine source. -/
+noncomputable def affineUnaryTriplePayloadFamily_computableInPolyTime
+    (forms : List AffineUnaryTripleForm) :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineUnaryTriplePayloadFamily id
+      (fun family : AffineUnaryTriplePayloadFamily =>
+        affineUnaryTriplePayloadRowOutputFamily forms family.rows) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (affineUnaryTriplePayloadFamilyRev_computableInPolyTime forms)
+      (reverse_computableInPolyTime (Γ := UnaryFrameSym))
+  simpa [Function.comp_def] using Classical.choice composed
+
 end CLRS.Chapter34.Turing.PolyBuilder
