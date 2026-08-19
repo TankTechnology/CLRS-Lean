@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeAffineExactlyOneCompactMarkedFamily
+#check encodeAffineExactlyOneTickedMarkedFamily
+#check affineExactlyOneFrameExpandToInvalidSteps_le
+#check affineExactlyOneMarkedExpand_runFrom
+#check affineExactlyOneMarkedExpandSteps_le
+#check affineExactlyOneMarkedExpand_computableInPolyTime
+
+#print axioms affineExactlyOneFrameExpandToInvalidSteps_le
+#print axioms affineExactlyOneMarkedExpand_runFrom
+#print axioms affineExactlyOneMarkedExpandSteps_le
+#print axioms affineExactlyOneMarkedExpand_computableInPolyTime
