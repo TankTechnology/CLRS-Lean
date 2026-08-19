@@ -9,6 +9,19 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineUnaryTripleMapFamily
 #check affineUnaryTripleMapFamily_run
 #check affineUnaryTripleMapFamily_computableInPolyTime
+#check AffineUnaryTriplePayloadRow
+#check encodeAffineUnaryTriplePayloadRowFamily
+#check affineUnaryTriplePayloadRowOutputFamily
+#check affineUnaryTriplePayloadFamilyRevProgram
+#check affineUnaryTriplePayloadFamily_run
+#check affineUnaryTriplePayloadFamilyOneSteps_le
+#check affineUnaryTriplePayloadFamilySteps_le
+#check AffineUnaryTriplePayloadFamily
+#check affineUnaryTriplePayloadFamily_computableInPolyTime
 
 #print axioms affineUnaryTripleMapFamily_run
 #print axioms affineUnaryTripleMapFamily_computableInPolyTime
+#print axioms affineUnaryTriplePayloadFamily_run
+#print axioms affineUnaryTriplePayloadFamilyOneSteps_le
+#print axioms affineUnaryTriplePayloadFamilySteps_le
+#print axioms affineUnaryTriplePayloadFamily_computableInPolyTime
