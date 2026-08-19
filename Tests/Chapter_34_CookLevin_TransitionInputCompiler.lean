@@ -40,6 +40,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierTransitionNarrowLeftFrames
 #check verifierTransitionNarrowLeftFrames_eq_seeds
 #check verifierTransitionNarrowLeftFrames_computableInPolyTime
+#check transitionNarrowRightSuccForms
+#check transitionNarrowRightSuccForms_value
+#check verifierTransitionNarrowRightSuccFrames
+#check verifierTransitionNarrowRightSuccFrames_eq_seeds
+#check verifierTransitionNarrowRightSuccFrames_computableInPolyTime
 #check transitionSeedFamilyUnaryInput_eq_flatMap
 #check transitionSeedFamilyInput_eq_map_data
 #check verifierTransitionFamilyScripts
@@ -70,6 +75,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms transitionNarrowLeftForms_value
 #print axioms verifierTransitionNarrowLeftFrames_eq_seeds
 #print axioms verifierTransitionNarrowLeftFrames_computableInPolyTime
+#print axioms transitionNarrowRightSuccForms_value
+#print axioms verifierTransitionNarrowRightSuccFrames_eq_seeds
+#print axioms verifierTransitionNarrowRightSuccFrames_computableInPolyTime
 #print axioms verifierTransitionFamilyInputTarget_eq_canonical
 #print axioms verifierTransitionFamilyUnaryInputTarget_eq_flatMap
 #print axioms verifierTransitionRowMarkedSeedFrames_eq_seeds
