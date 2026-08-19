@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementLayout
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticLabelWires
+#check arithmeticLabelHaltedWire
+#check encodeLabelWires_eq_arithmetic
+#check encodeLabelHaltedWire_eq_arithmetic
+#check arithmeticPushStackWires
+#check arithmeticPushCfgWires
+#check pushStackWires_eq_arithmetic
+#check pushCfgWires_eq_arithmetic
+#check oneHotMap_wires_eq_trace
+#check oneHotPairMap_wires_eq_trace
+
+#print axioms pushCfgWires_eq_arithmetic
+#print axioms oneHotMap_wires_eq_trace
+#print axioms oneHotPairMap_wires_eq_trace
