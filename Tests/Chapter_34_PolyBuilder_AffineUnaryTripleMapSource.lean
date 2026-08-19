@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineUnaryTripleForm
+#check AffineUnaryTripleSeed
+#check affineUnaryTripleFormValue
+#check encodeAffineUnaryTripleSeedFamily
+#check affineUnaryTripleMapFamily
+#check affineUnaryTripleMapFamily_run
+#check affineUnaryTripleMapFamily_computableInPolyTime
+
+#print axioms affineUnaryTripleMapFamily_run
+#print axioms affineUnaryTripleMapFamily_computableInPolyTime
