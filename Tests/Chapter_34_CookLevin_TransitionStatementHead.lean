@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementHead
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticPeekCfgWires
+#check transitionStmtHeadPhase
+#check compileStmtScript_head?_eq_transitionStmtHeadPhase
+#check transitionDispatchStatementHeads
+#check compileDispatchLabelsListArtifacts_statementHeads_eq
+#check transitionDispatchStatementHeadsFromSeed
+#check arithmeticWidening_dispatchArtifact_statementHeads_eq_seed
+
+#print axioms compileStmtScript_head?_eq_transitionStmtHeadPhase
+#print axioms compileDispatchLabelsListArtifacts_statementHeads_eq
+#print axioms arithmeticWidening_dispatchArtifact_statementHeads_eq_seed
