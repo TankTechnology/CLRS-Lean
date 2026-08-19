@@ -47,7 +47,7 @@ inductive AffineExactlyOneFrameExpandLabel
 deriving DecidableEq, Fintype
 
 /-- Relabel an operation into the expander's loader phase. -/
-private def relabelLoaderOp {Λ : Type} (tag : Λ →
+def relabelLoaderOp {Λ : Type} (tag : Λ →
     AffineExactlyOneFrameExpandLabel) :
     Op UnaryFrameSym UnaryFrameSym Λ →
       Op UnaryFrameSym UnaryFrameSym AffineExactlyOneFrameExpandLabel
@@ -181,7 +181,9 @@ private theorem liftLoader_step
         (relabelLoader_stepOp
           ((unaryTripleLoaderProgramFor UnaryFrameSym).op label) c)
 
-private theorem iterate_bind_none {σ : Type} (f : σ → Option σ)
+/-- Once an option-valued transition returns `none`, later Kleisli iterations
+remain `none`. -/
+theorem iterate_bind_none {σ : Type} (f : σ → Option σ)
     (n : Nat) :
     (flip Option.bind f)^[n] (none : Option σ) = none := by
   induction n with
@@ -904,7 +906,10 @@ def affineExactlyOneFrameExpandToInvalidSteps :
       affineExactlyOneFrameExpandOneSteps frame +
         affineExactlyOneFrameExpandToInvalidSteps rest
 
-private def affineExactlyOneFrameExpand_runToInvalid
+/-- Exact base-expander execution through one consumed row boundary.  This
+clean continuation theorem is public so payload-preserving outer controllers
+can reuse the verified one-hot kernel without duplicating it. -/
+def affineExactlyOneFrameExpand_runToInvalid
     (frames : List AffineExactlyOneFrame) (tail output : List UnaryFrameSym) :
     EvalsToInTime (step affineExactlyOneFrameExpandRevProgram)
       (affineExactlyOneFrameExpandLoopCfg
