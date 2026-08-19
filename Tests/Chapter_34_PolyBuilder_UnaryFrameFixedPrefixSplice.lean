@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameFixedPrefixSplice
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeUnaryFrameWithFixedDelimiters
+#check encodeUnaryFrameFixedPrefixSpliceInputFamily
+#check encodeUnaryFrameFixedPrefixSpliceOutputFamily
+#check rewriteUnaryFrameFixedPrefixSplice_family
+#check unaryFrameFixedPrefixSpliceRevProgram
+#check unaryFrameFixedPrefixSpliceRev_run
+#check unaryFrameFixedPrefixSpliceSteps_le
+#check unaryFrameFixedPrefixSplice_computableInPolyTime
+
+#print axioms rewriteUnaryFrameFixedPrefixSplice_family
+#print axioms unaryFrameFixedPrefixSpliceRev_run
+#print axioms unaryFrameFixedPrefixSpliceSteps_le
+#print axioms unaryFrameFixedPrefixSplice_computableInPolyTime
