@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneSeedCarrierSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineExactlyOneStructuredRowSeedCarrierFrames
+#check encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+#check affineExactlyOneSeedCarrierRevProgram
+#check affineExactlyOneSeedCarrierRev_run
+#check affineExactlyOneSeedCarrierRev_computableInPolyTime
+
+#print axioms affineExactlyOneSeedCarrierRev_run
+#print axioms affineExactlyOneSeedCarrierRev_computableInPolyTime
