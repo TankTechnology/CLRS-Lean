@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
 import Mathlib.Tactic
 
@@ -543,6 +544,138 @@ theorem transitionTailPhaseBoundaryForms_value
     transitionFitWireForm_value tm seed hwork,
     transitionEqWireForm_value tm seed hwork]
 
+/-! ## Fixed overflow operands of the narrowing phase -/
+
+/-- Canonical stack/local-overflow coordinate represented by one flattened
+narrowing index. -/
+noncomputable def transitionOverflowCoordinate
+    (tm : _root_.Turing.FinTM2)
+    (index : Fin (Fintype.card tm.K * maxPushesPerStep tm)) :
+    Fin (Fintype.card tm.K) × Fin (maxPushesPerStep tm) :=
+  (finProdFinEquiv (m := Fintype.card tm.K)
+    (n := maxPushesPerStep tm)).symm index
+
+/-- Fixed machine stack selected by a flattened overflow coordinate. -/
+noncomputable def transitionOverflowStack
+    (tm : _root_.Turing.FinTM2)
+    (index : Fin (Fintype.card tm.K * maxPushesPerStep tm)) : tm.K := by
+  letI : Fintype tm.K := tm.kFin
+  exact (Fintype.equivFin tm.K).symm
+    (transitionOverflowCoordinate tm index).1
+
+/-- Constant part of the workspace slot number inspected by narrowing. -/
+noncomputable def transitionOverflowSlotConstant
+    (tm : _root_.Turing.FinTM2)
+    (index : Fin (Fintype.card tm.K * maxPushesPerStep tm)) : Nat :=
+  let k := transitionOverflowStack tm index
+  let localIndex := (transitionOverflowCoordinate tm index).2.val
+  1 + (labelCount tm + 1) + stateCount tm +
+    arithmeticStackOrdinal tm k +
+    cfgStackBitOffsetHeightCoeff tm k * maxPushesPerStep tm +
+    1 + localIndex
+
+/-- Height coefficient of the same workspace slot number. -/
+noncomputable def transitionOverflowSlotHeightCoeff
+    (tm : _root_.Turing.FinTM2)
+    (index : Fin (Fintype.card tm.K * maxPushesPerStep tm)) : Nat :=
+  cfgStackBitOffsetHeightCoeff tm
+      (transitionOverflowStack tm index) + 1
+
+/-- The flattened overflow slot number is affine in public height. -/
+theorem transitionOverflowSlot_eq_affine
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (index : Fin (Fintype.card tm.K * maxPushesPerStep tm)) :
+    transitionOverflowSlotConstant tm index +
+        transitionOverflowSlotHeightCoeff tm index * height =
+      (cfgSlotEquivFin tm (workHeight tm height)
+        (CfgSlot.stackHeight (transitionOverflowStack tm index)
+          ⟨height + 1 + (transitionOverflowCoordinate tm index).2.val,
+            by simp only [workHeight];
+               have hlocal :=
+                 (transitionOverflowCoordinate tm index).2.isLt
+               omega⟩)).val := by
+  rw [cfgSlotEquivFin_stackHeight_val]
+  rw [cfgStackBitOffset_eq_affine]
+  unfold transitionOverflowSlotConstant
+    transitionOverflowSlotHeightCoeff
+  simp only [workHeight]
+  ring
+
+/-- Affine wire form for a slot whose arithmetic mux-row index is itself
+affine in public height. -/
+noncomputable def transitionFinalMuxWireForm
+    (tm : _root_.Turing.FinTM2)
+    (slotConstant slotHeightCoeff : Nat) : AffineUnaryTripleForm :=
+  let mux := transitionFinalMuxStartForm tm
+  { constant := mux.constant + 3 + 3 * slotConstant
+    first := mux.first + 3 * slotHeightCoeff
+    second := 1
+    third := 0 }
+
+/-- The mux-wire form emits the exact arithmetic wire selected by an affine
+slot index. -/
+theorem transitionFinalMuxWireForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (slotConstant slotHeightCoeff : Nat) :
+    affineUnaryTripleFormValue
+        (transitionFinalMuxWireForm tm slotConstant slotHeightCoeff)
+        (transitionTailAffineSeed seed) =
+      affineUnaryTripleFormValue (transitionFinalMuxStartForm tm)
+          (transitionTailAffineSeed seed) + 3 +
+        3 * (slotConstant + slotHeightCoeff * seed.height) := by
+  unfold transitionFinalMuxWireForm transitionTailAffineSeed
+    affineUnaryTripleFormValue
+  simp [transitionFinalMuxStartForm]
+  ring
+
+/-- One fixed affine form for every overflow-height source wire, in the
+canonical pre-reversal order of `narrowCfgOverflowWires`. -/
+noncomputable def transitionNarrowOverflowWireForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  List.ofFn fun index :
+      Fin (Fintype.card tm.K * maxPushesPerStep tm) =>
+    transitionFinalMuxWireForm tm
+      (transitionOverflowSlotConstant tm index)
+      (transitionOverflowSlotHeightCoeff tm index)
+
+/-- The fixed affine table recovers every dispatched overflow wire before the
+OR compiler reverses their consumption order. -/
+theorem transitionNarrowOverflowWireForms_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleMap (transitionNarrowOverflowWireForms tm)
+        (transitionTailAffineSeed seed) =
+      narrowCfgOverflowWires
+        (transitionDispatchOutputWires tm seed) := by
+  rw [transitionDispatchOutputWires_eq_affineFinalMux tm seed hwork]
+  unfold transitionNarrowOverflowWireForms affineUnaryTripleMap
+    narrowCfgOverflowWires
+  rw [List.map_ofFn]
+  apply List.ofFn_inj.mpr
+  funext index
+  simp only [Function.comp_apply]
+  rw [transitionFinalMuxWireForm_value tm seed]
+  rw [transitionOverflowSlot_eq_affine]
+  rfl
+
+/-- Forms in the actual OR-frame consumption order. -/
+noncomputable def transitionNarrowLeftForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  (transitionNarrowOverflowWireForms tm).reverse
+
+/-- The source table emits exactly the narrowing frames' left operands. -/
+theorem transitionNarrowLeftForms_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleMap (transitionNarrowLeftForms tm)
+        (transitionTailAffineSeed seed) =
+      (narrowCfgOverflowWires
+        (transitionDispatchOutputWires tm seed)).reverse := by
+  unfold transitionNarrowLeftForms affineUnaryTripleMap
+  rw [List.map_reverse]
+  exact congrArg List.reverse
+    (transitionNarrowOverflowWireForms_value tm seed hwork)
+
 /-! ## Concrete verifier-family source -/
 
 /-- Transition seeds in the reusable affine source representation. -/
@@ -731,5 +864,46 @@ noncomputable def
       (verifierTransitionTailPhaseBoundaryFrames W) := by
   exact verifierTransitionAffineMapFrames_computableInPolyTime W
     (transitionTailPhaseBoundaryForms W.machine.tm)
+
+/-- Delimiter-bearing dispatched overflow operands for every verifier
+transition row, already in the OR controller's reverse consumption order. -/
+noncomputable def verifierTransitionNarrowLeftFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  verifierTransitionAffineMapFrames W
+    (transitionNarrowLeftForms W.machine.tm) input
+
+/-- The fixed affine source emits exactly the semantic narrowing-left operand
+families reconstructed from the canonical dispatch output. -/
+theorem verifierTransitionNarrowLeftFrames_eq_seeds
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionNarrowLeftFrames W input =
+      encodeUnaryFrame
+        ((verifierTransitionRowSeeds W input).flatMap fun seed =>
+          (narrowCfgOverflowWires
+            (transitionDispatchOutputWires W.machine.tm seed)).reverse) := by
+  unfold verifierTransitionNarrowLeftFrames
+    verifierTransitionAffineMapFrames verifierTransitionTailAffineSeeds
+    affineUnaryTripleMapFamily
+  rw [List.flatMap_map]
+  congr 1
+  apply List.flatMap_congr
+  intro seed hseed
+  apply transitionNarrowLeftForms_value
+  rw [verifierTransitionRowSeeds_height_eq W input seed hseed]
+  exact Nat.add_pos_left
+    (verifierHeight_eval_pos W input.length)
+    (maxPushesPerStep W.machine.tm)
+
+/-- A fixed polynomial-time TM2 emits all dispatched overflow operands
+directly from the raw verifier word. -/
+noncomputable def
+    verifierTransitionNarrowLeftFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionNarrowLeftFrames W) := by
+  exact verifierTransitionAffineMapFrames_computableInPolyTime W
+    (transitionNarrowLeftForms W.machine.tm)
 
 end CLRS.Chapter34.Turing.CookLevin
