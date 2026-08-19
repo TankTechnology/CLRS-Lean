@@ -735,7 +735,7 @@ private theorem arithmeticValidityTailFinalPrefixFixedEncoding_eq
 
 /-- One fully spliced arithmetic row is exactly the compact invocation
 consumed by the already verified continuous validity-tail source. -/
-private theorem arithmeticValidityTailSplicedRow_eq_sourceInvocation
+theorem arithmeticValidityTailSplicedRow_eq_sourceInvocation
     (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
     encodeUnaryFrameWithFixedDelimiters
           (arithmeticValidityTailFixedOperandValues tm H start rowBase)
