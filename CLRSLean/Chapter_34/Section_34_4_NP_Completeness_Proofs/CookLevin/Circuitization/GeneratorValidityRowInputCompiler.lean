@@ -149,4 +149,238 @@ theorem verifierValidityRowOperandPackets_tail
   simp [verifierValidityRowOperandPackets, validityRowOperandPacket,
     List.flatMap_map]
 
+/-! ## Single-source fixed operands with compact one-hot payload -/
+
+/-- Runtime row seed in the generic affine source's field order. -/
+def validityRowUnifiedAffineSeed
+    (height start rowBase : Nat) : AffineUnaryTripleSeed :=
+  { first := height, second := start, third := rowBase }
+
+/-- The halted triple followed by every verifier-fixed tail operand form.
+All coefficients depend only on the fixed verifier machine. -/
+noncomputable def arithmeticValidityRowFixedOperandForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  [ { constant := arithmeticRawOneHotGateCountConstant tm
+      first := arithmeticRawOneHotGateCountHeightCoeff tm
+      second := 1
+      third := 0 },
+    { constant := 0, first := 0, second := 0, third := 1 },
+    { constant := labelCount tm + 1
+      first := 0
+      second := 0
+      third := 1 } ] ++
+    arithmeticValidityTailFixedOperandForms tm
+
+/-- The unified affine table is value-exact for the halted fields and the
+complete fixed part of the canonical tail invocation. -/
+theorem arithmeticValidityRowFixedOperandForms_eq
+    (tm : _root_.Turing.FinTM2) (height start rowBase : Nat) :
+    affineUnaryTripleMap (arithmeticValidityRowFixedOperandForms tm)
+        (validityRowUnifiedAffineSeed height start rowBase) =
+      [ arithmeticHaltedMatchStart tm height start,
+        rowBase,
+        arithmeticNoneLabelWire tm rowBase ] ++
+        arithmeticValidityTailFixedOperandValues
+          tm height start rowBase := by
+  unfold arithmeticValidityRowFixedOperandForms
+  rw [show affineUnaryTripleMap
+      ([ { constant := arithmeticRawOneHotGateCountConstant tm
+           first := arithmeticRawOneHotGateCountHeightCoeff tm
+           second := 1
+           third := 0 },
+         { constant := 0, first := 0, second := 0, third := 1 },
+         { constant := labelCount tm + 1
+           first := 0
+           second := 0
+           third := 1 } ] ++
+        arithmeticValidityTailFixedOperandForms tm)
+        (validityRowUnifiedAffineSeed height start rowBase) =
+      affineUnaryTripleMap
+          [ { constant := arithmeticRawOneHotGateCountConstant tm
+              first := arithmeticRawOneHotGateCountHeightCoeff tm
+              second := 1
+              third := 0 },
+            { constant := 0, first := 0, second := 0, third := 1 },
+            { constant := labelCount tm + 1
+              first := 0
+              second := 0
+              third := 1 } ]
+          (validityRowUnifiedAffineSeed height start rowBase) ++
+        affineUnaryTripleMap (arithmeticValidityTailFixedOperandForms tm)
+          (validityRowUnifiedAffineSeed height start rowBase) by
+    simp [affineUnaryTripleMap]]
+  rw [show affineUnaryTripleMap
+        [ { constant := arithmeticRawOneHotGateCountConstant tm
+            first := arithmeticRawOneHotGateCountHeightCoeff tm
+            second := 1
+            third := 0 },
+          { constant := 0, first := 0, second := 0, third := 1 },
+          { constant := labelCount tm + 1
+            first := 0
+            second := 0
+            third := 1 } ]
+        (validityRowUnifiedAffineSeed height start rowBase) =
+      [ arithmeticHaltedMatchStart tm height start,
+        rowBase,
+        arithmeticNoneLabelWire tm rowBase ] by
+    simp [affineUnaryTripleMap, affineUnaryTripleFormValue,
+      validityRowUnifiedAffineSeed, arithmeticHaltedMatchStart,
+      arithmeticNoneLabelWire,
+      arithmeticRawOneHotGateCount_eq_affine]
+    ring_nf
+    simp]
+  congr 1
+  have h := arithmeticValidityTailFixedOperandForms_eq
+    tm height start rowBase
+  change affineUnaryTripleMap (arithmeticValidityTailFixedOperandForms tm)
+      { first := height, second := start, third := rowBase } =
+    arithmeticValidityTailFixedOperandValues tm height start rowBase at h
+  simpa [validityRowUnifiedAffineSeed] using h
+
+/-- One seed plus its full compact one-hot row, before any projection to
+final-conjunction output invocations. -/
+noncomputable def verifierValidityRowUnifiedPayloadRows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List AffineUnaryTriplePayloadRow :=
+  (verifierValidityRowSeeds W input).map fun seed =>
+    { seed := validityRowUnifiedAffineSeed
+        seed.height seed.start seed.rowBase
+      payload := encodeAffineExactlyOneCompactFamily
+        (validityRowSeedOneHotFrames W.machine.tm seed) }
+
+private theorem inputCompiler_encodeUnaryFrame_no_frameEnd
+    (values : List Nat) :
+    ∀ symbol ∈ encodeUnaryFrame values,
+      symbol ≠ UnaryFrameSym.frameEnd := by
+  intro symbol hsymbol
+  simp only [encodeUnaryFrame, List.mem_flatMap] at hsymbol
+  rcases hsymbol with ⟨value, hvalue, hsymbol⟩
+  simp [encodeUnaryFrameBlock] at hsymbol
+  rcases hsymbol with (⟨hvalue, rfl⟩ | rfl) <;> simp
+
+private theorem inputCompiler_compactFamily_no_frameEnd
+    (frames : List AffineExactlyOneFrame) :
+    ∀ symbol ∈ encodeAffineExactlyOneCompactFamily frames,
+      symbol ≠ UnaryFrameSym.frameEnd := by
+  intro symbol hsymbol
+  induction frames with
+  | nil => simp [encodeAffineExactlyOneCompactFamily] at hsymbol
+  | cons frame rest ih =>
+      simp only [encodeAffineExactlyOneCompactFamily,
+        List.mem_append] at hsymbol
+      rcases hsymbol with hframe | hrest
+      · exact inputCompiler_encodeUnaryFrame_no_frameEnd _ symbol hframe
+      · exact ih hrest
+
+/-- Typed well-formed domain for the single-source affine compiler. -/
+noncomputable def verifierValidityRowUnifiedPayloadFamily
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : AffineUnaryTriplePayloadFamily :=
+  { rows := verifierValidityRowUnifiedPayloadRows W input
+    payload_frameEnd_free := by
+      intro row hrow symbol hsymbol
+      rw [verifierValidityRowUnifiedPayloadRows, List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      exact inputCompiler_compactFamily_no_frameEnd _ symbol hsymbol }
+
+/-- The typed affine-family input is byte-for-byte the existing concrete
+seed-preserving compact one-hot stream. -/
+theorem verifierValidityRowUnifiedPayloadFamily_encoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeAffineUnaryTriplePayloadFamily
+        (verifierValidityRowUnifiedPayloadFamily W input) =
+      verifierValidityRowSeedMarkedOneHotFrames W input := by
+  rw [verifierValidityRowSeedMarkedOneHotFrames_eq_rows]
+  unfold encodeAffineUnaryTriplePayloadFamily
+  change encodeAffineUnaryTriplePayloadRowFamily
+      (verifierValidityRowUnifiedPayloadRows W input) = _
+  unfold verifierValidityRowUnifiedPayloadRows
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineUnaryTriplePayloadRowFamily,
+        encodeAffineUnaryTriplePayloadRow,
+        encodeAffineUnaryTripleSeed,
+        encodeAffineExactlyOneStructuredRowSeed,
+        validityRowUnifiedAffineSeed, List.append_assoc]
+      simpa [encodeAffineUnaryTriplePayloadRowFamily,
+        encodeAffineUnaryTriplePayloadRow,
+        encodeAffineUnaryTripleSeed,
+        encodeAffineExactlyOneStructuredRowSeed,
+        validityRowUnifiedAffineSeed] using ih
+
+/-- Concrete output of the single-source affine stage.  Every row contains
+all fixed halted/tail values, an internal marker, the untouched compact
+one-hot payload, and its outer row marker. -/
+noncomputable def verifierValidityRowUnifiedOperandPayloadFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  affineUnaryTriplePayloadRowOutputFamily
+    (arithmeticValidityRowFixedOperandForms W.machine.tm)
+    (verifierValidityRowUnifiedPayloadRows W input)
+
+/-- Exact semantic row layout of the unified source. -/
+theorem verifierValidityRowUnifiedOperandPayloadFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowUnifiedOperandPayloadFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeUnaryFrame
+          ([ arithmeticHaltedMatchStart W.machine.tm seed.height seed.start,
+             seed.rowBase,
+             arithmeticNoneLabelWire W.machine.tm seed.rowBase ] ++
+            arithmeticValidityTailFixedOperandValues W.machine.tm
+              seed.height seed.start seed.rowBase) ++
+        [.frameEnd] ++
+        encodeAffineExactlyOneCompactFamily
+          (validityRowSeedOneHotFrames W.machine.tm seed) ++
+        [.frameEnd] := by
+  unfold verifierValidityRowUnifiedOperandPayloadFrames
+    verifierValidityRowUnifiedPayloadRows
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp only [List.map_cons, List.flatMap_cons,
+        affineUnaryTriplePayloadRowOutputFamily,
+        affineUnaryTriplePayloadRowOutput]
+      rw [arithmeticValidityRowFixedOperandForms_eq, ih]
+
+/-- The unified row packets are compiled from the original verifier word by
+one honest source pipeline; no fan-out or oracle-side zip is used. -/
+noncomputable def
+    verifierValidityRowUnifiedOperandPayloadFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowUnifiedOperandPayloadFrames W) := by
+  let seedSource :=
+    verifierValidityRowSeedMarkedOneHotStructuredSeeds_computableInPolyTime W
+  let typedSeedSource :
+      _root_.Turing.TM2ComputableInPolyTime id
+        encodeAffineUnaryTriplePayloadFamily
+        (verifierValidityRowUnifiedPayloadFamily W) :=
+    { tm := seedSource.tm
+      inputAlphabet := seedSource.inputAlphabet
+      outputAlphabet := seedSource.outputAlphabet
+      time := seedSource.time
+      outputsFun := fun input => by
+        rw [verifierValidityRowUnifiedPayloadFamily_encoding_eq]
+        simpa only [id_eq,
+          verifierValidityRowSeedMarkedOneHotFrames] using
+            seedSource.outputsFun input }
+  let affineSource := affineUnaryTriplePayloadFamily_computableInPolyTime
+    (arithmeticValidityRowFixedOperandForms W.machine.tm)
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      typedSeedSource affineSource
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      affineUnaryTriplePayloadRowOutputFamily
+        (arithmeticValidityRowFixedOperandForms W.machine.tm)
+        (verifierValidityRowUnifiedPayloadRows W input))
+  simpa [Function.comp_def, verifierValidityRowUnifiedPayloadFamily] using
+    Classical.choice composed
+
 end CLRS.Chapter34.Turing.CookLevin
