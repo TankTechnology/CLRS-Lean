@@ -12,7 +12,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check pushCfgWires_eq_arithmetic
 #check oneHotMap_wires_eq_trace
 #check oneHotPairMap_wires_eq_trace
+#check transitionStmtOutputWires
+#check compileStmt_wires_eq_transitionStmtOutputWires
 
 #print axioms pushCfgWires_eq_arithmetic
 #print axioms oneHotMap_wires_eq_trace
 #print axioms oneHotPairMap_wires_eq_trace
+#print axioms compileStmt_wires_eq_transitionStmtOutputWires
