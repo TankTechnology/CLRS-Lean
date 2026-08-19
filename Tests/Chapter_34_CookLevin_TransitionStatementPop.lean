@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementPop
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticBlankHeadWires
+#check arithmeticPopStackWires
+#check arithmeticPopHeadWires
+#check arithmeticPopCfgWires
+#check popStackWires_stack_eq_arithmetic
+#check popStackWires_head_eq_arithmetic
+#check popCfgWires_wires_eq_arithmetic
+#check popCfgWires_head_eq_arithmetic
+
+#print axioms popStackWires_stack_eq_arithmetic
+#print axioms popStackWires_head_eq_arithmetic
+#print axioms popCfgWires_wires_eq_arithmetic
+#print axioms popCfgWires_head_eq_arithmetic
