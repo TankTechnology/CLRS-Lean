@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionController
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Reverse
 
 /-!
 # Runtime-length family of Cook--Levin local-transition scripts
@@ -506,5 +507,64 @@ theorem affineTransitionFamily_steps_le
         affineTransitionFamilyRunSteps, encodeAffineTransitionFamily,
         encodeAffineTransitionFamilyUnary, List.length_append] at *
       omega
+
+/-- The compiled fixed family controller computes the reversed transition
+gate stream in polynomial time from the exact runtime script encoding. -/
+noncomputable def affineTransitionFamilyRev_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineTransitionFamily id
+      (fun scripts : List AffineTransitionScript =>
+        (affineTransitionFamilyGateStream scripts).reverse) where
+  tm := compile affineTransitionFamilyRevProgram
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := 500 * Polynomial.X + 2
+  outputsFun := fun scripts => by
+    have builderRun := affineTransitionFamily_run scripts []
+    have compiledRun := compile_evalsToInTime
+      affineTransitionFamilyRevProgram builderRun
+    rw [show affineTransitionFamilyLoopCfg
+        (encodeAffineTransitionFamily scripts) [] =
+          initialCfg affineTransitionFamilyRevProgram
+            (encodeAffineTransitionFamily scripts) by rfl] at compiledRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile affineTransitionFamilyRevProgram).step
+        (_root_.Turing.initList (compile affineTransitionFamilyRevProgram)
+          (encodeAffineTransitionFamily scripts))
+        (some (_root_.Turing.haltList
+          (compile affineTransitionFamilyRevProgram)
+          (affineTransitionFamilyGateStream scripts).reverse))
+        (affineTransitionFamilyTotalSteps scripts) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg,
+        List.append_nil] using compiledRun
+    have htime :
+        affineTransitionFamilyTotalSteps scripts ≤
+          (500 * Polynomial.X + 2).eval
+            (encodeAffineTransitionFamily scripts).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_X, Polynomial.eval_ofNat] using
+        affineTransitionFamily_steps_le scripts
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile affineTransitionFamilyRevProgram).step
+        (_root_.Turing.initList (compile affineTransitionFamilyRevProgram)
+          (encodeAffineTransitionFamily scripts))
+        (some (_root_.Turing.haltList
+          (compile affineTransitionFamilyRevProgram)
+          (affineTransitionFamilyGateStream scripts).reverse))
+        ((500 * Polynomial.X + 2).eval
+          (encodeAffineTransitionFamily scripts).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Reversing the prepend-based output gives the forward transition-family
+gate stream under a concrete polynomial-time TM2. -/
+noncomputable def affineTransitionFamilyGateStream_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineTransitionFamily id affineTransitionFamilyGateStream := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      affineTransitionFamilyRev_computableInPolyTime
+      (reverse_computableInPolyTime (Γ := CircuitSym))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.PolyBuilder
