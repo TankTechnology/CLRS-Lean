@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowInputCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check ValidityRowOperandPacket
+#check validityRowSeedFamilyInput
+#check validityRowSeedFamilyInput_eq
+#check verifierValidityRowFamilyInputTarget
+#check verifierValidityRowFamilyInputTarget_eq_canonical
+#check verifierValidityRowFamilyInputTarget_eq_packets
+#check verifierValidityRowOperandPackets_oneHot
+#check verifierValidityRowOperandPackets_halted
+#check verifierValidityRowOperandPackets_tail
+
+#print axioms validityRowSeedFamilyInput_eq
+#print axioms verifierValidityRowFamilyInputTarget_eq_canonical
+#print axioms verifierValidityRowFamilyInputTarget_eq_packets
+#print axioms verifierValidityRowOperandPackets_oneHot
+#print axioms verifierValidityRowOperandPackets_halted
+#print axioms verifierValidityRowOperandPackets_tail
