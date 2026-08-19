@@ -1028,4 +1028,27 @@ noncomputable def affineExactlyOneSeedCarrierNormalize_computableInPolyTime
       (reverse_computableInPolyTime (Γ := UnaryFrameSym))
   simpa [Function.comp_def] using Classical.choice composed
 
+/-- Typed view of the preceding marked-row-to-carrier source.  The physical
+representation changes, but the semantic structured seed family is retained;
+this is the reusable interface needed to compose with the normalizer above. -/
+noncomputable def
+    affineExactlyOneSeedMarkedToCarrierSeeds_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        labelWidth stateWidth cellCounts)
+      (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        labelWidth stateWidth cellCounts)
+      id := by
+  let source :=
+    affineExactlyOneSeedMarkedToCarrierOutput_computableInPolyTime
+      labelWidth stateWidth cellCounts
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun seeds => by
+        simpa only [id_eq] using source.outputsFun seeds }
+
 end CLRS.Chapter34.Turing.PolyBuilder
