@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneMarkedRowInvocationSource
 
 /-!
 # Ordered one-hot operands for Cook--Levin validity rows
@@ -1191,5 +1192,64 @@ noncomputable def verifierValidityRowOneHotOperands_computableInPolyTime
       affineExactlyOneFrameExpand_computableInPolyTime
   simpa [Function.comp_def, validityRowSeedOneHotFamily_eq_canonical] using
     Classical.choice composed
+
+/-! ## Row-delimited final-conjunction invocations -/
+
+/-- For every validity row, project the structured one-hot frames to the
+compact `(start, count, 0)` invocations that compute the corresponding output
+wires.  A `frameEnd` after each row preserves the boundary needed by the
+validity-tail assembler. -/
+noncomputable def verifierValidityRowOneHotOutputInvocationFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneStructuredRowOutputInvocationFamily
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+
+/-- The projected stream is exactly the canonical reversed one-hot frame
+family for each row, with row boundaries retained byte-for-byte. -/
+theorem verifierValidityRowOneHotOutputInvocationFrames_eq_canonical
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowOneHotOutputInvocationFrames W input =
+      (verifierValidityRowFramesByLength W input.length).flatMap fun frame =>
+        encodeAffineExactlyOneOutputSourceInvocationFamily
+            frame.oneHotFrames.reverse ++
+          [.frameEnd] := by
+  rw [← verifierValidityRowSeeds_expand_eq_frames W input]
+  unfold verifierValidityRowOneHotOutputInvocationFrames
+    verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneStructuredRowOutputInvocationFamily,
+        encodeAffineExactlyOneStructuredRowOutputInvocation, ih,
+        expandValidityRowSeed,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw]
+      unfold arithmeticValidityRowFrame
+      rfl
+
+/-- A fixed verifier-dependent polynomial-time TM2 maps the raw verifier word
+directly to the row-delimited one-hot output invocation stream. -/
+noncomputable def
+    verifierValidityRowOneHotOutputInvocationFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowOneHotOutputInvocationFrames W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowStructuredSeeds_computableInPolyTime W)
+      (affineExactlyOneStructuredRowOutputInvocationFamily_computableInPolyTime
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input =>
+      encodeAffineExactlyOneStructuredRowOutputInvocationFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)
+        (verifierValidityRowStructuredSeeds W input))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.CookLevin
