@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneMarkedRowInvocationSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneSeedCarrierNormalizeSource
 
 /-!
 # Ordered one-hot operands for Cook--Levin validity rows
@@ -1396,6 +1397,86 @@ noncomputable def
   change _root_.Turing.TM2ComputableInPolyTime id id
     (fun input =>
       encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)
+        (verifierValidityRowStructuredSeeds W input))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-! ## Seed-first row packets for the validity-tail controller -/
+
+/-- Typed raw-input construction of the carrier stream.  Unlike the untyped
+view above, this boundary retains the semantic structured seed list, allowing
+the fixed carrier normalizer to consume the physical bytes directly. -/
+noncomputable def
+    verifierValidityRowSeedCarrierStructuredSeeds_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id
+      (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+      (verifierValidityRowStructuredSeeds W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowSeedMarkedOneHotStructuredSeeds_computableInPolyTime W)
+      (affineExactlyOneSeedMarkedToCarrierSeeds_computableInPolyTime
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-- Normalized validity-row stream.  Each row begins with the runtime seed
+`(height,start,rowBase)`, followed by an internal boundary, the canonical
+one-hot output invocations, and the row boundary. -/
+noncomputable def verifierValidityRowSeedFirstOutputInvocationFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneSeedCarrierNormalizedFamily
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+
+/-- Row-by-row semantic specification of the normalized stream. -/
+theorem verifierValidityRowSeedFirstOutputInvocationFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowSeedFirstOutputInvocationFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeAffineExactlyOneStructuredRowSeed
+          { height := seed.height
+            start := seed.start
+            rowBase := seed.rowBase } ++
+        [.frameEnd] ++
+        encodeAffineExactlyOneOutputSourceInvocationFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed).reverse ++
+          [.frameEnd] := by
+  unfold verifierValidityRowSeedFirstOutputInvocationFrames
+    verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneSeedCarrierNormalizedFamily,
+        encodeAffineExactlyOneSeedCarrierNormalizedRow,
+        affineExactlyOneSeedCarrierRawInvocations,
+        validityRowSeedOneHotFrames,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw, ih,
+        List.append_assoc]
+
+/-- One fixed verifier-dependent polynomial-time TM2 maps the raw verifier
+word directly to the normalized seed-first row stream. -/
+noncomputable def
+    verifierValidityRowSeedFirstOutputInvocationFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowSeedFirstOutputInvocationFrames W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowSeedCarrierStructuredSeeds_computableInPolyTime W)
+      (affineExactlyOneSeedCarrierNormalize_computableInPolyTime
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input =>
+      encodeAffineExactlyOneSeedCarrierNormalizedFamily
         (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
         (verifierOneHotCellCounts W.machine.tm)
         (verifierValidityRowStructuredSeeds W input))
