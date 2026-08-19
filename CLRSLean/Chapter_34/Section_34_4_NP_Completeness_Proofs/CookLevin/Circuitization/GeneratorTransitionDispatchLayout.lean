@@ -347,6 +347,74 @@ def transitionDispatchListOutputWires
         labels
         (arithmeticMuxCfgWires tm (workHeight tm height) muxStart)
 
+/-- Offset of the final whole-row mux from the first gate of a nonempty
+dispatch suffix.  The empty value is harmless and is used only to keep the
+definition total; complete machine dispatches are nonempty. -/
+def transitionDispatchListFinalMuxOffset
+    (tm : _root_.Turing.FinTM2) (height : Nat) : List tm.Λ → Nat
+  | [] => 0
+  | label :: labels =>
+      let statementCost :=
+        compileStmtGateCost tm (workHeight tm height) (tm.m label)
+      match labels with
+      | [] => statementCost
+      | _ :: _ =>
+          statementCost +
+            (3 * cfgBitCount tm (workHeight tm height) + 1) +
+            transitionDispatchListFinalMuxOffset tm height labels
+
+/-- A nonempty arithmetic dispatch suffix always returns the row allocated by
+its final whole-row mux.  In particular, none of the semantic statement
+payloads survives in the output wire coordinates. -/
+theorem transitionDispatchListOutputWires_eq_finalMux
+    (tm : _root_.Turing.FinTM2) (height start : Nat)
+    (labels : List tm.Λ)
+    (fallback : CfgWires tm (workHeight tm height))
+    (hlabels : labels ≠ []) :
+    transitionDispatchListOutputWires tm height start labels fallback =
+      arithmeticMuxCfgWires tm (workHeight tm height)
+        (start + transitionDispatchListFinalMuxOffset tm height labels) := by
+  induction labels generalizing start fallback with
+  | nil => exact (hlabels rfl).elim
+  | cons label labels ih =>
+      cases labels with
+      | nil => rfl
+      | cons next rest =>
+          change transitionDispatchListOutputWires tm height
+              (start +
+                compileStmtGateCost tm (workHeight tm height) (tm.m label) +
+                (3 * cfgBitCount tm (workHeight tm height) + 1))
+              (next :: rest)
+              (arithmeticMuxCfgWires tm (workHeight tm height)
+                (start + compileStmtGateCost tm
+                  (workHeight tm height) (tm.m label))) = _
+          rw [ih _ _ (List.cons_ne_nil next rest)]
+          change arithmeticMuxCfgWires tm (workHeight tm height)
+              ((start + compileStmtGateCost tm (workHeight tm height)
+                  (tm.m label) +
+                (3 * cfgBitCount tm (workHeight tm height) + 1)) +
+                transitionDispatchListFinalMuxOffset tm height
+                  (next :: rest)) =
+            arithmeticMuxCfgWires tm (workHeight tm height)
+              (start +
+                (compileStmtGateCost tm (workHeight tm height)
+                    (tm.m label) +
+                  (3 * cfgBitCount tm (workHeight tm height) + 1) +
+                  transitionDispatchListFinalMuxOffset tm height
+                    (next :: rest)))
+          congr 1
+          omega
+
+/-- The canonical finite-label list of a bundled machine is nonempty. -/
+theorem programLabels_nonempty (tm : _root_.Turing.FinTM2) :
+    programLabels tm ≠ [] := by
+  intro hempty
+  have hlength : (programLabels tm).length = 0 := by
+    simpa using congrArg List.length hempty
+  have hcount : labelCount tm = 0 := by
+    simpa [programLabels] using hlength
+  exact (Nat.ne_of_gt (labelCount_pos tm)) hcount
+
 /-- The semantic dispatch recursion's output wires obey the pure arithmetic
 suffix recurrence. -/
 theorem dispatchLabelsList_wires_eq_arithmetic
@@ -375,6 +443,22 @@ def transitionDispatchOutputWires (tm : _root_.Turing.FinTM2)
   transitionDispatchListOutputWires tm seed.height (seed.start + 2)
     (programLabels tm)
     (arithmeticWidenedCfgWires tm seed.height seed.start seed.rowBase)
+
+/-- Closed final-mux form of the complete dispatched row reconstructed from a
+transition seed.  Its coordinates depend only on the fixed machine, the
+runtime height, and the local gate start; the public row payload is absent. -/
+theorem transitionDispatchOutputWires_eq_finalMux
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
+    transitionDispatchOutputWires tm seed =
+      arithmeticMuxCfgWires tm (workHeight tm seed.height)
+        (seed.start + 2 +
+          transitionDispatchListFinalMuxOffset tm seed.height
+            (programLabels tm)) := by
+  unfold transitionDispatchOutputWires
+  exact transitionDispatchListOutputWires_eq_finalMux tm seed.height
+    (seed.start + 2) (programLabels tm)
+      (arithmeticWidenedCfgWires tm seed.height seed.start seed.rowBase)
+      (programLabels_nonempty tm)
 
 /-- Actual proof-carrying widening and finite-label dispatch return exactly the
 seed-only arithmetic workspace row. -/
