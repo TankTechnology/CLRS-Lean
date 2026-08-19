@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineStackOutputFamilySource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineStackOutputWires
+#check encodeAffineStackOutputSourceInvocation
+#check affineStackOutputFamilySourceRevProgram
+#check affineStackOutputFamilySource_runToFinish
+#check affineStackOutputFamilySource_steps_le
+
+#print axioms affineStackOutputFamilySource_runToFinish
+#print axioms affineStackOutputFamilySource_steps_le
