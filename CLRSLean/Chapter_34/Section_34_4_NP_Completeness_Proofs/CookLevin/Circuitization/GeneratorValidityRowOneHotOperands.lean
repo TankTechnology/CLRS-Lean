@@ -1252,4 +1252,93 @@ noncomputable def
         (verifierValidityRowStructuredSeeds W input))
   simpa [Function.comp_def] using Classical.choice composed
 
+/-! ## Seed-preserving row packets for the tail assembler -/
+
+/-- Raw-input row packets retaining the three arithmetic seed fields next to
+the exact compact one-hot row they generate. -/
+noncomputable def verifierValidityRowSeedMarkedOneHotFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+
+/-- Each packet contains the original seed, an explicit seed/row boundary,
+the canonical compact one-hot fields of that row, and a row boundary. -/
+theorem verifierValidityRowSeedMarkedOneHotFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowSeedMarkedOneHotFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeAffineExactlyOneStructuredRowSeed
+          { height := seed.height
+            start := seed.start
+            rowBase := seed.rowBase } ++
+        [.frameEnd] ++
+        encodeAffineExactlyOneCompactFamily
+          (validityRowSeedOneHotFrames W.machine.tm seed) ++
+        [.frameEnd] := by
+  unfold verifierValidityRowSeedMarkedOneHotFrames
+    verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneStructuredRowSeedMarkedFamily,
+        validityRowSeedOneHotFrames,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw, ih,
+        List.append_assoc]
+
+/-- Typed form of the concrete raw-input construction.  Its semantic output
+remains the structured seed family, while the physical representation keeps
+both the seed and its generated row so no parallel-machine assumption is
+needed downstream. -/
+noncomputable def
+    verifierValidityRowSeedMarkedOneHotStructuredSeeds_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+      (verifierValidityRowStructuredSeeds W) := by
+  let rowBytes :=
+    affineExactlyOneStructuredRowSeedMarkedFamily_computableInPolyTime
+      (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+      (verifierOneHotCellCounts W.machine.tm)
+  let rowSource : _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneStructuredRowSeedFamily
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)) id :=
+    { tm := rowBytes.tm
+      inputAlphabet := rowBytes.inputAlphabet
+      outputAlphabet := rowBytes.outputAlphabet
+      time := rowBytes.time
+      outputsFun := fun seeds => by
+        simpa only [id_eq] using rowBytes.outputsFun seeds }
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowStructuredSeeds_computableInPolyTime W)
+      rowSource
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-- A fixed verifier-dependent polynomial-time TM2 maps the raw verifier word
+directly to the seed-preserving, row-delimited one-hot stream. -/
+noncomputable def
+    verifierValidityRowSeedMarkedOneHotFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowSeedMarkedOneHotFrames W) := by
+  let source :=
+    verifierValidityRowSeedMarkedOneHotStructuredSeeds_computableInPolyTime W
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun input => by
+        simpa only [id_eq, verifierValidityRowSeedMarkedOneHotFrames] using
+          source.outputsFun input }
+
 end CLRS.Chapter34.Turing.CookLevin
