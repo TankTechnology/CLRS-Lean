@@ -1482,4 +1482,117 @@ noncomputable def
         (verifierValidityRowStructuredSeeds W input))
   simpa [Function.comp_def] using Classical.choice composed
 
+/-! ## Canonical row-marked one-hot prefixes -/
+
+/-- The semantic one-hot frame list retained separately for every verifier
+validity row.  Unlike the earlier flattened family, this representation keeps
+the boundaries required by the complete validity-row controller. -/
+noncomputable def verifierValidityRowOneHotRows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List (List AffineExactlyOneFrame) :=
+  (verifierValidityRowSeeds W input).map
+    (validityRowSeedOneHotFrames W.machine.tm)
+
+/-- The row-wise semantic family is exactly the one-hot field of every
+canonical verifier validity frame. -/
+theorem verifierValidityRowOneHotRows_eq_canonical
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowOneHotRows W input =
+      (verifierValidityRowFramesByLength W input.length).map
+        (fun frame => frame.oneHotFrames) := by
+  unfold verifierValidityRowOneHotRows
+  rw [← verifierValidityRowSeeds_expand_eq_frames W input]
+  simp [validityRowSeedOneHotFrames_eq_expand]
+
+/-- The existing structured marked source is byte-for-byte the generic
+compact marked encoding of the retained row list. -/
+theorem verifierValidityRowOneHotRows_compactEncoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeAffineExactlyOneCompactMarkedFamily
+        (verifierValidityRowOneHotRows W input) =
+      encodeAffineExactlyOneStructuredRowMarkedFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)
+        (verifierValidityRowStructuredSeeds W input) := by
+  unfold verifierValidityRowOneHotRows verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneCompactMarkedFamily,
+        encodeAffineExactlyOneStructuredRowMarkedFamily,
+        validityRowSeedOneHotFrames,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw, ih]
+
+/-- Raw verifier input polynomially computes the row-delimited compact
+family, retaining its semantic row list as the intermediate value. -/
+noncomputable def
+    verifierValidityRowOneHotMarkedCompactRows_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineExactlyOneCompactMarkedFamily
+      (verifierValidityRowOneHotRows W) := by
+  let markedRows :=
+    affineExactlyOneStructuredRowMarkedFamily_computableInPolyTime
+      (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+      (verifierOneHotCellCounts W.machine.tm)
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowStructuredSeeds_computableInPolyTime W)
+      markedRows
+  let source := Classical.choice composed
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun input => by
+        simpa only [id_eq, Function.comp_apply,
+          verifierValidityRowOneHotRows_compactEncoding_eq W input] using
+          source.outputsFun input }
+
+/-- Canonical one-hot prefix of each validity row, including the leading
+outer-family tick and the one-hot-family terminator. -/
+noncomputable def verifierValidityRowOneHotMarkedOperandFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneTickedMarkedFamily
+    (verifierValidityRowOneHotRows W input)
+
+/-- Exact row-major specification against the actual validity-row frames. -/
+theorem verifierValidityRowOneHotMarkedOperandFrames_eq_canonical
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowOneHotMarkedOperandFrames W input =
+      (verifierValidityRowFramesByLength W input.length).flatMap fun frame =>
+        .tick :: (encodeAffineExactlyOneFamily frame.oneHotFrames ++
+          [.frameEnd]) := by
+  unfold verifierValidityRowOneHotMarkedOperandFrames
+  rw [verifierValidityRowOneHotRows_eq_canonical]
+  generalize verifierValidityRowFramesByLength W input.length = frames
+  induction frames with
+  | nil => rfl
+  | cons frame rest ih =>
+      simp [encodeAffineExactlyOneTickedMarkedFamily, ih]
+
+/-- End-to-end polynomial-time construction of every canonical row's marked
+one-hot prefix from the raw verifier input.  This is the boundary-preserving
+interface needed by the subsequent halted/tail row assembler. -/
+noncomputable def
+    verifierValidityRowOneHotMarkedOperandFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowOneHotMarkedOperandFrames W) := by
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input => encodeAffineExactlyOneTickedMarkedFamily
+      (verifierValidityRowOneHotRows W input))
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowOneHotMarkedCompactRows_computableInPolyTime W)
+      affineExactlyOneMarkedExpand_computableInPolyTime
+  simpa only [Function.comp_def] using
+    Classical.choice composed
+
 end CLRS.Chapter34.Turing.CookLevin
