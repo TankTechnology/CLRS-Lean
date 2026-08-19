@@ -34,6 +34,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineStackOutputFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityFinalConjunctionSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
 
 /-!
 # Verified bounded TM2 builders
@@ -73,4 +74,7 @@ continuous row controller, while keeping the tableau height and affine offsets
 as runtime unary counters and proving the exact emitted frame sequence.  The
 outer row-family source now iterates that controller over a runtime seed stream
 with explicit counter clearing between rows and an exact clean-halt theorem.
+The affine-triple map source additionally turns a raw runtime
+`(height, start, rowBase)` stream into any verifier-fixed finite table of
+affine operands using one concrete quadratic-time TM2 controller.
 -/
