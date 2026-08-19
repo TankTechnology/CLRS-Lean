@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineValidityTailSourceFrame
+#check encodeAffineValidityTailSourceInvocation
+#check affineValidityTailSourceFrame
+#check affineValidityTailSource_runToFinish
+#check affineValidityTailSource_steps_le
+
+#print axioms affineValidityTailSource_runToFinish
+#print axioms affineValidityTailSource_steps_le

@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityFinalConjunctionSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailSource
 
 /-!
 # Canonical tail operands for every Cook--Levin validity row
@@ -508,6 +509,84 @@ theorem arithmeticValidityFinalConjunctionSource_steps_le
           (arithmeticValidityFinalConjunctionSourceFrame
             tm H start rowBase)).length ^ 2 + 50 :=
   affineValidityFinalConjunctionSource_steps_le _ _
+
+/-! ## One continuous source for the complete arithmetic tail -/
+
+/-- Compact source invocation joining every arithmetic stack seed to the
+already closed final-conjunction operands. -/
+noncomputable def arithmeticValidityTailSourceFrame
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    AffineValidityTailSourceFrame :=
+  { stackSeeds := arithmeticRuntimeStackSourceSeeds tm H start rowBase
+    finalFrame :=
+      arithmeticValidityFinalConjunctionSourceFrame tm H start rowBase }
+
+/-- The fixed blank-stride list contains exactly one entry per machine
+stack. -/
+@[simp] theorem arithmeticRuntimeStackSourceBlankSteps_length
+    (tm : _root_.Turing.FinTM2) :
+    (arithmeticRuntimeStackSourceBlankSteps tm).length =
+      arithmeticStackCount tm := by
+  simp [arithmeticRuntimeStackSourceBlankSteps,
+    arithmeticRuntimeStackSourceIndices]
+
+/-- The linked compact source denotes the pre-existing semantic validity
+tail exactly, including both family delimiters and the final wire order. -/
+theorem arithmeticValidityTailSourceFrame_eq
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityTailSourceFrame
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticValidityTailSourceFrame tm H start rowBase) =
+      arithmeticValidityTailFrame tm H start rowBase := by
+  unfold affineValidityTailSourceFrame arithmeticValidityTailSourceFrame
+    arithmeticValidityTailFrame
+  congr 1
+  · exact arithmeticRuntimeStackSourceFamilyFrames_eq tm H start rowBase
+  · simpa [arithmeticValidityTailFrame] using
+      arithmeticValidityFinalConjunctionSourceFrame_eq tm H start rowBase
+
+/-- A single fixed verifier-dependent controller runs all stack sources and
+the final conjunction source continuously, preserving a following
+invocation. -/
+noncomputable def arithmeticValidityTailSource_runToFinish
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat)
+    (tail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step (affineValidityTailSourceRevProgram
+        (arithmeticRuntimeStackSourceBlankSteps tm)))
+      (affineValidityTailSourceLoopCfg
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (encodeAffineValidityTailSourceInvocation
+          (arithmeticValidityTailSourceFrame tm H start rowBase) ++ tail)
+        output)
+      (some (affineValidityTailSourceFinishCfg
+        (arithmeticRuntimeStackSourceBlankSteps tm) tail
+        ((encodeAffineValidityTailFrame
+          (arithmeticValidityTailFrame tm H start rowBase)).reverse ++
+            output)))
+      (affineValidityTailSourceSteps
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticValidityTailSourceFrame tm H start rowBase)) := by
+  simpa only [arithmeticValidityTailSourceFrame_eq] using
+    affineValidityTailSource_runToFinish
+      (arithmeticRuntimeStackSourceBlankSteps tm)
+      (arithmeticValidityTailSourceFrame tm H start rowBase) tail output
+      (arithmeticRuntimeStackSourceSeeds_length tm H start rowBase)
+
+/-- The complete specialized tail source inherits the generic quadratic
+bound in its compact explicit invocation. -/
+theorem arithmeticValidityTailSource_steps_le
+    (tm : _root_.Turing.FinTM2) (H start rowBase : Nat) :
+    affineValidityTailSourceSteps
+        (arithmeticRuntimeStackSourceBlankSteps tm)
+        (arithmeticValidityTailSourceFrame tm H start rowBase) ≤
+      affineValidityTailSourceStepCoeff
+          (arithmeticRuntimeStackSourceBlankSteps tm) *
+        ((encodeAffineValidityTailSourceInvocation
+          (arithmeticValidityTailSourceFrame tm H start rowBase)).length +
+            1) ^ 2 :=
+  affineValidityTailSource_steps_le _ _
+    (arithmeticRuntimeStackSourceSeeds_length tm H start rowBase)
 
 /-- Expand one row seed to precisely the post-halted runtime frame of the
 complete arithmetic validity-row frame. -/
