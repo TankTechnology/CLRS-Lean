@@ -5758,9 +5758,18 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   upgrade to the standard reduction interface and requires polynomial-time
   computability of the map as a separate premise.
 - Current gaps: the circuit generator still needs its concrete polynomial-time
-  TM2 implementation.  Consequently the repository's stronger `NPHard` and
-  `NPComplete GeneralCircuitSAT` wrappers remain open; the separately named
-  circuitization package does not claim them.
+  TM2 implementation.  The script-consuming generator body and tail already
+  have exact continuous-run theorems and polynomial script-time bounds.  On
+  the raw-input side, validity-row seeds, halted operands, structured one-hot
+  families, runtime-height stack/cell families, the exact final-conjunction
+  wire order (`arithmeticFinalConjunctionWires_eq_semantic`), and the continuous
+  raw one-hot output-wire source are now proved.  The next missing theorem must
+  assemble those sources into the complete validity-tail input, interleave the
+  row fragments, and derive a polynomial-time machine from the original input
+  length.  Transition-family and verifier-tail script compilation then remain
+  before the whole `cookLevinMap` generator can be packaged.  Consequently the
+  repository's stronger `NPHard` and `NPComplete GeneralCircuitSAT` wrappers
+  remain open; the separately named circuitization package does not claim them.
   `SatTo3CNFMachine` imports the complete compiling B1--B13 chain;
   `Dev.B12_Bounds` proves the polynomial bounds and `Dev.B13_OutputsFun`
   packages the complete run as `TM2ComputableInPolyTime`.
