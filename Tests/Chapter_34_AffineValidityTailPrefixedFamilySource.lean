@@ -6,6 +6,7 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check AffineValidityTailPrefixedSourceFamily
 #check encodeAffineValidityTailPrefixedSourceInput
 #check encodeAffineValidityTailPrefixedSourceOutput
+#check affineValidityTailPrefixedSourceHaltCfg
 #check affineValidityTailPrefixedSource_runToFinish
 #check affineValidityTailPrefixedSourceStepsToFinish_le
 #check affineValidityTailPrefixedSource_computableInPolyTime

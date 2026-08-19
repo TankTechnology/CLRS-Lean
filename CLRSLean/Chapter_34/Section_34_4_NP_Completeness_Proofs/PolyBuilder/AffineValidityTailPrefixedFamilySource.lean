@@ -59,10 +59,11 @@ def encodeAffineValidityTailPrefixedSourceOutput
     (blankSteps : List Nat)
     (family : AffineValidityTailPrefixedSourceFamily blankSteps) :
     List UnaryFrameSym :=
-  family.rows.flatMap fun row =>
+  (family.rows.flatMap fun row =>
     row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
       encodeAffineValidityTailFrame
-        (affineValidityTailSourceFrame blankSteps row.tail)
+        (affineValidityTailSourceFrame blankSteps row.tail)) ++
+    [.frameEnd]
 
 /-- Copy phases around the relabeled one-row tail source. -/
 inductive AffineValidityTailPrefixedSourceLabel (blankSteps : List Nat)
@@ -75,6 +76,7 @@ inductive AffineValidityTailPrefixedSourceLabel (blankSteps : List Nat)
   | clearPrefixBuffer
   | body (label : (affineValidityTailSourceRevProgram blankSteps).Label)
   | finish
+  | halt
   | invalid
 deriving DecidableEq, Fintype
 
@@ -137,7 +139,8 @@ def affineValidityTailPrefixedSourceRevProgram (blankSteps : List Nat) :
     | .body (.inr .finish) => .popWork₁ .first (fun _ => .first)
     | .body label => prefixedTailSourceRelabelOp
         ((affineValidityTailSourceRevProgram blankSteps).op label)
-    | .finish => .halt
+    | .finish => .pushOutput .frameEnd .halt
+    | .halt => .halt
     | .invalid => .halt
 
 private def affineValidityTailPrefixedSourceCfg {blankSteps : List Nat}
@@ -170,6 +173,14 @@ def affineValidityTailPrefixedSourceFinishCfg (blankSteps : List Nat)
     (output : List UnaryFrameSym) :
     BuilderCfg (affineValidityTailPrefixedSourceRevProgram blankSteps) :=
   affineValidityTailPrefixedSourceCfg .finish none none false
+    [] output [] [] [] [] []
+
+/-- State after emitting the final family terminator and immediately before
+the compiled halt instruction. -/
+def affineValidityTailPrefixedSourceHaltCfg (blankSteps : List Nat)
+    (output : List UnaryFrameSym) :
+    BuilderCfg (affineValidityTailPrefixedSourceRevProgram blankSteps) :=
+  affineValidityTailPrefixedSourceCfg .halt none none false
     [] output [] [] [] [] []
 
 private def liftPrefixedTailSourceBodyCfg {blankSteps : List Nat}
@@ -676,7 +687,7 @@ noncomputable def
   outputAlphabet := Equiv.refl _
   time := Polynomial.C
       (affineValidityTailPrefixedSourceStepCoeff blankSteps) *
-    Polynomial.X ^ 2 + 2
+    Polynomial.X ^ 2 + 3
   outputsFun := fun family => by
     have finishRun := affineValidityTailPrefixedSource_runToFinish
       blankSteps family.rows [] family.first_frameEnd_free
@@ -684,16 +695,54 @@ noncomputable def
     have haltStep : EvalsToInTime
         (step (affineValidityTailPrefixedSourceRevProgram blankSteps))
         (affineValidityTailPrefixedSourceFinishCfg blankSteps
-          (encodeAffineValidityTailPrefixedSourceOutput
-            blankSteps family).reverse)
+          ((family.rows.flatMap fun row =>
+            row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
+              encodeAffineValidityTailFrame
+                (affineValidityTailSourceFrame
+                  blankSteps row.tail)).reverse))
         (some (haltCfg
           (affineValidityTailPrefixedSourceRevProgram blankSteps)
           (encodeAffineValidityTailPrefixedSourceOutput
-            blankSteps family).reverse)) 1 :=
-      ⟨⟨1, rfl⟩, le_rfl⟩
+            blankSteps family).reverse)) 2 := by
+      have emitStep : EvalsToInTime
+          (step (affineValidityTailPrefixedSourceRevProgram blankSteps))
+          (affineValidityTailPrefixedSourceFinishCfg blankSteps
+            ((family.rows.flatMap fun row =>
+              row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
+                encodeAffineValidityTailFrame
+                  (affineValidityTailSourceFrame
+                    blankSteps row.tail)).reverse))
+          (some (affineValidityTailPrefixedSourceHaltCfg blankSteps
+            (.frameEnd :: (family.rows.flatMap fun row =>
+              row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
+                encodeAffineValidityTailFrame
+                  (affineValidityTailSourceFrame
+                    blankSteps row.tail)).reverse))) 1 :=
+        ⟨⟨1, rfl⟩, le_rfl⟩
+      have finalStep : EvalsToInTime
+          (step (affineValidityTailPrefixedSourceRevProgram blankSteps))
+          (affineValidityTailPrefixedSourceHaltCfg blankSteps
+            (.frameEnd :: (family.rows.flatMap fun row =>
+              row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
+                encodeAffineValidityTailFrame
+                  (affineValidityTailSourceFrame
+                    blankSteps row.tail)).reverse))
+          (some (haltCfg
+            (affineValidityTailPrefixedSourceRevProgram blankSteps)
+            (.frameEnd :: (family.rows.flatMap fun row =>
+              row.first ++ [.frameEnd] ++ row.second ++ [.frameEnd] ++
+                encodeAffineValidityTailFrame
+                  (affineValidityTailSourceFrame
+                    blankSteps row.tail)).reverse))) 1 :=
+        ⟨⟨1, rfl⟩, le_rfl⟩
+      have run := EvalsToInTime.trans
+        (step (affineValidityTailPrefixedSourceRevProgram blankSteps))
+        _ 1 _ _ _ emitStep finalStep
+      simpa [encodeAffineValidityTailPrefixedSourceOutput,
+        List.reverse_append] using run
     have builderRun := EvalsToInTime.trans
       (step (affineValidityTailPrefixedSourceRevProgram blankSteps))
-      _ 1 _ _ _ (by
+      _ 2 _ _ _ (by
         simpa [encodeAffineValidityTailPrefixedSourceInput,
           encodeAffineValidityTailPrefixedSourceOutput] using finishRun)
         haltStep
@@ -712,7 +761,7 @@ noncomputable def
           (encodeAffineValidityTailPrefixedSourceOutput
             blankSteps family).reverse))
         (affineValidityTailPrefixedSourceStepsToFinish
-          blankSteps family.rows + 1) := by
+          blankSteps family.rows + 2) := by
       have hinput :
           (family.rows.flatMap fun row =>
             row.first ++ .frameEnd ::
@@ -734,10 +783,10 @@ noncomputable def
         Nat.add_comm] using compiledRun
     have htime :
         affineValidityTailPrefixedSourceStepsToFinish
-              blankSteps family.rows + 1 ≤
+              blankSteps family.rows + 2 ≤
           (Polynomial.C
               (affineValidityTailPrefixedSourceStepCoeff blankSteps) *
-            Polynomial.X ^ 2 + 2).eval
+            Polynomial.X ^ 2 + 3).eval
               (encodeAffineValidityTailPrefixedSourceInput family).length := by
       have hbound := affineValidityTailPrefixedSourceStepsToFinish_le
         blankSteps family.rows family.stack_lengths
@@ -760,7 +809,7 @@ noncomputable def
             blankSteps family).reverse))
         ((Polynomial.C
               (affineValidityTailPrefixedSourceStepCoeff blankSteps) *
-            Polynomial.X ^ 2 + 2).eval
+            Polynomial.X ^ 2 + 3).eval
               (encodeAffineValidityTailPrefixedSourceInput family).length) :=
       ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
     simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun

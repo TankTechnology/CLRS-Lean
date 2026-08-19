@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDuplicatedRowRoute
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneMarkedPrefixPayloadSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneLeadingFixedCompactProjection
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailPrefixedFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLeadingSegmentFixedPrefixSplice
 
 /-!
@@ -1517,5 +1518,142 @@ noncomputable def
         simpa only [id_eq,
           verifierValidityRowFixedPrefixMaterializedFrames]
           using run }
+
+/-! ## Expand every compact tail behind its canonical row prefixes -/
+
+/-- Typed view of the compact row stream consumed by the continuous
+prefix-preserving validity-tail source. -/
+noncomputable def verifierValidityRowPrefixedTailSourceFamily
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    AffineValidityTailPrefixedSourceFamily
+      (arithmeticRuntimeStackSourceBlankSteps W.machine.tm) :=
+  { rows := (verifierValidityRowSeeds W input).map fun seed =>
+      { first := .tick :: encodeAffineExactlyOneFamily
+          (validityRowSeedOneHotFrames W.machine.tm seed)
+        second := encodeUnaryFrame
+          [ arithmeticHaltedMatchStart W.machine.tm seed.height seed.start,
+            seed.rowBase,
+            arithmeticNoneLabelWire W.machine.tm seed.rowBase ]
+        tail := arithmeticValidityTailSourceFrame W.machine.tm
+          seed.height seed.start seed.rowBase }
+    first_frameEnd_free := by
+      intro row hrow symbol hsymbol
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      simp only [List.mem_cons] at hsymbol
+      rcases hsymbol with rfl | hfamily
+      · simp
+      · exact inputCompiler_exactlyOneFamily_no_frameEnd _ symbol hfamily
+    second_frameEnd_free := by
+      intro row hrow symbol hsymbol
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      exact inputCompiler_encodeUnaryFrame_no_frameEnd _ symbol hsymbol
+    stack_lengths := by
+      intro row hrow
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      exact arithmeticRuntimeStackSourceSeeds_length
+        W.machine.tm seed.height seed.start seed.rowBase }
+
+/-- Retyping the compact raw-input result loses no bytes: it is exactly the
+generic prefixed-tail family input. -/
+theorem verifierValidityRowPrefixedTailSourceFamily_encoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeAffineValidityTailPrefixedSourceInput
+        (verifierValidityRowPrefixedTailSourceFamily W input) =
+      verifierValidityRowCompactSourceFrames W input := by
+  rw [verifierValidityRowCompactSourceFrames_eq_invocations]
+  unfold encodeAffineValidityTailPrefixedSourceInput
+    verifierValidityRowPrefixedTailSourceFamily
+  rw [List.flatMap_map]
+  simp [List.append_assoc]
+
+/-- Fully expanded row packets emitted by the one continuous prefixed-tail
+controller. -/
+noncomputable def verifierValidityRowCompleteInputFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineValidityTailPrefixedSourceOutput
+    (arithmeticRuntimeStackSourceBlankSteps W.machine.tm)
+    (verifierValidityRowPrefixedTailSourceFamily W input)
+
+/-- Expanding every compact source invocation recovers the exact recursive
+complete-row target, including all row boundaries. -/
+theorem verifierValidityRowCompleteInputFrames_eq_target
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowCompleteInputFrames W input =
+      verifierValidityRowFamilyInputTarget W input := by
+  unfold verifierValidityRowCompleteInputFrames
+    encodeAffineValidityTailPrefixedSourceOutput
+    verifierValidityRowPrefixedTailSourceFamily
+    verifierValidityRowFamilyInputTarget
+  rw [List.flatMap_map]
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => simp [validityRowSeedFamilyInput]
+  | cons seed rest ih =>
+      dsimp only at ih
+      simp only [List.flatMap_cons, validityRowSeedFamilyInput]
+      rw [arithmeticValidityTailSourceFrame_eq]
+      simp only [List.append_assoc] at ih ⊢
+      rw [ih]
+      simp [encodeAffineValidityRowFrame, expandValidityRowSeed,
+        arithmeticValidityRowFrame, validityRowSeedOneHotFrames,
+        List.append_assoc]
+
+/-- The raw verifier word is transformed by one fixed polynomial-time TM2
+into the exact complete validity-row family input. -/
+noncomputable def
+    verifierValidityRowCompleteInputFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowCompleteInputFrames W) := by
+  let compactSource :=
+    verifierValidityRowCompactSourceFrames_computableInPolyTime W
+  let typedCompactSource :
+      _root_.Turing.TM2ComputableInPolyTime id
+        encodeAffineValidityTailPrefixedSourceInput
+        (verifierValidityRowPrefixedTailSourceFamily W) :=
+    { tm := compactSource.tm
+      inputAlphabet := compactSource.inputAlphabet
+      outputAlphabet := compactSource.outputAlphabet
+      time := compactSource.time
+      outputsFun := fun input => by
+        simpa only [id_eq,
+          verifierValidityRowPrefixedTailSourceFamily_encoding_eq W input]
+          using compactSource.outputsFun input }
+  let familySource := affineValidityTailPrefixedSource_computableInPolyTime
+    (arithmeticRuntimeStackSourceBlankSteps W.machine.tm)
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      typedCompactSource familySource
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      encodeAffineValidityTailPrefixedSourceOutput
+        (arithmeticRuntimeStackSourceBlankSteps W.machine.tm)
+        (verifierValidityRowPrefixedTailSourceFamily W input))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-- Public polynomial-time interface for the canonical validity-row family
+input expected by the already verified row gate controller. -/
+noncomputable def
+    verifierValidityRowFamilyInputTarget_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowFamilyInputTarget W) := by
+  let source := verifierValidityRowCompleteInputFrames_computableInPolyTime W
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun input => by
+        simpa only [id_eq,
+          verifierValidityRowCompleteInputFrames_eq_target W input]
+          using source.outputsFun input }
 
 end CLRS.Chapter34.Turing.CookLevin
