@@ -676,6 +676,49 @@ theorem transitionNarrowLeftForms_value
   exact congrArg List.reverse
     (transitionNarrowOverflowWireForms_value tm seed hwork)
 
+/-- The OR loader stores `right + 1`; every such value is an absolute affine
+form because the number of overflow coordinates is fixed by the machine. -/
+noncomputable def transitionNarrowRightSuccForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  List.ofFn fun index :
+      Fin (Fintype.card tm.K * maxPushesPerStep tm) =>
+    transitionAbsoluteStartForm
+      ((transitionNarrowStartOffsetAffine tm).add
+        (TransitionAffineNat.const (index.val + 1)))
+
+/-- The fixed table emits exactly the narrowing carry operands in their unary
+loader representation. -/
+theorem transitionNarrowRightSuccForms_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleMap (transitionNarrowRightSuccForms tm)
+        (transitionTailAffineSeed seed) =
+      List.ofFn fun index :
+          Fin (Fintype.card tm.K * maxPushesPerStep tm) =>
+        transitionNarrowStart tm seed.height seed.start + index.val + 1 := by
+  unfold transitionNarrowRightSuccForms affineUnaryTripleMap
+  rw [List.map_ofFn]
+  apply List.ofFn_inj.mpr
+  funext index
+  simp only [Function.comp_apply]
+  rw [transitionAbsoluteStartForm_value,
+    TransitionAffineNat.eval_add, TransitionAffineNat.eval_const]
+  have hnarrow : seed.start +
+      (transitionNarrowStartOffsetAffine tm).eval seed.height =
+      transitionNarrowStart tm seed.height seed.start := by
+    calc
+      seed.start +
+          (transitionNarrowStartOffsetAffine tm).eval seed.height =
+          affineUnaryTripleFormValue (transitionNarrowStartForm tm)
+            (transitionTailAffineSeed seed) := by
+        symm
+        simpa [transitionNarrowStartForm] using
+          transitionAbsoluteStartForm_value
+            (transitionNarrowStartOffsetAffine tm) seed
+      _ = transitionNarrowStart tm seed.height seed.start :=
+        transitionNarrowStartForm_value tm seed hwork
+  omega
+
 /-! ## Concrete verifier-family source -/
 
 /-- Transition seeds in the reusable affine source representation. -/
@@ -905,5 +948,47 @@ noncomputable def
       (verifierTransitionNarrowLeftFrames W) := by
   exact verifierTransitionAffineMapFrames_computableInPolyTime W
     (transitionNarrowLeftForms W.machine.tm)
+
+/-- Delimiter-bearing `right + 1` narrowing operands for every verifier row. -/
+noncomputable def verifierTransitionNarrowRightSuccFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  verifierTransitionAffineMapFrames W
+    (transitionNarrowRightSuccForms W.machine.tm) input
+
+/-- Exact row-major carry operands expected by the OR unary loader. -/
+theorem verifierTransitionNarrowRightSuccFrames_eq_seeds
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionNarrowRightSuccFrames W input =
+      encodeUnaryFrame
+        ((verifierTransitionRowSeeds W input).flatMap fun seed =>
+          List.ofFn fun index : Fin
+              (Fintype.card W.machine.tm.K *
+                maxPushesPerStep W.machine.tm) =>
+            transitionNarrowStart W.machine.tm seed.height seed.start +
+              index.val + 1) := by
+  unfold verifierTransitionNarrowRightSuccFrames
+    verifierTransitionAffineMapFrames verifierTransitionTailAffineSeeds
+    affineUnaryTripleMapFamily
+  rw [List.flatMap_map]
+  congr 1
+  apply List.flatMap_congr
+  intro seed hseed
+  apply transitionNarrowRightSuccForms_value
+  rw [verifierTransitionRowSeeds_height_eq W input seed hseed]
+  exact Nat.add_pos_left
+    (verifierHeight_eval_pos W input.length)
+    (maxPushesPerStep W.machine.tm)
+
+/-- A fixed polynomial-time TM2 emits all narrowing carry operands directly
+from the raw verifier word. -/
+noncomputable def
+    verifierTransitionNarrowRightSuccFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionNarrowRightSuccFrames W) := by
+  exact verifierTransitionAffineMapFrames_computableInPolyTime W
+    (transitionNarrowRightSuccForms W.machine.tm)
 
 end CLRS.Chapter34.Turing.CookLevin
