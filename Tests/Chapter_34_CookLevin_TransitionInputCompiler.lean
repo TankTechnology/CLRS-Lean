@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionSeedFamilyScripts
+#check transitionSeedFamilyInput
+#check verifierTransitionFamilyScripts
+#check verifierTransitionFamilyInputTarget
+#check verifierTransitionFamilyScripts_eq_canonical
+#check verifierTransitionFamilyInputTarget_eq_canonical
+#check verifierTransitionFamilyGateStream_eq
+#check verifierTransitionFamily_run
+#check verifierTransitionGateStream_computableInPolyTime_of_inputCompiler
+
+#print axioms verifierTransitionFamilyScripts_eq_canonical
+#print axioms verifierTransitionFamilyInputTarget_eq_canonical
+#print axioms verifierTransitionFamilyGateStream_eq
+#print axioms verifierTransitionFamily_run
+#print axioms verifierTransitionGateStream_computableInPolyTime_of_inputCompiler
