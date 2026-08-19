@@ -13,6 +13,7 @@ open CLRS.Chapter34.Turing.CookLevin
 #check compileTransitionScript_narrowSource_eq
 #check compileTransitionScript_eqFrames_length
 #check compileTransitionScript_eqFrameCoordinates
+#check compileTransitionScript_eqFrameRights
 #check compileTransitionScript_finalAnd_eq
 
 #print axioms compileTransitionScript_narrowFrames_length
@@ -20,4 +21,5 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms compileTransitionScript_narrowSource_eq
 #print axioms compileTransitionScript_eqFrames_length
 #print axioms compileTransitionScript_eqFrameCoordinates
+#print axioms compileTransitionScript_eqFrameRights
 #print axioms compileTransitionScript_finalAnd_eq

@@ -90,6 +90,99 @@ theorem compileTransitionFamilyScripts_tailLayouts_eq_ofFn
       rw [transitionCircuitFamily_gate_delta]
       simp
 
+/-! ## Public next-row equality operands -/
+
+/-- Next-row operands extracted from one actual runtime script. -/
+def transitionScriptEqRightOperands
+    (script : AffineTransitionScript) : List Nat :=
+  script.eqFrames.map (fun frame => frame.right)
+
+/-- Closed canonical next-row operand list at an arithmetic row base. -/
+def transitionEqRightOperandsAt (tm : _root_.Turing.FinTM2)
+    (height nextRowBase : Nat) : List Nat :=
+  List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+    nextRowBase + coordinate.val
+
+/-- Prefix recursion pairs every local script with the immediately following
+public tableau row. -/
+theorem compileTransitionFamilyScripts_eqRightOperands_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (T : Nat)
+    (rows : Fin (T + 1) → CfgWires tm height)
+    (hrows : ∀ row, (rows row).ValidIn base) :
+    (compileTransitionFamilyScripts tm height base T rows hrows).map
+        transitionScriptEqRightOperands =
+      List.ofFn fun step : Fin T =>
+        List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+          rows step.succ ((cfgSlotEquivFin tm height).symm coordinate) := by
+  induction T generalizing base with
+  | zero => rfl
+  | succ T ih =>
+      simp only [compileTransitionFamilyScripts, List.map_append,
+        List.map_singleton]
+      rw [ih]
+      unfold transitionScriptEqRightOperands
+      rw [compileTransitionScript_eqFrameRights]
+      rw [List.ofFn_succ']
+      simp only [List.concat_eq_append]
+      congr 1
+
+/-- At dimension-only arithmetic rows, all next-row equality operands are one
+contiguous row block following the current row seed. -/
+theorem compileTransitionFamilyScriptsAt_eqRightOperands_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height T : Nat) :
+    (compileTransitionFamilyScriptsAt tm height T).map
+        transitionScriptEqRightOperands =
+      List.ofFn fun step : Fin T =>
+        transitionEqRightOperandsAt tm height
+          ((step.val + 1) * cfgBitCount tm height) := by
+  unfold compileTransitionFamilyScriptsAt
+  rw [compileTransitionFamilyScripts_eqRightOperands_eq_ofFn]
+  apply List.ofFn_inj.mpr
+  funext step
+  unfold transitionEqRightOperandsAt
+  apply List.ofFn_inj.mpr
+  funext coordinate
+  let row : Fin (tableauRowCount T) :=
+    ⟨step.val + 1, by simp [tableauRowCount]⟩
+  have hrow := allocateTableauRows_rows_eq_arithmetic
+    tm height T row
+  have hstep : step.succ = row := by
+    apply Fin.ext
+    rfl
+  have hrowEq :
+      (arithmeticRowsAt tm height T).rows step.succ =
+        arithmeticCfgWires tm height
+          ((step.val + 1) * cfgBitCount tm height) := by
+    rw [hstep]
+    simpa [arithmeticRowsAt, row] using hrow
+  rw [hrowEq]
+  simp [arithmeticCfgWires]
+
+/-- Raw-input transition seeds reconstruct every canonical public next-row
+equality operand, not merely the number of equality coordinates. -/
+theorem verifierTransitionRowSeeds_expand_eqRightOperands_eq_scripts
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    (verifierTransitionRowSeeds W input).map (fun seed =>
+        transitionEqRightOperandsAt W.machine.tm seed.height
+          (seed.rowBase + cfgBitCount W.machine.tm seed.height)) =
+      (compileTransitionFamilyScriptsAt W.machine.tm
+        ((verifierHeight W).eval input.length)
+        ((verifierHorizon W).eval input.length)).map
+          transitionScriptEqRightOperands := by
+  unfold verifierTransitionRowSeeds
+  rw [verifierTransitionRowSeedTriples_eq_ofFn, List.map_map,
+    List.map_ofFn]
+  rw [compileTransitionFamilyScriptsAt_eqRightOperands_eq_ofFn]
+  apply List.ofFn_inj.mpr
+  funext step
+  simp only [Function.comp_apply]
+  unfold transitionEqRightOperandsAt
+  apply List.ofFn_inj.mpr
+  funext coordinate
+  ring
+
 /-- Expand one raw-input row seed to the skeleton expected by the verified
 local transition controller. -/
 def expandTransitionRowSeedTailLayout

@@ -123,6 +123,24 @@ private theorem affineEqFinCanonicalFrames_coordinates (start : Nat) :
       simp only [List.concat_eq_append]
       congr 1
 
+private theorem affineEqFinCanonicalFrames_rights (start : Nat) :
+    ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
+      (affineEqFinCanonicalFrames start n left right).map
+          (fun frame => frame.right) =
+        List.ofFn right := by
+  intro n
+  induction n with
+  | zero =>
+      intro left right
+      rfl
+  | succ n ih =>
+      intro left right
+      simp only [affineEqFinCanonicalFrames, List.map_append,
+        List.map_singleton]
+      rw [ih]
+      rw [List.ofFn_succ']
+      simp [List.concat_eq_append]
+
 private theorem eqFinGateTrace_wire_eq (start : Nat) :
     ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
       (CircuitBuilder.eqFinGateTrace start left right).wire =
@@ -226,6 +244,19 @@ theorem compileTransitionScript_eqFrameCoordinates
   rw [narrowCfg_gate_delta, dispatchLabels_gate_delta,
     widenCfg_gate_delta]
   rfl
+
+/-- Equality compares against the actual next-row wires in canonical finite
+slot order; these are the source operands not covered by the fresh skeleton. -/
+theorem compileTransitionScript_eqFrameRights
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    (compileTransitionScript tm height base current next hcurrent hnext).eqFrames.map
+        (fun frame => frame.right) =
+      List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+        next ((cfgSlotEquivFin tm height).symm coordinate) := by
+  simp only [compileTransitionScript]
+  rw [affineEqFinCanonicalFrames_rights]
 
 /-- The final local-transition conjunction consumes exactly the public-row
 equality output and the overflow-fit output. -/
