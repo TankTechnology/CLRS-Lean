@@ -1,0 +1,22 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeeds
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check workHeightPolynomial_eval
+#check compileStmtGatePolynomial_eval
+#check dispatchGatePolynomial_eval
+#check transitionCircuitGatePolynomial_eval
+#check verifierTransitionCostPolynomial_eval
+#check verifierTransitionStartPolynomial_eval_eq_validity_length
+#check TransitionRowSeed
+#check verifierTransitionRowSeedTriples_eq_ofFn
+#check verifierTransitionRowSeedFrames_eq_seeds
+#check verifierTransitionRowSeedFrames_computableInPolyTime
+
+#print axioms compileStmtGatePolynomial_eval
+#print axioms transitionCircuitGatePolynomial_eval
+#print axioms verifierTransitionCostPolynomial_eval
+#print axioms verifierTransitionStartPolynomial_eval_eq_validity_length
+#print axioms verifierTransitionRowSeedTriples_eq_ofFn
+#print axioms verifierTransitionRowSeedFrames_eq_seeds
+#print axioms verifierTransitionRowSeedFrames_computableInPolyTime
