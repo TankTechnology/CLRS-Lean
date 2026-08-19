@@ -12,6 +12,13 @@ open CLRS.Chapter34.Turing.CookLevin
 #check compileTransitionFamilyScripts_eqRightOperands_eq_ofFn
 #check compileTransitionFamilyScriptsAt_eqRightOperands_eq_ofFn
 #check verifierTransitionRowSeeds_expand_eqRightOperands_eq_scripts
+#check TransitionDispatchOperandLayout
+#check transitionScriptDispatchOperandLayout
+#check transitionDispatchOperandLayout
+#check compileTransitionScript_dispatchOperandLayout_eq
+#check TransitionScriptDecomposition
+#check transitionScriptDecomposition
+#check compileTransitionScript_decomposition_eq
 #check expandTransitionRowSeedTailLayout
 #check verifierTransitionRowSeeds_expand_tailLayouts_eq_scripts
 
@@ -20,4 +27,6 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms compileTransitionFamilyScripts_eqRightOperands_eq_ofFn
 #print axioms compileTransitionFamilyScriptsAt_eqRightOperands_eq_ofFn
 #print axioms verifierTransitionRowSeeds_expand_eqRightOperands_eq_scripts
+#print axioms compileTransitionScript_dispatchOperandLayout_eq
+#print axioms compileTransitionScript_decomposition_eq
 #print axioms verifierTransitionRowSeeds_expand_tailLayouts_eq_scripts

@@ -8,18 +8,25 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionFitWire
 #check transitionEqWire
 #check transitionFinalAndFrame
+#check narrowCfgWireProjection
+#check narrowCfg_wires_eq_projection
 #check compileTransitionScript_narrowFrames_length
 #check compileTransitionScript_narrowFrameRights
+#check compileTransitionScript_narrowFrameLefts
 #check compileTransitionScript_narrowSource_eq
 #check compileTransitionScript_eqFrames_length
 #check compileTransitionScript_eqFrameCoordinates
 #check compileTransitionScript_eqFrameRights
+#check compileTransitionScript_eqFrameLefts
 #check compileTransitionScript_finalAnd_eq
 
+#print axioms narrowCfg_wires_eq_projection
 #print axioms compileTransitionScript_narrowFrames_length
 #print axioms compileTransitionScript_narrowFrameRights
+#print axioms compileTransitionScript_narrowFrameLefts
 #print axioms compileTransitionScript_narrowSource_eq
 #print axioms compileTransitionScript_eqFrames_length
 #print axioms compileTransitionScript_eqFrameCoordinates
 #print axioms compileTransitionScript_eqFrameRights
+#print axioms compileTransitionScript_eqFrameLefts
 #print axioms compileTransitionScript_finalAnd_eq
