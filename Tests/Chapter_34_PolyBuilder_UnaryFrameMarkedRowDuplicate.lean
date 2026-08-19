@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowDuplicate
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check UnaryFrameMarkedRowFamily
+#check encodeUnaryFrameMarkedRowFamily
+#check encodeUnaryFrameDuplicatedMarkedRowFamily
+#check unaryFrameMarkedRowDuplicateRevProgram
+#check unaryFrameMarkedRowDuplicateRev_run
+#check unaryFrameMarkedRowDuplicateRevSteps_le
+#check unaryFrameMarkedRowDuplicateRev_computableInPolyTime
+#check unaryFrameMarkedRowDuplicate_computableInPolyTime
+
+#print axioms unaryFrameMarkedRowDuplicateRev_run
+#print axioms unaryFrameMarkedRowDuplicateRevSteps_le
+#print axioms unaryFrameMarkedRowDuplicateRev_computableInPolyTime
+#print axioms unaryFrameMarkedRowDuplicate_computableInPolyTime
