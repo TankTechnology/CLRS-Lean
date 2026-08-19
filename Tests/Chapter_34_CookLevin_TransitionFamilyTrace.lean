@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamilyTrace
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionCircuitFamilyGateTrace
+#check transitionCircuitFamily_gates_eq
+#check transitionCircuitFamilyGateTrace_length
+
+#print axioms transitionCircuitFamily_gates_eq
+#print axioms transitionCircuitFamilyGateTrace_length

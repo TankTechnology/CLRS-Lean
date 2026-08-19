@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OptionalEqFin
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineOptionalEqFinLabel
+#check affineOptionalEqFinRevProgram
+#check encodeAffineOptionalEqFin
+#check affineOptionalEqFinGateStream
+#check affineOptionalEqFin_run
+#check affineOptionalEqFin_steps_le
+
+#print axioms affineOptionalEqFin_run
+#print axioms affineOptionalEqFin_steps_le

@@ -319,6 +319,49 @@ already closed independently.
     Boolean equality: the derived `Fintype` instance exceeds elaboration
     depth.  The accepted representation is one main `.cell` constructor with
     a separate finite `SequentialCellLabel` phase type.
+17. **Terminating a variable-length conjunction family with an ordinary unary
+    separator.** Zero is encoded by a separator with no preceding tick, so a
+    separator cannot distinguish a zero wire from the end of the family.  The
+    accepted conjunction frame uses the dedicated `UnaryFrameSym.frameEnd`.
+18. **Executing the final conjunction in public wire-list order.** The
+    semantic `conjunctionGateTrace` is tail-first.  A forward runtime fold
+    emits different AND arguments and fresh-wire carries.  The accepted frame
+    stores the public list but serializes and executes `wires.reverse`.
+19. **Claiming execution from byte-stream equality alone.** Identifying the
+    post-stack suffix with the semantic conjunction is necessary but does not
+    provide the fixed `FinTM2` run required by the reduction.  The accepted
+    route supplies an exact `EvalsToInTime` theorem and then rewrites its
+    output with the semantic equality.
+20. **Exposing only a standalone conjunction halt.** That interface would
+    recreate the composition gap at the next linker boundary.  The accepted
+    controller proves both a tail-preserving redirectable `finish` run and a
+    standalone run whose only extra instruction is the final halt.
+21. **Using `carry + encodedSourceLength + 1` as the fold potential.** For a
+    zero-valued source, the one-symbol block is consumed exactly when the carry
+    increments, so this measure does not decrease and cannot fund the positive
+    per-wire cost.  The accepted quadratic proof doubles the unconsumed source
+    length; its measure drops by `2 * source + 1` on every iteration.
+22. **Folding the final conjunction directly into `affineStackRevProgram`.**
+    This couples two independently reusable controllers, enlarges the proof
+    surface before the conjunction kernel is stable, and obscures the exact
+    linker boundary.  The accepted route proves a standalone reusable
+    conjunction controller with a redirectable entry/finish interface; the
+    stack-to-conjunction linker remains a separate composition milestone.
+23. **Using an unmarked concatenation of row frames.** A valid row may begin
+    with `frameEnd` when its one-hot subfamily is empty, so the same byte cannot
+    also identify the end of the outer row family. The accepted encoding puts
+    one `tick` marker before every row and reserves the unmarked `frameEnd` for
+    the outer terminator. Independently halting row runs are also rejected:
+    the family redirects the row's clean contextual finish before halt.
+24. **Treating `List.drop` suffix extraction as the transition generator.**
+    The extracted suffix fixes the exact target and supports append/length
+    theorems, but it evaluates the semantic builder at Lean level. It is not a
+    concrete `FinTM2` run. The accepted execution milestone still requires one
+    fixed controller and an exact `EvalsToInTime` theorem.
+25. **Using only `T * transitionCircuitGateCost tm H`.** The exact cost does
+    not determine gate order or wire arguments. The executable transition
+    controller must agree byte-for-byte with `transitionGateStreamAt`, not just
+    emit the same number of gates.
 
 The row-validity attack has now also closed the arithmetic stack ordinal,
 per-stack block start, suffix-OR output, blank-symbol row wire, leading-not
@@ -429,6 +472,295 @@ the generic family stream with `arithmeticStackFamilyGateStream`, while
 quadratic bound.  Thus there is no remaining mask/cell/stack-local execution
 gap inside the canonical arithmetic stack-validity family.
 
+The final arithmetic conjunction is now executable as well.
+`AffineConjunctionFrame` carries the runtime start wire and public source-wire
+list, while its delimiter-bearing encoding consumes the sources in the
+semantic tail-first order.  `affineConjunction_runToFinish` preserves an
+arbitrary later input tail and reaches a clean redirectable boundary;
+`affineConjunction_run` adds only the standalone halt.  Both emit exactly
+`affineConjunctionGateStream`, which is proved byte-for-byte equal to
+`CircuitBuilder.conjunctionGateTrace`, and
+`affineConjunctionRev_steps_le` supplies the explicit
+`1000 * |encodeAffineConjunctionFrame frame|^2 + 2` bound.
+
+At the arithmetic layer,
+`arithmeticValidityFinalConjunctionFrame`,
+`arithmeticValidityFinalConjunctionGateStream_eq_framed`,
+`arithmeticValidityFinalConjunctionRev_runFrom`, and
+`arithmeticValidityFinalConjunctionRev_steps_le` close the formerly
+semantic-only post-stack tail with one fixed controller.  The next boundary
+is now precise: link the already-complete stack-family controller to this
+redirectable conjunction entry, then compose that row-validity controller
+with the earlier raw one-hot and halted-agreement phases.  This milestone does
+not yet claim that whole-row composition.
+
+That stack-to-conjunction boundary is now closed.  `AffineValidityTailFrame`
+uses an explicit outer `frameEnd` after the runtime stack family, and
+`affineValidityTailRevProgram` clears that terminator before entering the
+unchanged conjunction controller.  `affineValidityTail_run` proves one exact
+continuous run and byte-for-byte output, while
+`affineValidityTailRev_steps_le` supplies a uniform quadratic bound in the
+combined frame length.  The arithmetic instance
+`arithmeticValidityTailRev_runFrom` emits exactly
+`arithmeticValidityPostHaltedMatchGateStream`; there is no remaining halt or
+semantic gap between stack canonicality and the final row conjunction.
+
+The next execution gap is now the front of the row: the raw one-hot affine
+streams are semantically ordered and each individual group has an exact run,
+but the groups still need one fixed runtime family controller.  That controller
+must then link to halted agreement and this completed post-halted tail before
+whole-row validity can be claimed.
+
+The raw one-hot family controller is now closed.  `AffineExactlyOneFrame`
+stores each runtime `(start, rowBase, count)` triple in a delimiter-bearing
+four-field block (including the derived `start + 2` counter), and
+`affineExactlyOneFamilyRevProgram` uses one fixed finite-control program for an
+arbitrary list of such frames.  `affineExactlyOneFamily_run` proves exact
+standalone output, while `affineExactlyOneFamily_runToFinish` reaches a clean
+redirectable outer boundary; both inherit an explicit quadratic bound in the
+encoded runtime input length.  At the arithmetic layer,
+`arithmeticRawOneHotFrames_gateStream` proves byte-for-byte agreement with the
+semantic raw-row stream, and `arithmeticRawOneHotFamilyRev_runFrom` plus
+`arithmeticRawOneHotFamily_runToFinish` instantiate the exact machine run.
+
+The remaining whole-row gap is therefore no longer iteration over one-hot
+groups.  It is the two phase links from the raw-one-hot finish boundary into
+halted/label agreement and then into the already completed validity tail.
+Only after those links have one continuous exact run may the single-row
+validity serializer be called complete.
+
+That whole-row boundary is now closed.  `AffineValidityRowFrame` combines the
+raw one-hot frame family, the three halted-agreement indices, and the completed
+stack/conjunction tail.  `affineValidityRowRevProgram` clears both explicit
+outer boundaries, invokes the persistent three-field loader, reuses the
+verified Boolean-equality kernel, and enters the existing tail controller
+without any intermediate halt.  `affineValidityRow_run` proves exact output
+for the complete row stream, and `affineValidityRowRev_steps_le` gives the
+explicit bound `2500 * |encodeAffineValidityRowFrame frame|^2 + 20`.
+
+The arithmetic instance `arithmeticValidityRowRev_runFrom` now emits exactly
+`validityRowGateStreamAt tm H start rowBase`.  Thus the single-row validity
+serializer is complete under the attack acceptance standard.
+
+The horizontal all-row gap is now closed as well. `ValidityTail` and
+`ValidityRow` expose tail-preserving contextual finish theorems, and
+`affineValidityRowFamilyRevProgram` uses one fixed controller to iterate a
+runtime list of marked row frames. `affineValidityRowFamily_run` proves exact
+row-major output, while `affineValidityRowFamilyRev_steps_le` gives the
+explicit quadratic envelope
+`2600 * |encodeAffineValidityRowFamilyInput frames|^2 + 2`.
+`arithmeticValidityRowsGateStream_eq_semantic` identifies that output exactly
+with `validityGateStreamAt tm H T`; the verifier-specialized theorem reaches
+`verifierValidityGateStream W input`. The next concrete generator boundary is
+therefore the transition family, followed by the initial/acceptance boundary
+phases and the final conjunction.
+
+The transition target is now frozen without overstating execution progress.
+`transitionGateStreamAt tm H T` is the literal semantic-builder suffix after
+validity, `arithmeticValidity_append_transitionGateStream` proves exact append
+agreement, and `transitionGateListAt_length` proves the precise local-cost
+multiple `T * transitionCircuitGateCost tm H`. The verifier wrapper depends on
+the source instance only through its length, and
+`verifierCircuitTransitionPrefix_eq` identifies the complete encoded prefix
+through all transition constraints. This is the acceptance oracle for the
+next controller; suffix extraction itself is explicitly not counted as TM
+execution.
+
+The first transition-internal serialization blocker is closed at the exact
+trace layer. `muxFinGateTrace` fixes the shared-negation plus three-gate
+per-coordinate order of whole-row multiplexing, while `eqFinGateTrace` fixes
+the true-seeded, XNOR-then-aggregate-AND order of whole-row equality.
+`muxFin_gates_eq`, `eqFin_gates_eq`, `cfgMux_gates_eq`, and
+`cfgEq_gates_eq` prove literal ordered gate-list equality, and the equality
+trace also fixes the returned aggregate wire. Both finite-family primitives
+are now executable. `affineEqFinRevProgram` is one fixed finite controller whose
+runtime frames carry all coordinate and wire indices;
+`affineEqFinCanonical_run` emits the canonical trace byte-for-byte, and
+`affineEqFinRev_steps_le` gives a linear bound in the exact delimiter-bearing
+unary input. Its component proof explicitly composes the five-gate BoolEq and
+one-gate aggregate AND without an intermediate halt. Likewise,
+`affineMuxFinRevProgram` reads a unary shared-selector header followed by an
+arbitrary runtime coordinate family, reuses one selector negation, and emits
+the exact AND/AND/OR coordinate order. `affineMuxFinCanonical_run` agrees
+byte-for-byte with `muxFinGateTrace`, while `affineMuxFinRev_steps_le` is linear
+in the complete delimiter-bearing input. The remaining local transition work
+is therefore the surrounding fixed statement-dispatch/narrowing composition,
+not either finite-family primitive.
+
+The narrowing target is now frozen at the same literal level.
+`narrowCfgOverflowWires` exposes the canonical stack-major overflow wire list,
+`narrowCfgGateTrace` records its false-seeded disjunction followed by the fit
+negation, and `narrowCfg_gates_eq` plus `narrowCfg_fit_wire_eq_trace` identify
+the semantic builder and returned fit wire exactly. This is an acceptance
+oracle, not yet the required continuous OR-then-NOT machine execution.
+
+Two additional rejected shortcuts are now recorded. First, redirecting the
+AND kernel's `.done` label straight to the next loader leaves its incremented
+carry register live and corrupts every later wire index; the accepted route
+uses an explicit finite-control cleanup loop. Second, swapping the AND
+registers because conjunction is semantically commutative is invalid for this
+checkpoint: byte-for-byte agreement requires the ordered gate
+`.and previous matched`, so the runtime call deliberately loads `matched` as
+the serializer carry and `previous` as its source.
+
+Three `muxFin` shortcuts are also rejected and retained for future work.
+Using the public one-element suffix-OR scan emits an unwanted false seed; the
+accepted contextual OR interface starts at the internal one-element loop with
+an existing output wire. A fixed controller cannot calculate `falseArm + 1`
+from a unary counter in its label, so the runtime encoder explicitly supplies
+that shifted third loader field. Finally, pushing the suffix-OR work tick
+directly from the loader-ready state leaves the loader separator in `buffer₁`;
+the accepted bridge first normalizes the buffer, then seeds the one-element
+work stack in a separate finite-control step.
+
+The first statement-dispatch prerequisite is now executable as well.
+`CircuitBuilder.disjunctionGateTrace` freezes the exact tail-first ordered
+trace of an arbitrary wire list, and `affineOrFinRevProgram` reads sparse
+runtime operand frames, emits that trace byte-for-byte, and runs linearly in
+its delimiter-bearing unary input. This strictly generalizes the earlier
+contiguous-interval suffix scan and is the common primitive needed by
+`oneHotMap`, `oneHotPredicate`, and narrowing's overflow test.
+
+The disjunction controller now also has a non-halting family mode.  A single
+fixed program reads delimiter-separated sparse fibers, emits an independent
+false seed for every fiber (including empty ones), and returns to the family
+header without an intermediate halt.  `oneHotMapGateTrace_gates_eq_family`
+identifies the semantic lookup trace with this generic target-major family,
+while `affineOneHotMap_run` proves exact execution of the encoded
+`oneHotMapGateTrace`; `affineOneHotMap_steps_le` supplies the linear runtime
+bound.  Thus finite one-hot lookup is no longer only a pure builder result: it
+has a concrete fixed-controller serialization theorem.
+
+The Boolean-query specialization is closed too. `oneHotPredicate_gates_eq`
+and `oneHotPredicate_wire_eq_trace` expose the exact true-fiber disjunction,
+and `affineOneHotPredicate_run` executes it with the same arbitrary-list
+controller.  The empty true fiber is an explicit acceptance case, so an
+all-false static predicate still emits exactly its required false seed.
+
+The remaining finite-lookup primitive, `oneHotPairMap`, is now executable at
+the same standard.  `oneHotPairMapGateTrace` freezes the complete pair-major
+AND phase and target-major OR phase; `oneHotPairMap_gates_eq` and
+`oneHotPairMap_wire_eq_trace` identify the semantic builder literally with
+that trace.  The shared controller has an AND-first entry and an explicit
+phase boundary, so `affineOneHotPairMap_run` executes both phases in one run
+without an intermediate halt.  Its output is byte-for-byte the semantic
+trace and `affineOneHotPairMap_steps_le` is linear in the complete runtime
+encoding.
+
+Narrowing has now crossed the same execution boundary.  The OR controller has
+a dedicated non-halting transition into the NOT loader, and
+`affineNarrowCfg_run` proves that one fixed machine emits the complete
+`narrowCfgGateTrace` and halts with cleared scratch stacks.
+`affineNarrowCfgGateStream_eq_trace` fixes byte-for-byte agreement and
+`affineNarrowCfgRev_steps_le` supplies a linear bound in the explicit
+delimiter-bearing input.  Narrowing is therefore no longer only an acceptance
+oracle; it is an executed transition-generator component.
+
+The final uncovered statement primitive, stack `pop`, is now executable.
+`affinePopFrames` maps height zero to no gates and positive height to the exact
+singleton merge frame from `popCfgGateTrace`. The seed-free OR entry theorem
+`affineOrFinNoSeed_run` starts at the shared check state, so it emits no
+spurious false seed; `affinePop_run` consequently executes both height cases
+with one fixed controller, and `affinePop_steps_le` gives a linear bound in the
+explicit input. Every literal primitive used by `compileStmtGateTrace` now has
+an execution theorem. The remaining statement gap is non-halting composition
+of those components, not a missing gate serializer.
+
+That composition target is now frozen as a runtime protocol.
+`compileStmtScript` recursively lowers all seven statement constructors into
+five tagged phase kinds: one-hot map, predicate, pair-map, pop, and whole-row
+mux. `compileStmtScript_gateStream_eq_trace` proves that interpreting the phase
+operands produces exactly `compileStmtGateTrace`, including recursive branch
+order, and `affineStmtScriptStandaloneSteps_le` gives the aggregate component
+budget `≤ 200 * encodedScript.length`.
+
+The fixed controller itself is now complete at statement-script scale.
+`affineStmtRevProgram` embeds the OR-family and mux controllers under one
+finite label type. Each phase tag has a fixed three-symbol unary prefix: the
+first `tick` is a common component boundary and the next two symbols distinguish
+all five phase kinds. Therefore the entire later script is an ordinary unary
+suffix. The new public component contracts—`affineOrFin_runToCheck`,
+`affineOrFinGroups_runToCheck`, `affineAndThenOr_runToCheck`, and
+`affineMuxFin_runToCheck`—preserve it byte for byte.
+
+`affineStmt_phase_last_run` covers the no-suffix case and
+`affineStmt_phase_next_run` covers every non-final phase, including nonempty
+map, predicate, pair-map, pop, and mux inputs. `affineStmt_entry_run` composes
+these contracts recursively; `affineStmt_run` is the single-start/single-halt
+theorem for arbitrary scripts, and `compileStmtScript_run` specializes it to
+the exact structural `compileStmtGateTrace`. The concrete controller bound is
+`affineStmtScriptRunSteps ≤ 200 * controllerInput.length + 4`.
+
+The complete transition target is now structural rather than suffix-derived.
+`compileStmtGateTrace` exposes all seven statement constructors as literal
+lookup/pop/continuation/mux sequences, with `compileStmt_gates_eq` and an exact
+cost theorem.  `dispatchLabelsGateTrace` then orders those statement traces and
+whole-row muxes across the canonical program-label list.  Finally,
+`transitionCircuitGateTrace` fixes the five local phases (constant pool,
+dispatch, narrowing, row equality, final AND), and
+`transitionCircuitFamilyGateTrace` iterates that trace over every adjacent row
+pair.  `transitionGateListAt_eq_trace` proves the old `List.drop` target equal
+to this explicit recursive trace, so suffix extraction is no longer part of
+the acceptance argument. Concrete recursive statement execution is now
+closed; the remaining transition gap is dispatching those statement runs and
+iterating the complete local controller over the outer row family.
+
+Two further rejected routes are recorded. A contiguous affine source interval
+cannot represent a sparse truth-table fiber, even when its cardinality is
+correct. Also, the active-mask suffix scan emits `.or carry wire`, whereas
+the general `CircuitBuilder.disjunction` emits `.or wire carry`; semantic OR
+commutativity cannot justify swapping these operands under byte-for-byte
+serialization acceptance.
+
+Two family-composition failures are also fixed in the accepted design.
+Running the public one-list controller once per target cannot compose because
+each call halts.  The family mode instead redirects every closing delimiter
+back to an outer header.  Moreover, `popInput` retains the consumed delimiter
+in `buffer₁`; treating the post-delimiter state as a clean configuration is
+false by reduction.  Dedicated open/close cleanup labels now clear that
+buffer before seeding the next fiber or returning to the family header.
+
+Pair lookup rules out two more shortcuts.  Concatenating a completed AND
+program with a completed OR-family program at the theorem level is not a
+single machine computation because the first program has already halted; the
+accepted controller consumes a phase separator and changes finite-control
+mode.  Also, the embedded conjunction kernel emits `.and source carry`, so
+the runtime loader deliberately stores the semantic right operand as carry
+and the left operand as source; commutativity cannot repair reversed bytes.
+
+The narrowing composition rejected three analogous shortcuts.  A separately
+halting arbitrary-OR run followed by a separately halting NOT run is not one
+generator computation.  The OR component also clears its arithmetic counters,
+so the final disjunction wire must be carried explicitly in the runtime unary
+NOT frame instead of being reconstructed from stale registers.  Finally,
+entering the NOT loader while a consumed phase marker remains in its buffer
+breaks the loader-ready configuration; the accepted path uses a reserved
+`.tick` marker and explicit buffer cleanup before loading the NOT source.
+
+The `pop` bridge rejects two further shortcuts. Reusing the public
+false-seeded arbitrary-OR run would prepend `.const false`, so it cannot agree
+byte-for-byte with the semantic positive-height pop trace. Choosing one machine
+for height zero and another for positive height would also violate the
+fixed-program requirement because `H` is runtime input. The accepted seed-free
+check-state entry handles the empty and singleton frame lists in one program.
+
+Two statement-script shortcuts are rejected as well. Untagged concatenation
+is ambiguous because `tick`, `separator`, and `frameEnd` have different roles
+in different component modes; the accepted protocol uses a finite phase tag.
+Conversely, supplying already encoded target gates would turn the generator
+proof into copying. The accepted script contains only phase tags and unary
+wire operands, with a separate semantic stream-equality theorem.
+
+A further tempting proof shortcut is false: the controller's boundary
+operation is not globally the structural relabeling of the unary component,
+because the boundary `tick` intentionally redirects instead of becoming
+invalid. `affineStmtOrBoundaryBad` and `affineStmtMuxBoundaryBad` identify the
+exact exceptional states. The accepted lifting theorem simulates every other
+step, stops at that boundary, and then uses the controller's exact four-step
+tag parser. Directly appending high-level sum-type tags was also rejected: it
+cannot instantiate the primitive controllers' unary suffix-preservation
+theorems. The fixed-width unary phase code is the accepted replacement.
+
 ## Focused Acceptance Mechanism
 
 During generator development, use only dependency-scoped checks:
@@ -443,6 +775,17 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPool
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineRun
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOneFamily
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.EqFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.MuxFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OrFin
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Pop
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Statement
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.StatementController
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotMap
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPredicate
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.OneHotPairMap
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolEq
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SuffixOr
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Not
@@ -451,8 +794,15 @@ lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Cell
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.CellFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Stack
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Conjunction
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRow
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ValidityRowFamily
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorHeader
 lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidity
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.StatementCircuits.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Dispatch.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Tableau.TransitionCircuits.Trace
+lake build +CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.TableauConstraints.TransitionFamilyTrace
 lake env lean Tests/Chapter_34_PolyBuilder_Clock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_ExactPolynomialClock.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Reverse.lean
@@ -463,6 +813,17 @@ lake env lean Tests/Chapter_34_PolyBuilder_CircuitPrefix.lean
 lake env lean Tests/Chapter_34_PolyBuilder_BoolPool.lean
 lake env lean Tests/Chapter_34_CookLevin_ExactlyOneSerializer.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineExactlyOne.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ExactlyOneFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_MuxFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OrFin.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Pop.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Statement.lean
+lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotMap.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotPredicate.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OneHotPairMap.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineSuffixOr.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineNot.lean
@@ -471,10 +832,22 @@ lake env lean Tests/Chapter_34_PolyBuilder_UnaryFrameLoader.lean
 lake env lean Tests/Chapter_34_CookLevin_AffineCell.lean
 lake env lean Tests/Chapter_34_PolyBuilder_CellFamily.lean
 lake env lean Tests/Chapter_34_PolyBuilder_Stack.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Conjunction.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ValidityRow.lean
+lake env lean Tests/Chapter_34_PolyBuilder_ValidityRowFamily.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityOneHot.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityBoolEq.lean
 lake env lean Tests/Chapter_34_CookLevin_ValidityIndices.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityStack.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRow.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorValidityRows.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorTransition.lean
+lake env lean Tests/Chapter_34_CookLevin_StatementTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_DispatchTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_LocalTransitionTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_TransitionFamilyTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_NarrowingTrace.lean
+lake env lean Tests/Chapter_34_CookLevin_FiniteFamilyTrace.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorClock.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorHeader.lean
 lake env lean Tests/Chapter_34_CookLevin_GeneratorValidity.lean

@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DispatchController
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check compileDispatchLabelsListScript
+#check compileDispatchLabelsListScript_gateStream_eq_trace
+#check compileDispatchScript
+#check compileDispatchScript_gateStream_eq_trace
+#check compileDispatchScript_run
+#check compileDispatchScript_steps_le
+
+#print axioms compileDispatchLabelsListScript_gateStream_eq_trace
+#print axioms compileDispatchScript_gateStream_eq_trace
+#print axioms compileDispatchScript_run
+#print axioms compileDispatchScript_steps_le

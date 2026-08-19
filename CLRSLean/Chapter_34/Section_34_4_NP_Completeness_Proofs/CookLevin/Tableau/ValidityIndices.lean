@@ -10,6 +10,34 @@ needed by a uniform Cook--Levin serializer and by the final conjunction.
 
 namespace CLRS.Chapter34.Turing.CookLevin
 
+/-- The output of group `i` in a serial exactly-one family is the last gate
+of that group: the family start, plus every preceding group cost, plus the
+last offset of the current `3m+4` block. -/
+theorem exactlyOneFamilyGateTrace_output_eq (start n : Nat)
+    (groups : Fin n → List CircuitBuilder.Wire) (i : Fin n) :
+    (exactlyOneFamilyGateTrace start n groups).outputs i =
+      start +
+        (∑ previous : Fin i.val,
+          (3 * (groups ⟨previous.val,
+            Nat.lt_trans previous.isLt i.isLt⟩).length + 4)) +
+        3 * (groups i).length + 3 := by
+  induction n with
+  | zero => exact Fin.elim0 i
+  | succ n ih =>
+      simp only [exactlyOneFamilyGateTrace]
+      split
+      next hi =>
+        simpa using ih (fun j => groups j.castSucc) ⟨i.val, hi⟩
+      next hi =>
+        have hilast : i = Fin.last n := by
+          apply Fin.ext
+          simp
+          omega
+        subst i
+        rw [exactlyOneGateTrace_wire]
+        simp only [exactlyOneFamilyGateTrace_length]
+        congr 1
+
 /-- Output `i` of a suffix-OR mask is the gate produced after all suffixes to
 its right: `start + length - i`. -/
 theorem suffixOrGateTrace_output_eq (start : Nat)

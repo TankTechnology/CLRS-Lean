@@ -592,16 +592,16 @@ private def affineSequentialExactlyOnePositivePhases
 
 /-! ## Affine final gates -/
 
-private def affineSequentialExactlyOneFinalZero
+private def affineSequentialExactlyOneFinalZeroToHaltLabel
     (start rowBase : Nat) (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (sequentialExactlyOneCfg .finalZero none none false [] output [] []
         (List.replicate start ()) (List.replicate (start + 2) ())
         (List.replicate rowBase ()))
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (sequentialExactlyOneCfg .halt none none false []
         (([.not (start + 1), .and start (start + 2)].flatMap
-          encodeCircuitGate).reverse ++ output)))
-      (17 * start + rowBase + 37) := by
+          encodeCircuitGate).reverse ++ output) [] [] [] [] []))
+      (17 * start + rowBase + 36) := by
   let c₀ := sequentialExactlyOneCfg .incFinalZeroDuplicate none none false []
     (.notMark :: output) [] [] (List.replicate start ())
     (List.replicate (start + 2) ()) (List.replicate rowBase ())
@@ -690,10 +690,10 @@ private def affineSequentialExactlyOneFinalZero
   have hjumpClear : EvalsToInTime (step sequentialExactlyOneRevProgram)
       c₈ (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear : EvalsToInTime (step sequentialExactlyOneRevProgram)
-      beforeClear (some (haltCfg sequentialExactlyOneRevProgram finalOutput))
-        (2 * start + rowBase + 6) := by
-    convert clearAllRegisters start (start + 2) rowBase none finalOutput using 1 <;>
-      simp [beforeClear] <;> omega
+      beforeClear (some (sequentialExactlyOneCfg .halt none none false []
+        finalOutput [] [] [] [] [])) (2 * start + rowBase + 5) := by
+    convert clearAllRegistersToHaltLabel start (start + 2) rowBase none
+      finalOutput using 1 <;> simp [beforeClear] <;> omega
   let h₁ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     1 1 _ c₀ _ hnot hinc
   let h₂ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
@@ -713,10 +713,10 @@ private def affineSequentialExactlyOneFinalZero
   let h₉ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     _ 1 _ c₈ _ h₈ hjumpClear
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-    _ (2 * start + rowBase + 6) _ beforeClear _ h₉ hclear
+    _ (2 * start + rowBase + 5) _ beforeClear _ h₉ hclear
   convert full using 1 <;> simp [finalOutput] <;> omega
 
-private def affineSequentialExactlyOneFinalSome
+private def affineSequentialExactlyOneFinalSomeToHaltLabel
     (start rowBase count : Nat) (_hcount : 0 < count)
     (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
@@ -724,11 +724,11 @@ private def affineSequentialExactlyOneFinalSome
         (List.replicate (start + 3 * count + 1) ())
         (List.replicate (start + 3 * count + 2) ())
         (List.replicate rowBase ()))
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (sequentialExactlyOneCfg .halt none none false []
         (([.not (start + 3 * count),
             .and (start + 3 * count + 1) (start + 3 * count + 2)].flatMap
-          encodeCircuitGate).reverse ++ output)))
-      (17 * start + 51 * count + rowBase + 38) := by
+          encodeCircuitGate).reverse ++ output) [] [] [] [] []))
+      (17 * start + 51 * count + rowBase + 37) := by
   let seen := start + 3 * count + 1
   let next := start + 3 * count + 2
   let duplicate := start + 3 * count
@@ -821,10 +821,10 @@ private def affineSequentialExactlyOneFinalSome
   have hjumpClear : EvalsToInTime (step sequentialExactlyOneRevProgram)
       c₈ (some beforeClear) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear : EvalsToInTime (step sequentialExactlyOneRevProgram)
-      beforeClear (some (haltCfg sequentialExactlyOneRevProgram finalOutput))
-        (seen + next + rowBase + 4) := by
+      beforeClear (some (sequentialExactlyOneCfg .halt none none false []
+        finalOutput [] [] [] [] [])) (seen + next + rowBase + 3) := by
     simpa [beforeClear] using
-      clearAllRegisters seen next rowBase none finalOutput
+      clearAllRegistersToHaltLabel seen next rowBase none finalOutput
   let h₁ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     1 1 _ c₀ _ hnot hdec
   let h₂ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
@@ -844,32 +844,40 @@ private def affineSequentialExactlyOneFinalSome
   let h₉ := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
     _ 1 _ c₈ _ h₈ hjumpClear
   let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-    _ (seen + next + rowBase + 4) _ beforeClear _ h₉ hclear
+    _ (seen + next + rowBase + 3) _ beforeClear _ h₉ hclear
   convert full using 1 <;>
     simp [finalOutput, seen, next, duplicate] <;> omega
 
 /-! ## Complete contextual serializer -/
 
-/-- Exact step count for contextual affine exactly-one serialization. -/
-def affineSequentialExactlyOneRevSteps
+/-- Clean public endpoint before the standalone serializer executes its final
+halt instruction.  Family controllers redirect this label to the next framed
+group. -/
+def affineSequentialExactlyOneHaltLabelCfg (output : List CircuitSym) :
+    BuilderCfg sequentialExactlyOneRevProgram :=
+  sequentialExactlyOneCfg .halt none none false [] output [] [] [] [] []
+
+/-- Exact core cost through the clean redirectable halt label. -/
+def affineSequentialExactlyOneRevCoreSteps
     (start rowBase count : Nat) : Nat :=
   match count with
-  | 0 => 1 + (17 * start + rowBase + 37)
+  | 0 => 1 + (17 * start + rowBase + 36)
   | remaining + 1 =>
       (affineSequentialExactlyOneLaterSteps start rowBase 1 remaining +
           26 * start + 10 * rowBase + 10 * remaining + 61) +
-        1 + (17 * start + 51 * (remaining + 1) + rowBase + 38)
+        1 + (17 * start + 51 * (remaining + 1) + rowBase + 37)
 
 /-- Starting at an arbitrary gate/source base, the concrete builder prepends
-the reversed canonical affine exactly-one stream to any existing suffix. -/
-def affineSequentialExactlyOneRev_runFrom
+the reversed canonical affine exactly-one stream to any existing suffix and
+stops at the clean redirectable halt label. -/
+def affineSequentialExactlyOneRev_runToHaltLabel
     (start rowBase count : Nat) (output : List CircuitSym) :
     EvalsToInTime (step sequentialExactlyOneRevProgram)
       (affineSequentialExactlyOneBodyCfg start rowBase count output)
-      (some (haltCfg sequentialExactlyOneRevProgram
+      (some (affineSequentialExactlyOneHaltLabelCfg
         ((affineSequentialExactlyOneGateStream start rowBase count).reverse ++
           output)))
-      (affineSequentialExactlyOneRevSteps start rowBase count) := by
+      (affineSequentialExactlyOneRevCoreSteps start rowBase count) := by
   let baseOutput : List CircuitSym :=
     [.constFalseMark, .constFalseMark] ++ output
   cases count with
@@ -882,9 +890,9 @@ def affineSequentialExactlyOneRev_runFrom
             (List.replicate rowBase ()))) 1 := by
         exact ⟨⟨1, rfl⟩, le_rfl⟩
       have hfinal :=
-        affineSequentialExactlyOneFinalZero start rowBase baseOutput
+        affineSequentialExactlyOneFinalZeroToHaltLabel start rowBase baseOutput
       let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-        1 (17 * start + rowBase + 37) _
+        1 (17 * start + rowBase + 36) _
         (sequentialExactlyOneCfg .finalZero none none false []
           baseOutput [] [] (List.replicate start ())
           (List.replicate (start + 2) ()) (List.replicate rowBase ())) _
@@ -893,7 +901,8 @@ def affineSequentialExactlyOneRev_runFrom
         affineSequentialExactlyOneGateList_eq_trace start rowBase 0
       simp only [affineSequentialExactlyOneGateStream]
       rw [← hgateList]
-      simpa [affineSequentialExactlyOneRevSteps,
+      simpa [affineSequentialExactlyOneRevCoreSteps,
+        affineSequentialExactlyOneHaltLabelCfg,
         AffineExactlyOne.gateList, AffineExactlyOne.chunksFrom,
         AffineExactlyOne.duplicate, AffineExactlyOne.seen, baseOutput,
         encodeCircuitGate, List.flatMap_append, List.reverse_append,
@@ -916,7 +925,7 @@ def affineSequentialExactlyOneRev_runFrom
             (List.replicate (start + 3 * count + 2) ())
             (List.replicate rowBase ()))) 1 := by
         exact ⟨⟨1, rfl⟩, le_rfl⟩
-      have hfinal := affineSequentialExactlyOneFinalSome
+      have hfinal := affineSequentialExactlyOneFinalSomeToHaltLabel
         start rowBase count (by omega) phaseOutput
       let throughDispatch := EvalsToInTime.trans
         (step sequentialExactlyOneRevProgram)
@@ -930,7 +939,7 @@ def affineSequentialExactlyOneRev_runFrom
         (by simpa [affineSequentialExactlyOneBodyCfg, count, phaseOutput,
           baseOutput] using hphases) hdispatch
       let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
-        _ (17 * start + 51 * count + rowBase + 38) _
+        _ (17 * start + 51 * count + rowBase + 37) _
         (sequentialExactlyOneCfg .finalSome none none false []
           phaseOutput [] [] (List.replicate (start + 3 * count + 1) ())
           (List.replicate (start + 3 * count + 2) ())
@@ -940,11 +949,41 @@ def affineSequentialExactlyOneRev_runFrom
       simp only [affineSequentialExactlyOneGateStream]
       rw [← hgateList]
       simpa [affineSequentialExactlyOneBodyCfg,
-        affineSequentialExactlyOneRevSteps, count, phaseOutput, baseOutput,
+        affineSequentialExactlyOneRevCoreSteps,
+        affineSequentialExactlyOneHaltLabelCfg, count, phaseOutput, baseOutput,
         AffineExactlyOne.gateList, AffineExactlyOne.duplicate,
         AffineExactlyOne.seen, encodeCircuitGate, List.flatMap_append,
         List.reverse_append, List.append_assoc, Nat.add_assoc,
         Nat.add_left_comm, Nat.add_comm] using full
+
+/-- Exact step count for the standalone contextual serializer, including its
+final successful-halt normalization instruction. -/
+def affineSequentialExactlyOneRevSteps
+    (start rowBase count : Nat) : Nat :=
+  affineSequentialExactlyOneRevCoreSteps start rowBase count + 1
+
+/-- Standalone affine exactly-one serialization retains the original public
+successful-halt interface as a one-step wrapper around the redirectable core. -/
+def affineSequentialExactlyOneRev_runFrom
+    (start rowBase count : Nat) (output : List CircuitSym) :
+    EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineSequentialExactlyOneBodyCfg start rowBase count output)
+      (some (haltCfg sequentialExactlyOneRevProgram
+        ((affineSequentialExactlyOneGateStream start rowBase count).reverse ++
+          output)))
+      (affineSequentialExactlyOneRevSteps start rowBase count) := by
+  let finalOutput :=
+    (affineSequentialExactlyOneGateStream start rowBase count).reverse ++ output
+  have hcore := affineSequentialExactlyOneRev_runToHaltLabel
+    start rowBase count output
+  have hhalt : EvalsToInTime (step sequentialExactlyOneRevProgram)
+      (affineSequentialExactlyOneHaltLabelCfg finalOutput)
+      (some (haltCfg sequentialExactlyOneRevProgram finalOutput)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans (step sequentialExactlyOneRevProgram)
+    (affineSequentialExactlyOneRevCoreSteps start rowBase count) 1 _
+    (affineSequentialExactlyOneHaltLabelCfg finalOutput) _ hcore hhalt
+  simpa [affineSequentialExactlyOneRevSteps, finalOutput, Nat.add_comm] using full
 
 private theorem affineSequentialExactlyOneLaterSteps_le
     (start rowBase phase remaining : Nat) :
@@ -964,12 +1003,14 @@ theorem affineSequentialExactlyOneRev_steps_le
       200 * (start + rowBase + count + 1) ^ 2 := by
   cases count with
   | zero =>
-      simp [affineSequentialExactlyOneRevSteps]
+      simp [affineSequentialExactlyOneRevSteps,
+        affineSequentialExactlyOneRevCoreSteps]
       nlinarith
   | succ remaining =>
       have hlater := affineSequentialExactlyOneLaterSteps_le
         start rowBase 1 remaining
-      simp only [affineSequentialExactlyOneRevSteps]
+      simp only [affineSequentialExactlyOneRevSteps,
+        affineSequentialExactlyOneRevCoreSteps]
       nlinarith
 
 end CLRS.Chapter34.Turing.PolyBuilder

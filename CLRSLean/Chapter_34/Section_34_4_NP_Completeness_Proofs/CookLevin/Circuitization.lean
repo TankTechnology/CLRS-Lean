@@ -7,6 +7,16 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityOneHot
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityBoolEq
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityStack
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRow
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRows
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorFirstValidityHaltedFrame
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowIndices
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowAffineOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowSeeds
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowOneHotOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailOperands
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransition
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
 
 /-!
@@ -29,13 +39,16 @@ prefix of the complete semantic verifier-circuit encoding.
 The generator-validity layer identifies the literal serialized suffix for all
 canonical row-validity gates and proves that the resulting stream advances
 that prefix through the complete validity phase.  Its concrete construction
-now covers every raw one-hot group, the following halted/none-label equality,
-every stack's suffix-OR active mask, and every fixed stack-cell XNOR block with
-exact contextual runs and closed wire indices.  The leading blank-bit
-negations now close each complete semantic six-gate cell block.  Finite-family
-decomposition also identifies the exact ordered `6H` cell suffix and complete
-mask-plus-cells stream of each fixed stack.  The fixed stack enumeration then
-closes the complete semantic stack-family byte stream.  A uniform executable
-family iterator remains an execution gap; the exact post-stack boundary is now
-fixed, so the final conjunction is the only remaining semantic tail.
+now executes every raw one-hot group, halted/none-label equality, all stack
+canonicality blocks, and the final conjunction in one fixed whole-row
+controller.  The exact output theorem agrees byte-for-byte with
+`validityRowGateStreamAt`, and the runtime is explicitly quadratic in the
+delimiter-bearing row frame.  A fixed raw-input source compiler now generates
+the actual halted-start, halted-left, and halted-right operand triple for every
+public tableau row in polynomial time.  A second fixed source compiler emits
+the row-major `(height, gateStart, rowBase)` seeds whose arithmetic expansion
+is exactly the full semantic row-frame family.  The continuous one-hot seed
+expander is polynomial-time and produces the canonical four-field operands.
+The remaining tail target is pinned byte-for-byte to the canonical stack/cell
+and final-conjunction frames; its fixed source compiler is the next boundary.
 -/

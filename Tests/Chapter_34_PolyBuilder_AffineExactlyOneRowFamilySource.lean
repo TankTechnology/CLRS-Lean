@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneRowFamilySource
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeAffineExactlyOneCompactFrame
+#check encodeAffineExactlyOneCompactFamily
+#check affineExactlyOneFrameExpandRevProgram
+#check affineExactlyOneFrameExpandRev_run
+#check affineExactlyOneFrameExpand_computableInPolyTime
+#check affineExactlyOneFramesOfTripleProgression
+#check affineUnaryTripleProgressionFrameStream_eq_compactFamily
+#check affineExactlyOneTripleProgressionFamily_computableInPolyTime
+
+#print axioms affineExactlyOneFrameExpandRev_run
+#print axioms affineExactlyOneFrameExpand_computableInPolyTime
+#print axioms affineExactlyOneTripleProgressionFamily_computableInPolyTime

@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Narrowing
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineNarrowCfgFrames
+#check encodeAffineNarrowCfgInput
+#check affineNarrowCfgGateStream_eq_trace
+#check affineNarrowCfg_run
+#check affineNarrowCfgRev_steps_le
+#check affineOrFinFinishInputCfg
+#check affineOrThenNot_runToFinishWithTail
+
+#print axioms affineNarrowCfgGateStream_eq_trace
+#print axioms affineNarrowCfg_run
+#print axioms affineNarrowCfgRev_steps_le
+#print axioms affineOrThenNot_runToFinishWithTail

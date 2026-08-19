@@ -1,0 +1,209 @@
+# Ch34 Local Transition Controller Checkpoint
+
+## Scope
+
+This checkpoint closes one complete Cook--Levin local-transition serializer,
+the fixed controller that iterates any runtime-length family of such
+serializers, and one continuous controller for the complete verifier body
+after the shared Boolean pool.  The remaining generator boundary is no longer
+semantic byte correctness: it is the concrete fixed-machine compilation of
+the body operand script from raw source input and its continuous handoff from
+the already computable prefix.
+
+## Closed interfaces
+
+- `compileDispatchScript_run` executes the recursively compiled finite-label
+  dispatch script under the fixed statement controller.
+- `compileTransitionScript_gateStream_eq_trace` proves that the concrete
+  operand script denotes exactly `transitionCircuitGateTrace`.
+- `affineTransition_run` executes all five phases continuously: Boolean
+  constants, statement dispatch, narrowing, complete-row equality, and the
+  final conjunction.
+- `compileTransitionScript_run` specializes the execution theorem to the
+  semantic Cook--Levin builder and proves exact encoded output followed by
+  halt.
+- `affineTransition_steps_le` gives the explicit bound
+  `steps ≤ 500 * encodedInput.length + 20`.
+- `affineTransition_runToFinishWithTail` proves that one local serializer
+  preserves an arbitrary unary-encoded family suffix and returns through a
+  redirectable finish state.
+- `affineTransitionFamily_run` executes a runtime-length list of local scripts
+  under one fixed program and emits their exact concatenated gate stream.
+- `affineTransitionFamily_steps_le` gives the family-level bound
+  `steps ≤ 500 * encodedFamily.length + 2`.
+- `compileTransitionFamilyScripts` mirrors the semantic prefix recursion and
+  extracts exactly one operand script per adjacent tableau-row pair.
+- `compileTransitionFamilyScriptsAt_gateStream_eq` identifies its complete
+  byte stream with the frozen `transitionGateStreamAt` target.
+- `compileTransitionFamilyScriptsAt_run` is the end-to-end executable theorem
+  for the canonical dimension-only transition family.
+- `verifierInitialBoundary_gates_eq` freezes the exact complete-row equality
+  trace immediately following transitions.
+- `compileVerifierInitialBoundaryFrames_run` executes its canonical `EqFin`
+  frames and emits exactly the symbolic initial-boundary byte stream.
+- `affineOptionalEqFin_run` executes both branches of a total boundary under
+  one fixed program: marker-led complete equality or empty zero-gate output.
+- `verifierAcceptingBoundary_gates_eq` and
+  `compileVerifierAcceptingBoundaryFrames_run` freeze and execute the exact
+  accepting-row branch chosen by the semantic constructor.
+- `verifierCircuit_gates_eq_finalConjunction` freezes the last gate family of
+  the complete verifier circuit, and `verifierFinalConjunctionFrame_run`
+  executes its canonical tail-first conjunction frame.
+- `buildSeparatorNots_gates_eq`, `buildInputArms_gates_eq`, and
+  `verifierInputShapeCircuit_gates_eq` expose the three literal input-shape
+  phases. `verifierInputBoundary_gates_eq` specializes their exact trace to
+  the assembled verifier.
+- `affineNotFamily_run` executes any runtime list of NOT operands under one
+  fixed controller, with the linear bound
+  `steps ≤ 20 * encodedSources.length + 2`.
+- `affineOptionalConjunctionFamily_run` executes a runtime family whose entries
+  either append one full conjunction or exactly zero gates, with a quadratic
+  bound in its exact marker-bearing input.
+- `compileInputArmFrames_gateStream_eq_trace` proves that the optional family
+  reproduces all certificate-length arms, including nonfitting zero-gate
+  branches.
+- `compileVerifierInputShapeScript_gateStream_eq_trace` and
+  `verifierInputBoundaryScript_gateStream_eq` package separator NOTs, optional
+  arms, and the final OR into one canonical operand script whose combined byte
+  stream is the complete semantic input-boundary trace.
+- `affineInputShape_run` joins separator NOTs, optional arms, and the final OR
+  under one fixed controller, without an intermediate halt, and emits their
+  exact combined stream. `affineInputShapeRev_steps_le` supplies the uniform
+  quadratic envelope in the exact runtime encoding length.
+- `verifierInputBoundary_run` specializes that continuous execution to the
+  assembled verifier boundary; `verifierInputBoundary_steps_le` carries the
+  same explicit bound to the frozen semantic target.
+- `affineVerifierTail_run` continuously executes the complete post-transition
+  chain: symbolic initial boundary, verifier-input boundary, total accepting
+  boundary, final conjunction, and the output-marker/unary-output suffix.
+- `compileVerifierTailScript_gateStream_eq` specializes that controller to the
+  actual verifier, while `verifierCircuitTransitionPrefix_append_tail` proves
+  that the frozen transition prefix plus this generated tail is exactly
+  `encodeCircuit (verifierCircuit W x)`.
+- `verifierCircuitTail_run` and `verifierCircuitTail_steps_le` give the exact
+  executable semantic suffix and its uniform quadratic runtime envelope.
+- `affineTransitionFamily_runToCheckWithTail` executes every local transition
+  without consuming a following unary phase, and
+  `affineTransitionFamilyBody_steps_le` gives the corresponding linear bound.
+- `affineVerifierBody_run` continuously executes all validity rows, all
+  adjacent transitions, and the complete verifier tail under one fixed finite
+  program. `affineVerifierBody_steps_le` bounds the exact run by
+  `10000 * encoded.length^2 + 200`.
+- `compileVerifierBodyScript_gateStream_eq` identifies the compiled canonical
+  validity/transition/tail operands with the exact semantic verifier-body byte
+  stream.
+- `verifierCircuitPoolPrefix_append_body` proves that the existing exact pool
+  prefix followed by those generated body bytes is literally
+  `encodeCircuit (verifierCircuit W x)`.
+- `verifierCircuitBody_run_afterPool` starts the reverse-output accumulator at
+  the already generated pool prefix and halts with the reverse of the complete
+  verifier-circuit encoding.
+
+## Rejected routes discovered during composition
+
+1. Independently halting component runs cannot be concatenated into one
+   generator. Every inner phase needs a suffix-preserving redirectable exit.
+2. The statement controller cannot expose a clean exit after only the three
+   reserved tag symbols. Its parser leaves the last symbol in `buffer₁`; a
+   fourth clear step is required.
+3. A phase-boundary `popInput` does not establish the next component's clean
+   initial configuration. It consumes the marker but retains it in `buffer₁`;
+   `narrowClear` and `eqClear` are therefore required before entering equality
+   and final AND.
+4. The equality component is structurally simulated only away from the exact
+   boundary symbols that the outer controller deliberately intercepts. A
+   global relabeling theorem would be false.
+5. Statement relabeling is valid for the concrete `.stmt` embedding, not for
+   an arbitrary label map whose target configurations need not match.
+6. Concatenating local unary payloads without an outer marker is ambiguous:
+   the local final `frameEnd` terminates a payload but cannot also announce
+   whether another payload follows.  The family protocol therefore uses a
+   leading `frameEnd` before every local payload; the empty suffix has no
+   leading marker.
+7. Treating the unrepresentable accepting target as equality over an empty
+   coordinate family is byte-incorrect: empty `EqFin` emits its true seed,
+   whereas `falseBoundaryCircuit` emits no gate and reuses the shared false
+   wire.  The optional controller therefore has a genuine zero-output branch.
+8. A zero-gate input arm cannot be encoded by an empty conjunction frame:
+   empty conjunction still emits its true seed.  Optional arm entries therefore
+   use a distinct `separator` marker for zero gates and a `tick` marker for a
+   real conjunction.
+9. Reusing `frameEnd` both for a zero-gate entry and for end-of-family is
+   ambiguous, especially for consecutive nonfitting arms.  The optional arm
+   protocol reserves `frameEnd` solely as the final family terminator.
+10. An empty input cannot serve as a phase boundary inside the verifier-tail
+    controller: it discards every later phase. Contextual `EqFin` therefore
+    uses `separator`, while contextual ordinary `OrFin` uses `tick`; both
+    markers are outside their respective clean-frame start languages.
+11. Reusing the standalone optional-equality wrapper unchanged also fails:
+    its embedded equality reaches an inner halt before an outer controller can
+    resume. The accepted tail controller performs the optional marker branch
+    itself and redirects the embedded `EqFin.finish` state explicitly.
+12. Teaching the reusable `EqFin`/`OrFin` primitives to accept the new outer
+    separators globally is also invalid: the existing statement controller
+    relies on those same symbols entering its `.invalid` state.  A focused
+    regression build caught this immediately.  The accepted design leaves both
+    primitive contracts unchanged and intercepts `separator`/`tick` only in the
+    enclosing input-shape and verifier-tail finite controls; their lifting
+    lemmas explicitly exclude only the intercepted boundary state.
+13. Treating the transition-family runtime as genuinely mixed tagged data
+    would make it impossible for the preceding unary validity controller to
+    preserve the suffix through a structural embedding.  The accepted route
+    uses the stronger fact already proved by the transition compiler:
+    `encodeAffineTransitionFamily` is the `.data` image of a pure-unary family
+    payload.  Thus the entire verifier-body operand stream is one unary list,
+    while the common alphabet remains available to the transition controller.
+14. The equation
+    `poolPrefix ++ generatedBody = encodeCircuit (verifierCircuit W x)` does
+    not itself show that a fixed TM2 constructs the body operands from `x`.
+    `compileVerifierBodyScript` is still a Lean-level mathematical compiler;
+    claiming the complete Cook--Levin reduction before implementing its raw
+    input compiler would conflate semantic specialization with executability.
+
+## Focused verification
+
+The following checks passed without a full-repository build:
+
+```text
+lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionController
+lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyController
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionFamilyScript.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorInitialBoundary.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OptionalEqFin.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorAcceptingBoundary.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorConjunction.lean
+lake env lean Tests/Chapter_34_CookLevin_VerifierInputTraces.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorInputBoundary.lean
+lake env lean Tests/Chapter_34_PolyBuilder_NotFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_OptionalConjunctionFamily.lean
+lake env lean Tests/Chapter_34_PolyBuilder_InputShapeController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_VerifierTailController.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorTail.lean
+lake env lean Tests/Chapter_34_PolyBuilder_VerifierBodyController.lean
+lake env lean Tests/Chapter_34_CookLevin_GeneratorBody.lean
+lake env lean Tests/Chapter_34_PolyBuilder_DispatchController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_TransitionScript.lean
+lake env lean Tests/Chapter_34_PolyBuilder_StatementController.lean
+lake env lean Tests/Chapter_34_PolyBuilder_Narrowing.lean
+lake env lean Tests/Chapter_34_PolyBuilder_EqFin.lean
+lake env lean CLRSLean/Chapter_34.lean
+git diff --check
+```
+
+The headline execution and bound theorems report only the standard Lean
+dependencies `[propext, Classical.choice, Quot.sound]`; no project axiom or
+`sorryAx` appears.
+
+## Next acceptance boundary
+
+The complete verifier body is now one continuous exact controller, and its
+bytes close against the already computable header/input/pool prefix. The next
+checkpoint must implement a fixed TM2 that compiles
+`encodeAffineVerifierBodyScript (compileVerifierBodyScript W x)` from raw `x`,
+then hand that runtime script to the body controller without an intermediate
+mathematical oracle. A dimension-level bound on that compiled script must
+connect the exact quadratic controller bound to the verifier polynomials.
+Only after this raw-input compiler and handoff are closed can the concrete
+Cook--Levin generator be claimed complete.

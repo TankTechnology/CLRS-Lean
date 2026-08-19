@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneHeightSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineExactlyOneHeightRevProgram
+#check affineExactlyOneHeightLoadedCfg
+#check affineExactlyOneHeightFinishCfg
+#check affineExactlyOneHeightFrame
+#check affineExactlyOneHeightSteps
+#check affineExactlyOneHeight_runToFinish
+
+#print axioms affineExactlyOneHeight_runToFinish
