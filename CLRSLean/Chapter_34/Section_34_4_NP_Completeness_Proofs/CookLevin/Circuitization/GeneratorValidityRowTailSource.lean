@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDelimiterMap
 import CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition
 import Mathlib.Tactic
 
@@ -324,5 +325,100 @@ noncomputable def
       repackagedSeedSource affineSource
   simpa [Function.comp_def,
     verifierValidityRowTailAffineValues_eq] using Classical.choice composed
+
+/-! ## Fixed invocation delimiters -/
+
+/-- Delimiter layout of one standalone runtime-stack invocation.  Its seventh
+field is the unary height payload terminated by `frameEnd`. -/
+def arithmeticValidityTailStackOperandDelimiters : List UnaryFrameSym :=
+  [.separator, .separator, .separator, .separator,
+    .separator, .separator, .frameEnd]
+
+/-- The four fixed final-conjunction prefix operands remain ordinary unary
+blocks; the variable one-hot family follows them in the next source layer. -/
+def arithmeticValidityTailFinalPrefixDelimiters : List UnaryFrameSym :=
+  [.separator, .separator, .separator, .separator]
+
+/-- One complete cyclic delimiter table for the fixed part of a validity-tail
+row: one seven-field stack invocation per fixed machine stack, then the four
+final-conjunction prefix fields. -/
+def arithmeticValidityTailFixedOperandDelimiters
+    (tm : _root_.Turing.FinTM2) : List UnaryFrameSym :=
+  ((arithmeticRuntimeStackSourceIndices tm).flatMap fun _ =>
+      arithmeticValidityTailStackOperandDelimiters) ++
+    arithmeticValidityTailFinalPrefixDelimiters
+
+@[simp] theorem arithmeticValidityTailFixedOperandDelimiters_nonempty
+    (tm : _root_.Turing.FinTM2) :
+    0 < (arithmeticValidityTailFixedOperandDelimiters tm).length := by
+  simp [arithmeticValidityTailFixedOperandDelimiters,
+    arithmeticValidityTailFinalPrefixDelimiters]
+
+/-- The delimiter table has exactly one entry for every fixed affine form. -/
+theorem arithmeticValidityTailFixedOperandDelimiters_length
+    (tm : _root_.Turing.FinTM2) :
+    (arithmeticValidityTailFixedOperandDelimiters tm).length =
+      (arithmeticValidityTailFixedOperandForms tm).length := by
+  simp [arithmeticValidityTailFixedOperandDelimiters,
+    arithmeticValidityTailStackOperandDelimiters,
+    arithmeticValidityTailFinalPrefixDelimiters,
+    arithmeticValidityTailFixedOperandForms,
+    arithmeticValidityTailStackOperandFormsFamily,
+    arithmeticValidityTailStackOperandForms,
+    arithmeticValidityTailFinalPrefixForms, affineValidityForm]
+
+/-- Marked fixed-operand byte stream emitted for every verifier row.  The
+cycle resets after the four final prefix fields because its period is exactly
+one row's fixed affine table. -/
+noncomputable def verifierValidityRowTailMarkedFixedOperandFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  rewriteUnaryFrameDelimiters
+    (arithmeticValidityTailFixedOperandDelimiters W.machine.tm)
+    (arithmeticValidityTailFixedOperandDelimiters_nonempty W.machine.tm)
+    (encodeUnaryFrame (verifierValidityRowTailFixedOperandValues W input))
+
+/-- Byte-level semantics of the marked fixed stream: the declared row table
+is applied to the affine values, so each stack's seventh field is terminated
+by `frameEnd` and every other fixed field retains `separator`. -/
+theorem verifierValidityRowTailMarkedFixedOperandFrames_eq_cycle
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowTailMarkedFixedOperandFrames W input =
+      encodeUnaryFrameWithDelimiterCycle
+        (arithmeticValidityTailFixedOperandDelimiters W.machine.tm)
+        (arithmeticValidityTailFixedOperandDelimiters_nonempty W.machine.tm)
+        (verifierValidityRowTailFixedOperandValues W input) := by
+  exact rewriteUnaryFrameDelimiters_encodeUnaryFrame
+    (arithmeticValidityTailFixedOperandDelimiters W.machine.tm)
+    (arithmeticValidityTailFixedOperandDelimiters_nonempty W.machine.tm)
+    (verifierValidityRowTailFixedOperandValues W input)
+
+/-- The raw verifier word computes the fixed validity-tail operand stream
+with every stack-family boundary already materialized as `frameEnd`. -/
+noncomputable def
+    verifierValidityRowTailMarkedFixedOperandFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowTailMarkedFixedOperandFrames W) := by
+  let valueSource :=
+    verifierValidityRowTailFixedOperandFrames_computableInPolyTime W
+  let delimiterSource :=
+    unaryFrameDelimiterMap_computableInPolyTime
+      (arithmeticValidityTailFixedOperandDelimiters W.machine.tm)
+      (arithmeticValidityTailFixedOperandDelimiters_nonempty W.machine.tm)
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      valueSource delimiterSource
+  let result := Classical.choice composed
+  exact
+    { tm := result.tm
+      inputAlphabet := result.inputAlphabet
+      outputAlphabet := result.outputAlphabet
+      time := result.time
+      outputsFun := fun input => by
+        have run := result.outputsFun input
+        simpa only [Function.comp_def,
+          verifierValidityRowTailMarkedFixedOperandFrames] using run }
 
 end CLRS.Chapter34.Turing.CookLevin
