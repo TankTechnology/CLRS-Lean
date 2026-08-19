@@ -11,6 +11,11 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierValidityRowOperandPackets_oneHot
 #check verifierValidityRowOperandPackets_halted
 #check verifierValidityRowOperandPackets_tail
+#check arithmeticValidityRowFixedOperandForms_eq
+#check verifierValidityRowUnifiedPayloadFamily_encoding_eq
+#check verifierValidityRowUnifiedOperandPayloadFrames
+#check verifierValidityRowUnifiedOperandPayloadFrames_eq_rows
+#check verifierValidityRowUnifiedOperandPayloadFrames_computableInPolyTime
 
 #print axioms validityRowSeedFamilyInput_eq
 #print axioms verifierValidityRowFamilyInputTarget_eq_canonical
@@ -18,3 +23,7 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms verifierValidityRowOperandPackets_oneHot
 #print axioms verifierValidityRowOperandPackets_halted
 #print axioms verifierValidityRowOperandPackets_tail
+#print axioms arithmeticValidityRowFixedOperandForms_eq
+#print axioms verifierValidityRowUnifiedPayloadFamily_encoding_eq
+#print axioms verifierValidityRowUnifiedOperandPayloadFrames_eq_rows
+#print axioms verifierValidityRowUnifiedOperandPayloadFrames_computableInPolyTime
