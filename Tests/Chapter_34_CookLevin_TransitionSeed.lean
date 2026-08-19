@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeed
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchScriptFromSeed
+#check arithmeticWidening_compileDispatchScript_eq_seed
+#check arithmeticTransitionScript_dispatch_eq_seed
+#check transitionScriptDecompositionFromSeed
+#check arithmeticTransitionScript_decomposition_eq_seed
+
+#print axioms arithmeticTransitionScript_dispatch_eq_seed
+#print axioms arithmeticTransitionScript_decomposition_eq_seed
