@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeed
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
 import Mathlib.Tactic
@@ -719,6 +720,162 @@ theorem transitionNarrowRightSuccForms_value
         transitionNarrowStartForm_value tm seed hwork
   omega
 
+/-! ## Complete narrowing invocation protocol -/
+
+/-- Zero-valued affine field used at fixed protocol positions. -/
+def transitionZeroForm : AffineUnaryTripleForm :=
+  { constant := 0, first := 0, second := 0, third := 0 }
+
+/-- Five ordinary unary fields per OR frame.  The delimiter pass below turns
+them into `frameEnd ; left ; 0 ; right+1 ; frameEnd`. -/
+noncomputable def transitionNarrowInvocationForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  (List.zipWith
+    (fun left rightSucc =>
+      [transitionZeroForm, left, transitionZeroForm, rightSucc,
+        transitionZeroForm])
+    (transitionNarrowLeftForms tm)
+    (transitionNarrowRightSuccForms tm)).flatten
+
+/-- Semantic ordinary values represented by the fixed invocation form table. -/
+def transitionNarrowInvocationValues
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) : List Nat :=
+  (List.zipWith
+    (fun left rightSucc => [0, left, 0, rightSucc, 0])
+    (narrowCfgOverflowWires
+      (transitionDispatchOutputWires tm seed)).reverse
+    (List.ofFn fun index :
+        Fin (Fintype.card tm.K * maxPushesPerStep tm) =>
+      transitionNarrowStart tm seed.height seed.start + index.val + 1)).flatten
+
+private theorem affineUnaryTripleMap_invocation_zip
+    (leftForms rightForms : List AffineUnaryTripleForm)
+    (seed : AffineUnaryTripleSeed) :
+    affineUnaryTripleMap
+        ((List.zipWith
+          (fun left right =>
+            [transitionZeroForm, left, transitionZeroForm, right,
+              transitionZeroForm])
+          leftForms rightForms).flatten) seed =
+      (List.zipWith
+        (fun left right => [0, left, 0, right, 0])
+        (affineUnaryTripleMap leftForms seed)
+        (affineUnaryTripleMap rightForms seed)).flatten := by
+  induction leftForms generalizing rightForms with
+  | nil => simp [affineUnaryTripleMap]
+  | cons left leftForms ih =>
+      cases rightForms with
+      | nil => simp [affineUnaryTripleMap]
+      | cons right rightForms =>
+          simp [affineUnaryTripleMap, transitionZeroForm,
+            affineUnaryTripleFormValue]
+
+/-- The interleaved fixed form table is byte-value exact for all narrowing
+frames of one positive-workspace transition seed. -/
+theorem transitionNarrowInvocationForms_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleMap (transitionNarrowInvocationForms tm)
+        (transitionTailAffineSeed seed) =
+      transitionNarrowInvocationValues tm seed := by
+  unfold transitionNarrowInvocationForms
+    transitionNarrowInvocationValues
+  rw [affineUnaryTripleMap_invocation_zip]
+  rw [transitionNarrowLeftForms_value tm seed hwork,
+    transitionNarrowRightSuccForms_value tm seed hwork]
+
+/-- Fixed five-position delimiter cycle for one OR invocation. -/
+def transitionNarrowInvocationDelimiterTable : List UnaryFrameSym :=
+  [.frameEnd, .separator, .separator, .separator, .frameEnd]
+
+@[simp] theorem transitionNarrowInvocationDelimiterTable_length :
+    transitionNarrowInvocationDelimiterTable.length = 5 := rfl
+
+theorem transitionNarrowInvocationDelimiterTable_nonempty :
+    0 < transitionNarrowInvocationDelimiterTable.length := by simp
+
+private theorem transitionNarrowInvocationDelimiter_frames
+    (frames : List AffineOrFinPairFrame) :
+    encodeUnaryFrameWithDelimiterCycle
+        transitionNarrowInvocationDelimiterTable
+        transitionNarrowInvocationDelimiterTable_nonempty
+        (frames.flatMap fun frame =>
+          [0, frame.left, 0, frame.right + 1, 0]) =
+      encodeAffineOrFinFrames frames := by
+  induction frames with
+  | nil => rfl
+  | cons frame frames ih =>
+      simp [encodeUnaryFrameWithDelimiterCycle,
+        encodeUnaryFrameWithDelimiterCycleFrom,
+        transitionNarrowInvocationDelimiterTable,
+        unaryFrameDelimiterNext, encodeAffineOrFinFrames,
+        encodeAffineOrFinPairFrame, encodeUnaryFrame,
+        encodeUnaryFrameBlock, List.append_assoc]
+      change encodeUnaryFrameWithDelimiterCycle
+          transitionNarrowInvocationDelimiterTable
+          transitionNarrowInvocationDelimiterTable_nonempty
+          (frames.flatMap fun frame =>
+            [0, frame.left, 0, frame.right + 1, 0]) =
+        encodeAffineOrFinFrames frames
+      exact ih
+
+private theorem transitionNarrowInvocationValues_eq_script
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (nextRowBase : Nat) :
+    transitionNarrowInvocationValues tm seed =
+      (transitionScriptFromSeed tm seed nextRowBase).narrowFrames.flatMap
+        fun frame => [0, frame.left, 0, frame.right + 1, 0] := by
+  have map_finRange_val (n : Nat) :
+      (List.finRange n).map (fun index => index.val) = List.range n := by
+    rw [← List.ofFn_eq_map, List.ofFn_eq_pmap]
+    simp
+  have zipWith_invocation_eq_map_frames
+      (lefts rights : List Nat) :
+      List.zipWith (fun left rightSucc => [0, left, 0, rightSucc, 0])
+          lefts (rights.map fun right => right + 1) =
+        (List.zipWith
+          (fun left right =>
+            ({ left := left, right := right } : AffineOrFinPairFrame))
+          lefts rights).map
+            (fun frame => [0, frame.left, 0, frame.right + 1, 0]) := by
+    induction lefts generalizing rights with
+    | nil => rfl
+    | cons left lefts ih =>
+        cases rights with
+        | nil => rfl
+        | cons right rights =>
+            simp only [List.map_cons, List.zipWith_cons_cons,
+              List.cons.injEq, true_and]
+            exact ih rights
+  unfold transitionNarrowInvocationValues transitionScriptFromSeed
+    transitionScriptOfDecomposition transitionScriptDecompositionFromSeed
+    transitionDispatchOperandLayoutFromSeed transitionDispatchOperandLayout
+    transitionTailLayoutAt
+  simp only
+  congr 1
+  rw [List.ofFn_eq_map]
+  have hrightSucc :
+      (List.finRange (Fintype.card tm.K * maxPushesPerStep tm)).map
+          (fun index =>
+            transitionNarrowStart tm seed.height seed.start + index.val + 1) =
+        ((List.range (Fintype.card tm.K * maxPushesPerStep tm)).map
+          (fun offset =>
+            transitionNarrowStart tm seed.height seed.start + offset)).map
+          (fun right => right + 1) := by
+    calc
+      _ = ((List.finRange
+            (Fintype.card tm.K * maxPushesPerStep tm)).map
+              (fun index => index.val)).map
+            (fun offset =>
+              transitionNarrowStart tm seed.height seed.start + offset + 1) := by
+          rw [List.map_map]
+          congr 1
+      _ = _ := by
+        rw [map_finRange_val, List.map_map]
+        congr 1
+  rw [hrightSucc]
+  rw [zipWith_invocation_eq_map_frames]
+
 /-! ## Concrete verifier-family source -/
 
 /-- Transition seeds in the reusable affine source representation. -/
@@ -990,5 +1147,94 @@ noncomputable def
       (verifierTransitionNarrowRightSuccFrames W) := by
   exact verifierTransitionAffineMapFrames_computableInPolyTime W
     (transitionNarrowRightSuccForms W.machine.tm)
+
+/-! ## Complete narrowing source -/
+
+/-- Complete delimiter-exact OR invocation stream for every transition row.
+The first fixed machine evaluates the interleaved affine operand forms; the
+second fixed machine rewrites the five cyclic separators into the exact
+`frameEnd/separator` protocol consumed by `affineOrFinProgram`. -/
+noncomputable def verifierTransitionNarrowInvocationInput
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  rewriteUnaryFrameDelimiters
+    transitionNarrowInvocationDelimiterTable
+    transitionNarrowInvocationDelimiterTable_nonempty
+    (verifierTransitionAffineMapFrames W
+      (transitionNarrowInvocationForms W.machine.tm) input)
+
+/-- Byte-exact semantics of the concrete narrowing source: its output is the
+canonical ordered-OR frame encoding of every seed-derived transition script,
+in row-major order. -/
+theorem verifierTransitionNarrowInvocationInput_eq_scripts
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionNarrowInvocationInput W input =
+      encodeAffineOrFinFrames
+        ((verifierTransitionRowSeeds W input).flatMap fun seed =>
+          (transitionScriptFromSeed W.machine.tm seed
+            (seed.rowBase +
+              cfgBitCount W.machine.tm seed.height)).narrowFrames) := by
+  unfold verifierTransitionNarrowInvocationInput
+    verifierTransitionAffineMapFrames verifierTransitionTailAffineSeeds
+    affineUnaryTripleMapFamily
+  rw [rewriteUnaryFrameDelimiters_encodeUnaryFrame, List.flatMap_map]
+  have hvalues :
+      List.flatMap
+          (fun seed => affineUnaryTripleMap
+            (transitionNarrowInvocationForms W.machine.tm)
+            (transitionTailAffineSeed seed))
+          (verifierTransitionRowSeeds W input) =
+        (verifierTransitionRowSeeds W input).flatMap
+          (transitionNarrowInvocationValues W.machine.tm) := by
+    apply List.flatMap_congr
+    intro seed hseed
+    apply transitionNarrowInvocationForms_value
+    rw [verifierTransitionRowSeeds_height_eq W input seed hseed]
+    exact Nat.add_pos_left
+      (verifierHeight_eval_pos W input.length)
+      (maxPushesPerStep W.machine.tm)
+  rw [hvalues]
+  have hscripts :
+      (verifierTransitionRowSeeds W input).flatMap
+          (transitionNarrowInvocationValues W.machine.tm) =
+        ((verifierTransitionRowSeeds W input).flatMap fun seed =>
+          (transitionScriptFromSeed W.machine.tm seed
+            (seed.rowBase +
+              cfgBitCount W.machine.tm seed.height)).narrowFrames).flatMap
+            (fun frame => [0, frame.left, 0, frame.right + 1, 0]) := by
+    rw [List.flatMap_assoc]
+    apply List.flatMap_congr
+    intro seed _
+    exact transitionNarrowInvocationValues_eq_script W.machine.tm seed
+      (seed.rowBase + cfgBitCount W.machine.tm seed.height)
+  rw [hscripts]
+  exact transitionNarrowInvocationDelimiter_frames _
+
+/-- A single fixed polynomial-time TM2 compiles the complete narrowing OR
+input stream directly from the raw verifier word. -/
+noncomputable def
+    verifierTransitionNarrowInvocationInput_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionNarrowInvocationInput W) := by
+  let valueSource := verifierTransitionAffineMapFrames_computableInPolyTime W
+    (transitionNarrowInvocationForms W.machine.tm)
+  let delimiterSource := unaryFrameDelimiterMap_computableInPolyTime
+    transitionNarrowInvocationDelimiterTable
+    transitionNarrowInvocationDelimiterTable_nonempty
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      valueSource delimiterSource
+  let result := Classical.choice composed
+  exact
+    { tm := result.tm
+      inputAlphabet := result.inputAlphabet
+      outputAlphabet := result.outputAlphabet
+      time := result.time
+      outputsFun := fun input => by
+        have run := result.outputsFun input
+        simpa only [Function.comp_def,
+          verifierTransitionNarrowInvocationInput] using run }
 
 end CLRS.Chapter34.Turing.CookLevin
