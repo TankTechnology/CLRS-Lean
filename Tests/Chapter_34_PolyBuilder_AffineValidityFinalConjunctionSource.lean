@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityFinalConjunctionSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineValidityFinalConjunctionSourceFrame
+#check encodeAffineValidityFinalConjunctionSourceInvocation
+#check affineValidityFinalConjunctionWires
+#check affineValidityFinalConjunctionFrame
+#check affineValidityFinalConjunctionSource_runToFinish
+#check affineValidityFinalConjunctionSource_steps_le
+
+#print axioms affineValidityFinalConjunctionSource_runToFinish
+#print axioms affineValidityFinalConjunctionSource_steps_le

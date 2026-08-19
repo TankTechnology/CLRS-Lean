@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 open CLRS.Chapter34.Turing.PolyBuilder
 
 #check affineStackOutputWires
+#check affineStackOutputWires_eq_ofFn
 #check encodeAffineStackOutputSourceInvocation
 #check affineStackOutputFamilySourceRevProgram
 #check affineStackOutputFamilySource_runToFinish

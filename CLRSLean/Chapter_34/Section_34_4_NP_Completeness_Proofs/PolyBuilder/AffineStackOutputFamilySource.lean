@@ -57,6 +57,162 @@ def affineStackOutputWires
   (affineStackOutputDescendingWires stackCount height
     (affineStackOutputLastWire stackCount height base)).reverse
 
+private def affineStackOutputAscendingCells (first : Nat) : Nat → List Nat
+  | 0 => []
+  | height + 1 =>
+      affineStackOutputAscendingCells first height ++
+        [first + 6 * height]
+
+private theorem affineStackOutputDescendingCells_reverse_eq_ascending
+    (height first : Nat) :
+    (affineStackOutputDescendingCells
+      (first + 6 * height) (height + 1)).reverse =
+      affineStackOutputAscendingCells first (height + 1) := by
+  induction height with
+  | zero => rfl
+  | succ height ih =>
+      rw [affineStackOutputDescendingCells, List.reverse_cons]
+      have hsub : first + 6 * (height + 1) - 6 =
+          first + 6 * height := by
+        omega
+      rw [hsub, ih]
+      rfl
+
+private theorem affineStackOutputAscendingCells_eq_ofFn
+    (height first : Nat) :
+    affineStackOutputAscendingCells first height =
+      List.ofFn (fun cell : Fin height => first + 6 * cell.val) := by
+  induction height with
+  | zero => rfl
+  | succ height ih =>
+      rw [affineStackOutputAscendingCells, ih, List.ofFn_succ']
+      simp
+
+private theorem affineStackOutputDescendingWires_zero_height
+    (stackCount current : Nat) :
+    affineStackOutputDescendingWires stackCount 0 current = [] := by
+  induction stackCount generalizing current with
+  | zero => rfl
+  | succ stackCount ih =>
+      simp [affineStackOutputDescendingWires,
+        affineStackOutputDescendingCells, ih]
+
+private theorem affineStackOutputDescendingWires_previous
+    (stackCount height base : Nat) :
+    affineStackOutputDescendingWires stackCount height
+        (affineStackOutputLastWire (stackCount + 1) height base -
+          (7 * height + 1)) =
+      affineStackOutputDescendingWires stackCount height
+        (affineStackOutputLastWire stackCount height base) := by
+  cases stackCount with
+  | zero => rfl
+  | succ stackCount =>
+      congr 1
+      have hsplit :
+          affineStackOutputLastWire (stackCount + 1 + 1) height base =
+            affineStackOutputLastWire (stackCount + 1) height base +
+              (7 * height + 1) := by
+        simp [affineStackOutputLastWire]
+        ring
+      rw [hsplit, Nat.add_sub_cancel]
+
+private theorem affineStackOutputWires_succ
+    (stackCount height base : Nat) :
+    affineStackOutputWires (stackCount + 1) height base =
+      affineStackOutputWires stackCount height base ++
+        List.ofFn (fun cell : Fin height =>
+          base + (height + 1 + 6 * height) * stackCount +
+            (height + 1) + 6 * cell.val + 5) := by
+  cases height with
+  | zero =>
+      simp [affineStackOutputWires,
+        affineStackOutputDescendingWires_zero_height]
+  | succ height =>
+      let first :=
+        base + (height + 1 + 1 + 6 * (height + 1)) * stackCount +
+          (height + 1 + 1) + 5
+      have hlast :
+          affineStackOutputLastWire (stackCount + 1) (height + 1) base =
+            first + 6 * height := by
+        simp [first, affineStackOutputLastWire]
+        ring
+      rw [affineStackOutputWires, affineStackOutputDescendingWires,
+        List.reverse_append, affineStackOutputDescendingWires_previous]
+      change affineStackOutputWires stackCount (height + 1) base ++
+        (affineStackOutputDescendingCells
+          (affineStackOutputLastWire (stackCount + 1) (height + 1) base)
+            (height + 1)).reverse = _
+      rw [hlast,
+        affineStackOutputDescendingCells_reverse_eq_ascending,
+        affineStackOutputAscendingCells_eq_ofFn]
+      congr 2
+      funext cell
+      simp [first]
+      omega
+
+private def affineStackOutputNestedWires
+    (stackCount height base : Nat) : List Nat :=
+  (List.ofFn fun stack : Fin stackCount =>
+    List.ofFn fun cell : Fin height =>
+      base + (height + 1 + 6 * height) * stack.val +
+        (height + 1) + 6 * cell.val + 5).flatten
+
+private theorem affineStackOutputNestedWires_succ
+    (stackCount height base : Nat) :
+    affineStackOutputNestedWires (stackCount + 1) height base =
+      affineStackOutputNestedWires stackCount height base ++
+        List.ofFn (fun cell : Fin height =>
+          base + (height + 1 + 6 * height) * stackCount +
+            (height + 1) + 6 * cell.val + 5) := by
+  unfold affineStackOutputNestedWires
+  rw [List.ofFn_succ']
+  simp only [List.concat_eq_append, List.flatten_append,
+    List.flatten_singleton]
+  congr 2
+
+private theorem affineStackOutputWires_eq_nested
+    (stackCount height base : Nat) :
+    affineStackOutputWires stackCount height base =
+      affineStackOutputNestedWires stackCount height base := by
+  induction stackCount with
+  | zero =>
+      simp [affineStackOutputWires, affineStackOutputDescendingWires,
+        affineStackOutputNestedWires]
+  | succ stackCount ih =>
+      rw [affineStackOutputWires_succ, ih,
+        affineStackOutputNestedWires_succ]
+
+/-- Closed stack-major/cell-major positional form of the runtime source. -/
+theorem affineStackOutputWires_eq_ofFn
+    (stackCount height base : Nat) :
+    affineStackOutputWires stackCount height base =
+      List.ofFn fun position : Fin (stackCount * height) =>
+        let pair := (finProdFinEquiv
+          (m := stackCount) (n := height)).symm position
+        base + (height + 1 + 6 * height) * pair.1.val +
+          (height + 1) + 6 * pair.2.val + 5 := by
+  rw [affineStackOutputWires_eq_nested, List.ofFn_mul]
+  unfold affineStackOutputNestedWires
+  apply congrArg List.flatten
+  apply List.ofFn_inj.mpr
+  funext stack
+  apply List.ofFn_inj.mpr
+  funext cell
+  have hposition :
+      (⟨stack.val * height + cell.val, by
+        calc
+          stack.val * height + cell.val < stack.val * height + height :=
+            Nat.add_lt_add_left cell.isLt _
+          _ = (stack.val + 1) * height := by ring
+          _ ≤ stackCount * height :=
+            Nat.mul_le_mul_right height stack.isLt⟩ :
+          Fin (stackCount * height)) =
+        finProdFinEquiv (stack, cell) := by
+    apply Fin.eq_of_val_eq
+    simp [finProdFinEquiv, Nat.mul_comm]
+    omega
+  rw [hposition, Equiv.symm_apply_apply]
+
 /-- Finite control.  `remainingStacks` is bounded by the fixed stack count;
 the runtime height is a literal tick stack. -/
 inductive AffineStackOutputFamilySourceLabel (stackCount : Nat)
