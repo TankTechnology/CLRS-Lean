@@ -89,6 +89,16 @@ private theorem affineOrFinCanonicalFrames_rights (start : Nat) :
       rw [List.range_succ]
       simp
 
+private theorem affineOrFinCanonicalFrames_lefts (start : Nat) :
+    ∀ wires : List CircuitBuilder.Wire,
+      (affineOrFinCanonicalFrames start wires).map
+          (fun frame => frame.left) = wires.reverse := by
+  intro wires
+  induction wires with
+  | nil => rfl
+  | cons wire rest ih =>
+      simp [affineOrFinCanonicalFrames, ih]
+
 private theorem affineEqFinCanonicalFrames_length (start : Nat) :
     ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
       (affineEqFinCanonicalFrames start n left right).length = n := by
@@ -141,6 +151,24 @@ private theorem affineEqFinCanonicalFrames_rights (start : Nat) :
       rw [List.ofFn_succ']
       simp [List.concat_eq_append]
 
+private theorem affineEqFinCanonicalFrames_lefts (start : Nat) :
+    ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
+      (affineEqFinCanonicalFrames start n left right).map
+          (fun frame => frame.left) =
+        List.ofFn left := by
+  intro n
+  induction n with
+  | zero =>
+      intro left right
+      rfl
+  | succ n ih =>
+      intro left right
+      simp only [affineEqFinCanonicalFrames, List.map_append,
+        List.map_singleton]
+      rw [ih]
+      rw [List.ofFn_succ']
+      simp [List.concat_eq_append]
+
 private theorem eqFinGateTrace_wire_eq (start : Nat) :
     ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
       (CircuitBuilder.eqFinGateTrace start left right).wire =
@@ -157,6 +185,40 @@ private theorem eqFinGateTrace_wire_eq (start : Nat) :
       rw [CircuitBuilder.eqFinBodyGateTrace_length,
         CircuitBuilder.boolEqGateTrace_length]
       ring
+
+/-! ## The fixed public projection of a dispatched workspace row -/
+
+/-- Pure wire-level projection from a workspace row back to public height.
+Unlike `narrowCfg`, this definition records only the reused row wires and
+does not construct the overflow-fit gates. -/
+def narrowCfgWireProjection {tm : _root_.Turing.FinTM2} {height : Nat}
+    (source : CfgWires tm (workHeight tm height)) : CfgWires tm height
+  | .inl _ => source.halted
+  | .inr (.inl label) => source.label label
+  | .inr (.inr (.inl state)) => source.state state
+  | .inr (.inr (.inr ⟨k, .inl stackHeight⟩)) =>
+      source.stackHeight k
+        ⟨stackHeight.val, by simp only [workHeight]; omega⟩
+  | .inr (.inr (.inr ⟨k, .inr (cell, symbol)⟩)) =>
+      source.stackCell k
+        ⟨cell.val, by simp only [workHeight]; omega⟩ symbol
+
+/-- The proof-carrying narrowing builder reuses exactly the pure projected
+workspace wires. -/
+theorem narrowCfg_wires_eq_projection
+    {tm : _root_.Turing.FinTM2} {height : Nat}
+    (base : CircuitBuilder) (source : CfgWires tm (workHeight tm height))
+    (hvalid : source.ValidIn base) :
+    (narrowCfg base source hvalid).wires =
+      narrowCfgWireProjection source := by
+  funext slot
+  rcases slot with (_ | label | state | ⟨k, stackHeight | cell⟩)
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · rcases cell with ⟨cell, symbol⟩
+    rfl
 
 /-! ## Canonical transition-script projections -/
 
@@ -198,6 +260,24 @@ theorem compileTransitionScript_narrowFrameRights
     simp [narrowCfgOverflowWires]]
   rw [dispatchLabels_gate_delta, widenCfg_gate_delta]
   rfl
+
+/-- Narrowing reads the overflow coordinates of the dispatched workspace row
+in the tail-first order used by the canonical disjunction trace. -/
+theorem compileTransitionScript_narrowFrameLefts
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    (compileTransitionScript tm height base current next hcurrent hnext).narrowFrames.map
+        (fun frame => frame.left) =
+      (narrowCfgOverflowWires
+        (dispatchLabels tm height
+          (widenCfg base current hcurrent).builder
+          (widenCfg base current hcurrent).constants
+          (widenCfg base current hcurrent).wires
+          (widenCfg base current hcurrent).valid).wires).reverse := by
+  simp only [compileTransitionScript]
+  unfold affineNarrowCfgFrames
+  rw [affineOrFinCanonicalFrames_lefts]
 
 /-- The stored narrowing source is the final OR carry. -/
 @[simp] theorem compileTransitionScript_narrowSource_eq
@@ -257,6 +337,26 @@ theorem compileTransitionScript_eqFrameRights
         next ((cfgSlotEquivFin tm height).symm coordinate) := by
   simp only [compileTransitionScript]
   rw [affineEqFinCanonicalFrames_rights]
+
+/-- Equality's left operands are the fixed public-height projection of the
+same dispatched workspace row consumed by narrowing. -/
+theorem compileTransitionScript_eqFrameLefts
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    (compileTransitionScript tm height base current next hcurrent hnext).eqFrames.map
+        (fun frame => frame.left) =
+      List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+        narrowCfgWireProjection
+          (dispatchLabels tm height
+            (widenCfg base current hcurrent).builder
+            (widenCfg base current hcurrent).constants
+            (widenCfg base current hcurrent).wires
+            (widenCfg base current hcurrent).valid).wires
+          ((cfgSlotEquivFin tm height).symm coordinate) := by
+  simp only [compileTransitionScript]
+  rw [affineEqFinCanonicalFrames_lefts]
+  rw [narrowCfg_wires_eq_projection]
 
 /-- The final local-transition conjunction consumes exactly the public-row
 equality output and the overflow-fit output. -/

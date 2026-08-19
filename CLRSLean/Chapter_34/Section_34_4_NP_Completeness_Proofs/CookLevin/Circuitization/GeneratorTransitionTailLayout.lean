@@ -183,6 +183,93 @@ theorem verifierTransitionRowSeeds_expand_eqRightOperands_eq_scripts
   funext coordinate
   ring
 
+/-! ## The unique dispatched-row operand boundary -/
+
+/-- Source operands in the post-dispatch tail: overflow coordinates for
+narrowing and the public-height projection for row equality. -/
+structure TransitionDispatchOperandLayout where
+  narrowLefts : List Nat
+  eqLefts : List Nat
+deriving DecidableEq, Repr
+
+/-- Extract all dispatched-row operands from an actual transition script. -/
+def transitionScriptDispatchOperandLayout
+    (script : AffineTransitionScript) : TransitionDispatchOperandLayout :=
+  { narrowLefts := script.narrowFrames.map (fun frame => frame.left)
+    eqLefts := script.eqFrames.map (fun frame => frame.left) }
+
+/-- The two fixed projections of one semantic dispatched workspace row. -/
+def transitionDispatchOperandLayout (tm : _root_.Turing.FinTM2)
+    (height : Nat) (dispatched : CfgWires tm (workHeight tm height)) :
+    TransitionDispatchOperandLayout :=
+  { narrowLefts := (narrowCfgOverflowWires dispatched).reverse
+    eqLefts := List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+      narrowCfgWireProjection dispatched
+        ((cfgSlotEquivFin tm height).symm coordinate) }
+
+/-- Both non-arithmetic post-dispatch operand families are projections of the
+same canonical `dispatchLabels` output row. -/
+theorem compileTransitionScript_dispatchOperandLayout_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    transitionScriptDispatchOperandLayout
+        (compileTransitionScript tm height base current next hcurrent hnext) =
+      transitionDispatchOperandLayout tm height
+        (dispatchLabels tm height
+          (widenCfg base current hcurrent).builder
+          (widenCfg base current hcurrent).constants
+          (widenCfg base current hcurrent).wires
+          (widenCfg base current hcurrent).valid).wires := by
+  unfold transitionScriptDispatchOperandLayout
+    transitionDispatchOperandLayout
+  rw [compileTransitionScript_narrowFrameLefts,
+    compileTransitionScript_eqFrameLefts]
+
+/-- Four disjoint views needed to reconstruct a complete transition script:
+the statement/dispatch phases, the fresh tail skeleton, the single dispatched
+row's fixed projections, and the public next-row operands. -/
+structure TransitionScriptDecomposition where
+  dispatch : List AffineStmtPhase
+  fresh : TransitionTailLayout
+  dispatched : TransitionDispatchOperandLayout
+  nextRow : List Nat
+deriving Repr
+
+/-- Extract the complete operand decomposition from one runtime script. -/
+def transitionScriptDecomposition
+    (script : AffineTransitionScript) : TransitionScriptDecomposition :=
+  { dispatch := script.dispatch
+    fresh := transitionScriptTailLayout script
+    dispatched := transitionScriptDispatchOperandLayout script
+    nextRow := transitionScriptEqRightOperands script }
+
+/-- The canonical local script decomposition isolates exactly one remaining
+structured object: the fixed-machine dispatch computation and its output row.
+Every other coordinate is fixed by the local start or the public next row. -/
+theorem compileTransitionScript_decomposition_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm height)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    transitionScriptDecomposition
+        (compileTransitionScript tm height base current next hcurrent hnext) =
+      let widened := widenCfg base current hcurrent
+      let dispatched := dispatchLabels tm height widened.builder
+        widened.constants widened.wires widened.valid
+      { dispatch := compileDispatchScript tm height widened.builder
+          widened.constants widened.wires widened.valid
+        fresh := transitionTailLayoutAt tm height base.gates.length
+        dispatched := transitionDispatchOperandLayout tm height
+          dispatched.wires
+        nextRow := List.ofFn fun coordinate : Fin (cfgBitCount tm height) =>
+          next ((cfgSlotEquivFin tm height).symm coordinate) } := by
+  simp only [transitionScriptDecomposition]
+  rw [compileTransitionScript_tailLayout_eq,
+    compileTransitionScript_dispatchOperandLayout_eq]
+  unfold transitionScriptEqRightOperands
+  rw [compileTransitionScript_eqFrameRights]
+  rfl
+
 /-- Expand one raw-input row seed to the skeleton expected by the verified
 local transition controller. -/
 def expandTransitionRowSeedTailLayout
