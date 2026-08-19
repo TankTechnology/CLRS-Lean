@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDuplicatedRowRoute
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneMarkedPrefixPayloadSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneLeadingFixedCompactProjection
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameLeadingSegmentFixedPrefixSplice
 
 /-!
@@ -1008,6 +1009,115 @@ private theorem inputCompiler_exactlyOneFamily_no_frameEnd
       rcases hsymbol with hframe | hrest
       · exact inputCompiler_encodeUnaryFrame_no_frameEnd _ symbol hframe
       · exact ih hrest
+
+/-! ## Project the retained compact copy to output-source invocations -/
+
+/-- Typed verifier specialization of the row-local compact projection.  The
+canonical one-hot prefix and every fixed halted/tail operand are preserved;
+only the retained compact one-hot copy is projected. -/
+noncomputable def verifierValidityRowCompactProjectionFamily
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    AffineExactlyOneLeadingFixedCompactProjectionFamily
+      (arithmeticValidityRowFixedOperandForms W.machine.tm).length :=
+  { rows := (verifierValidityRowSeeds W input).map fun seed =>
+      { leading := .tick :: encodeAffineExactlyOneFamily
+          (validityRowSeedOneHotFrames W.machine.tm seed)
+        fixed := arithmeticValidityRowFixedOperandValues W.machine.tm
+          seed.height seed.start seed.rowBase
+        frames := validityRowSeedOneHotFrames W.machine.tm seed }
+    fixed_lengths := by
+      intro row hrow
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      rw [arithmeticValidityRowFixedOperandValues_length,
+        arithmeticValidityRowFixedOperandDelimiters_length]
+    leading_frameEnd_free := by
+      intro row hrow symbol hsymbol
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      simp only [List.mem_cons] at hsymbol
+      rcases hsymbol with rfl | hfamily
+      · simp
+      · exact inputCompiler_exactlyOneFamily_no_frameEnd _ symbol hfamily }
+
+/-- The typed projection input is byte-for-byte the expanded-prefix stream. -/
+theorem verifierValidityRowCompactProjectionFamily_encoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeAffineExactlyOneLeadingFixedCompactProjectionInput
+        (verifierValidityRowCompactProjectionFamily W input) =
+      verifierValidityRowExpandedPrefixPayloadFrames W input := by
+  rw [verifierValidityRowExpandedPrefixPayloadFrames_eq_rows]
+  unfold encodeAffineExactlyOneLeadingFixedCompactProjectionInput
+    verifierValidityRowCompactProjectionFamily
+  rw [List.flatMap_map]
+  simp [List.append_assoc]
+
+/-- Concrete row stream after the retained compact copy has become the
+runtime invocation family for the exactly-one output source. -/
+noncomputable def verifierValidityRowProjectedOperandFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneLeadingFixedCompactProjectionOutput
+    (verifierValidityRowCompactProjectionFamily W input)
+
+/-- Exact row-major semantics of the projected verifier stream. -/
+theorem verifierValidityRowProjectedOperandFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowProjectedOperandFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        .tick ::
+          (encodeAffineExactlyOneFamily
+              (validityRowSeedOneHotFrames W.machine.tm seed) ++
+            .frameEnd ::
+              (encodeUnaryFrame
+                  (arithmeticValidityRowFixedOperandValues W.machine.tm
+                    seed.height seed.start seed.rowBase) ++
+                encodeAffineExactlyOneOutputSourceInvocationFamily
+                  (validityRowSeedOneHotFrames W.machine.tm seed).reverse ++
+                [.frameEnd])) := by
+  unfold verifierValidityRowProjectedOperandFrames
+    encodeAffineExactlyOneLeadingFixedCompactProjectionOutput
+    verifierValidityRowCompactProjectionFamily
+  rw [List.flatMap_map]
+  simp [List.append_assoc]
+
+/-- The original verifier word polynomially computes the projected row
+stream.  This closes the raw-input-to-runtime-invocation bridge for every
+one-hot subfamily in the validity rows. -/
+noncomputable def
+    verifierValidityRowProjectedOperandFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowProjectedOperandFrames W) := by
+  let expandedSource :=
+    verifierValidityRowExpandedPrefixPayloadFrames_computableInPolyTime W
+  let typedExpandedSource :
+      _root_.Turing.TM2ComputableInPolyTime id
+        encodeAffineExactlyOneLeadingFixedCompactProjectionInput
+        (verifierValidityRowCompactProjectionFamily W) :=
+    { tm := expandedSource.tm
+      inputAlphabet := expandedSource.inputAlphabet
+      outputAlphabet := expandedSource.outputAlphabet
+      time := expandedSource.time
+      outputsFun := fun input => by
+        simpa only [id_eq,
+          verifierValidityRowCompactProjectionFamily_encoding_eq W input]
+          using expandedSource.outputsFun input }
+  let projector :=
+    affineExactlyOneLeadingFixedCompactProjection_computableInPolyTime
+      (arithmeticValidityRowFixedOperandForms W.machine.tm).length
+      (by simp [arithmeticValidityRowFixedOperandForms])
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      typedExpandedSource projector
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      encodeAffineExactlyOneLeadingFixedCompactProjectionOutput
+        (verifierValidityRowCompactProjectionFamily W input))
+  simpa [Function.comp_def] using Classical.choice composed
 
 /-- Typed view for rewriting only the fixed prefix of the retained second
 row, while preserving the canonical one-hot leading segment. -/
