@@ -168,7 +168,8 @@ noncomputable def arithmeticValidityRowFixedOperandForms
     { constant := labelCount tm + 1
       first := 0
       second := 0
-      third := 1 } ] ++
+      third := 1 },
+    { constant := 0, first := 0, second := 0, third := 0 } ] ++
     arithmeticValidityTailFixedOperandForms tm
 
 /-- The unified affine table is value-exact for the halted fields and the
@@ -179,7 +180,8 @@ theorem arithmeticValidityRowFixedOperandForms_eq
         (validityRowUnifiedAffineSeed height start rowBase) =
       [ arithmeticHaltedMatchStart tm height start,
         rowBase,
-        arithmeticNoneLabelWire tm rowBase ] ++
+        arithmeticNoneLabelWire tm rowBase,
+        0 ] ++
         arithmeticValidityTailFixedOperandValues
           tm height start rowBase := by
   unfold arithmeticValidityRowFixedOperandForms
@@ -192,7 +194,8 @@ theorem arithmeticValidityRowFixedOperandForms_eq
          { constant := labelCount tm + 1
            first := 0
            second := 0
-           third := 1 } ] ++
+           third := 1 },
+         { constant := 0, first := 0, second := 0, third := 0 } ] ++
         arithmeticValidityTailFixedOperandForms tm)
         (validityRowUnifiedAffineSeed height start rowBase) =
       affineUnaryTripleMap
@@ -204,7 +207,8 @@ theorem arithmeticValidityRowFixedOperandForms_eq
             { constant := labelCount tm + 1
               first := 0
               second := 0
-              third := 1 } ]
+              third := 1 },
+            { constant := 0, first := 0, second := 0, third := 0 } ]
           (validityRowUnifiedAffineSeed height start rowBase) ++
         affineUnaryTripleMap (arithmeticValidityTailFixedOperandForms tm)
           (validityRowUnifiedAffineSeed height start rowBase) by
@@ -218,11 +222,13 @@ theorem arithmeticValidityRowFixedOperandForms_eq
           { constant := labelCount tm + 1
             first := 0
             second := 0
-            third := 1 } ]
+            third := 1 },
+          { constant := 0, first := 0, second := 0, third := 0 } ]
         (validityRowUnifiedAffineSeed height start rowBase) =
       [ arithmeticHaltedMatchStart tm height start,
         rowBase,
-        arithmeticNoneLabelWire tm rowBase ] by
+        arithmeticNoneLabelWire tm rowBase,
+        0 ] by
     simp [affineUnaryTripleMap, affineUnaryTripleFormValue,
       validityRowUnifiedAffineSeed, arithmeticHaltedMatchStart,
       arithmeticNoneLabelWire,
@@ -330,7 +336,8 @@ theorem verifierValidityRowUnifiedOperandPayloadFrames_eq_rows
         encodeUnaryFrame
           ([ arithmeticHaltedMatchStart W.machine.tm seed.height seed.start,
              seed.rowBase,
-             arithmeticNoneLabelWire W.machine.tm seed.rowBase ] ++
+             arithmeticNoneLabelWire W.machine.tm seed.rowBase,
+             0 ] ++
             arithmeticValidityTailFixedOperandValues W.machine.tm
               seed.height seed.start seed.rowBase) ++
         [.frameEnd] ++
@@ -382,5 +389,218 @@ noncomputable def
         (verifierValidityRowUnifiedPayloadRows W input))
   simpa [Function.comp_def, verifierValidityRowUnifiedPayloadFamily] using
     Classical.choice composed
+
+/-! ## Materialized halted and tail-prefix delimiters -/
+
+/-- Semantic fixed values of one unified row.  The inserted zero is a real
+unary field whose delimiter becomes the post-halted `frameEnd`. -/
+noncomputable def arithmeticValidityRowFixedOperandValues
+    (tm : _root_.Turing.FinTM2) (height start rowBase : Nat) : List Nat :=
+  [ arithmeticHaltedMatchStart tm height start,
+    rowBase,
+    arithmeticNoneLabelWire tm rowBase,
+    0 ] ++
+    arithmeticValidityTailFixedOperandValues tm height start rowBase
+
+theorem arithmeticValidityRowFixedOperandForms_eq_values
+    (tm : _root_.Turing.FinTM2) (height start rowBase : Nat) :
+    affineUnaryTripleMap (arithmeticValidityRowFixedOperandForms tm)
+        (validityRowUnifiedAffineSeed height start rowBase) =
+      arithmeticValidityRowFixedOperandValues
+        tm height start rowBase := by
+  exact arithmeticValidityRowFixedOperandForms_eq
+    tm height start rowBase
+
+/-- Fixed delimiter table: three ordinary halted operands, their explicit
+boundary field, then the established complete tail-prefix table. -/
+def arithmeticValidityRowFixedOperandDelimiters
+    (tm : _root_.Turing.FinTM2) : List UnaryFrameSym :=
+  [.separator, .separator, .separator, .frameEnd] ++
+    arithmeticValidityTailFixedOperandDelimiters tm
+
+@[simp] theorem arithmeticValidityRowFixedOperandDelimiters_nonempty
+    (tm : _root_.Turing.FinTM2) :
+    0 < (arithmeticValidityRowFixedOperandDelimiters tm).length := by
+  simp [arithmeticValidityRowFixedOperandDelimiters]
+
+/-- Every unified affine form has one verifier-fixed output delimiter. -/
+theorem arithmeticValidityRowFixedOperandDelimiters_length
+    (tm : _root_.Turing.FinTM2) :
+    (arithmeticValidityRowFixedOperandDelimiters tm).length =
+      (arithmeticValidityRowFixedOperandForms tm).length := by
+  simp [arithmeticValidityRowFixedOperandDelimiters,
+    arithmeticValidityRowFixedOperandForms,
+    arithmeticValidityTailFixedOperandDelimiters_length]
+
+private theorem inputCompiler_encodeFixedDelimiters_append
+    (left right : List Nat) (leftDelimiters rightDelimiters :
+      List UnaryFrameSym)
+    (hlength : left.length = leftDelimiters.length) :
+    encodeUnaryFrameWithFixedDelimiters (left ++ right)
+        (leftDelimiters ++ rightDelimiters) =
+      encodeUnaryFrameWithFixedDelimiters left leftDelimiters ++
+        encodeUnaryFrameWithFixedDelimiters right rightDelimiters := by
+  induction left generalizing leftDelimiters with
+  | nil =>
+      cases leftDelimiters with
+      | nil => rfl
+      | cons delimiter delimiters => simp at hlength
+  | cons value values ih =>
+      cases leftDelimiters with
+      | nil => simp at hlength
+      | cons delimiter delimiters =>
+          simp only [List.length_cons] at hlength
+          have hlength' : values.length = delimiters.length :=
+            Nat.add_right_cancel hlength
+          simp [encodeUnaryFrameWithFixedDelimiters,
+            ih delimiters hlength', List.append_assoc]
+
+/-- Materializing the unified table preserves all three ordinary halted
+separators, inserts their extra boundary, and then uses the established tail
+delimiter table unchanged. -/
+theorem arithmeticValidityRowFixedEncoding_eq
+    (tm : _root_.Turing.FinTM2) (height start rowBase : Nat) :
+    encodeUnaryFrameWithFixedDelimiters
+        (arithmeticValidityRowFixedOperandValues
+          tm height start rowBase)
+        (arithmeticValidityRowFixedOperandDelimiters tm) =
+      encodeUnaryFrame
+          [ arithmeticHaltedMatchStart tm height start,
+            rowBase,
+            arithmeticNoneLabelWire tm rowBase ] ++
+        [.frameEnd] ++
+        encodeUnaryFrameWithFixedDelimiters
+          (arithmeticValidityTailFixedOperandValues
+            tm height start rowBase)
+          (arithmeticValidityTailFixedOperandDelimiters tm) := by
+  unfold arithmeticValidityRowFixedOperandValues
+    arithmeticValidityRowFixedOperandDelimiters
+  rw [inputCompiler_encodeFixedDelimiters_append]
+  · simp [encodeUnaryFrameWithFixedDelimiters, encodeUnaryFrame,
+      encodeUnaryFrameBlock, List.append_assoc]
+  · rfl
+
+private theorem arithmeticValidityRowFixedOperandValues_length
+    (tm : _root_.Turing.FinTM2) (height start rowBase : Nat) :
+    (arithmeticValidityRowFixedOperandValues
+        tm height start rowBase).length =
+      (arithmeticValidityRowFixedOperandDelimiters tm).length := by
+  have h := congrArg List.length
+    (arithmeticValidityRowFixedOperandForms_eq_values
+      tm height start rowBase)
+  simpa [affineUnaryTripleMap,
+    arithmeticValidityRowFixedOperandDelimiters_length] using h.symm
+
+/-- The unified affine output is precisely a fixed-prefix splice input. -/
+theorem verifierValidityRowUnifiedOperandPayloadFrames_eq_spliceInput
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowUnifiedOperandPayloadFrames W input =
+      encodeUnaryFrameFixedPrefixSpliceInputFamily
+        (fun seed : ValidityRowSeed =>
+          arithmeticValidityRowFixedOperandValues W.machine.tm
+            seed.height seed.start seed.rowBase)
+        (fun seed : ValidityRowSeed =>
+          encodeAffineExactlyOneCompactFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed))
+        (verifierValidityRowSeeds W input) := by
+  rw [verifierValidityRowUnifiedOperandPayloadFrames_eq_rows]
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp only [List.flatMap_cons,
+        encodeUnaryFrameFixedPrefixSpliceInputFamily]
+      rw [show
+        [ arithmeticHaltedMatchStart W.machine.tm seed.height seed.start,
+          seed.rowBase,
+          arithmeticNoneLabelWire W.machine.tm seed.rowBase,
+          0 ] ++
+            arithmeticValidityTailFixedOperandValues W.machine.tm
+              seed.height seed.start seed.rowBase =
+          arithmeticValidityRowFixedOperandValues W.machine.tm
+            seed.height seed.start seed.rowBase by rfl]
+      rw [ih]
+
+/-- Delimiter-materialized unified row packets.  The compact one-hot payload
+is still retained verbatim for the final row-local expansion/projection stage. -/
+noncomputable def verifierValidityRowSplicedOperandPayloadFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  rewriteUnaryFrameFixedPrefixSplice
+    (arithmeticValidityRowFixedOperandDelimiters W.machine.tm)
+    (verifierValidityRowUnifiedOperandPayloadFrames W input)
+
+/-- Exact row-major semantics after materializing every fixed delimiter. -/
+theorem verifierValidityRowSplicedOperandPayloadFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowSplicedOperandPayloadFrames W input =
+      encodeUnaryFrameFixedPrefixSpliceOutputFamily
+        (arithmeticValidityRowFixedOperandDelimiters W.machine.tm)
+        (fun seed : ValidityRowSeed =>
+          arithmeticValidityRowFixedOperandValues W.machine.tm
+            seed.height seed.start seed.rowBase)
+        (fun seed : ValidityRowSeed =>
+          encodeAffineExactlyOneCompactFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed))
+        (verifierValidityRowSeeds W input) := by
+  unfold verifierValidityRowSplicedOperandPayloadFrames
+  rw [verifierValidityRowUnifiedOperandPayloadFrames_eq_spliceInput]
+  apply rewriteUnaryFrameFixedPrefixSplice_family
+  · intro seed
+    exact arithmeticValidityRowFixedOperandValues_length W.machine.tm
+      seed.height seed.start seed.rowBase
+  · intro seed symbol hsymbol
+    exact inputCompiler_compactFamily_no_frameEnd _ symbol hsymbol
+
+/-- Expanded row view of the spliced stream, exposing the exact halted
+boundary and the unchanged compact one-hot payload. -/
+theorem verifierValidityRowSplicedOperandPayloadFrames_eq_explicit
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowSplicedOperandPayloadFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeUnaryFrame
+            [ arithmeticHaltedMatchStart W.machine.tm seed.height seed.start,
+              seed.rowBase,
+              arithmeticNoneLabelWire W.machine.tm seed.rowBase ] ++
+          [.frameEnd] ++
+          encodeUnaryFrameWithFixedDelimiters
+            (arithmeticValidityTailFixedOperandValues W.machine.tm
+              seed.height seed.start seed.rowBase)
+            (arithmeticValidityTailFixedOperandDelimiters W.machine.tm) ++
+          encodeAffineExactlyOneCompactFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed) ++
+          [.frameEnd] := by
+  rw [verifierValidityRowSplicedOperandPayloadFrames_eq_rows]
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp only [encodeUnaryFrameFixedPrefixSpliceOutputFamily,
+        List.flatMap_cons]
+      rw [arithmeticValidityRowFixedEncoding_eq, ih]
+
+/-- One fixed polynomial-time pipeline computes the delimiter-materialized
+unified packets directly from the original verifier word. -/
+noncomputable def
+    verifierValidityRowSplicedOperandPayloadFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowSplicedOperandPayloadFrames W) := by
+  let unifiedSource :=
+    verifierValidityRowUnifiedOperandPayloadFrames_computableInPolyTime W
+  let spliceSource := unaryFrameFixedPrefixSplice_computableInPolyTime
+    (arithmeticValidityRowFixedOperandDelimiters W.machine.tm)
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      unifiedSource spliceSource
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      rewriteUnaryFrameFixedPrefixSplice
+        (arithmeticValidityRowFixedOperandDelimiters W.machine.tm)
+        (verifierValidityRowUnifiedOperandPayloadFrames W input))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.CookLevin
