@@ -35,6 +35,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityFinalConjunctionSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDelimiterMap
 
 /-!
 # Verified bounded TM2 builders
@@ -77,4 +78,6 @@ with explicit counter clearing between rows and an exact clean-halt theorem.
 The affine-triple map source additionally turns a raw runtime
 `(height, start, rowBase)` stream into any verifier-fixed finite table of
 affine operands using one concrete quadratic-time TM2 controller.
+The fixed delimiter-map layer then rewrites ordinary unary separators to any
+verifier-fixed cyclic `separator`/`frameEnd` layout in exact linear time.
 -/
