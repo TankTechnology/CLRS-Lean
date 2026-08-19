@@ -1,6 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowHaltedOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowTailSource
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowDuplicate
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDuplicatedRowRoute
 
 /-!
 # Canonical complete validity-row input packets
@@ -800,6 +800,99 @@ noncomputable def
     (fun input : List Γ =>
       encodeUnaryFrameDuplicatedMarkedRowFamily
         (verifierValidityRowPlainOperandPayloadFamily W input))
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-! ## Route the two physical copies to their row-local consumers -/
+
+/-- Typed duplicated-row domain for the fixed verifier operand table.  The
+first component is the complete fixed halted/tail prefix and the second is
+the compact one-hot payload retained byte-for-byte. -/
+noncomputable def verifierValidityRowDuplicatedRouteFamily
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    UnaryFrameDuplicatedRowRouteFamily
+      (arithmeticValidityRowFixedOperandForms W.machine.tm).length :=
+  { rows := (verifierValidityRowSeeds W input).map fun seed =>
+      (arithmeticValidityRowFixedOperandValues W.machine.tm
+          seed.height seed.start seed.rowBase,
+        encodeAffineExactlyOneCompactFamily
+          (validityRowSeedOneHotFrames W.machine.tm seed))
+    prefix_lengths := by
+      intro row hrow
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      rw [arithmeticValidityRowFixedOperandValues_length,
+        arithmeticValidityRowFixedOperandDelimiters_length]
+    payload_frameEnd_free := by
+      intro row hrow symbol hsymbol
+      rw [List.mem_map] at hrow
+      rcases hrow with ⟨seed, hseed, rfl⟩
+      exact inputCompiler_compactFamily_no_frameEnd _ symbol hsymbol }
+
+/-- The typed router input is exactly the already compiled duplicated stream. -/
+theorem verifierValidityRowDuplicatedRouteFamily_encoding_eq
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    encodeUnaryFrameDuplicatedRowRouteInput
+        (verifierValidityRowDuplicatedRouteFamily W input) =
+      verifierValidityRowDuplicatedPlainOperandPayloadFrames W input := by
+  rw [verifierValidityRowDuplicatedPlainOperandPayloadFrames_eq_rows]
+  unfold encodeUnaryFrameDuplicatedRowRouteInput
+    verifierValidityRowDuplicatedRouteFamily
+  rw [List.flatMap_map]
+
+/-- Routed row packets: the first copy contributes only its compact one-hot
+payload, while the second copy retains the complete fixed operand prefix and
+the same compact payload. -/
+noncomputable def verifierValidityRowRoutedOperandPayloadFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  rewriteUnaryFrameDuplicatedRowRoute
+    (arithmeticValidityRowFixedOperandForms W.machine.tm).length
+    (verifierValidityRowDuplicatedPlainOperandPayloadFrames W input)
+
+/-- Exact byte layout after routing the two physical copies. -/
+theorem verifierValidityRowRoutedOperandPayloadFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowRoutedOperandPayloadFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeAffineExactlyOneCompactFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed) ++
+          [.frameEnd] ++
+          encodeUnaryFrame
+            (arithmeticValidityRowFixedOperandValues W.machine.tm
+              seed.height seed.start seed.rowBase) ++
+          encodeAffineExactlyOneCompactFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed) ++
+          [.frameEnd] := by
+  unfold verifierValidityRowRoutedOperandPayloadFrames
+  rw [← verifierValidityRowDuplicatedRouteFamily_encoding_eq]
+  rw [rewriteUnaryFrameDuplicatedRowRoute_family]
+  · unfold encodeUnaryFrameDuplicatedRowRouteOutput
+      verifierValidityRowDuplicatedRouteFamily
+    rw [List.flatMap_map]
+  · simp [arithmeticValidityRowFixedOperandForms]
+
+/-- One fixed polynomial-time pipeline computes the routed row packets from
+the original verifier word. -/
+noncomputable def
+    verifierValidityRowRoutedOperandPayloadFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowRoutedOperandPayloadFrames W) := by
+  let duplicatedSource :=
+    verifierValidityRowDuplicatedPlainOperandPayloadFrames_computableInPolyTime W
+  let router := unaryFrameDuplicatedRowRoute_computableInPolyTime
+    (arithmeticValidityRowFixedOperandForms W.machine.tm).length
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      duplicatedSource router
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      rewriteUnaryFrameDuplicatedRowRoute
+        (arithmeticValidityRowFixedOperandForms W.machine.tm).length
+        (verifierValidityRowDuplicatedPlainOperandPayloadFrames W input))
   simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.CookLevin
