@@ -13,6 +13,7 @@ noncomputable section
 
 namespace CLRS.Chapter34.Turing.CookLevin
 
+open PolyBuilder
 open _root_.Turing.TM2 _root_.Turing.TM2.Stmt
 
 /-! ## Builder-free zero-gate wiring -/
@@ -258,5 +259,183 @@ theorem compileStmt_wires_eq_transitionStmtOutputWires
       rw [cfgMux_wires_eq_arithmetic]
       rw [compileStmt_gate_delta, compileStmt_gate_delta,
         oneHotPredicate_gate_delta]
+
+/-! ## Pure recursive phase layout -/
+
+/-- Complete statement-controller script with every builder and validity
+witness erased.  Numeric operands are reconstructed from the initial layout,
+pure finite-lookup traces, and exact structural gate costs. -/
+def transitionStmtScript (tm : _root_.Turing.FinTM2) (height : Nat)
+    (falseWire trueWire : Nat) :
+    (start : Nat) → CfgWires tm height →
+      (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ) →
+      (∀ k, stmtPushSet tm q k ⊆ reachableAlphabet tm k) →
+      List AffineStmtPhase
+  | _, _, halt, _ => []
+  | start, source, goto jump, _ =>
+      [AffineStmtPhase.oneHotMap
+        (affineOneHotMapCanonicalGroups start source.state
+        (stmtLabelTable tm jump))]
+  | start, source, load update continuation, hsupport =>
+      let hcontinuation :
+          ∀ k, stmtPushSet tm continuation k ⊆ reachableAlphabet tm k := by
+        simpa [stmtPushSet] using hsupport
+      let mapped := (oneHotMapGateTrace start source.state
+        (stmtStateTable tm update)).wires
+      AffineStmtPhase.oneHotMap
+          (affineOneHotMapCanonicalGroups start source.state
+          (stmtStateTable tm update)) ::
+        transitionStmtScript tm height falseWire trueWire
+          (start + stateCount tm + stateCount tm)
+          (source.replaceState mapped) continuation hcontinuation
+  | start, source, push k emit continuation, hsupport =>
+      let hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        intro j symbol hsymbol
+        apply hsupport j
+        simp only [stmtPushSet]
+        exact Finset.mem_union_right _ hsymbol
+      let symbolAt : Fin (stateCount tm) → SupportedSymbol tm k := fun code =>
+        ⟨emit ((stateEquivFin tm).symm code), by
+          apply hsupport k
+          simp [stmtPushSet]⟩
+      let mapped := (oneHotMapGateTrace start source.state
+        (fun code => encodeSupportedSymbol (symbolAt code))).wires
+      let wires := arithmeticPushCfgWires tm height k falseWire mapped source
+      AffineStmtPhase.oneHotMap
+          (affineOneHotMapCanonicalGroups start source.state
+          (fun code => encodeSupportedSymbol (symbolAt code))) ::
+        transitionStmtScript tm height falseWire trueWire
+          (start + stateCount tm + (reachableAlphabet tm k).card)
+          wires continuation hcontinuation
+  | start, source, peek k update continuation, hsupport =>
+      let hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        simpa [stmtPushSet] using hsupport
+      let head := arithmeticPeekCfgWires tm height falseWire trueWire source k
+      let mapped := (oneHotPairMapGateTrace start source.state head
+        (stmtHeadStateTable tm k update)).wires
+      AffineStmtPhase.oneHotPairMap
+          (affineOneHotPairMapAndFrames source.state head)
+          (affineOneHotPairMapOrGroups start source.state head
+            (stmtHeadStateTable tm k update)) ::
+        transitionStmtScript tm height falseWire trueWire
+          (start + 2 * stateCount tm * ((reachableAlphabet tm k).card + 1) +
+            stateCount tm)
+          (source.replaceState mapped) continuation hcontinuation
+  | start, source, pop k update continuation, hsupport =>
+      let hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        simpa [stmtPushSet] using hsupport
+      let popped := arithmeticPopCfgWires tm height k falseWire trueWire
+        start source
+      let head := arithmeticPopHeadWires tm k falseWire trueWire height
+        (source.stack k)
+      let pairStart := start + popStackWireGateCost height
+      let mapped := (oneHotPairMapGateTrace pairStart popped.state head
+        (stmtHeadStateTable tm k update)).wires
+      AffineStmtPhase.pop (affinePopFrames source k) ::
+        AffineStmtPhase.oneHotPairMap
+            (affineOneHotPairMapAndFrames popped.state head)
+            (affineOneHotPairMapOrGroups pairStart popped.state head
+              (stmtHeadStateTable tm k update)) ::
+          transitionStmtScript tm height falseWire trueWire
+            (pairStart +
+              (2 * stateCount tm * ((reachableAlphabet tm k).card + 1) +
+                stateCount tm))
+            (popped.replaceState mapped) continuation hcontinuation
+  | start, source, branch test whenTrue whenFalse, hsupport =>
+      let htrueSupport :
+          ∀ k, stmtPushSet tm whenTrue k ⊆ reachableAlphabet tm k := by
+        intro k symbol hsymbol
+        apply hsupport k
+        simp only [stmtPushSet]
+        exact Finset.mem_union_left _ hsymbol
+      let hfalseSupport :
+          ∀ k, stmtPushSet tm whenFalse k ⊆ reachableAlphabet tm k := by
+        intro k symbol hsymbol
+        apply hsupport k
+        simp only [stmtPushSet]
+        exact Finset.mem_union_right _ hsymbol
+      let predicateWire :=
+        (CircuitBuilder.disjunctionGateTrace start
+          (oneHotPredicateWires source.state
+            (stmtPredicateTable tm test))).wire
+      let trueStart := start +
+        ((oneHotTruePreimage (stmtPredicateTable tm test)).card + 1)
+      let trueScript := transitionStmtScript tm height falseWire trueWire
+        trueStart source whenTrue htrueSupport
+      let trueWires := transitionStmtOutputWires tm height falseWire trueWire
+        trueStart source whenTrue htrueSupport
+      let falseStart := trueStart + compileStmtGateCost tm height whenTrue
+      let falseScript := transitionStmtScript tm height falseWire trueWire
+        falseStart source whenFalse hfalseSupport
+      let falseWires := transitionStmtOutputWires tm height falseWire trueWire
+        falseStart source whenFalse hfalseSupport
+      let muxStart := falseStart + compileStmtGateCost tm height whenFalse
+      AffineStmtPhase.oneHotPredicate
+          (affineOneHotPredicateCanonicalFrames start source.state
+          (stmtPredicateTable tm test)) ::
+        trueScript ++ falseScript ++
+          [AffineStmtPhase.mux predicateWire
+            (affineMuxFinCanonicalFrames muxStart predicateWire _
+              (fun i => trueWires ((cfgSlotEquivFin tm height).symm i))
+              (fun i => falseWires ((cfgSlotEquivFin tm height).symm i)))]
+
+/-- The canonical proof-carrying statement script is exactly the complete
+builder-free phase recursion. -/
+theorem compileStmtScript_eq_transitionStmtScript
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source : CfgWires tm height) (hvalid : source.ValidIn base)
+    (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ)
+    (hsupport : ∀ k, stmtPushSet tm q k ⊆ reachableAlphabet tm k) :
+    compileStmtScript tm height base pool source hvalid q hsupport =
+      transitionStmtScript tm height pool.falseWire pool.trueWire
+        base.gates.length source q hsupport := by
+  induction q generalizing base source with
+  | halt => rfl
+  | goto jump => rfl
+  | load update continuation ih =>
+      simp only [compileStmtScript, transitionStmtScript]
+      rw [ih]
+      rw [oneHotMap_wires_eq_trace, oneHotMap_gate_delta]
+      simp only [CircuitBuilder.BoolWirePool.mono_falseWire,
+        CircuitBuilder.BoolWirePool.mono_trueWire, Nat.add_assoc]
+  | push k emit continuation ih =>
+      simp only [compileStmtScript, transitionStmtScript]
+      rw [ih]
+      rw [pushCfgWires_eq_arithmetic, oneHotMap_wires_eq_trace,
+        oneHotMap_gate_delta]
+      simp only [CircuitBuilder.BoolWirePool.mono_falseWire,
+        CircuitBuilder.BoolWirePool.mono_trueWire, Nat.add_assoc]
+  | peek k update continuation ih =>
+      simp only [compileStmtScript, transitionStmtScript]
+      rw [ih]
+      rw [arithmeticPeekCfgWires_eq_peekCfgWires,
+        oneHotPairMap_wires_eq_trace, oneHotPairMap_gate_delta]
+      simp only [CircuitBuilder.BoolWirePool.mono_falseWire,
+        CircuitBuilder.BoolWirePool.mono_trueWire, Nat.add_assoc]
+  | pop k update continuation ih =>
+      simp only [compileStmtScript, transitionStmtScript]
+      rw [ih]
+      rw [oneHotPairMap_wires_eq_trace, oneHotPairMap_gate_delta,
+        (popCfgWires base pool source hvalid k).gate_delta]
+      simp only [CircuitBuilder.BoolWirePool.mono_falseWire,
+        CircuitBuilder.BoolWirePool.mono_trueWire]
+      rw [popCfgWires_wires_eq_arithmetic,
+        popCfgWires_head_eq_arithmetic]
+  | branch test whenTrue whenFalse ihTrue ihFalse =>
+      simp only [compileStmtScript, transitionStmtScript]
+      rw [ihTrue, ihFalse]
+      rw [compileStmt_wires_eq_transitionStmtOutputWires,
+        compileStmt_wires_eq_transitionStmtOutputWires]
+      rw [oneHotPredicate_wire_eq_trace]
+      rw [compileStmt_gate_delta, compileStmt_gate_delta,
+        oneHotPredicate_gate_delta]
+      rw [compileStmt_gate_delta]
+      rw [oneHotPredicate_gate_delta]
+      simp only [CircuitBuilder.BoolWirePool.mono_falseWire,
+        CircuitBuilder.BoolWirePool.mono_trueWire, Nat.add_assoc]
 
 end CLRS.Chapter34.Turing.CookLevin
