@@ -7,6 +7,10 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionSeedFamilyInput
 #check transitionSeedFamilyUnaryInput
 #check transitionSeedLocalUnaryInput
+#check transitionDispatchListFinalMuxOffset
+#check transitionDispatchListOutputWires_eq_finalMux
+#check programLabels_nonempty
+#check transitionDispatchOutputWires_eq_finalMux
 #check transitionSeedFamilyUnaryInput_eq_flatMap
 #check transitionSeedFamilyInput_eq_map_data
 #check verifierTransitionFamilyScripts
@@ -27,6 +31,7 @@ open CLRS.Chapter34.Turing.CookLevin
 #check verifierTransitionGateStream_computableInPolyTime_of_inputCompiler
 
 #print axioms verifierTransitionFamilyScripts_eq_canonical
+#print axioms transitionDispatchOutputWires_eq_finalMux
 #print axioms verifierTransitionFamilyInputTarget_eq_canonical
 #print axioms verifierTransitionFamilyUnaryInputTarget_eq_flatMap
 #print axioms verifierTransitionRowMarkedSeedFrames_eq_seeds
