@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionWidening
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check arithmeticWidenedCfgWires
+#check widenCfg_falseWire_eq
+#check widenCfg_trueWire_eq
+#check widenCfg_arithmetic_wires_eq
+#check TransitionWideningLayout
+#check transitionWideningLayout
+#check widenCfgLayout
+#check widenCfgLayout_arithmetic_eq_seed
+#check verifierTransitionRowSeeds_wideningLayouts_eq_ofFn
+
+#print axioms widenCfg_falseWire_eq
+#print axioms widenCfg_trueWire_eq
+#print axioms widenCfg_arithmetic_wires_eq
+#print axioms widenCfgLayout_arithmetic_eq_seed
+#print axioms verifierTransitionRowSeeds_wideningLayouts_eq_ofFn
