@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailLayout
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionTailLayout
+#check transitionScriptTailLayout
+#check transitionTailLayoutAt
+#check compileTransitionScript_tailLayout_eq
+#check compileTransitionFamilyScripts_tailLayouts_eq_ofFn
+#check expandTransitionRowSeedTailLayout
+#check verifierTransitionRowSeeds_expand_tailLayouts_eq_scripts
+
+#print axioms compileTransitionScript_tailLayout_eq
+#print axioms compileTransitionFamilyScripts_tailLayouts_eq_ofFn
+#print axioms verifierTransitionRowSeeds_expand_tailLayouts_eq_scripts
