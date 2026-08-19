@@ -194,6 +194,204 @@ theorem arithmeticWidening_dispatchArtifact_starts_eq_seed
   unfold transitionDispatchStarts
   rw [widenCfg_gate_delta]
 
+/-! ## Arithmetic fresh skeleton of every label mux -/
+
+/-- Fresh coordinates of one label's whole-workspace selection.  The two arm
+operands are deliberately excluded; they are the remaining statement-output
+and accumulated-fallback rows. -/
+structure TransitionDispatchMuxFreshLayout where
+  selector : Nat
+  coordinates : List (Nat × Nat × Nat)
+
+/-- Extract the selector-negation and two AND outputs from actual mux frames. -/
+def TransitionDispatchLabelArtifact.muxFreshLayout
+    {tm : _root_.Turing.FinTM2}
+    (artifact : TransitionDispatchLabelArtifact tm) :
+    TransitionDispatchMuxFreshLayout :=
+  { selector := artifact.selector
+    coordinates := artifact.muxFrames.map fun frame =>
+      (frame.selectorNot, frame.trueArm, frame.falseArm) }
+
+/-- Closed fresh skeleton of a canonical finite mux. -/
+def transitionDispatchMuxFreshLayout (start selector width : Nat) :
+    TransitionDispatchMuxFreshLayout :=
+  { selector := selector
+    coordinates := List.ofFn fun coordinate : Fin width =>
+      (start, start + 1 + 3 * coordinate.val,
+        start + 2 + 3 * coordinate.val) }
+
+private theorem affineMuxFinCanonicalFrames_freshCoordinates
+    (start selector : Nat) :
+    ∀ (width : Nat) (whenTrue whenFalse : Fin width → CircuitBuilder.Wire),
+      (affineMuxFinCanonicalFrames start selector width
+          whenTrue whenFalse).map (fun frame =>
+            (frame.selectorNot, frame.trueArm, frame.falseArm)) =
+        List.ofFn fun coordinate : Fin width =>
+          (start, start + 1 + 3 * coordinate.val,
+            start + 2 + 3 * coordinate.val) := by
+  intro width
+  induction width with
+  | zero =>
+      intro whenTrue whenFalse
+      rfl
+  | succ width ih =>
+      intro whenTrue whenFalse
+      simp only [affineMuxFinCanonicalFrames, List.map_append,
+        List.map_singleton]
+      rw [ih]
+      rw [List.ofFn_succ']
+      simp [List.concat_eq_append]
+
+/-- Every label artifact's mux fresh skeleton is determined recursively by
+the label start and that statement's exact cost. -/
+def transitionDispatchMuxFreshLayouts
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (source : CfgWires tm (workHeight tm height)) :
+    Nat → List tm.Λ → List TransitionDispatchMuxFreshLayout
+  | _, [] => []
+  | start, label :: labels =>
+      let selector := source.label (Fin.castSucc (labelEquivFin tm label))
+      let muxStart := start +
+        compileStmtGateCost tm (workHeight tm height) (tm.m label)
+      transitionDispatchMuxFreshLayout muxStart selector
+          (cfgBitCount tm (workHeight tm height)) ::
+        transitionDispatchMuxFreshLayouts tm height source
+          (muxStart + (3 * cfgBitCount tm (workHeight tm height) + 1))
+          labels
+
+/-- Label artifacts have exactly the recursive arithmetic mux skeleton. -/
+theorem compileDispatchLabelsListArtifacts_muxFreshLayouts_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source fallback : CfgWires tm (workHeight tm height))
+    (hsource : source.ValidIn base) (hfallback : fallback.ValidIn base)
+    (labels : List tm.Λ) :
+    (compileDispatchLabelsListArtifacts tm height base pool source fallback
+        hsource hfallback labels).map
+          TransitionDispatchLabelArtifact.muxFreshLayout =
+      transitionDispatchMuxFreshLayouts tm height source base.gates.length
+        labels := by
+  induction labels generalizing base source fallback with
+  | nil => rfl
+  | cons label labels ih =>
+      simp only [compileDispatchLabelsListArtifacts,
+        transitionDispatchMuxFreshLayouts, List.map_cons]
+      congr 1
+      · unfold TransitionDispatchLabelArtifact.muxFreshLayout
+          transitionDispatchMuxFreshLayout
+        rw [affineMuxFinCanonicalFrames_freshCoordinates]
+        rw [compileStmt_gate_delta]
+      · rw [ih]
+        congr 2
+        rw [cfgMux_gate_delta, compileStmt_gate_delta]
+
+/-- Seed-only mux skeleton for the complete fixed-label dispatch. -/
+def transitionDispatchMuxFreshLayoutsFromSeed
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
+    List TransitionDispatchMuxFreshLayout :=
+  transitionDispatchMuxFreshLayouts tm seed.height
+    (arithmeticWidenedCfgWires tm seed.height seed.start seed.rowBase)
+    (seed.start + 2) (programLabels tm)
+
+/-- Actual widening plus label artifacts use exactly the seed-only mux fresh
+skeleton. -/
+theorem arithmeticWidening_dispatchArtifact_muxFreshLayouts_eq_seed
+    (tm : _root_.Turing.FinTM2) (height rowBase : Nat)
+    (base : CircuitBuilder)
+    (hvalid : (arithmeticCfgWires tm height rowBase).ValidIn base) :
+    let widened := widenCfg base (arithmeticCfgWires tm height rowBase) hvalid
+    (compileDispatchArtifacts tm height widened.builder widened.constants
+        widened.wires widened.valid).map
+          TransitionDispatchLabelArtifact.muxFreshLayout =
+      transitionDispatchMuxFreshLayoutsFromSeed tm
+        { height := height, start := base.gates.length, rowBase := rowBase } := by
+  dsimp only [compileDispatchArtifacts]
+  rw [compileDispatchLabelsListArtifacts_muxFreshLayouts_eq]
+  unfold transitionDispatchMuxFreshLayoutsFromSeed
+  rw [widenCfg_arithmetic_wires_eq, widenCfg_gate_delta]
+
+/-! ## Arithmetic output row of the complete dispatch -/
+
+/-- Whole-row mux outputs occupy every third wire after the shared negation. -/
+def arithmeticMuxCfgWires (tm : _root_.Turing.FinTM2)
+    (height muxStart : Nat) : CfgWires tm height :=
+  fun slot => muxStart + 3 + 3 * (cfgSlotEquivFin tm height slot).val
+
+/-- The proof-carrying whole-row mux returns exactly the arithmetic output
+bundle, independently of both arm payloads. -/
+theorem cfgMux_wires_eq_arithmetic
+    {tm : _root_.Turing.FinTM2} {height : Nat}
+    (base : CircuitBuilder) (selector : CircuitBuilder.Wire)
+    (whenTrue whenFalse : CfgWires tm height)
+    (hselector : base.WireValid selector)
+    (htrue : whenTrue.ValidIn base) (hfalse : whenFalse.ValidIn base) :
+    (cfgMux base selector whenTrue whenFalse
+      hselector htrue hfalse).wires =
+      arithmeticMuxCfgWires tm height base.gates.length := by
+  funext slot
+  rw [cfgMux_wire_eq]
+  rfl
+
+/-- Output-row wires after a dispatch suffix.  Every nonempty step replaces
+the fallback with its fresh arithmetic mux row. -/
+def transitionDispatchListOutputWires
+    (tm : _root_.Turing.FinTM2) (height : Nat) :
+    Nat → List tm.Λ → CfgWires tm (workHeight tm height) →
+      CfgWires tm (workHeight tm height)
+  | _, [], fallback => fallback
+  | start, label :: labels, _fallback =>
+      let muxStart := start +
+        compileStmtGateCost tm (workHeight tm height) (tm.m label)
+      transitionDispatchListOutputWires tm height
+        (muxStart + (3 * cfgBitCount tm (workHeight tm height) + 1))
+        labels
+        (arithmeticMuxCfgWires tm (workHeight tm height) muxStart)
+
+/-- The semantic dispatch recursion's output wires obey the pure arithmetic
+suffix recurrence. -/
+theorem dispatchLabelsList_wires_eq_arithmetic
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source fallback : CfgWires tm (workHeight tm height))
+    (hsource : source.ValidIn base) (hfallback : fallback.ValidIn base)
+    (labels : List tm.Λ) :
+    (dispatchLabelsList tm height base pool source fallback hsource hfallback
+      labels).wires =
+      transitionDispatchListOutputWires tm height base.gates.length labels
+        fallback := by
+  induction labels generalizing base source fallback with
+  | nil => rfl
+  | cons label labels ih =>
+      simp only [dispatchLabelsList, transitionDispatchListOutputWires]
+      rw [ih]
+      rw [cfgMux_wires_eq_arithmetic]
+      congr 2
+      · rw [cfgMux_gate_delta, compileStmt_gate_delta]
+      · rw [compileStmt_gate_delta]
+
+/-- Complete dispatched workspace row decoded from one local transition seed. -/
+def transitionDispatchOutputWires (tm : _root_.Turing.FinTM2)
+    (seed : TransitionRowSeed) : CfgWires tm (workHeight tm seed.height) :=
+  transitionDispatchListOutputWires tm seed.height (seed.start + 2)
+    (programLabels tm)
+    (arithmeticWidenedCfgWires tm seed.height seed.start seed.rowBase)
+
+/-- Actual proof-carrying widening and finite-label dispatch return exactly the
+seed-only arithmetic workspace row. -/
+theorem arithmeticWidening_dispatchLabels_wires_eq_seed
+    (tm : _root_.Turing.FinTM2) (height rowBase : Nat)
+    (base : CircuitBuilder)
+    (hvalid : (arithmeticCfgWires tm height rowBase).ValidIn base) :
+    let widened := widenCfg base (arithmeticCfgWires tm height rowBase) hvalid
+    (dispatchLabels tm height widened.builder widened.constants widened.wires
+      widened.valid).wires =
+      transitionDispatchOutputWires tm
+        { height := height, start := base.gates.length, rowBase := rowBase } := by
+  dsimp only [dispatchLabels]
+  rw [dispatchLabelsList_wires_eq_arithmetic]
+  unfold transitionDispatchOutputWires
+  rw [widenCfg_arithmetic_wires_eq, widenCfg_gate_delta]
+
 /-! ## Seed-derived selectors -/
 
 /-- Selector wire for every label arm, directly from one transition seed's

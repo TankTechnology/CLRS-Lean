@@ -204,6 +204,46 @@ private def muxFinBody (start : CircuitBuilder)
           rw [previous.extension.evalWire_eq inputs hselectorNot]
           rw [previous.extension.evalWire_eq inputs (hfalse (Fin.last n))]
 
+/-- The selected output for coordinate `i` is the third fresh body gate for
+that coordinate. -/
+private theorem muxFinBody_wires_eq (start : CircuitBuilder)
+    (selector selectorNot : Wire) :
+    ∀ (n : Nat) (whenTrue whenFalse : Fin n → Wire)
+      (hselector : start.WireValid selector)
+      (hselectorNot : start.WireValid selectorNot)
+      (htrue : ∀ i, start.WireValid (whenTrue i))
+      (hfalse : ∀ i, start.WireValid (whenFalse i)) (i : Fin n),
+      (muxFinBody start selector selectorNot n whenTrue whenFalse
+        hselector hselectorNot htrue hfalse).wires i =
+        start.gates.length + 2 + 3 * i.val := by
+  intro n
+  induction n with
+  | zero =>
+      intro whenTrue whenFalse hselector hselectorNot htrue hfalse i
+      exact Fin.elim0 i
+  | succ n ih =>
+      intro whenTrue whenFalse hselector hselectorNot htrue hfalse i
+      simp only [muxFinBody]
+      split
+      next hi =>
+        rw [ih (fun j => whenTrue j.castSucc)
+          (fun j => whenFalse j.castSucc) hselector hselectorNot
+          (fun j => htrue j.castSucc) (fun j => hfalse j.castSucc)
+          ⟨i.val, hi⟩]
+      next hi =>
+        have hilast : i = Fin.last n := by
+          apply Fin.ext
+          simp
+          omega
+        subst i
+        rw [or_wire_eq, and_gate_delta, and_gate_delta]
+        rw [(muxFinBody start selector selectorNot n
+          (fun j => whenTrue j.castSucc) (fun j => whenFalse j.castSucc)
+          hselector hselectorNot (fun j => htrue j.castSucc)
+          (fun j => hfalse j.castSucc)).gate_delta]
+        simp
+        ring
+
 private theorem muxFinBody_gates_eq (start : CircuitBuilder)
     (selector selectorNot : Wire) :
     (n : Nat) → (whenTrue whenFalse : Fin n → Wire) →
@@ -292,6 +332,18 @@ theorem muxFin_gate_delta (base : CircuitBuilder) {n : Nat} (selector : Wire)
     (muxFin base selector whenTrue whenFalse hselector htrue hfalse).builder.gates.length =
       base.gates.length + (3 * n + 1) :=
   (muxFin base selector whenTrue whenFalse hselector htrue hfalse).gate_delta
+
+/-- Exact global wire number of every finite-family multiplexer output. -/
+theorem muxFin_wire_eq (base : CircuitBuilder) {n : Nat} (selector : Wire)
+    (whenTrue whenFalse : Fin n → Wire) (hselector : base.WireValid selector)
+    (htrue : ∀ i, base.WireValid (whenTrue i))
+    (hfalse : ∀ i, base.WireValid (whenFalse i)) (i : Fin n) :
+    (muxFin base selector whenTrue whenFalse hselector htrue hfalse).wires i =
+      base.gates.length + 3 + 3 * i.val := by
+  unfold muxFin
+  dsimp only
+  rw [muxFinBody_wires_eq]
+  rw [not_gate_delta]
 
 /-- Every finite-family multiplexer coordinate evaluates to the selected arm. -/
 theorem muxFin_eval (base : CircuitBuilder) {n : Nat} (selector : Wire)

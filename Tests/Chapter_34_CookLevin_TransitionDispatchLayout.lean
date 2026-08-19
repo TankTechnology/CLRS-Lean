@@ -2,6 +2,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 
 open CLRS.Chapter34.Turing.CookLevin
 
+#check CircuitBuilder.muxFin_wire_eq
+#check cfgMux_wire_eq
 #check TransitionDispatchLabelArtifact
 #check TransitionDispatchLabelArtifact.script
 #check compileDispatchLabelsListArtifacts
@@ -14,17 +16,37 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionDispatchStarts
 #check compileDispatchLabelsListArtifacts_starts_eq
 #check arithmeticWidening_dispatchArtifact_starts_eq_seed
+#check TransitionDispatchMuxFreshLayout
+#check TransitionDispatchLabelArtifact.muxFreshLayout
+#check transitionDispatchMuxFreshLayout
+#check transitionDispatchMuxFreshLayouts
+#check compileDispatchLabelsListArtifacts_muxFreshLayouts_eq
+#check transitionDispatchMuxFreshLayoutsFromSeed
+#check arithmeticWidening_dispatchArtifact_muxFreshLayouts_eq_seed
+#check arithmeticMuxCfgWires
+#check cfgMux_wires_eq_arithmetic
+#check transitionDispatchListOutputWires
+#check dispatchLabelsList_wires_eq_arithmetic
+#check transitionDispatchOutputWires
+#check arithmeticWidening_dispatchLabels_wires_eq_seed
 #check transitionDispatchSelectors
 #check transitionDispatchSelectors_eq
 #check compileDispatchLabelsListArtifacts_selectors_eq
 #check arithmeticWidening_dispatchArtifact_selectors_eq_seed
 
 #print axioms compileDispatchLabelsListArtifacts_flatMap_script
+#print axioms CircuitBuilder.muxFin_wire_eq
+#print axioms cfgMux_wire_eq
 #print axioms compileDispatchLabelsListArtifacts_labels_eq
 #print axioms compileDispatchArtifacts_flatMap_script
 #print axioms compileDispatchArtifacts_length
 #print axioms compileDispatchLabelsListArtifacts_starts_eq
 #print axioms arithmeticWidening_dispatchArtifact_starts_eq_seed
+#print axioms compileDispatchLabelsListArtifacts_muxFreshLayouts_eq
+#print axioms arithmeticWidening_dispatchArtifact_muxFreshLayouts_eq_seed
+#print axioms cfgMux_wires_eq_arithmetic
+#print axioms dispatchLabelsList_wires_eq_arithmetic
+#print axioms arithmeticWidening_dispatchLabels_wires_eq_seed
 #print axioms compileDispatchLabelsListArtifacts_selectors_eq
 #print axioms transitionDispatchSelectors_eq
 #print axioms arithmeticWidening_dispatchArtifact_selectors_eq_seed

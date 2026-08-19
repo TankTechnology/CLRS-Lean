@@ -210,6 +210,20 @@ theorem cfgMux_gate_delta {tm : _root_.Turing.FinTM2} {H : Nat}
       base.gates.length + (3 * cfgBitCount tm H + 1) :=
   (cfgMux base selector whenTrue whenFalse hselector htrue hfalse).gate_delta
 
+/-- Exact global wire number of every whole-row multiplexer output. -/
+theorem cfgMux_wire_eq {tm : _root_.Turing.FinTM2} {H : Nat}
+    (base : CircuitBuilder) (selector : CircuitBuilder.Wire)
+    (whenTrue whenFalse : CfgWires tm H)
+    (hselector : base.WireValid selector)
+    (htrue : whenTrue.ValidIn base) (hfalse : whenFalse.ValidIn base)
+    (slot : CfgSlot tm H) :
+    (cfgMux base selector whenTrue whenFalse
+      hselector htrue hfalse).wires slot =
+      base.gates.length + 3 + 3 * (cfgSlotEquivFin tm H slot).val := by
+  unfold cfgMux
+  dsimp only
+  rw [CircuitBuilder.muxFin_wire_eq]
+
 /-- Whole-row selection appends the exact canonical finite-slot gate trace. -/
 theorem cfgMux_gates_eq {tm : _root_.Turing.FinTM2} {H : Nat}
     (base : CircuitBuilder) (selector : CircuitBuilder.Wire)
