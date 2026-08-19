@@ -158,4 +158,122 @@ theorem arithmeticWidening_dispatchArtifact_statementHeads_eq_seed
   rw [widenCfg_falseWire_eq, widenCfg_trueWire_eq,
     widenCfg_arithmetic_wires_eq, widenCfg_gate_delta]
 
+/-! ## Static phase schedule -/
+
+/-- The five controller phase tags, with every numeric operand erased. -/
+inductive TransitionStmtPhaseKind
+  | oneHotMap
+  | oneHotPredicate
+  | oneHotPairMap
+  | pop
+  | mux
+deriving DecidableEq, Repr
+
+/-- Erase one concrete phase to its controller tag. -/
+def transitionStmtPhaseKind : AffineStmtPhase → TransitionStmtPhaseKind
+  | .oneHotMap _ => .oneHotMap
+  | .oneHotPredicate _ => .oneHotPredicate
+  | .oneHotPairMap _ _ => .oneHotPairMap
+  | .pop _ => .pop
+  | .mux _ _ => .mux
+
+/-- Complete phase-tag schedule determined solely by statement syntax. -/
+def transitionStmtPhaseKinds (tm : _root_.Turing.FinTM2) :
+    _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ → List TransitionStmtPhaseKind
+  | halt => []
+  | goto _ => [.oneHotMap]
+  | load _ continuation => .oneHotMap :: transitionStmtPhaseKinds tm continuation
+  | push _ _ continuation =>
+      .oneHotMap :: transitionStmtPhaseKinds tm continuation
+  | peek _ _ continuation =>
+      .oneHotPairMap :: transitionStmtPhaseKinds tm continuation
+  | pop _ _ continuation =>
+      .pop :: .oneHotPairMap :: transitionStmtPhaseKinds tm continuation
+  | branch _ whenTrue whenFalse =>
+      .oneHotPredicate ::
+        (transitionStmtPhaseKinds tm whenTrue ++
+          transitionStmtPhaseKinds tm whenFalse ++ [.mux])
+
+/-- Erasing operands from the actual recursive statement script yields the
+syntax-only phase schedule. -/
+theorem compileStmtScript_phaseKinds_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source : CfgWires tm height) (hvalid : source.ValidIn base)
+    (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ)
+    (hsupport : ∀ k, stmtPushSet tm q k ⊆ reachableAlphabet tm k) :
+    (compileStmtScript tm height base pool source hvalid q hsupport).map
+        transitionStmtPhaseKind =
+      transitionStmtPhaseKinds tm q := by
+  induction q generalizing base source with
+  | halt => rfl
+  | goto jump => rfl
+  | load update continuation ih =>
+      simp only [compileStmtScript, List.map_cons, transitionStmtPhaseKind,
+        transitionStmtPhaseKinds]
+      rw [ih]
+  | push k emit continuation ih =>
+      simp only [compileStmtScript, List.map_cons, transitionStmtPhaseKind,
+        transitionStmtPhaseKinds]
+      rw [ih]
+  | peek k update continuation ih =>
+      simp only [compileStmtScript, List.map_cons, transitionStmtPhaseKind,
+        transitionStmtPhaseKinds]
+      rw [ih]
+  | pop k update continuation ih =>
+      simp only [compileStmtScript, List.map_cons, transitionStmtPhaseKind,
+        transitionStmtPhaseKinds]
+      rw [ih]
+  | branch test whenTrue whenFalse ihTrue ihFalse =>
+      simp only [compileStmtScript, List.map_cons, List.map_append,
+        transitionStmtPhaseKind, transitionStmtPhaseKinds]
+      rw [ihTrue, ihFalse]
+      simp
+
+/-- Static phase schedule for a suffix of the fixed program labels, including
+the whole-row mux that follows every statement arm. -/
+def transitionDispatchPhaseKindsForLabels
+    (tm : _root_.Turing.FinTM2) : List tm.Λ → List TransitionStmtPhaseKind
+  | [] => []
+  | label :: labels =>
+      transitionStmtPhaseKinds tm (tm.m label) ++ [.mux] ++
+        transitionDispatchPhaseKindsForLabels tm labels
+
+/-- The complete verifier-specific dispatch schedule. -/
+def transitionDispatchPhaseKinds (tm : _root_.Turing.FinTM2) :
+    List TransitionStmtPhaseKind :=
+  transitionDispatchPhaseKindsForLabels tm (programLabels tm)
+
+/-- Every dynamic dispatch script has the same fixed phase schedule. -/
+theorem compileDispatchLabelsListScript_phaseKinds_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source fallback : CfgWires tm (workHeight tm height))
+    (hsource : source.ValidIn base) (hfallback : fallback.ValidIn base)
+    (labels : List tm.Λ) :
+    (compileDispatchLabelsListScript tm height base pool source fallback
+        hsource hfallback labels).map transitionStmtPhaseKind =
+      transitionDispatchPhaseKindsForLabels tm labels := by
+  induction labels generalizing base fallback with
+  | nil => rfl
+  | cons label labels ih =>
+      simp only [compileDispatchLabelsListScript,
+        transitionDispatchPhaseKindsForLabels, List.map_append,
+        List.map_cons, List.map_nil, transitionStmtPhaseKind]
+      rw [compileStmtScript_phaseKinds_eq]
+      rw [ih]
+
+/-- In particular, the complete canonical-label dispatch has a phase-tag
+stream that can be hard-coded for the fixed verifier machine. -/
+theorem compileDispatchScript_phaseKinds_eq
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (pool : base.BoolWirePool)
+    (source : CfgWires tm (workHeight tm height))
+    (hvalid : source.ValidIn base) :
+    (compileDispatchScript tm height base pool source hvalid).map
+        transitionStmtPhaseKind =
+      transitionDispatchPhaseKinds tm := by
+  exact compileDispatchLabelsListScript_phaseKinds_eq tm height base pool
+    source source hvalid hvalid (programLabels tm)
+
 end CLRS.Chapter34.Turing.CookLevin

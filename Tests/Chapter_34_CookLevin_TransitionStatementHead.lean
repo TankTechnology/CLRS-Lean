@@ -9,7 +9,18 @@ open CLRS.Chapter34.Turing.CookLevin
 #check compileDispatchLabelsListArtifacts_statementHeads_eq
 #check transitionDispatchStatementHeadsFromSeed
 #check arithmeticWidening_dispatchArtifact_statementHeads_eq_seed
+#check TransitionStmtPhaseKind
+#check transitionStmtPhaseKind
+#check transitionStmtPhaseKinds
+#check compileStmtScript_phaseKinds_eq
+#check transitionDispatchPhaseKindsForLabels
+#check transitionDispatchPhaseKinds
+#check compileDispatchLabelsListScript_phaseKinds_eq
+#check compileDispatchScript_phaseKinds_eq
 
 #print axioms compileStmtScript_head?_eq_transitionStmtHeadPhase
 #print axioms compileDispatchLabelsListArtifacts_statementHeads_eq
 #print axioms arithmeticWidening_dispatchArtifact_statementHeads_eq_seed
+#print axioms compileStmtScript_phaseKinds_eq
+#print axioms compileDispatchLabelsListScript_phaseKinds_eq
+#print axioms compileDispatchScript_phaseKinds_eq
