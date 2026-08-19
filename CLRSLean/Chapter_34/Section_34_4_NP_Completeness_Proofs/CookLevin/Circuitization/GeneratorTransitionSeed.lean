@@ -93,4 +93,100 @@ theorem arithmeticTransitionScript_decomposition_eq_seed
   funext coordinate
   simp [arithmeticCfgWires]
 
+/-! ## Reassembly to the complete runtime script -/
+
+/-- Reassemble an operand decomposition into the transition controller's
+runtime record.  The canonical decomposition has aligned component lists;
+`zipWith` merely reconnects the fields that were projected apart. -/
+def transitionScriptOfDecomposition
+    (decomposition : TransitionScriptDecomposition) : AffineTransitionScript :=
+  { dispatch := decomposition.dispatch
+    narrowFrames := List.zipWith
+      (fun left right : Nat => ({ left := left, right := right } :
+        AffineOrFinPairFrame))
+      decomposition.dispatched.narrowLefts decomposition.fresh.narrowRights
+    narrowSource := decomposition.fresh.narrowSource
+    eqFrames := List.zipWith3
+      (fun coordinates left right =>
+        ({ eqStart := coordinates.1
+           left := left
+           right := right
+           matched := coordinates.2.1
+           previous := coordinates.2.2 } : AffineEqFinPairFrame))
+      decomposition.fresh.eqCoordinates decomposition.dispatched.eqLefts
+      decomposition.nextRow
+    finalAnd := decomposition.fresh.finalAnd }
+
+private theorem zipWith_narrowFrame_projections
+    (frames : List AffineOrFinPairFrame) :
+    List.zipWith
+        (fun left right : Nat => ({ left := left, right := right } :
+          AffineOrFinPairFrame))
+        (frames.map (fun frame => frame.left))
+        (frames.map (fun frame => frame.right)) = frames := by
+  induction frames with
+  | nil => rfl
+  | cons frame frames ih =>
+      cases frame
+      simp [ih]
+
+private theorem zipWith3_eqFrame_projections
+    (frames : List AffineEqFinPairFrame) :
+    List.zipWith3
+        (fun coordinates left right =>
+          ({ eqStart := coordinates.1
+             left := left
+             right := right
+             matched := coordinates.2.1
+             previous := coordinates.2.2 } : AffineEqFinPairFrame))
+        (frames.map fun frame =>
+          (frame.eqStart, frame.matched, frame.previous))
+        (frames.map (fun frame => frame.left))
+        (frames.map (fun frame => frame.right)) = frames := by
+  induction frames with
+  | nil => rfl
+  | cons frame frames ih =>
+      cases frame
+      simp [ih, List.zipWith3]
+
+/-- Extracting all four views from any runtime script and reconnecting them is
+an exact left inverse. -/
+theorem transitionScriptOfDecomposition_decomposition
+    (script : AffineTransitionScript) :
+    transitionScriptOfDecomposition (transitionScriptDecomposition script) =
+      script := by
+  cases script with
+  | mk dispatch narrowFrames narrowSource eqFrames finalAnd =>
+      simp [transitionScriptOfDecomposition, transitionScriptDecomposition,
+        transitionScriptTailLayout, transitionScriptDispatchOperandLayout,
+        transitionScriptEqRightOperands,
+        zipWith3_eqFrame_projections]
+
+/-- Complete seed-derived runtime script for one local transition. -/
+def transitionScriptFromSeed
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (nextRowBase : Nat) : AffineTransitionScript :=
+  transitionScriptOfDecomposition
+    (transitionScriptDecompositionFromSeed tm seed nextRowBase)
+
+/-- The actual canonical local transition runtime script is exactly the
+seed-derived script, field for field. -/
+theorem arithmeticCompileTransitionScript_eq_seed
+    (tm : _root_.Turing.FinTM2) (height rowBase nextRowBase : Nat)
+    (base : CircuitBuilder)
+    (hcurrent : (arithmeticCfgWires tm height rowBase).ValidIn base)
+    (hnext : (arithmeticCfgWires tm height nextRowBase).ValidIn base) :
+    compileTransitionScript tm height base
+        (arithmeticCfgWires tm height rowBase)
+        (arithmeticCfgWires tm height nextRowBase) hcurrent hnext =
+      transitionScriptFromSeed tm
+        { height := height, start := base.gates.length, rowBase := rowBase }
+        nextRowBase := by
+  rw [← transitionScriptOfDecomposition_decomposition
+    (compileTransitionScript tm height base
+      (arithmeticCfgWires tm height rowBase)
+      (arithmeticCfgWires tm height nextRowBase) hcurrent hnext)]
+  rw [arithmeticTransitionScript_decomposition_eq_seed]
+  rfl
+
 end CLRS.Chapter34.Turing.CookLevin
