@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeed
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListMap
 
 /-!
 # Canonical complete transition-family input
@@ -30,6 +31,43 @@ def transitionSeedFamilyInput (tm : _root_.Turing.FinTM2)
     (seeds : List TransitionRowSeed) : List AffineStmtScriptSym :=
   encodeAffineTransitionFamily (transitionSeedFamilyScripts tm seeds)
 
+/-- Pure-unary form of the same family input, before embedding it into the
+statement-controller alphabet.  All phase tags of the continuous statement
+controller are themselves encoded by fixed unary prefixes. -/
+def transitionSeedFamilyUnaryInput (tm : _root_.Turing.FinTM2)
+    (seeds : List TransitionRowSeed) : List UnaryFrameSym :=
+  encodeAffineTransitionFamilyUnary (transitionSeedFamilyScripts tm seeds)
+
+/-- Pure-unary payload of one row seed, including the local controller's
+trailing terminator but excluding the outer family's leading marker. -/
+def transitionSeedLocalUnaryInput (tm : _root_.Turing.FinTM2)
+    (seed : TransitionRowSeed) : List UnaryFrameSym :=
+  encodeAffineTransitionLocalUnary
+    (transitionScriptFromSeed tm seed
+      (seed.rowBase + cfgBitCount tm seed.height))
+
+/-- The complete unary target is a literal row-major packet stream.  This is
+the interface used by the forthcoming fixed seed-family expander. -/
+theorem transitionSeedFamilyUnaryInput_eq_flatMap
+    (tm : _root_.Turing.FinTM2) (seeds : List TransitionRowSeed) :
+    transitionSeedFamilyUnaryInput tm seeds =
+      seeds.flatMap fun seed =>
+        .frameEnd :: transitionSeedLocalUnaryInput tm seed := by
+  unfold transitionSeedFamilyUnaryInput transitionSeedFamilyScripts
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineTransitionFamilyUnary,
+        transitionSeedLocalUnaryInput, ih]
+
+/-- The controller-alphabet target is only the fixed `.data` symbol map over
+the pure-unary seed expansion. -/
+theorem transitionSeedFamilyInput_eq_map_data
+    (tm : _root_.Turing.FinTM2) (seeds : List TransitionRowSeed) :
+    transitionSeedFamilyInput tm seeds =
+      (transitionSeedFamilyUnaryInput tm seeds).map .data := by
+  rfl
+
 /-- Complete transition scripts derived from the verifier's concrete
 raw-input seed family. -/
 def verifierTransitionFamilyScripts
@@ -44,6 +82,32 @@ def verifierTransitionFamilyInputTarget
     {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
     (input : List Γ) : List AffineStmtScriptSym :=
   transitionSeedFamilyInput W.machine.tm
+    (verifierTransitionRowSeeds W input)
+
+/-- Raw-verifier specialization of the pure-unary source target. -/
+def verifierTransitionFamilyUnaryInputTarget
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  transitionSeedFamilyUnaryInput W.machine.tm
+    (verifierTransitionRowSeeds W input)
+
+/-- The exact controller input is the verified fixed symbol map of the unary
+source target. -/
+theorem verifierTransitionFamilyInputTarget_eq_map_data
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionFamilyInputTarget W input =
+      (verifierTransitionFamilyUnaryInputTarget W input).map .data := by
+  rfl
+
+/-- Raw-input unary target in explicit row-packet order. -/
+theorem verifierTransitionFamilyUnaryInputTarget_eq_flatMap
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionFamilyUnaryInputTarget W input =
+      (verifierTransitionRowSeeds W input).flatMap fun seed =>
+        .frameEnd :: transitionSeedLocalUnaryInput W.machine.tm seed := by
+  exact transitionSeedFamilyUnaryInput_eq_flatMap W.machine.tm
     (verifierTransitionRowSeeds W input)
 
 /-- Expanding the polynomial-time row seeds recovers the canonical semantic
@@ -104,6 +168,24 @@ def verifierTransitionFamily_run
   simpa [verifierTransitionFamilyInputTarget,
     transitionSeedFamilyInput,
     verifierTransitionFamilyScripts] using hrun
+
+/-- The verified fixed symbol map lifts any concrete unary source compiler to
+the exact controller-alphabet input target. -/
+noncomputable def
+    verifierTransitionFamilyInputTarget_computableInPolyTime_of_unaryCompiler
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (compiler : _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionFamilyUnaryInputTarget W)) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionFamilyInputTarget W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch compiler
+      (listMap_computableInPolyTime AffineStmtScriptSym.data)
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input =>
+      (verifierTransitionFamilyUnaryInputTarget W input).map
+        AffineStmtScriptSym.data)
+  simpa only [Function.comp_def] using Classical.choice composed
 
 /-- Once a concrete source TM2 emits the exact target fixed above, generic
 machine composition produces the verifier transition gate stream.  The
