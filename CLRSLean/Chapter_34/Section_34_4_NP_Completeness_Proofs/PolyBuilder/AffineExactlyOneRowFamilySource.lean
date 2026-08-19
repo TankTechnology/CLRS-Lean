@@ -868,4 +868,512 @@ noncomputable def
       compactSource affineExactlyOneFrameExpand_computableInPolyTime
   simpa [Function.comp_def] using Classical.choice composed
 
+/-! ## Row-boundary-preserving canonical expansion -/
+
+/-- Compact exactly-one rows separated by an explicit `frameEnd`. -/
+def encodeAffineExactlyOneCompactMarkedFamily :
+    List (List AffineExactlyOneFrame) → List UnaryFrameSym
+  | [] => []
+  | row :: rest =>
+      encodeAffineExactlyOneCompactFamily row ++ .frameEnd ::
+        encodeAffineExactlyOneCompactMarkedFamily rest
+
+/-- Canonical four-field rows with the marker expected by the validity-row
+family controller: one leading `tick` and one trailing `frameEnd` per row. -/
+def encodeAffineExactlyOneTickedMarkedFamily :
+    List (List AffineExactlyOneFrame) → List UnaryFrameSym
+  | [] => []
+  | row :: rest =>
+      .tick :: (encodeAffineExactlyOneFamily row ++ .frameEnd ::
+        encodeAffineExactlyOneTickedMarkedFamily rest)
+
+/-- The base expander's pre-halt configuration after it consumes a row
+boundary while looking for the next compact frame. -/
+def affineExactlyOneFrameExpandInvalidCfg
+    (tail output : List UnaryFrameSym) :
+    BuilderCfg affineExactlyOneFrameExpandRevProgram :=
+  liftLoaderCfg (unaryTripleLoaderCfgFor .invalid (some .frameEnd)
+    tail output [] [] [] [] [])
+
+/-- Exact cost through the consumed row boundary, stopping before the base
+expander executes its standalone invalid-input halt. -/
+def affineExactlyOneFrameExpandToInvalidSteps :
+    List AffineExactlyOneFrame → Nat
+  | [] => 1
+  | frame :: rest =>
+      affineExactlyOneFrameExpandOneSteps frame +
+        affineExactlyOneFrameExpandToInvalidSteps rest
+
+private def affineExactlyOneFrameExpand_runToInvalid
+    (frames : List AffineExactlyOneFrame) (tail output : List UnaryFrameSym) :
+    EvalsToInTime (step affineExactlyOneFrameExpandRevProgram)
+      (affineExactlyOneFrameExpandLoopCfg
+        (encodeAffineExactlyOneCompactFamily frames ++ .frameEnd :: tail)
+        output)
+      (some (affineExactlyOneFrameExpandInvalidCfg tail
+        ((encodeAffineExactlyOneFamily frames).reverse ++ output)))
+      (affineExactlyOneFrameExpandToInvalidSteps frames) := by
+  induction frames generalizing output with
+  | nil =>
+      refine ⟨⟨1, ?_⟩, le_rfl⟩
+      rfl
+  | cons frame rest ih =>
+      let restInput := encodeAffineExactlyOneCompactFamily rest ++
+        .frameEnd :: tail
+      let frameOutput :=
+        (encodeAffineExactlyOneFrame frame).reverse ++ output
+      have hfirst := affineExactlyOneFrameExpand_one frame restInput output
+      have hrest := ih frameOutput
+      let full := EvalsToInTime.trans
+        (step affineExactlyOneFrameExpandRevProgram)
+        (affineExactlyOneFrameExpandOneSteps frame)
+        (affineExactlyOneFrameExpandToInvalidSteps rest)
+        _ (affineExactlyOneFrameExpandLoopCfg restInput frameOutput)
+        _ hfirst hrest
+      convert full using 1
+      · simp [encodeAffineExactlyOneCompactFamily, restInput,
+          List.append_assoc]
+      · simp [encodeAffineExactlyOneFamily, frameOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineExactlyOneFrameExpandToInvalidSteps]
+        omega
+
+/-- Outer dispatch, one leading row marker, and the unchanged base expander. -/
+inductive AffineExactlyOneMarkedExpandLabel
+  | check
+  | save (symbol : UnaryFrameSym)
+  | restore
+  | clearBuffer
+  | markRow
+  | body (label : AffineExactlyOneFrameExpandLabel)
+  | clearEnd
+  | finish
+deriving DecidableEq, Fintype
+
+private def affineExactlyOneMarkedExpandRelabelOp :
+    Op UnaryFrameSym UnaryFrameSym AffineExactlyOneFrameExpandLabel →
+      Op UnaryFrameSym UnaryFrameSym AffineExactlyOneMarkedExpandLabel
+  | .pushOutput symbol next => .pushOutput symbol (.body next)
+  | .pushWork₁ symbol next => .pushWork₁ symbol (.body next)
+  | .pushWork₂ symbol next => .pushWork₂ symbol (.body next)
+  | .moveInputWork₁ nextEmpty nextMoved =>
+      .moveInputWork₁ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .moveWork₁Input nextEmpty nextMoved =>
+      .moveWork₁Input (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .moveInputWork₂ nextEmpty nextMoved =>
+      .moveInputWork₂ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .moveWork₂Input nextEmpty nextMoved =>
+      .moveWork₂Input (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .moveWork₁Work₂ nextEmpty nextMoved =>
+      .moveWork₁Work₂ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .moveWork₂Work₁ nextEmpty nextMoved =>
+      .moveWork₂Work₁ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .copyInputWorks nextEmpty nextMoved =>
+      .copyInputWorks (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .popInput nextEmpty nextMoved =>
+      .popInput (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .popWork₁ nextEmpty nextMoved =>
+      .popWork₁ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .popWork₂ nextEmpty nextMoved =>
+      .popWork₂ (.body nextEmpty) (fun symbol => .body (nextMoved symbol))
+  | .inc₁ next => .inc₁ (.body next)
+  | .inc₂ next => .inc₂ (.body next)
+  | .inc₃ next => .inc₃ (.body next)
+  | .dec₁ nextZero nextSucc => .dec₁ (.body nextZero) (.body nextSucc)
+  | .dec₂ nextZero nextSucc => .dec₂ (.body nextZero) (.body nextSucc)
+  | .dec₃ nextZero nextSucc => .dec₃ (.body nextZero) (.body nextSucc)
+  | .jump next => .jump (.body next)
+  | .halt => .halt
+
+/-- A fixed family wrapper.  It probes for end-of-input before each row,
+restores the first compact symbol, emits the leading tick, and redirects the
+base expander's invalid label after the consumed row terminator. -/
+def affineExactlyOneMarkedExpandRevProgram :
+    Program UnaryFrameSym UnaryFrameSym where
+  Label := AffineExactlyOneMarkedExpandLabel
+  main := .check
+  op
+    | .check => .popInput .finish .save
+    | .save symbol => .pushWork₁ symbol .restore
+    | .restore => .moveWork₁Input .finish (fun _ => .clearBuffer)
+    | .clearBuffer => .popWork₁ .markRow (fun _ => .finish)
+    | .markRow =>
+        .pushOutput .tick (.body affineExactlyOneFrameExpandRevProgram.main)
+    | .body (.loader .invalid) => .pushOutput .frameEnd .clearEnd
+    | .body label => affineExactlyOneMarkedExpandRelabelOp
+        (affineExactlyOneFrameExpandRevProgram.op label)
+    | .clearEnd => .popWork₁ .check (fun _ => .check)
+    | .finish => .halt
+
+private def affineExactlyOneMarkedExpandCfg
+    (label : AffineExactlyOneMarkedExpandLabel)
+    (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
+    (input output work₁ work₂ : List UnaryFrameSym)
+    (first second third : List Unit) :
+    BuilderCfg affineExactlyOneMarkedExpandRevProgram where
+  label := some label
+  buffer₁ := buffer₁
+  buffer₂ := buffer₂
+  test := test
+  input := input
+  output := output
+  work₁ := work₁
+  work₂ := work₂
+  counter₁ := first
+  counter₂ := second
+  counter₃ := third
+
+/-- Clean family loop header. -/
+def affineExactlyOneMarkedExpandLoopCfg
+    (input output : List UnaryFrameSym) :
+    BuilderCfg affineExactlyOneMarkedExpandRevProgram :=
+  affineExactlyOneMarkedExpandCfg .check none none false input output
+    [] [] [] [] []
+
+private def liftAffineExactlyOneMarkedExpandBodyCfg
+    (c : BuilderCfg affineExactlyOneFrameExpandRevProgram) :
+    BuilderCfg affineExactlyOneMarkedExpandRevProgram where
+  label := c.label.map .body
+  buffer₁ := c.buffer₁
+  buffer₂ := c.buffer₂
+  test := c.test
+  input := c.input
+  output := c.output
+  work₁ := c.work₁
+  work₂ := c.work₂
+  counter₁ := c.counter₁
+  counter₂ := c.counter₂
+  counter₃ := c.counter₃
+
+private theorem affineExactlyOneMarkedExpandRelabel_stepOp
+    (op : Op UnaryFrameSym UnaryFrameSym
+      AffineExactlyOneFrameExpandLabel)
+    (c : BuilderCfg affineExactlyOneFrameExpandRevProgram) :
+    stepOp (affineExactlyOneMarkedExpandRelabelOp op)
+        (liftAffineExactlyOneMarkedExpandBodyCfg c) =
+      liftAffineExactlyOneMarkedExpandBodyCfg (stepOp op c) := by
+  rcases c with
+    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+      counter₁, counter₂, counter₃⟩
+  cases op <;>
+    simp only [affineExactlyOneMarkedExpandRelabelOp,
+      liftAffineExactlyOneMarkedExpandBodyCfg, stepOp] <;>
+    first
+    | rfl
+    | split <;> rfl
+
+private theorem affineExactlyOneMarkedExpand_op_body
+    (label : AffineExactlyOneFrameExpandLabel)
+    (hexit : label ≠ .loader .invalid) :
+    affineExactlyOneMarkedExpandRevProgram.op (.body label) =
+      affineExactlyOneMarkedExpandRelabelOp
+        (affineExactlyOneFrameExpandRevProgram.op label) := by
+  cases label <;>
+    simp_all [affineExactlyOneMarkedExpandRevProgram]
+
+private theorem liftAffineExactlyOneMarkedExpandBody_step
+    (c : BuilderCfg affineExactlyOneFrameExpandRevProgram)
+    (hexit : c.label ≠ some (.loader .invalid)) :
+    step affineExactlyOneMarkedExpandRevProgram
+        (liftAffineExactlyOneMarkedExpandBodyCfg c) =
+      Option.map liftAffineExactlyOneMarkedExpandBodyCfg
+        (step affineExactlyOneFrameExpandRevProgram c) := by
+  unfold step
+  rw [show (liftAffineExactlyOneMarkedExpandBodyCfg c).label =
+      c.label.map .body by rfl]
+  cases hlabel : c.label with
+  | none => rfl
+  | some label =>
+      have hlabelExit : label ≠ .loader .invalid := by
+        intro h
+        apply hexit
+        simpa [hlabel] using congrArg some h
+      simp only [Option.map_some]
+      rw [affineExactlyOneMarkedExpand_op_body label hlabelExit]
+      exact congrArg some
+        (affineExactlyOneMarkedExpandRelabel_stepOp
+          (affineExactlyOneFrameExpandRevProgram.op label) c)
+
+private theorem affineExactlyOneMarkedExpand_haltExit_no_return
+    (a b : BuilderCfg affineExactlyOneFrameExpandRevProgram)
+    (ha : a.label = some (.loader .invalid))
+    (hb : b.label = some (.loader .invalid)) (n : Nat) :
+    (flip Option.bind (step affineExactlyOneFrameExpandRevProgram))^[n]
+        (step affineExactlyOneFrameExpandRevProgram a) ≠ some b := by
+  rcases a with
+    ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
+      counter₁, counter₂, counter₃⟩
+  simp only at ha
+  subst label
+  let halted : BuilderCfg affineExactlyOneFrameExpandRevProgram :=
+    { label := none
+      buffer₁ := none
+      buffer₂ := none
+      test := false
+      input := input
+      output := output
+      work₁ := work₁
+      work₂ := work₂
+      counter₁ := counter₁
+      counter₂ := counter₂
+      counter₃ := counter₃ }
+  have hstep : step affineExactlyOneFrameExpandRevProgram
+      { label := some (.loader .invalid), buffer₁ := buffer₁,
+        buffer₂ := buffer₂, test := test, input := input,
+        output := output, work₁ := work₁, work₂ := work₂,
+        counter₁ := counter₁, counter₂ := counter₂,
+        counter₃ := counter₃ } = some halted := by
+    simp [step, affineExactlyOneFrameExpandRevProgram,
+      unaryTripleLoaderProgramFor, relabelLoaderOp, stepOp, halted]
+  cases n with
+  | zero =>
+      rw [hstep]
+      intro h
+      have hlabel := congrArg (fun cfg => cfg.label) (Option.some.inj h)
+      simp [halted, hb] at hlabel
+  | succ n =>
+      rw [hstep, Function.iterate_succ_apply]
+      change (flip Option.bind
+        (step affineExactlyOneFrameExpandRevProgram))^[n]
+          (step affineExactlyOneFrameExpandRevProgram halted) ≠ some b
+      have hnone : step affineExactlyOneFrameExpandRevProgram halted = none :=
+        rfl
+      rw [hnone, iterate_bind_none]
+      simp
+
+private theorem affineExactlyOneMarkedExpand_lift_iterations_to_invalid
+    {a b : BuilderCfg affineExactlyOneFrameExpandRevProgram}
+    (hb : b.label = some (.loader .invalid)) : ∀ n : Nat,
+    (flip Option.bind (step affineExactlyOneFrameExpandRevProgram))^[n]
+        (some a) = some b →
+      (flip Option.bind (step affineExactlyOneMarkedExpandRevProgram))^[n]
+        (some (liftAffineExactlyOneMarkedExpandBodyCfg a)) =
+          some (liftAffineExactlyOneMarkedExpandBodyCfg b) := by
+  intro n
+  induction n generalizing a with
+  | zero =>
+      intro h
+      injection h with hab
+      subst a
+      rfl
+  | succ n ih =>
+      intro h
+      rw [Function.iterate_succ_apply] at h ⊢
+      change (flip Option.bind
+        (step affineExactlyOneFrameExpandRevProgram))^[n]
+          (step affineExactlyOneFrameExpandRevProgram a) = some b at h
+      change (flip Option.bind
+        (step affineExactlyOneMarkedExpandRevProgram))^[n]
+          (step affineExactlyOneMarkedExpandRevProgram
+            (liftAffineExactlyOneMarkedExpandBodyCfg a)) =
+              some (liftAffineExactlyOneMarkedExpandBodyCfg b)
+      have haexit : a.label ≠ some (.loader .invalid) := by
+        intro ha
+        exact affineExactlyOneMarkedExpand_haltExit_no_return
+          a b ha hb n h
+      cases hsource : step affineExactlyOneFrameExpandRevProgram a with
+      | none =>
+          rw [hsource, iterate_bind_none] at h
+          contradiction
+      | some c =>
+          have hsim := liftAffineExactlyOneMarkedExpandBody_step a haexit
+          rw [hsource] at hsim
+          simp only [Option.map_some] at hsim
+          rw [hsim]
+          rw [hsource] at h
+          exact ih h
+
+private def affineExactlyOneMarkedExpand_dispatch_run
+    (input output : List UnaryFrameSym) (hinput : input ≠ []) :
+    EvalsToInTime (step affineExactlyOneMarkedExpandRevProgram)
+      (affineExactlyOneMarkedExpandLoopCfg input output)
+      (some (liftAffineExactlyOneMarkedExpandBodyCfg
+        (affineExactlyOneFrameExpandLoopCfg input (.tick :: output)))) 5 := by
+  cases input with
+  | nil => contradiction
+  | cons symbol rest => exact ⟨⟨5, rfl⟩, le_rfl⟩
+
+private def affineExactlyOneMarkedExpand_body_run
+    (frames : List AffineExactlyOneFrame) (tail output : List UnaryFrameSym) :
+    EvalsToInTime (step affineExactlyOneMarkedExpandRevProgram)
+      (liftAffineExactlyOneMarkedExpandBodyCfg
+        (affineExactlyOneFrameExpandLoopCfg
+          (encodeAffineExactlyOneCompactFamily frames ++ .frameEnd :: tail)
+          output))
+      (some (liftAffineExactlyOneMarkedExpandBodyCfg
+        (affineExactlyOneFrameExpandInvalidCfg tail
+          ((encodeAffineExactlyOneFamily frames).reverse ++ output))))
+      (affineExactlyOneFrameExpandToInvalidSteps frames) := by
+  have sourceRun := affineExactlyOneFrameExpand_runToInvalid
+    frames tail output
+  refine ⟨⟨sourceRun.steps, ?_⟩, sourceRun.steps_le_m⟩
+  exact affineExactlyOneMarkedExpand_lift_iterations_to_invalid rfl
+    sourceRun.steps sourceRun.evals_in_steps
+
+/-- Exact family cost including the final empty dispatch and halt. -/
+def affineExactlyOneMarkedExpandSteps :
+    List (List AffineExactlyOneFrame) → Nat
+  | [] => 2
+  | row :: rest =>
+      5 + affineExactlyOneFrameExpandToInvalidSteps row + 2 +
+        affineExactlyOneMarkedExpandSteps rest
+
+/-- Exact row-family execution with leading and trailing row markers. -/
+def affineExactlyOneMarkedExpand_runFrom
+    (rows : List (List AffineExactlyOneFrame))
+    (output : List UnaryFrameSym) :
+    EvalsToInTime (step affineExactlyOneMarkedExpandRevProgram)
+      (affineExactlyOneMarkedExpandLoopCfg
+        (encodeAffineExactlyOneCompactMarkedFamily rows) output)
+      (some (haltCfg affineExactlyOneMarkedExpandRevProgram
+        ((encodeAffineExactlyOneTickedMarkedFamily rows).reverse ++ output)))
+      (affineExactlyOneMarkedExpandSteps rows) := by
+  induction rows generalizing output with
+  | nil => exact ⟨⟨2, rfl⟩, le_rfl⟩
+  | cons row rest ih =>
+      let restInput := encodeAffineExactlyOneCompactMarkedFamily rest
+      let markedOutput := .frameEnd ::
+        (encodeAffineExactlyOneFamily row).reverse ++ .tick :: output
+      let bodyStart := liftAffineExactlyOneMarkedExpandBodyCfg
+        (affineExactlyOneFrameExpandLoopCfg
+          (encodeAffineExactlyOneCompactFamily row ++
+            .frameEnd :: restInput) (.tick :: output))
+      let bodyDone := liftAffineExactlyOneMarkedExpandBodyCfg
+        (affineExactlyOneFrameExpandInvalidCfg restInput
+          ((encodeAffineExactlyOneFamily row).reverse ++ .tick :: output))
+      let restStart := affineExactlyOneMarkedExpandLoopCfg
+        restInput markedOutput
+      have hinvocation :
+          encodeAffineExactlyOneCompactFamily row ++
+              .frameEnd :: restInput ≠ [] := by simp
+      have hdispatch : EvalsToInTime
+          (step affineExactlyOneMarkedExpandRevProgram)
+          (affineExactlyOneMarkedExpandLoopCfg
+            (encodeAffineExactlyOneCompactFamily row ++
+              .frameEnd :: restInput) output)
+          (some bodyStart) 5 := by
+        simpa [bodyStart] using affineExactlyOneMarkedExpand_dispatch_run
+          _ output hinvocation
+      have hbody : EvalsToInTime
+          (step affineExactlyOneMarkedExpandRevProgram)
+          bodyStart (some bodyDone)
+          (affineExactlyOneFrameExpandToInvalidSteps row) := by
+        simpa [bodyStart, bodyDone] using
+          affineExactlyOneMarkedExpand_body_run row restInput (.tick :: output)
+      have hbridge : EvalsToInTime
+          (step affineExactlyOneMarkedExpandRevProgram)
+          bodyDone (some restStart) 2 := by
+        refine ⟨⟨2, ?_⟩, le_rfl⟩
+        rfl
+      have hrest := ih markedOutput
+      let h₁ := EvalsToInTime.trans
+        (step affineExactlyOneMarkedExpandRevProgram)
+        5 _ _ bodyStart _ hdispatch hbody
+      let h₂ := EvalsToInTime.trans
+        (step affineExactlyOneMarkedExpandRevProgram)
+        _ 2 _ bodyDone _ h₁ hbridge
+      let full := EvalsToInTime.trans
+        (step affineExactlyOneMarkedExpandRevProgram)
+        _ _ _ restStart _ h₂ hrest
+      convert full using 1
+      · simp [encodeAffineExactlyOneCompactMarkedFamily, restInput]
+      · simp [encodeAffineExactlyOneTickedMarkedFamily, markedOutput,
+          List.reverse_append, List.append_assoc]
+      · simp [affineExactlyOneMarkedExpandSteps]
+        omega
+
+/-- The one-row base cost is linear in its compact encoding through the
+consumed boundary. -/
+theorem affineExactlyOneFrameExpandToInvalidSteps_le
+    (frames : List AffineExactlyOneFrame) :
+    affineExactlyOneFrameExpandToInvalidSteps frames ≤
+      9 * (encodeAffineExactlyOneCompactFamily frames).length + 1 := by
+  induction frames with
+  | nil => simp [affineExactlyOneFrameExpandToInvalidSteps,
+      encodeAffineExactlyOneCompactFamily]
+  | cons frame rest ih =>
+      have hone : affineExactlyOneFrameExpandOneSteps frame ≤
+          9 * (encodeAffineExactlyOneCompactFrame frame).length := by
+        simp [affineExactlyOneFrameExpandOneSteps, unaryTripleLoaderSteps,
+          encodeAffineExactlyOneCompactFrame_length]
+        omega
+      simp only [affineExactlyOneFrameExpandToInvalidSteps,
+        encodeAffineExactlyOneCompactFamily, List.length_append]
+      omega
+
+/-- The wrapper remains linear in the complete marked compact stream. -/
+theorem affineExactlyOneMarkedExpandSteps_le
+    (rows : List (List AffineExactlyOneFrame)) :
+    affineExactlyOneMarkedExpandSteps rows ≤
+      9 * (encodeAffineExactlyOneCompactMarkedFamily rows).length + 2 := by
+  induction rows with
+  | nil => simp [affineExactlyOneMarkedExpandSteps,
+      encodeAffineExactlyOneCompactMarkedFamily]
+  | cons row rest ih =>
+      have hrow := affineExactlyOneFrameExpandToInvalidSteps_le row
+      simp only [affineExactlyOneMarkedExpandSteps,
+        encodeAffineExactlyOneCompactMarkedFamily, List.length_append,
+        List.length_cons]
+      omega
+
+/-- Compiled prepend-order marked expansion. -/
+noncomputable def affineExactlyOneMarkedExpandRev_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneCompactMarkedFamily id
+      (fun rows : List (List AffineExactlyOneFrame) =>
+        (encodeAffineExactlyOneTickedMarkedFamily rows).reverse) where
+  tm := compile affineExactlyOneMarkedExpandRevProgram
+  inputAlphabet := Equiv.refl _
+  outputAlphabet := Equiv.refl _
+  time := 9 * Polynomial.X + 2
+  outputsFun := fun rows => by
+    have builderRun := affineExactlyOneMarkedExpand_runFrom rows []
+    have compiledRun := compile_evalsToInTime
+      affineExactlyOneMarkedExpandRevProgram builderRun
+    have hinitial : affineExactlyOneMarkedExpandLoopCfg
+        (encodeAffineExactlyOneCompactMarkedFamily rows) [] =
+          initialCfg affineExactlyOneMarkedExpandRevProgram
+            (encodeAffineExactlyOneCompactMarkedFamily rows) := rfl
+    rw [hinitial] at compiledRun
+    have machineRun : _root_.StateTransition.EvalsToInTime
+        (compile affineExactlyOneMarkedExpandRevProgram).step
+        (_root_.Turing.initList
+          (compile affineExactlyOneMarkedExpandRevProgram)
+          (encodeAffineExactlyOneCompactMarkedFamily rows))
+        (some (_root_.Turing.haltList
+          (compile affineExactlyOneMarkedExpandRevProgram)
+          (encodeAffineExactlyOneTickedMarkedFamily rows).reverse))
+        (affineExactlyOneMarkedExpandSteps rows) := by
+      simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg,
+        List.append_nil] using compiledRun
+    have htime : affineExactlyOneMarkedExpandSteps rows ≤
+        (9 * Polynomial.X + 2).eval
+          (encodeAffineExactlyOneCompactMarkedFamily rows).length := by
+      simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+        Polynomial.eval_X, Polynomial.eval_ofNat] using
+        affineExactlyOneMarkedExpandSteps_le rows
+    have boundedRun : _root_.StateTransition.EvalsToInTime
+        (compile affineExactlyOneMarkedExpandRevProgram).step
+        (_root_.Turing.initList
+          (compile affineExactlyOneMarkedExpandRevProgram)
+          (encodeAffineExactlyOneCompactMarkedFamily rows))
+        (some (_root_.Turing.haltList
+          (compile affineExactlyOneMarkedExpandRevProgram)
+          (encodeAffineExactlyOneTickedMarkedFamily rows).reverse))
+        ((9 * Polynomial.X + 2).eval
+          (encodeAffineExactlyOneCompactMarkedFamily rows).length) :=
+      ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+    simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun
+
+/-- Forward row-marked canonical expansion. -/
+noncomputable def affineExactlyOneMarkedExpand_computableInPolyTime :
+    _root_.Turing.TM2ComputableInPolyTime
+      encodeAffineExactlyOneCompactMarkedFamily id
+      encodeAffineExactlyOneTickedMarkedFamily := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      affineExactlyOneMarkedExpandRev_computableInPolyTime
+      (reverse_computableInPolyTime (Γ := UnaryFrameSym))
+  simpa [Function.comp_def] using Classical.choice composed
+
 end CLRS.Chapter34.Turing.PolyBuilder
