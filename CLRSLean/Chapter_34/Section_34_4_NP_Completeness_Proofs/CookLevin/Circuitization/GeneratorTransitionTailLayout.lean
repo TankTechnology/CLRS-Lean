@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.TransitionFamilyScript
 
 /-!
@@ -207,6 +208,15 @@ def transitionDispatchOperandLayout (tm : _root_.Turing.FinTM2)
       narrowCfgWireProjection dispatched
         ((cfgSlotEquivFin tm height).symm coordinate) }
 
+/-- Both post-dispatch source-operand families reconstructed directly from
+the raw transition seed.  The intervening semantic dispatch row has already
+been eliminated by the arithmetic `cfgMux` output theorem. -/
+def transitionDispatchOperandLayoutFromSeed
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
+    TransitionDispatchOperandLayout :=
+  transitionDispatchOperandLayout tm seed.height
+    (transitionDispatchOutputWires tm seed)
+
 /-- Both non-arithmetic post-dispatch operand families are projections of the
 same canonical `dispatchLabels` output row. -/
 theorem compileTransitionScript_dispatchOperandLayout_eq
@@ -225,6 +235,128 @@ theorem compileTransitionScript_dispatchOperandLayout_eq
     transitionDispatchOperandLayout
   rw [compileTransitionScript_narrowFrameLefts,
     compileTransitionScript_eqFrameLefts]
+
+/-- For an arithmetic public tableau row, every narrowing and equality source
+operand in the actual transition script is a closed function of the row seed.
+No semantic statement result remains in this post-dispatch tail interface. -/
+theorem arithmeticTransitionScript_dispatchOperandLayout_eq_seed
+    (tm : _root_.Turing.FinTM2) (height rowBase : Nat)
+    (base : CircuitBuilder)
+    (hcurrent : (arithmeticCfgWires tm height rowBase).ValidIn base)
+    (next : CfgWires tm height) (hnext : next.ValidIn base) :
+    transitionScriptDispatchOperandLayout
+        (compileTransitionScript tm height base
+          (arithmeticCfgWires tm height rowBase) next hcurrent hnext) =
+      transitionDispatchOperandLayoutFromSeed tm
+        { height := height, start := base.gates.length, rowBase := rowBase } := by
+  rw [compileTransitionScript_dispatchOperandLayout_eq]
+  unfold transitionDispatchOperandLayoutFromSeed
+  rw [arithmeticWidening_dispatchLabels_wires_eq_seed]
+
+/-- Prefix recursion preserves the seed-only dispatched-operand formula for
+any family whose public rows have arithmetic wire layouts. -/
+theorem compileTransitionFamilyScripts_dispatchOperandLayouts_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (T : Nat)
+    (rows : Fin (T + 1) → CfgWires tm height)
+    (hrows : ∀ row, (rows row).ValidIn base)
+    (rowBase : Fin (T + 1) → Nat)
+    (hrowsEq : ∀ row,
+      rows row = arithmeticCfgWires tm height (rowBase row)) :
+    (compileTransitionFamilyScripts tm height base T rows hrows).map
+        transitionScriptDispatchOperandLayout =
+      List.ofFn fun step : Fin T =>
+        transitionDispatchOperandLayoutFromSeed tm
+          { height := height
+            start := base.gates.length +
+              step.val * transitionCircuitGateCost tm height
+            rowBase := rowBase step.castSucc } := by
+  induction T generalizing base with
+  | zero => rfl
+  | succ T ih =>
+      simp only [compileTransitionFamilyScripts, List.map_append,
+        List.map_singleton]
+      have hprefixEq : ∀ row : Fin (T + 1),
+          rows row.castSucc =
+            arithmeticCfgWires tm height (rowBase row.castSucc) :=
+        fun row => hrowsEq row.castSucc
+      rw [ih base (fun row => rows row.castSucc)
+        (fun row => hrows row.castSucc)
+        (fun row => rowBase row.castSucc) hprefixEq]
+      let previous := transitionCircuitFamily tm height base
+        (fun row => rows row.castSucc) (fun row => hrows row.castSucc)
+      let currentRow : Fin (T + 2) := (Fin.last T).castSucc
+      let nextRow : Fin (T + 2) := Fin.last (T + 1)
+      have hcurrentArithmetic :
+          (arithmeticCfgWires tm height (rowBase currentRow)).ValidIn
+            previous.builder := by
+        rw [← hrowsEq currentRow]
+        exact (hrows currentRow).mono previous.extension
+      have hlast := arithmeticTransitionScript_dispatchOperandLayout_eq_seed
+        tm height (rowBase currentRow) previous.builder hcurrentArithmetic
+        (rows nextRow) ((hrows nextRow).mono previous.extension)
+      have hlast' :
+          transitionScriptDispatchOperandLayout
+              (compileTransitionScript tm height previous.builder
+                (rows currentRow) (rows nextRow)
+                ((hrows currentRow).mono previous.extension)
+                ((hrows nextRow).mono previous.extension)) =
+            transitionDispatchOperandLayoutFromSeed tm
+              { height := height
+                start := previous.builder.gates.length
+                rowBase := rowBase currentRow } := by
+        simpa only [hrowsEq currentRow] using hlast
+      rw [hlast']
+      rw [List.ofFn_succ']
+      simp only [List.concat_eq_append]
+      congr 1
+      rw [transitionCircuitFamily_gate_delta]
+      simp [currentRow]
+
+/-- The canonical dimension-only family has the closed dispatched-operand
+layout obtained from the row-major arithmetic transition seeds. -/
+theorem compileTransitionFamilyScriptsAt_dispatchOperandLayouts_eq_ofFn
+    (tm : _root_.Turing.FinTM2) (height T : Nat) :
+    (compileTransitionFamilyScriptsAt tm height T).map
+        transitionScriptDispatchOperandLayout =
+      List.ofFn fun step : Fin T =>
+        transitionDispatchOperandLayoutFromSeed tm
+          { height := height
+            start := (arithmeticValidityAt tm height T).builder.gates.length +
+              step.val * transitionCircuitGateCost tm height
+            rowBase := step.val * cfgBitCount tm height } := by
+  unfold compileTransitionFamilyScriptsAt
+  apply compileTransitionFamilyScripts_dispatchOperandLayouts_eq_ofFn
+    tm height (arithmeticValidityAt tm height T).builder T
+    (arithmeticRowsAt tm height T).rows
+    (fun row =>
+      ((arithmeticRowsAt tm height T).rowValid row).mono
+        ((arithmeticPoolAt tm height T).extension.trans
+          (arithmeticValidityAt tm height T).extension))
+    (fun row => row.val * cfgBitCount tm height)
+  intro row
+  simpa [arithmeticRowsAt] using
+    allocateTableauRows_rows_eq_arithmetic tm height T row
+
+/-- The raw-input transition seed stream reconstructs every dispatched-row
+operand used by the canonical transition-family scripts, in exact row order. -/
+theorem verifierTransitionRowSeeds_expand_dispatchOperandLayouts_eq_scripts
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    (verifierTransitionRowSeeds W input).map
+        (transitionDispatchOperandLayoutFromSeed W.machine.tm) =
+      (compileTransitionFamilyScriptsAt W.machine.tm
+        ((verifierHeight W).eval input.length)
+        ((verifierHorizon W).eval input.length)).map
+          transitionScriptDispatchOperandLayout := by
+  unfold verifierTransitionRowSeeds
+  rw [verifierTransitionRowSeedTriples_eq_ofFn, List.map_map,
+    List.map_ofFn]
+  rw [compileTransitionFamilyScriptsAt_dispatchOperandLayouts_eq_ofFn]
+  apply List.ofFn_inj.mpr
+  funext step
+  simp only [Function.comp_apply]
+  rw [verifierTransitionStartPolynomial_eval_eq_validity_length]
 
 /-- Four disjoint views needed to reconstruct a complete transition script:
 the statement/dispatch phases, the fresh tail skeleton, the single dispatched
