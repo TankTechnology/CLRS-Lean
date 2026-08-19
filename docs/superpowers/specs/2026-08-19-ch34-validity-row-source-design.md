@@ -21,6 +21,8 @@ theorem verifierValidityRowFamilyInput_eq_canonical
 
 noncomputable def verifierValidityRowFamilyInput_computableInPolyTime
 
+noncomputable def verifierValidityRowFrames_computableInPolyTime
+
 noncomputable def verifierValidityGateStream_computableInPolyTime
 ```
 
@@ -160,13 +162,25 @@ theorem verifierValidityRowFamilyInput_eq_canonical
         (verifierValidityRowFramesByLength W x.length)
 ```
 
-The corresponding `TM2ComputableInPolyTime` object is obtained only from the
-raw seed compiler, the concrete row source, and standard composition/reversal
-combinators.
+The byte-level `verifierValidityRowFamilyInput_computableInPolyTime` object is
+obtained only from the raw seed compiler, the concrete row source, and standard
+composition/reversal combinators.  The same concrete machine is also packaged
+under the structured interface:
+
+```lean
+noncomputable def verifierValidityRowFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    Turing.TM2ComputableInPolyTime id
+      encodeAffineValidityRowFamilyInput
+      (fun x => verifierValidityRowFramesByLength W x.length)
+```
+
+This view is required for type-correct composition with the existing
+validity-row controller; it does not introduce a second implementation.
 
 ### 4. Downstream gate-stream composition
 
-Compose `verifierValidityRowFamilyInput_computableInPolyTime` with
+Compose `verifierValidityRowFrames_computableInPolyTime` with
 `affineValidityRowFamilyGateStream_computableInPolyTime`, rewrite using
 `verifierValidityRowFamilyInput_eq_canonical` and the existing validity-row
 semantic theorem, and expose:
