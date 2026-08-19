@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDelimiterMap
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFrameDelimiters
+#check rewriteUnaryFrameDelimiters_encodeUnaryFrame
+#check unaryFrameDelimiterMapRev_run
+#check unaryFrameDelimiterMapRev_computableInPolyTime
+#check unaryFrameDelimiterMap_computableInPolyTime
+
+#print axioms rewriteUnaryFrameDelimiters_encodeUnaryFrame
+#print axioms unaryFrameDelimiterMapRev_run
+#print axioms unaryFrameDelimiterMap_computableInPolyTime
