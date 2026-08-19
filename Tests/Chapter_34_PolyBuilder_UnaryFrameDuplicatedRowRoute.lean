@@ -1,0 +1,19 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDuplicatedRowRoute
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check UnaryFrameDuplicatedRowRouteFamily
+#check encodeUnaryFrameDuplicatedRowRouteInput
+#check encodeUnaryFrameDuplicatedRowRouteOutput
+#check rewriteUnaryFrameDuplicatedRowRoute_family
+#check unaryFrameDuplicatedRowRouteRevProgram
+#check unaryFrameDuplicatedRowRouteRev_run
+#check unaryFrameDuplicatedRowRouteSteps_le
+#check unaryFrameDuplicatedRowRouteRev_computableInPolyTime
+#check unaryFrameDuplicatedRowRoute_computableInPolyTime
+
+#print axioms rewriteUnaryFrameDuplicatedRowRoute_family
+#print axioms unaryFrameDuplicatedRowRouteRev_run
+#print axioms unaryFrameDuplicatedRowRouteSteps_le
+#print axioms unaryFrameDuplicatedRowRouteRev_computableInPolyTime
+#print axioms unaryFrameDuplicatedRowRoute_computableInPolyTime
