@@ -1341,4 +1341,64 @@ noncomputable def
         simpa only [id_eq, verifierValidityRowSeedMarkedOneHotFrames] using
           source.outputsFun input }
 
+/-! ## Seed carriers merged with final-conjunction invocations -/
+
+/-- The stream needed by the next validity-row stage: every row contains its
+canonical one-hot output-wire invocations followed by two carrier invocations
+that retain `(rowBase, height, start)`, then a row delimiter. -/
+noncomputable def verifierValidityRowSeedCarrierOutputInvocationFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+    (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+    (verifierOneHotCellCounts W.machine.tm)
+    (verifierValidityRowStructuredSeeds W input)
+
+/-- Row-by-row semantic form of the merged stream.  In particular, no
+parallel source is required later to recover the row's final-conjunction
+start or its tableau wire base. -/
+theorem verifierValidityRowSeedCarrierOutputInvocationFrames_eq_rows
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowSeedCarrierOutputInvocationFrames W input =
+      (verifierValidityRowSeeds W input).flatMap fun seed =>
+        encodeAffineExactlyOneOutputSourceInvocationFamily
+            (validityRowSeedOneHotFrames W.machine.tm seed).reverse ++
+          encodeUnaryFrame [seed.rowBase, 0, 0] ++
+          encodeUnaryFrame [seed.height, seed.start, 0] ++
+          [.frameEnd] := by
+  unfold verifierValidityRowSeedCarrierOutputInvocationFrames
+    verifierValidityRowStructuredSeeds
+  generalize verifierValidityRowSeeds W input = seeds
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneSeedCarrierOutputInvocationFamily,
+        encodeAffineExactlyOneSeedCarrierOutputInvocation_eq,
+        validityRowSeedOneHotFrames,
+        affineExactlyOneStructuredRowFrames_eq_arithmeticRaw, ih,
+        List.append_assoc]
+
+/-- A fixed verifier-dependent polynomial-time TM2 maps the raw verifier word
+directly to the merged one-hot-invocation and row-carrier stream.  This is the
+single-source interface required by the validity-tail assembler. -/
+noncomputable def
+    verifierValidityRowSeedCarrierOutputInvocationFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowSeedCarrierOutputInvocationFrames W) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowSeedMarkedOneHotStructuredSeeds_computableInPolyTime W)
+      (affineExactlyOneSeedMarkedToCarrierOutput_computableInPolyTime
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm))
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input =>
+      encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        (labelCount W.machine.tm + 1) (stateCount W.machine.tm)
+        (verifierOneHotCellCounts W.machine.tm)
+        (verifierValidityRowStructuredSeeds W input))
+  simpa [Function.comp_def] using Classical.choice composed
+
 end CLRS.Chapter34.Turing.CookLevin
