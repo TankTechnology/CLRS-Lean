@@ -1,0 +1,23 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionNarrowStart
+#check transitionEqStart
+#check transitionNarrowSourceWire
+#check transitionFitWire
+#check transitionEqWire
+#check transitionFinalAndFrame
+#check compileTransitionScript_narrowFrames_length
+#check compileTransitionScript_narrowFrameRights
+#check compileTransitionScript_narrowSource_eq
+#check compileTransitionScript_eqFrames_length
+#check compileTransitionScript_eqFrameCoordinates
+#check compileTransitionScript_finalAnd_eq
+
+#print axioms compileTransitionScript_narrowFrames_length
+#print axioms compileTransitionScript_narrowFrameRights
+#print axioms compileTransitionScript_narrowSource_eq
+#print axioms compileTransitionScript_eqFrames_length
+#print axioms compileTransitionScript_eqFrameCoordinates
+#print axioms compileTransitionScript_finalAnd_eq
