@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchLayout
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleMapSource
 import Mathlib.Tactic
 
@@ -249,12 +250,70 @@ theorem transitionDispatchListFinalMuxOffsetAffine_eval
             transitionDispatchMuxGateAffine_eval, ih]
           omega
 
+/-- Exact affine cost of a complete fixed dispatch suffix. -/
+noncomputable def transitionDispatchListGateAffine
+    (tm : _root_.Turing.FinTM2) : List tm.Λ → TransitionAffineNat
+  | [] => TransitionAffineNat.const 0
+  | label :: labels =>
+      (transitionDispatchStmtGateAffine tm label).add
+        ((transitionDispatchMuxGateAffine tm).add
+          (transitionDispatchListGateAffine tm labels))
+
+/-- The affine suffix cost evaluates to the exact dispatch recurrence. -/
+theorem transitionDispatchListGateAffine_eval
+    (tm : _root_.Turing.FinTM2) (labels : List tm.Λ) (height : Nat)
+    (hwork : 0 < workHeight tm height) :
+    (transitionDispatchListGateAffine tm labels).eval height =
+      dispatchListGateCost tm height labels := by
+  induction labels with
+  | nil => simp [transitionDispatchListGateAffine, dispatchListGateCost]
+  | cons label labels ih =>
+      rw [transitionDispatchListGateAffine,
+        TransitionAffineNat.eval_add,
+        transitionDispatchStmtGateAffine_eval tm label height hwork,
+        TransitionAffineNat.eval_add,
+        transitionDispatchMuxGateAffine_eval, ih]
+      simp only [dispatchListGateCost]
+      omega
+
+/-- Exact affine cost of the complete canonical label dispatch. -/
+noncomputable def transitionDispatchGateAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  transitionDispatchListGateAffine tm (programLabels tm)
+
+@[simp] theorem transitionDispatchGateAffine_eval
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (hwork : 0 < workHeight tm height) :
+    (transitionDispatchGateAffine tm).eval height =
+      dispatchGateCost tm height := by
+  exact transitionDispatchListGateAffine_eval tm (programLabels tm)
+    height hwork
+
 /-- Generic affine-triple seed corresponding to a transition row seed. -/
 def transitionTailAffineSeed
     (seed : TransitionRowSeed) : AffineUnaryTripleSeed :=
   { first := seed.height
     second := seed.start
     third := seed.rowBase }
+
+/-- Embed a height-affine offset as an absolute gate index by adding the row
+seed's local start field. -/
+def transitionAbsoluteStartForm
+    (offset : TransitionAffineNat) : AffineUnaryTripleForm :=
+  { constant := offset.constant
+    first := offset.coefficient
+    second := 1
+    third := 0 }
+
+/-- Evaluating an absolute-start form adds the runtime local gate start. -/
+theorem transitionAbsoluteStartForm_value
+    (offset : TransitionAffineNat) (seed : TransitionRowSeed) :
+    affineUnaryTripleFormValue (transitionAbsoluteStartForm offset)
+        (transitionTailAffineSeed seed) =
+      seed.start + offset.eval seed.height := by
+  simp [transitionAbsoluteStartForm, transitionTailAffineSeed,
+    affineUnaryTripleFormValue, TransitionAffineNat.eval]
+  ring
 
 /-- One fixed affine source form for the absolute start of the final dispatch
 mux.  The public row base deliberately has coefficient zero. -/
@@ -297,6 +356,193 @@ theorem transitionDispatchOutputWires_eq_affineFinalMux
   rw [transitionDispatchOutputWires_eq_finalMux,
     transitionFinalMuxStartForm_value tm seed hwork]
 
+/-! ## Complete affine phase boundaries -/
+
+/-- Offset from the local transition start to the first narrowing gate. -/
+noncomputable def transitionNarrowStartOffsetAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  (TransitionAffineNat.const 2).add (transitionDispatchGateAffine tm)
+
+/-- Offset to the final overflow-disjunction carry. -/
+noncomputable def transitionNarrowSourceOffsetAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  (transitionNarrowStartOffsetAffine tm).add
+    (TransitionAffineNat.const
+      (Fintype.card tm.K * maxPushesPerStep tm))
+
+/-- Offset to the overflow-fit negation output. -/
+noncomputable def transitionFitWireOffsetAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  (transitionNarrowSourceOffsetAffine tm).add
+    (TransitionAffineNat.const 1)
+
+/-- Offset to the first public-row equality gate. -/
+noncomputable def transitionEqStartOffsetAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  (transitionNarrowSourceOffsetAffine tm).add
+    (TransitionAffineNat.const 2)
+
+/-- Offset to the complete public-row equality output. -/
+noncomputable def transitionEqWireOffsetAffine
+    (tm : _root_.Turing.FinTM2) : TransitionAffineNat :=
+  (transitionEqStartOffsetAffine tm).add
+    ((transitionCfgBitAffine tm).scale 6)
+
+/-- Absolute source forms for the five post-dispatch phase boundaries. -/
+noncomputable def transitionNarrowStartForm
+    (tm : _root_.Turing.FinTM2) : AffineUnaryTripleForm :=
+  transitionAbsoluteStartForm (transitionNarrowStartOffsetAffine tm)
+
+noncomputable def transitionNarrowSourceForm
+    (tm : _root_.Turing.FinTM2) : AffineUnaryTripleForm :=
+  transitionAbsoluteStartForm (transitionNarrowSourceOffsetAffine tm)
+
+noncomputable def transitionFitWireForm
+    (tm : _root_.Turing.FinTM2) : AffineUnaryTripleForm :=
+  transitionAbsoluteStartForm (transitionFitWireOffsetAffine tm)
+
+noncomputable def transitionEqStartForm
+    (tm : _root_.Turing.FinTM2) : AffineUnaryTripleForm :=
+  transitionAbsoluteStartForm (transitionEqStartOffsetAffine tm)
+
+noncomputable def transitionEqWireForm
+    (tm : _root_.Turing.FinTM2) : AffineUnaryTripleForm :=
+  transitionAbsoluteStartForm (transitionEqWireOffsetAffine tm)
+
+/-- Fixed affine table emitted once for every transition row. -/
+noncomputable def transitionTailPhaseBoundaryForms
+    (tm : _root_.Turing.FinTM2) : List AffineUnaryTripleForm :=
+  [ transitionNarrowStartForm tm,
+    transitionNarrowSourceForm tm,
+    transitionEqStartForm tm,
+    transitionFitWireForm tm,
+    transitionEqWireForm tm ]
+
+theorem transitionNarrowStartForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleFormValue (transitionNarrowStartForm tm)
+        (transitionTailAffineSeed seed) =
+      transitionNarrowStart tm seed.height seed.start := by
+  rw [transitionNarrowStartForm, transitionAbsoluteStartForm_value,
+    transitionNarrowStartOffsetAffine, TransitionAffineNat.eval_add,
+    TransitionAffineNat.eval_const,
+    transitionDispatchGateAffine_eval tm seed.height hwork]
+  simp [transitionNarrowStart]
+  omega
+
+theorem transitionNarrowSourceForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleFormValue (transitionNarrowSourceForm tm)
+        (transitionTailAffineSeed seed) =
+      transitionNarrowSourceWire tm seed.height seed.start := by
+  rw [transitionNarrowSourceForm, transitionAbsoluteStartForm_value,
+    transitionNarrowSourceOffsetAffine, TransitionAffineNat.eval_add,
+    TransitionAffineNat.eval_const, transitionNarrowStartOffsetAffine,
+    TransitionAffineNat.eval_add, TransitionAffineNat.eval_const,
+    transitionDispatchGateAffine_eval tm seed.height hwork]
+  simp [transitionNarrowSourceWire, transitionNarrowStart]
+  ring
+
+theorem transitionFitWireForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleFormValue (transitionFitWireForm tm)
+        (transitionTailAffineSeed seed) =
+      transitionFitWire tm seed.height seed.start := by
+  rw [transitionFitWireForm, transitionAbsoluteStartForm_value,
+    transitionFitWireOffsetAffine, TransitionAffineNat.eval_add,
+    TransitionAffineNat.eval_const]
+  have hsource : seed.start +
+      (transitionNarrowSourceOffsetAffine tm).eval seed.height =
+      transitionNarrowSourceWire tm seed.height seed.start := by
+    calc
+      seed.start +
+          (transitionNarrowSourceOffsetAffine tm).eval seed.height =
+          affineUnaryTripleFormValue (transitionNarrowSourceForm tm)
+            (transitionTailAffineSeed seed) := by
+        symm
+        simpa [transitionNarrowSourceForm] using
+          transitionAbsoluteStartForm_value
+            (transitionNarrowSourceOffsetAffine tm) seed
+      _ = transitionNarrowSourceWire tm seed.height seed.start :=
+        transitionNarrowSourceForm_value tm seed hwork
+  unfold transitionFitWire
+  omega
+
+theorem transitionEqStartForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleFormValue (transitionEqStartForm tm)
+        (transitionTailAffineSeed seed) =
+      transitionEqStart tm seed.height seed.start := by
+  rw [transitionEqStartForm, transitionAbsoluteStartForm_value,
+    transitionEqStartOffsetAffine, TransitionAffineNat.eval_add,
+    TransitionAffineNat.eval_const]
+  have hsource : seed.start +
+      (transitionNarrowSourceOffsetAffine tm).eval seed.height =
+      transitionNarrowSourceWire tm seed.height seed.start := by
+    calc
+      seed.start +
+          (transitionNarrowSourceOffsetAffine tm).eval seed.height =
+          affineUnaryTripleFormValue (transitionNarrowSourceForm tm)
+            (transitionTailAffineSeed seed) := by
+        symm
+        simpa [transitionNarrowSourceForm] using
+          transitionAbsoluteStartForm_value
+            (transitionNarrowSourceOffsetAffine tm) seed
+      _ = transitionNarrowSourceWire tm seed.height seed.start :=
+        transitionNarrowSourceForm_value tm seed hwork
+  rw [transitionNarrowSourceWire] at hsource
+  unfold transitionEqStart
+  omega
+
+theorem transitionEqWireForm_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleFormValue (transitionEqWireForm tm)
+        (transitionTailAffineSeed seed) =
+      transitionEqWire tm seed.height seed.start := by
+  rw [transitionEqWireForm, transitionAbsoluteStartForm_value,
+    transitionEqWireOffsetAffine, TransitionAffineNat.eval_add,
+    TransitionAffineNat.eval_scale, transitionCfgBitAffine_eval]
+  have heqStart : seed.start +
+      (transitionEqStartOffsetAffine tm).eval seed.height =
+      transitionEqStart tm seed.height seed.start := by
+    calc
+      seed.start +
+          (transitionEqStartOffsetAffine tm).eval seed.height =
+          affineUnaryTripleFormValue (transitionEqStartForm tm)
+            (transitionTailAffineSeed seed) := by
+        symm
+        simpa [transitionEqStartForm] using
+          transitionAbsoluteStartForm_value
+            (transitionEqStartOffsetAffine tm) seed
+      _ = transitionEqStart tm seed.height seed.start :=
+        transitionEqStartForm_value tm seed hwork
+  unfold transitionEqWire
+  omega
+
+/-- The five-form affine table is value-exact for every positive-workspace
+transition seed. -/
+theorem transitionTailPhaseBoundaryForms_value
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (hwork : 0 < workHeight tm seed.height) :
+    affineUnaryTripleMap (transitionTailPhaseBoundaryForms tm)
+        (transitionTailAffineSeed seed) =
+      [ transitionNarrowStart tm seed.height seed.start,
+        transitionNarrowSourceWire tm seed.height seed.start,
+        transitionEqStart tm seed.height seed.start,
+        transitionFitWire tm seed.height seed.start,
+        transitionEqWire tm seed.height seed.start ] := by
+  simp [transitionTailPhaseBoundaryForms, affineUnaryTripleMap,
+    transitionNarrowStartForm_value tm seed hwork,
+    transitionNarrowSourceForm_value tm seed hwork,
+    transitionEqStartForm_value tm seed hwork,
+    transitionFitWireForm_value tm seed hwork,
+    transitionEqWireForm_value tm seed hwork]
+
 /-! ## Concrete verifier-family source -/
 
 /-- Transition seeds in the reusable affine source representation. -/
@@ -337,13 +583,59 @@ theorem verifierTransitionTailAffineSeedEncoding_eq
       rw [ih]
       rfl
 
+/-- Generic fixed-form affine image of every verifier transition seed. -/
+noncomputable def verifierTransitionAffineMapFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (forms : List AffineUnaryTripleForm)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeUnaryFrame
+    (affineUnaryTripleMapFamily forms
+      (verifierTransitionTailAffineSeeds W input))
+
+/-- Any verifier-fixed affine form table can be evaluated over the complete
+transition seed family by one fixed polynomial-time TM2. -/
+noncomputable def verifierTransitionAffineMapFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (forms : List AffineUnaryTripleForm) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionAffineMapFrames W forms) := by
+  let seedSource : _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineUnaryTripleSeedFamily
+      (verifierTransitionTailAffineSeeds W) :=
+    { tm :=
+        (verifierTransitionRowSeedFrames_computableInPolyTime W).tm
+      inputAlphabet :=
+        (verifierTransitionRowSeedFrames_computableInPolyTime W).inputAlphabet
+      outputAlphabet :=
+        (verifierTransitionRowSeedFrames_computableInPolyTime W).outputAlphabet
+      time :=
+        (verifierTransitionRowSeedFrames_computableInPolyTime W).time
+      outputsFun := fun input => by
+        have run :=
+          (verifierTransitionRowSeedFrames_computableInPolyTime W).outputsFun
+            input
+        simpa only [id_eq,
+          verifierTransitionTailAffineSeedEncoding_eq W input] using run }
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch seedSource
+      (affineUnaryTripleMapFamily_computableInPolyTime forms)
+  let result := Classical.choice composed
+  exact
+    { tm := result.tm
+      inputAlphabet := result.inputAlphabet
+      outputAlphabet := result.outputAlphabet
+      time := result.time
+      outputsFun := fun input => by
+        have run := result.outputsFun input
+        simpa only [Function.comp_apply, id_eq,
+          verifierTransitionAffineMapFrames] using run }
+
 /-- Delimiter-bearing final-mux starts for every verifier transition row. -/
 noncomputable def verifierTransitionFinalMuxStartFrames
     {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
     (input : List Γ) : List UnaryFrameSym :=
-  encodeUnaryFrame
-    (affineUnaryTripleMapFamily [transitionFinalMuxStartForm W.machine.tm]
-      (verifierTransitionTailAffineSeeds W input))
+  verifierTransitionAffineMapFrames W
+    [transitionFinalMuxStartForm W.machine.tm] input
 
 /-- The concrete frame stream contains exactly one final-mux start per
 canonical transition row. -/
@@ -357,7 +649,8 @@ theorem verifierTransitionFinalMuxStartFrames_eq_seeds
             transitionDispatchListFinalMuxOffset W.machine.tm seed.height
               (programLabels W.machine.tm)) := by
   unfold verifierTransitionFinalMuxStartFrames
-    verifierTransitionTailAffineSeeds affineUnaryTripleMapFamily
+    verifierTransitionAffineMapFrames verifierTransitionTailAffineSeeds
+    affineUnaryTripleMapFamily
   rw [List.flatMap_map]
   congr 1
   rw [show List.flatMap
@@ -392,36 +685,51 @@ noncomputable def
     {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
     _root_.Turing.TM2ComputableInPolyTime id id
       (verifierTransitionFinalMuxStartFrames W) := by
-  let seedSource : _root_.Turing.TM2ComputableInPolyTime id
-      encodeAffineUnaryTripleSeedFamily
-      (verifierTransitionTailAffineSeeds W) :=
-    { tm :=
-        (verifierTransitionRowSeedFrames_computableInPolyTime W).tm
-      inputAlphabet :=
-        (verifierTransitionRowSeedFrames_computableInPolyTime W).inputAlphabet
-      outputAlphabet :=
-        (verifierTransitionRowSeedFrames_computableInPolyTime W).outputAlphabet
-      time :=
-        (verifierTransitionRowSeedFrames_computableInPolyTime W).time
-      outputsFun := fun input => by
-        have run :=
-          (verifierTransitionRowSeedFrames_computableInPolyTime W).outputsFun
-            input
-        simpa only [id_eq,
-          verifierTransitionTailAffineSeedEncoding_eq W input] using run }
-  let composed :=
-    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch seedSource
-      (affineUnaryTripleMapFamily_computableInPolyTime
-        [transitionFinalMuxStartForm W.machine.tm])
-  let result := Classical.choice composed
-  exact
-    { tm := result.tm
-      inputAlphabet := result.inputAlphabet
-      outputAlphabet := result.outputAlphabet
-      time := result.time
-      outputsFun := fun input => by
-        have run := result.outputsFun input
-        simpa only [Function.comp_apply, id_eq,
-          verifierTransitionFinalMuxStartFrames] using run }
+  exact verifierTransitionAffineMapFrames_computableInPolyTime W
+    [transitionFinalMuxStartForm W.machine.tm]
+
+/-- Delimiter-bearing five-coordinate phase skeleton for every verifier
+transition row. -/
+noncomputable def verifierTransitionTailPhaseBoundaryFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  verifierTransitionAffineMapFrames W
+    (transitionTailPhaseBoundaryForms W.machine.tm) input
+
+/-- The generic affine map emits the exact semantic phase coordinates in row
+major order. -/
+theorem verifierTransitionTailPhaseBoundaryFrames_eq_seeds
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionTailPhaseBoundaryFrames W input =
+      encodeUnaryFrame
+        ((verifierTransitionRowSeeds W input).flatMap fun seed =>
+          [ transitionNarrowStart W.machine.tm seed.height seed.start,
+            transitionNarrowSourceWire W.machine.tm seed.height seed.start,
+            transitionEqStart W.machine.tm seed.height seed.start,
+            transitionFitWire W.machine.tm seed.height seed.start,
+            transitionEqWire W.machine.tm seed.height seed.start ]) := by
+  unfold verifierTransitionTailPhaseBoundaryFrames
+    verifierTransitionAffineMapFrames verifierTransitionTailAffineSeeds
+    affineUnaryTripleMapFamily
+  rw [List.flatMap_map]
+  congr 1
+  apply List.flatMap_congr
+  intro seed hseed
+  apply transitionTailPhaseBoundaryForms_value
+  rw [verifierTransitionRowSeeds_height_eq W input seed hseed]
+  exact Nat.add_pos_left
+    (verifierHeight_eval_pos W input.length)
+    (maxPushesPerStep W.machine.tm)
+
+/-- A fixed polynomial-time TM2 emits the complete five-coordinate tail
+phase skeleton directly from the raw verifier word. -/
+noncomputable def
+    verifierTransitionTailPhaseBoundaryFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionTailPhaseBoundaryFrames W) := by
+  exact verifierTransitionAffineMapFrames_computableInPolyTime W
+    (transitionTailPhaseBoundaryForms W.machine.tm)
 
 end CLRS.Chapter34.Turing.CookLevin
