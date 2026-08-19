@@ -31,6 +31,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Affin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneSeedCarrierSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneMarkedRowInvocationSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneSeedCarrierNormalizeSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailRowFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineValidityTailStackFamilySource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineStackOutputFamilySource
@@ -80,6 +81,9 @@ with explicit counter clearing between rows and an exact clean-halt theorem.
 The seed-carrier source preserves all three row parameters as two synthetic
 compact frames, so the ordinary marked-row projector can consume those values
 and the genuine one-hot row in one continuous stream.
+The carrier normalizer then decodes those synthetic frames with one fixed
+controller and emits a seed-first packet while preserving the genuine
+invocation payload byte-for-byte, closing the next typed streaming boundary.
 The affine-triple map source additionally turns a raw runtime
 `(height, start, rowBase)` stream into any verifier-fixed finite table of
 affine operands using one concrete quadratic-time TM2 controller.
