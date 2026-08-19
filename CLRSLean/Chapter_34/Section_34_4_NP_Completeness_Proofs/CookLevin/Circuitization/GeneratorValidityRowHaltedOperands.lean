@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorFirstValidityHaltedFrame
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowAffineOperands
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactPolynomialAffineUnaryTripleProgression
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark
 
 /-!
 # Source compilation of every validity row's halted operands
@@ -125,5 +126,48 @@ noncomputable def
       (verifierCfgBitCountPolynomial W)
       (verifierCfgBitCountPolynomial W)
       (verifierValidityRowCountPolynomial W)
+
+/-! ## Row-marked source interface -/
+
+/-- Insert one outer `frameEnd` after each complete halted operand triple.
+The ordinary separator after `haltedRight` is retained, because it belongs to
+the halted-equality controller invocation itself. -/
+def verifierValidityRowHaltedMarkedOperandFrames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  markUnaryTripleRows (verifierValidityRowHaltedOperandFrames W input)
+
+/-- The marked source has exactly one packet per canonical validity row. -/
+theorem verifierValidityRowHaltedMarkedOperandFrames_eq_frames
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierValidityRowHaltedMarkedOperandFrames W input =
+      (verifierValidityRowFramesByLength W input.length).flatMap fun frame =>
+        encodeUnaryFrame
+          [frame.haltedStart, frame.haltedLeft, frame.haltedRight] ++
+            [.frameEnd] := by
+  unfold verifierValidityRowHaltedMarkedOperandFrames
+  change markUnaryTripleRows
+      (encodeUnaryTripleRows (verifierValidityRowHaltedTriples W input)) = _
+  rw [markUnaryTripleRows_encode,
+    verifierValidityRowHaltedTriples_eq_frames]
+  simp [encodeUnaryTripleMarkedRows, List.flatMap_map]
+
+/-- A fixed polynomial-time TM2 compiles the row-marked halted operand
+packets directly from the raw verifier word. -/
+noncomputable def
+    verifierValidityRowHaltedMarkedOperandFrames_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierValidityRowHaltedMarkedOperandFrames W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (verifierValidityRowHaltedOperandFrames_computableInPolyTime W)
+      markUnaryTripleRows_computableInPolyTime
+  change _root_.Turing.TM2ComputableInPolyTime id id
+    (fun input : List Γ =>
+      markUnaryTripleRows (verifierValidityRowHaltedOperandFrames W input))
+  simpa [Function.comp_def] using Classical.choice composed
 
 end CLRS.Chapter34.Turing.CookLevin
