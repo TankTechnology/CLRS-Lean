@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneStructuredRowFamilySource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneSeedCarrierSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineExactlyOneOutputFamilySource
 import Mathlib.Tactic
 
@@ -1627,6 +1628,457 @@ noncomputable def
       (affineExactlyOneStructuredRowMarkedSeeds_computableInPolyTime
         labelWidth stateWidth cellCounts)
       (affineExactlyOneMarkedRowInvocation_computableInPolyTime
+        labelWidth stateWidth cellCounts)
+  simpa [Function.comp_def] using Classical.choice composed
+
+/-! ## Seed-carrier rows -/
+
+/-- The complete compact row seen by the projector: two synthetic frames
+retaining the row seed, followed by the genuine structured one-hot frames. -/
+def affineExactlyOneSeedCarrierRowFrames
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) : List AffineExactlyOneFrame :=
+  affineExactlyOneStructuredRowSeedCarrierFrames seed ++
+    affineExactlyOneStructuredRowFrames labelWidth stateWidth cellCounts
+      seed.height seed.start seed.rowBase
+
+/-- Projected carrier row.  Its two synthetic invocations retain all three
+seed values alongside the ordinary one-hot output-source invocation row. -/
+def encodeAffineExactlyOneSeedCarrierOutputInvocation
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) : List UnaryFrameSym :=
+  encodeAffineExactlyOneOutputSourceInvocationFamily
+      (affineExactlyOneSeedCarrierRowFrames
+        labelWidth stateWidth cellCounts seed).reverse ++
+    [.frameEnd]
+
+/-- Projection follows reverse compact-frame order: the canonical one-hot
+output invocations come first, followed by carrier two `(rowBase,0,0)`,
+carrier one `(height,start,0)`, and the row terminator. -/
+theorem encodeAffineExactlyOneSeedCarrierOutputInvocation_eq
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) :
+    encodeAffineExactlyOneSeedCarrierOutputInvocation
+        labelWidth stateWidth cellCounts seed =
+      encodeAffineExactlyOneOutputSourceInvocationFamily
+          (affineExactlyOneStructuredRowFrames labelWidth stateWidth cellCounts
+            seed.height seed.start seed.rowBase).reverse ++
+        encodeUnaryFrame [seed.rowBase, 0, 0] ++
+        encodeUnaryFrame [seed.height, seed.start, 0] ++ [.frameEnd] := by
+  simp [encodeAffineExactlyOneSeedCarrierOutputInvocation,
+    affineExactlyOneSeedCarrierRowFrames,
+    affineExactlyOneStructuredRowSeedCarrierFrames,
+    encodeAffineExactlyOneOutputSourceInvocationFamily,
+    encodeAffineExactlyOneOutputSourceInvocation,
+    List.append_assoc]
+
+/-- Row-major projected carrier family. -/
+def encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    List AffineExactlyOneStructuredRowSeed → List UnaryFrameSym
+  | [] => []
+  | seed :: rest =>
+      encodeAffineExactlyOneSeedCarrierOutputInvocation
+          labelWidth stateWidth cellCounts seed ++
+        encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+          labelWidth stateWidth cellCounts rest
+
+private theorem encodeAffineExactlyOneSeedCarrierOutputInvocationFamily_append
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (left right : List AffineExactlyOneStructuredRowSeed) :
+    encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        labelWidth stateWidth cellCounts (left ++ right) =
+      encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+          labelWidth stateWidth cellCounts left ++
+        encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+          labelWidth stateWidth cellCounts right := by
+  induction left with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneSeedCarrierOutputInvocationFamily, ih,
+        List.append_assoc]
+
+/-- Reversed marked carrier rows in projector processing order. -/
+def encodeAffineExactlyOneReversedSeedCarrierStream
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    List AffineExactlyOneStructuredRowSeed → List UnaryFrameSym
+  | [] => []
+  | seed :: rest =>
+      .frameEnd ::
+        encodeAffineExactlyOneReversedCompactFrameStream
+          (affineExactlyOneSeedCarrierRowFrames
+            labelWidth stateWidth cellCounts seed).reverse ++
+        encodeAffineExactlyOneReversedSeedCarrierStream
+          labelWidth stateWidth cellCounts rest
+
+private theorem encodeAffineExactlyOneReversedSeedCarrierStream_append
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (left right : List AffineExactlyOneStructuredRowSeed) :
+    encodeAffineExactlyOneReversedSeedCarrierStream
+        labelWidth stateWidth cellCounts (left ++ right) =
+      encodeAffineExactlyOneReversedSeedCarrierStream
+          labelWidth stateWidth cellCounts left ++
+        encodeAffineExactlyOneReversedSeedCarrierStream
+          labelWidth stateWidth cellCounts right := by
+  induction left with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneReversedSeedCarrierStream, ih,
+        List.append_assoc]
+
+/-- The carrier source's prepend result exposes exactly the row projector's
+reverse marked input stream. -/
+theorem encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily_reverse
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+      labelWidth stateWidth cellCounts seeds).reverse =
+      encodeAffineExactlyOneReversedSeedCarrierStream
+        labelWidth stateWidth cellCounts seeds.reverse := by
+  induction seeds with
+  | nil => rfl
+  | cons seed rest ih =>
+      simp [encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily,
+        affineExactlyOneSeedCarrierRowFrames,
+        encodeAffineExactlyOneCompactFamily_reverse,
+        encodeAffineExactlyOneReversedSeedCarrierStream,
+        encodeAffineExactlyOneReversedSeedCarrierStream_append,
+        List.reverse_append, ih, List.append_assoc]
+
+/-- Cost of projecting one carrier row. -/
+def affineExactlyOneSeedCarrierProjectionSteps
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) : Nat :=
+  affineExactlyOneMarkedRowSteps
+    (affineExactlyOneSeedCarrierRowFrames
+      labelWidth stateWidth cellCounts seed).reverse
+
+/-- Total carrier-row projection cost before the final empty-input halt. -/
+def affineExactlyOneSeedCarrierProjectionFamilySteps
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) : Nat :=
+  (seeds.map (affineExactlyOneSeedCarrierProjectionSteps
+    labelWidth stateWidth cellCounts)).sum
+
+private noncomputable def affineExactlyOneSeedCarrierProjection_rows_runFrom
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed)
+    (buffer₂ : Option UnaryFrameSym) (output : List UnaryFrameSym) :
+    Σ finalBuffer₂ : Option UnaryFrameSym,
+      EvalsToInTime (step affineExactlyOneMarkedRowInvocationProgram)
+        (affineExactlyOneMarkedRowInvocationCfg .rowStart
+          none buffer₂ false
+          (encodeAffineExactlyOneReversedSeedCarrierStream
+            labelWidth stateWidth cellCounts seeds)
+          output [] [] [] [])
+        (some (affineExactlyOneMarkedRowInvocationCfg .rowStart
+          none finalBuffer₂ false []
+          (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+            labelWidth stateWidth cellCounts seeds.reverse ++ output)
+          [] [] [] []))
+        (affineExactlyOneSeedCarrierProjectionFamilySteps
+          labelWidth stateWidth cellCounts seeds) := by
+  induction seeds generalizing buffer₂ output with
+  | nil =>
+      refine ⟨buffer₂, ⟨⟨0, ?_⟩, le_rfl⟩⟩
+      rfl
+  | cons seed rest ih =>
+      let rawFrames := affineExactlyOneSeedCarrierRowFrames
+        labelWidth stateWidth cellCounts seed
+      have hraw : rawFrames ≠ [] := by
+        simp [rawFrames, affineExactlyOneSeedCarrierRowFrames,
+          affineExactlyOneStructuredRowSeedCarrierFrames]
+      have hrev : rawFrames.reverse ≠ [] := by simpa using hraw
+      cases hframes : rawFrames.reverse with
+      | nil => contradiction
+      | cons frame frames =>
+          let rowOutput :=
+            encodeAffineExactlyOneSeedCarrierOutputInvocation
+              labelWidth stateWidth cellCounts seed ++ output
+          cases rest with
+          | nil =>
+              refine ⟨buffer₂, ?_⟩
+              have hrow := affineExactlyOneMarkedRow_rowEOF_run
+                frame frames none buffer₂ false output
+              simpa [encodeAffineExactlyOneReversedSeedCarrierStream,
+                encodeAffineExactlyOneSeedCarrierOutputInvocationFamily,
+                encodeAffineExactlyOneSeedCarrierOutputInvocation,
+                affineExactlyOneSeedCarrierProjectionFamilySteps,
+                affineExactlyOneSeedCarrierProjectionSteps,
+                rawFrames, hframes, List.append_assoc] using hrow
+          | cons next rest =>
+              let remainingSeeds := next :: rest
+              let remainingInput :=
+                encodeAffineExactlyOneReversedSeedCarrierStream
+                  labelWidth stateWidth cellCounts remainingSeeds
+              let remainingTail :=
+                encodeAffineExactlyOneReversedCompactFrameStream
+                    (affineExactlyOneSeedCarrierRowFrames
+                      labelWidth stateWidth cellCounts next).reverse ++
+                  encodeAffineExactlyOneReversedSeedCarrierStream
+                    labelWidth stateWidth cellCounts rest
+              have hrow := affineExactlyOneMarkedRow_rowEnd_run
+                frame frames none buffer₂ false remainingTail output
+              rcases ih (some .frameEnd) rowOutput with
+                ⟨finalBuffer₂, hrest⟩
+              let full := EvalsToInTime.trans
+                (step affineExactlyOneMarkedRowInvocationProgram)
+                (affineExactlyOneSeedCarrierProjectionSteps
+                  labelWidth stateWidth cellCounts seed)
+                (affineExactlyOneSeedCarrierProjectionFamilySteps
+                  labelWidth stateWidth cellCounts remainingSeeds)
+                _ (affineExactlyOneMarkedRowInvocationCfg .rowStart
+                  none (some .frameEnd) false remainingInput rowOutput
+                  [] [] [] []) _
+                (by
+                  simpa [encodeAffineExactlyOneReversedSeedCarrierStream,
+                    encodeAffineExactlyOneSeedCarrierOutputInvocation,
+                    affineExactlyOneSeedCarrierProjectionSteps,
+                    rawFrames, hframes, remainingSeeds, remainingInput,
+                    remainingTail, rowOutput, List.append_assoc] using hrow)
+                (by simpa [remainingInput, rowOutput] using hrest)
+              refine ⟨finalBuffer₂, ?_⟩
+              convert full using 1
+              · simp [encodeAffineExactlyOneReversedSeedCarrierStream,
+                  rawFrames, hframes]
+              · have hout :
+                    encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+                        labelWidth stateWidth cellCounts
+                        (rest.reverse ++ [next, seed]) ++ output =
+                      encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+                          labelWidth stateWidth cellCounts
+                          (rest.reverse ++ [next]) ++
+                        (encodeAffineExactlyOneSeedCarrierOutputInvocation
+                          labelWidth stateWidth cellCounts seed ++ output) := by
+                    rw [show rest.reverse ++ [next, seed] =
+                        (rest.reverse ++ [next]) ++ [seed] by simp]
+                    rw [
+                      encodeAffineExactlyOneSeedCarrierOutputInvocationFamily_append]
+                    simp [
+                      encodeAffineExactlyOneSeedCarrierOutputInvocationFamily,
+                      List.append_assoc]
+                rw [show (seed :: next :: rest).reverse =
+                  rest.reverse ++ [next, seed] by simp]
+                simp only [hout]
+              · change
+                  affineExactlyOneSeedCarrierProjectionSteps
+                      labelWidth stateWidth cellCounts seed +
+                    affineExactlyOneSeedCarrierProjectionFamilySteps
+                      labelWidth stateWidth cellCounts (next :: rest) =
+                  affineExactlyOneSeedCarrierProjectionFamilySteps
+                      labelWidth stateWidth cellCounts (next :: rest) +
+                    affineExactlyOneSeedCarrierProjectionSteps
+                      labelWidth stateWidth cellCounts seed
+                omega
+
+/-- Exact runtime, including final empty-input transition and halt. -/
+def affineExactlyOneSeedCarrierProjectionRunSteps
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) : Nat :=
+  2 + affineExactlyOneSeedCarrierProjectionFamilySteps
+    labelWidth stateWidth cellCounts seeds.reverse
+
+/-- The existing marked-row projector consumes the carrier stream and emits
+the seed carriers plus genuine one-hot output invocations in row-major order. -/
+def affineExactlyOneSeedCarrierProjection_run
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    EvalsToInTime (step affineExactlyOneMarkedRowInvocationProgram)
+      (initialCfg affineExactlyOneMarkedRowInvocationProgram
+        (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse)
+      (some (haltCfg affineExactlyOneMarkedRowInvocationProgram
+        (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+          labelWidth stateWidth cellCounts seeds)))
+      (affineExactlyOneSeedCarrierProjectionRunSteps
+        labelWidth stateWidth cellCounts seeds) := by
+  rcases affineExactlyOneSeedCarrierProjection_rows_runFrom
+      labelWidth stateWidth cellCounts seeds.reverse none [] with
+    ⟨finalBuffer₂, hrows⟩
+  let output := encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+    labelWidth stateWidth cellCounts seeds
+  let beforeHalt := affineExactlyOneMarkedRowInvocationCfg .rowStart
+    none finalBuffer₂ false [] output [] [] [] []
+  have hsource : EvalsToInTime
+      (step affineExactlyOneMarkedRowInvocationProgram)
+      (initialCfg affineExactlyOneMarkedRowInvocationProgram
+        (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse)
+      (some beforeHalt)
+      (affineExactlyOneSeedCarrierProjectionFamilySteps
+        labelWidth stateWidth cellCounts seeds.reverse) := by
+    simpa [initialCfg, affineExactlyOneMarkedRowInvocationProgram,
+      affineExactlyOneMarkedRowInvocationCfg, beforeHalt, output,
+      encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily_reverse]
+      using hrows
+  have hhalt : EvalsToInTime
+      (step affineExactlyOneMarkedRowInvocationProgram)
+      beforeHalt
+      (some (haltCfg affineExactlyOneMarkedRowInvocationProgram output)) 2 := by
+    refine ⟨⟨2, ?_⟩, le_rfl⟩
+    rfl
+  let full := EvalsToInTime.trans
+    (step affineExactlyOneMarkedRowInvocationProgram)
+    (affineExactlyOneSeedCarrierProjectionFamilySteps
+      labelWidth stateWidth cellCounts seeds.reverse) 2
+    _ beforeHalt _ hsource hhalt
+  simpa [affineExactlyOneSeedCarrierProjectionRunSteps, output] using full
+
+theorem affineExactlyOneSeedCarrierProjectionSteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seed : AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneSeedCarrierProjectionSteps
+        labelWidth stateWidth cellCounts seed ≤
+      14 * (1 +
+        (encodeAffineExactlyOneReversedCompactFrameStream
+          (affineExactlyOneSeedCarrierRowFrames
+            labelWidth stateWidth cellCounts seed).reverse).length) := by
+  have hrow := affineExactlyOneMarkedRowSteps_le
+    (affineExactlyOneSeedCarrierRowFrames
+      labelWidth stateWidth cellCounts seed).reverse
+  rw [encodeAffineExactlyOneReversedCompactFrameStream_length]
+  simp only [affineExactlyOneSeedCarrierProjectionSteps]
+  omega
+
+theorem affineExactlyOneSeedCarrierProjectionFamilySteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneSeedCarrierProjectionFamilySteps
+        labelWidth stateWidth cellCounts seeds ≤
+      14 * (encodeAffineExactlyOneReversedSeedCarrierStream
+        labelWidth stateWidth cellCounts seeds).length := by
+  induction seeds with
+  | nil =>
+      simp [affineExactlyOneSeedCarrierProjectionFamilySteps,
+        encodeAffineExactlyOneReversedSeedCarrierStream]
+  | cons seed rest ih =>
+      have hseed := affineExactlyOneSeedCarrierProjectionSteps_le
+        labelWidth stateWidth cellCounts seed
+      have ih' :
+          (rest.map (affineExactlyOneSeedCarrierProjectionSteps
+            labelWidth stateWidth cellCounts)).sum ≤
+            14 * (encodeAffineExactlyOneReversedSeedCarrierStream
+              labelWidth stateWidth cellCounts rest).length := by
+        simpa only [affineExactlyOneSeedCarrierProjectionFamilySteps] using ih
+      rw [affineExactlyOneSeedCarrierProjectionFamilySteps,
+        encodeAffineExactlyOneReversedSeedCarrierStream]
+      simp only [List.map_cons, List.sum_cons, List.length_append,
+        List.length_cons]
+      omega
+
+theorem affineExactlyOneSeedCarrierProjectionRunSteps_le
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat)
+    (seeds : List AffineExactlyOneStructuredRowSeed) :
+    affineExactlyOneSeedCarrierProjectionRunSteps
+        labelWidth stateWidth cellCounts seeds ≤
+      14 * (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+        labelWidth stateWidth cellCounts seeds).reverse.length + 2 := by
+  have hfamily := affineExactlyOneSeedCarrierProjectionFamilySteps_le
+    labelWidth stateWidth cellCounts seeds.reverse
+  have hencoding := congrArg List.length
+    (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily_reverse
+      labelWidth stateWidth cellCounts seeds)
+  simp only [affineExactlyOneSeedCarrierProjectionRunSteps]
+  rw [hencoding]
+  omega
+
+/-- Concrete linear-time projection of seed-carrier rows. -/
+noncomputable def
+    affineExactlyOneSeedCarrierProjection_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      (fun seeds : List AffineExactlyOneStructuredRowSeed =>
+        (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse)
+      id
+      (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        labelWidth stateWidth cellCounts) := by
+  exact
+    { tm := compile affineExactlyOneMarkedRowInvocationProgram
+      inputAlphabet := Equiv.refl _
+      outputAlphabet := Equiv.refl _
+      time := Polynomial.C 14 * Polynomial.X + 2
+      outputsFun := fun seeds => by
+        have builderRun := affineExactlyOneSeedCarrierProjection_run
+          labelWidth stateWidth cellCounts seeds
+        have compiledRun := compile_evalsToInTime
+          affineExactlyOneMarkedRowInvocationProgram builderRun
+        have machineRun : _root_.StateTransition.EvalsToInTime
+            (compile affineExactlyOneMarkedRowInvocationProgram).step
+            (_root_.Turing.initList
+              (compile affineExactlyOneMarkedRowInvocationProgram)
+              (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+                labelWidth stateWidth cellCounts seeds).reverse)
+            (some (_root_.Turing.haltList
+              (compile affineExactlyOneMarkedRowInvocationProgram)
+              (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+                labelWidth stateWidth cellCounts seeds)))
+            (affineExactlyOneSeedCarrierProjectionRunSteps
+              labelWidth stateWidth cellCounts seeds) := by
+          simpa only [encodeCfg_initialCfg, encodeCfg_haltCfg] using compiledRun
+        have htime : affineExactlyOneSeedCarrierProjectionRunSteps
+            labelWidth stateWidth cellCounts seeds ≤
+            (Polynomial.C 14 * Polynomial.X + 2).eval
+              (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+                labelWidth stateWidth cellCounts seeds).reverse.length := by
+          simpa only [Polynomial.eval_add, Polynomial.eval_mul,
+            Polynomial.eval_X, Polynomial.eval_C,
+            Polynomial.eval_ofNat] using
+            affineExactlyOneSeedCarrierProjectionRunSteps_le
+              labelWidth stateWidth cellCounts seeds
+        have boundedRun : _root_.StateTransition.EvalsToInTime
+            (compile affineExactlyOneMarkedRowInvocationProgram).step
+            (_root_.Turing.initList
+              (compile affineExactlyOneMarkedRowInvocationProgram)
+              (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+                labelWidth stateWidth cellCounts seeds).reverse)
+            (some (_root_.Turing.haltList
+              (compile affineExactlyOneMarkedRowInvocationProgram)
+              (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+                labelWidth stateWidth cellCounts seeds)))
+            ((Polynomial.C 14 * Polynomial.X + 2).eval
+              (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+                labelWidth stateWidth cellCounts seeds).reverse.length) :=
+          ⟨machineRun.toEvalsTo, machineRun.steps_le_m.trans htime⟩
+        simpa [_root_.Turing.TM2OutputsInTime, compile] using boundedRun }
+
+/-- Typed view of the carrier re-encoder: the semantic seed family is kept
+while its physical representation changes to the reversed carrier stream. -/
+noncomputable def affineExactlyOneSeedCarrierRevSeeds_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        labelWidth stateWidth cellCounts)
+      (fun seeds : List AffineExactlyOneStructuredRowSeed =>
+        (encodeAffineExactlyOneStructuredRowSeedCarrierMarkedFamily
+          labelWidth stateWidth cellCounts seeds).reverse)
+      id := by
+  let source := affineExactlyOneSeedCarrierRev_computableInPolyTime
+    labelWidth stateWidth cellCounts
+  exact
+    { tm := source.tm
+      inputAlphabet := source.inputAlphabet
+      outputAlphabet := source.outputAlphabet
+      time := source.time
+      outputsFun := fun seeds => by
+        simpa only [id_eq] using source.outputsFun seeds }
+
+/-- End-to-end from ordinary seed-preserving packets to the projected carrier
+row stream. -/
+noncomputable def
+    affineExactlyOneSeedMarkedToCarrierOutput_computableInPolyTime
+    (labelWidth stateWidth : Nat) (cellCounts : List Nat) :
+    _root_.Turing.TM2ComputableInPolyTime
+      (encodeAffineExactlyOneStructuredRowSeedMarkedFamily
+        labelWidth stateWidth cellCounts)
+      id
+      (encodeAffineExactlyOneSeedCarrierOutputInvocationFamily
+        labelWidth stateWidth cellCounts) := by
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+      (affineExactlyOneSeedCarrierRevSeeds_computableInPolyTime
+        labelWidth stateWidth cellCounts)
+      (affineExactlyOneSeedCarrierProjection_computableInPolyTime
         labelWidth stateWidth cellCounts)
   simpa [Function.comp_def] using Classical.choice composed
 

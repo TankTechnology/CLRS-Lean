@@ -10,6 +10,12 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineExactlyOneMarkedRowInvocationSteps_le
 #check affineExactlyOneMarkedRowInvocation_computableInPolyTime
 #check affineExactlyOneStructuredRowOutputInvocationFamily_computableInPolyTime
+#check affineExactlyOneSeedCarrierRowFrames
+#check encodeAffineExactlyOneSeedCarrierOutputInvocation_eq
+#check affineExactlyOneSeedCarrierProjection_run
+#check affineExactlyOneSeedCarrierProjectionRunSteps_le
+#check affineExactlyOneSeedCarrierProjection_computableInPolyTime
+#check affineExactlyOneSeedMarkedToCarrierOutput_computableInPolyTime
 
 example (labelWidth stateWidth : Nat) (cellCounts : List Nat)
     (seeds : List AffineExactlyOneStructuredRowSeed) :
@@ -24,3 +30,7 @@ example (labelWidth stateWidth : Nat) (cellCounts : List Nat)
 #print axioms affineExactlyOneMarkedRowInvocationSteps_le
 #print axioms affineExactlyOneMarkedRowInvocation_computableInPolyTime
 #print axioms affineExactlyOneStructuredRowOutputInvocationFamily_computableInPolyTime
+#print axioms encodeAffineExactlyOneSeedCarrierOutputInvocation_eq
+#print axioms affineExactlyOneSeedCarrierProjection_run
+#print axioms affineExactlyOneSeedCarrierProjectionRunSteps_le
+#print axioms affineExactlyOneSeedMarkedToCarrierOutput_computableInPolyTime
