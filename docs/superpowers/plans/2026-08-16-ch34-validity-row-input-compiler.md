@@ -352,7 +352,7 @@ Pin exact output equality to the row-major flattening of
 `encodeAffineValidityTailFrame frame.tailFrame` and pin a concrete raw-input
 `TM2ComputableInPolyTime` theorem.
 
-- [ ] **Step 2: Emit every fixed stack frame and runtime-height cell family**
+- [x] **Step 2: Emit every fixed stack frame and runtime-height cell family**
 
 For each row and fixed machine stack, emit the three mask fields, every cell's
 `right/left/blank` fields in `Fin H` order, and the stack-family `.frameEnd`.
@@ -365,6 +365,12 @@ Generate `arithmeticValidityFinalStart` followed by the reversed
 `arithmeticValidityConstraintWires` order required by
 `encodeAffineConjunctionFrame`, then emit its `.frameEnd`.  Prove the order,
 not only the multiset or length.
+
+Current checkpoint: `arithmeticFinalConjunctionWires_eq_semantic` closes the
+ordered wire formula, and the fixed output-family controller computes the raw
+one-hot output-wire segment continuously with a quadratic bound.  The remaining
+part of this step is the continuous source that combines that segment with the
+halted wire, reverse stack/cell output wires, final start, and terminator.
 
 - [ ] **Step 4: Prove and package polynomial runtime**
 
