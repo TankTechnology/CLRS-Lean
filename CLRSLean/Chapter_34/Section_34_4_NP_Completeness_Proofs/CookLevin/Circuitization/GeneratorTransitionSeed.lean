@@ -189,4 +189,117 @@ theorem arithmeticCompileTransitionScript_eq_seed
   rw [arithmeticTransitionScript_decomposition_eq_seed]
   rfl
 
+/-! ## Complete adjacent-row family -/
+
+/-- Prefix recursion preserves the complete seed-derived script formula for
+any family whose public rows have arithmetic layouts. -/
+theorem compileTransitionFamilyScripts_eq_seed_ofFn
+    (tm : _root_.Turing.FinTM2) (height : Nat)
+    (base : CircuitBuilder) (T : Nat)
+    (rows : Fin (T + 1) → CfgWires tm height)
+    (hrows : ∀ row, (rows row).ValidIn base)
+    (rowBase : Fin (T + 1) → Nat)
+    (hrowsEq : ∀ row,
+      rows row = arithmeticCfgWires tm height (rowBase row)) :
+    compileTransitionFamilyScripts tm height base T rows hrows =
+      List.ofFn fun step : Fin T =>
+        transitionScriptFromSeed tm
+          { height := height
+            start := base.gates.length +
+              step.val * transitionCircuitGateCost tm height
+            rowBase := rowBase step.castSucc }
+          (rowBase step.succ) := by
+  induction T generalizing base with
+  | zero => rfl
+  | succ T ih =>
+      simp only [compileTransitionFamilyScripts]
+      have hprefixEq : ∀ row : Fin (T + 1),
+          rows row.castSucc =
+            arithmeticCfgWires tm height (rowBase row.castSucc) :=
+        fun row => hrowsEq row.castSucc
+      rw [ih base (fun row => rows row.castSucc)
+        (fun row => hrows row.castSucc)
+        (fun row => rowBase row.castSucc) hprefixEq]
+      let previous := transitionCircuitFamily tm height base
+        (fun row => rows row.castSucc) (fun row => hrows row.castSucc)
+      let currentRow : Fin (T + 2) := (Fin.last T).castSucc
+      let nextRow : Fin (T + 2) := Fin.last (T + 1)
+      have hcurrentArithmetic :
+          (arithmeticCfgWires tm height (rowBase currentRow)).ValidIn
+            previous.builder := by
+        rw [← hrowsEq currentRow]
+        exact (hrows currentRow).mono previous.extension
+      have hnextArithmetic :
+          (arithmeticCfgWires tm height (rowBase nextRow)).ValidIn
+            previous.builder := by
+        rw [← hrowsEq nextRow]
+        exact (hrows nextRow).mono previous.extension
+      have hlast := arithmeticCompileTransitionScript_eq_seed tm height
+        (rowBase currentRow) (rowBase nextRow) previous.builder
+        hcurrentArithmetic hnextArithmetic
+      have hlast' :
+          compileTransitionScript tm height previous.builder
+              (rows currentRow) (rows nextRow)
+              ((hrows currentRow).mono previous.extension)
+              ((hrows nextRow).mono previous.extension) =
+            transitionScriptFromSeed tm
+              { height := height
+                start := previous.builder.gates.length
+                rowBase := rowBase currentRow }
+              (rowBase nextRow) := by
+        simpa only [hrowsEq currentRow, hrowsEq nextRow] using hlast
+      rw [hlast']
+      rw [List.ofFn_succ']
+      simp only [List.concat_eq_append]
+      congr 1
+      rw [transitionCircuitFamily_gate_delta]
+      simp [currentRow, nextRow]
+
+/-- Dimension-only canonical transition scripts are exactly the arithmetic
+row-seed family in adjacent-row order. -/
+theorem compileTransitionFamilyScriptsAt_eq_seeds_ofFn
+    (tm : _root_.Turing.FinTM2) (height T : Nat) :
+    compileTransitionFamilyScriptsAt tm height T =
+      List.ofFn fun step : Fin T =>
+        transitionScriptFromSeed tm
+          { height := height
+            start := (arithmeticValidityAt tm height T).builder.gates.length +
+              step.val * transitionCircuitGateCost tm height
+            rowBase := step.val * cfgBitCount tm height }
+          ((step.val + 1) * cfgBitCount tm height) := by
+  unfold compileTransitionFamilyScriptsAt
+  apply compileTransitionFamilyScripts_eq_seed_ofFn tm height
+    (arithmeticValidityAt tm height T).builder T
+    (arithmeticRowsAt tm height T).rows
+    (fun row =>
+      ((arithmeticRowsAt tm height T).rowValid row).mono
+        ((arithmeticPoolAt tm height T).extension.trans
+          (arithmeticValidityAt tm height T).extension))
+    (fun row => row.val * cfgBitCount tm height)
+  intro row
+  simpa [arithmeticRowsAt] using
+    allocateTableauRows_rows_eq_arithmetic tm height T row
+
+/-- The polynomial-time raw-input seed stream expands to the exact complete
+canonical transition-family runtime scripts, not merely their phase tags or
+tail projections. -/
+theorem verifierTransitionRowSeeds_expand_eq_scripts
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    (verifierTransitionRowSeeds W input).map (fun seed =>
+        transitionScriptFromSeed W.machine.tm seed
+          (seed.rowBase + cfgBitCount W.machine.tm seed.height)) =
+      compileTransitionFamilyScriptsAt W.machine.tm
+        ((verifierHeight W).eval input.length)
+        ((verifierHorizon W).eval input.length) := by
+  unfold verifierTransitionRowSeeds
+  rw [verifierTransitionRowSeedTriples_eq_ofFn, List.map_map,
+    List.map_ofFn]
+  rw [compileTransitionFamilyScriptsAt_eq_seeds_ofFn]
+  apply List.ofFn_inj.mpr
+  funext step
+  simp only [Function.comp_apply]
+  rw [verifierTransitionStartPolynomial_eval_eq_validity_length]
+  congr 2 <;> ring
+
 end CLRS.Chapter34.Turing.CookLevin

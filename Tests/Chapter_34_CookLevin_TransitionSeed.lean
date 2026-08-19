@@ -11,8 +11,13 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionScriptOfDecomposition_decomposition
 #check transitionScriptFromSeed
 #check arithmeticCompileTransitionScript_eq_seed
+#check compileTransitionFamilyScripts_eq_seed_ofFn
+#check compileTransitionFamilyScriptsAt_eq_seeds_ofFn
+#check verifierTransitionRowSeeds_expand_eq_scripts
 
 #print axioms arithmeticTransitionScript_dispatch_eq_seed
 #print axioms arithmeticTransitionScript_decomposition_eq_seed
 #print axioms transitionScriptOfDecomposition_decomposition
 #print axioms arithmeticCompileTransitionScript_eq_seed
+#print axioms compileTransitionFamilyScriptsAt_eq_seeds_ofFn
+#print axioms verifierTransitionRowSeeds_expand_eq_scripts
