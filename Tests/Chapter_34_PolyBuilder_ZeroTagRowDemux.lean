@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameZeroTagRowDemux
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFrameZeroTagRows_one
+#check rewriteUnaryFrameZeroTagRows_family
+#check rewriteUnaryFrameZeroTagRows_computableInPolyTime
+
+#print axioms rewriteUnaryFrameZeroTagRows_one
+#print axioms rewriteUnaryFrameZeroTagRows_family
+#print axioms rewriteUnaryFrameZeroTagRows_computableInPolyTime
