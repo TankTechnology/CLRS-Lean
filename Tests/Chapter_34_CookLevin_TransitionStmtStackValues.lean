@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackValues
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackHeightWireValues
+#check transitionStackCellWireRows
+#check transitionStackWireValues
+#check transitionStackWireValues_eq_slot_map
+#check arithmeticPushStackWires_height_values
+#check arithmeticPushStackWires_cell_rows
+#check arithmeticPopStackWires_height_values
+#check arithmeticPopStackWires_cell_rows
+
+#print axioms transitionStackWireValues_eq_slot_map
+#print axioms arithmeticPushStackWires_height_values
+#print axioms arithmeticPushStackWires_cell_rows
+#print axioms arithmeticPopStackWires_height_values
+#print axioms arithmeticPopStackWires_cell_rows
