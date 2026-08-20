@@ -51,7 +51,7 @@ theorem transitionStackAffineSpanBlockDropAmounts_nonempty
     route.heightSpan
   omega
 
-private theorem fixedGroupPrefixDropValues_append
+theorem unaryFrameFixedGroupPrefixDropValues_append
     (leftDrops rightDrops : List Nat)
     (leftRows rightRows : List (List Nat))
     (hlength : leftDrops.length = leftRows.length) :
@@ -97,7 +97,7 @@ theorem TransitionStmtTerminalRowLayout.stackAffineSpanBlockSegments_values
   unfold transitionStackAffineSpanBlockDropAmounts
     transitionStackAffineSpanBlockSegments transitionAffineSegmentValueRows
   rw [List.map_append]
-  rw [fixedGroupPrefixDropValues_append]
+  rw [unaryFrameFixedGroupPrefixDropValues_append]
   · have hheight := layout.stackAffineSpanHeightSegments_values W input seed
       hseed label labelOffset hlayout k
     have hcells := layout.stackAffineSpanCellSegments_values W input seed hseed
