@@ -246,6 +246,24 @@ def affineUnaryTripleProgressionFinishCfg
   affineUnaryTripleProgressionCfg .halt none none false
     tail output [] [] [] [] []
 
+/-- Public structural form of the clean progression exit.  Stateful wrappers
+can use this without unfolding the private configuration constructor. -/
+@[simp] theorem affineUnaryTripleProgressionFinishCfg_eq
+    (tail output : List UnaryFrameSym) :
+    affineUnaryTripleProgressionFinishCfg tail output =
+      ({ label := some AffineUnaryTripleProgressionLabel.halt
+         buffer₁ := none
+         buffer₂ := none
+         test := false
+         input := tail
+         output := output
+         work₁ := []
+         work₂ := []
+         counter₁ := []
+         counter₂ := []
+         counter₃ := [] } :
+        BuilderCfg affineUnaryTripleProgressionRevProgram) := rfl
+
 private theorem triple_replicate_append_cons {α : Type} (value : α)
     (count : Nat) (tail : List α) :
     List.replicate count value ++ value :: tail =
