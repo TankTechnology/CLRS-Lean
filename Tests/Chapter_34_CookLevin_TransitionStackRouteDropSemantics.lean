@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteDropSemantics
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRouteDropPrefix
+#check transitionStackRouteDropPrefix_rows
+#print axioms transitionStackRouteDropPrefix_rows
