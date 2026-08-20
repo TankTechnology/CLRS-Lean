@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleGroupFirstProjection
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check projectUnaryTripleGroupFirst
+#check projectUnaryTripleGroupFirst_fixedGroupStream
+#check affineUnaryTripleProgressionFixedGroupFirstFrameStream_append_group
+#check projectUnaryTripleGroupFirst_computableInPolyTime
+
+#print axioms projectUnaryTripleGroupFirst_computableInPolyTime
