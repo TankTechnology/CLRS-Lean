@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicBoundaryFilter
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFramePeriodicBoundaries_encode
+#check unaryFramePeriodicBoundaryFilter_computableInPolyTime
+
+#print axioms rewriteUnaryFramePeriodicBoundaries_encode
+#print axioms unaryFramePeriodicBoundaryFilter_computableInPolyTime
