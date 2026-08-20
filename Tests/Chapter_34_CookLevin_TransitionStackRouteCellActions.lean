@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteCellActions
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRoutePushCellValues
+#check transitionStackRoutePopCellValues
+#check transitionStackRoutePushCellValues_eq
+#check transitionStackRoutePopCellValues_eq
+
+#print axioms transitionStackRoutePushCellValues_eq
+#print axioms transitionStackRoutePopCellValues_eq

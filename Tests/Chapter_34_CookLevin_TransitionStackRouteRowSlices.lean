@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteRowSlices
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check List.flatten_take_fixedWidth
+#check List.flatten_drop_fixedWidth
+#check List.flatten_length_fixedWidth
+#check List.flatten_rdrop_one_fixedWidth
+#check transitionStackRouteFirstValues_drop
+#check transitionStackRouteFirstValues_trimSuffix
+
+#print axioms List.flatten_take_fixedWidth
+#print axioms List.flatten_drop_fixedWidth
+#print axioms List.flatten_length_fixedWidth
+#print axioms List.flatten_rdrop_one_fixedWidth
+#print axioms transitionStackRouteFirstValues_drop
+#print axioms transitionStackRouteFirstValues_trimSuffix
