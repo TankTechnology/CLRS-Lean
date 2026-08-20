@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchTrueArmNormalizedLayout
+#check transitionDispatchTrueArmNormalizedLayouts
+#check transitionDispatchTrueArmNormalizedRows
+#check transitionDispatchTrueArmNormalizedRows_eq_seed
+
+#print axioms transitionDispatchTrueArmNormalizedRows_eq_seed
