@@ -1,5 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionWidenedFallbackMarkedDescriptors
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicMarkedRowFilter
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicMarkedRowFilterCycle
 
 /-!
 # Selecting one stack's widened descriptors from the raw verifier word
@@ -129,6 +129,24 @@ noncomputable def verifierTransitionWidenedFallbackDescriptorRows
       (transitionWidenedFallbackProgressions W.machine.tm)).map
     affineUnaryTripleProgressionFields)
 
+/-- The same descriptor rows, grouped by their originating transition seed. -/
+noncomputable def verifierTransitionWidenedFallbackDescriptorRowGroups
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List (List (List Nat)) :=
+  (verifierTransitionRowSeeds W input).map fun seed =>
+    (transitionWidenedFallbackProgressions W.machine.tm seed).map
+      affineUnaryTripleProgressionFields
+
+theorem verifierTransitionWidenedFallbackDescriptorRows_eq_groups
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierTransitionWidenedFallbackDescriptorRows W input =
+      (verifierTransitionWidenedFallbackDescriptorRowGroups W input).flatten := by
+  unfold verifierTransitionWidenedFallbackDescriptorRows
+    verifierTransitionWidenedFallbackDescriptorRowGroups
+  rw [List.map_flatMap]
+  rfl
+
 private theorem encode_progressionMarkedFamily_eq_periodicInput
     (progressions : List AffineUnaryTripleProgression) :
     encodeAffineUnaryTripleProgressionMarkedFamily progressions =
@@ -195,6 +213,44 @@ theorem verifierTransitionStackRouteCellMarkedDescriptorFrames_eq
   rw [verifierTransitionWidenedFallbackMarkedDescriptorFrames_eq]
   rw [encode_progressionMarkedFamily_eq_periodicInput]
   exact rewriteUnaryFramePeriodicMarkedRows_encode _ _ _
+
+/-- The height selector restarts at position zero for every transition seed. -/
+theorem verifierTransitionStackRouteHeightMarkedDescriptorFrames_eq_groups
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (k : W.machine.tm.K) (input : List Γ) :
+    verifierTransitionStackRouteHeightMarkedDescriptorFrames W k input =
+      (verifierTransitionWidenedFallbackDescriptorRowGroups W input).flatMap
+        (encodeUnaryFramePeriodicSelectedMarkedRows
+          (transitionStackRouteHeightDescriptorSelection W.machine.tm k)) := by
+  rw [verifierTransitionStackRouteHeightMarkedDescriptorFrames_eq]
+  rw [verifierTransitionWidenedFallbackDescriptorRows_eq_groups]
+  apply encodeUnaryFramePeriodicMarkedRowOutput_groups
+  intro rows hrows
+  unfold verifierTransitionWidenedFallbackDescriptorRowGroups at hrows
+  rw [List.mem_map] at hrows
+  rcases hrows with ⟨seed, hseed, rfl⟩
+  simp only [List.length_map]
+  exact (transitionStackRouteHeightDescriptorSelection_progressions_length
+    W.machine.tm seed k).symm
+
+/-- The cell selector restarts at position zero for every transition seed. -/
+theorem verifierTransitionStackRouteCellMarkedDescriptorFrames_eq_groups
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (k : W.machine.tm.K) (input : List Γ) :
+    verifierTransitionStackRouteCellMarkedDescriptorFrames W k input =
+      (verifierTransitionWidenedFallbackDescriptorRowGroups W input).flatMap
+        (encodeUnaryFramePeriodicSelectedMarkedRows
+          (transitionStackRouteCellDescriptorSelection W.machine.tm k)) := by
+  rw [verifierTransitionStackRouteCellMarkedDescriptorFrames_eq]
+  rw [verifierTransitionWidenedFallbackDescriptorRows_eq_groups]
+  apply encodeUnaryFramePeriodicMarkedRowOutput_groups
+  intro rows hrows
+  unfold verifierTransitionWidenedFallbackDescriptorRowGroups at hrows
+  rw [List.mem_map] at hrows
+  rcases hrows with ⟨seed, hseed, rfl⟩
+  simp only [List.length_map]
+  exact (transitionStackRouteCellDescriptorSelection_progressions_length
+    W.machine.tm seed k).symm
 
 /-- The selected height descriptors are emitted by one fixed polynomial-time
 TM2 from the original verifier word. -/
