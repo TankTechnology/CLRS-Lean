@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxInvocationLabelPacketWellFormed
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchMuxInvocationView.RowAligned
+#check TransitionDispatchMuxInvocationView.frames_length_of_rowAligned
+#check transitionDispatchMuxDescriptorInvocationViews_rowAligned
+#check TransitionDispatchMuxInvocationView.labelPacketFrames_frameEnd_count
+
+#print axioms TransitionDispatchMuxInvocationView.frames_length_of_rowAligned
+#print axioms transitionDispatchMuxDescriptorInvocationViews_rowAligned
+#print axioms TransitionDispatchMuxInvocationView.labelPacketFrames_frameEnd_count
