@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleProgressionRowMark
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check markAffineUnaryTripleProgressionRows_encode
+#check markAffineUnaryTripleProgressionRows_computableInPolyTime
+
+#print axioms markAffineUnaryTripleProgressionRows_encode
+#print axioms markAffineUnaryTripleProgressionRows_computableInPolyTime
