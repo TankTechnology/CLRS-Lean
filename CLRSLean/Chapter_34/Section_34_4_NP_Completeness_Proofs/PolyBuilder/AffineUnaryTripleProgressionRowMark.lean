@@ -63,7 +63,9 @@ def affineUnaryTripleProgressionFields
     progression.step₁, progression.step₂, progression.step₃,
     progression.count]
 
-private theorem progressionFamily_eq_frame
+/-- A progression-family descriptor stream is the ordinary unary-frame
+encoding of its flattened seven-field descriptors. -/
+theorem encodeAffineUnaryTripleProgressionFamily_eq_encodeUnaryFrame
     (progressions : List AffineUnaryTripleProgression) :
     encodeAffineUnaryTripleProgressionFamily progressions =
       encodeUnaryFrame
@@ -154,7 +156,7 @@ theorem markAffineUnaryTripleProgressionRows_encode
         (encodeAffineUnaryTripleProgressionFamily progressions) =
       encodeAffineUnaryTripleProgressionMarkedFamily progressions := by
   unfold markAffineUnaryTripleProgressionRows
-  rw [progressionFamily_eq_frame]
+  rw [encodeAffineUnaryTripleProgressionFamily_eq_encodeUnaryFrame]
   rw [rewriteUnaryFrameDelimiters_encodeUnaryFrame]
   rw [progressionDelimiterCycle_rows]
   unfold encodeAffineUnaryTripleProgressionMarkedFamily
