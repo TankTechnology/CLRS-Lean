@@ -64,6 +64,45 @@ private theorem progressionRowUnmarkBody_ticks (count : Nat) :
       rw [List.replicate_succ, List.flatMap_cons, ih]
       rfl
 
+private theorem progressionRowUnmarkBody_frame (values : List Nat) :
+    (encodeUnaryFrame values).flatMap
+        affineUnaryTripleProgressionRowUnmarkBody.emit =
+      encodeUnaryFrame values := by
+  induction values with
+  | nil => rfl
+  | cons value values ih =>
+      rw [show encodeUnaryFrame (value :: values) =
+          List.replicate value .tick ++ .separator ::
+            encodeUnaryFrame values by
+        simp [encodeUnaryFrame, encodeUnaryFrameBlock]]
+      rw [List.flatMap_append, progressionRowUnmarkBody_ticks]
+      change List.replicate value .tick ++
+          .separator :: (encodeUnaryFrame values).flatMap
+            affineUnaryTripleProgressionRowUnmarkBody.emit =
+        List.replicate value .tick ++ .separator :: encodeUnaryFrame values
+      rw [ih]
+
+/-- Removing the outer boundary from each arbitrary marked unary row preserves
+all ordinary fields and concatenates their values. -/
+theorem unmarkAffineUnaryTripleProgressionRows_markedValues
+    (rows : List (List Nat)) :
+    unmarkAffineUnaryTripleProgressionRows
+        (rows.flatMap fun row => encodeUnaryFrame row ++ [.frameEnd]) =
+      encodeUnaryFrame rows.flatten := by
+  induction rows with
+  | nil => rfl
+  | cons row rows ih =>
+      unfold unmarkAffineUnaryTripleProgressionRows at ih ⊢
+      simp only [List.flatMap_cons, List.flatMap_append]
+      rw [progressionRowUnmarkBody_frame]
+      change encodeUnaryFrame row ++ [] ++
+          (rows.flatMap fun other =>
+            encodeUnaryFrame other ++ [.frameEnd]).flatMap
+              affineUnaryTripleProgressionRowUnmarkBody.emit = _
+      simp only [List.append_nil]
+      rw [ih]
+      simp [encodeUnaryFrame, List.flatten_cons, List.flatMap_append]
+
 private theorem progressionRowUnmarkBody_descriptor
     (progression : AffineUnaryTripleProgression) :
     (encodeAffineUnaryTripleProgression progression ++
