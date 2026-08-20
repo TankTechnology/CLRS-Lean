@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteHeightSource
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRouteHeightProgressions_values
+#check transitionStackRouteHeightDrop_values
+#check transitionStackRouteHeightTrimSuffix_values
+
+#print axioms transitionStackRouteHeightProgressions_values
+#print axioms transitionStackRouteHeightDrop_values
+#print axioms transitionStackRouteHeightTrimSuffix_values

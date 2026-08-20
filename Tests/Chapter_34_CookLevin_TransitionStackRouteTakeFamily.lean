@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteTakeFamily
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRouteTakeFamily
+#check transitionStackRouteTakeFamily_rows
+#check transitionStackRouteTrimSuffix
+#check transitionStackRouteTrimSuffix_rows
+#print axioms transitionStackRouteTakeFamily_rows
+#print axioms transitionStackRouteTrimSuffix_rows
