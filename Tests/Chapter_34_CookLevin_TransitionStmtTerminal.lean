@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminal
+#check transitionStmtTerminalLayout
+#check transitionStmtTerminalLayout_isSome_iff_branch_none
+#check transitionStmtTerminalGateAffine
+
+#print axioms transitionStmtTerminalLayout_isSome_iff_branch_none
+#print axioms transitionStmtTerminalGateAffine
