@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtFinalBranchMuxOffsetAffine
+#check transitionStmtOutputWires_eq_finalBranchMux
+#check transitionDispatchArtifactsFromSeed_trueArmRows
+#check arithmeticWidening_dispatchArtifact_trueArmRows_eq_seed
+
+#print axioms transitionStmtOutputWires_eq_finalBranchMux
+#print axioms arithmeticWidening_dispatchArtifact_trueArmRows_eq_seed
