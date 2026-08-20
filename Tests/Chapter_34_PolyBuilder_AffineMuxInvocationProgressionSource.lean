@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineMuxInvocationProgressionSource
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check AffineMuxInvocationProgression.headerProgression_frameStream
+#check affineMuxInvocationProgressionFamilySourceFrames_eq
+#check AffineMuxInvocationProgression.frames_eq_ofFn
+#check AffineMuxInvocationProgression.frames_length
+
+#print axioms affineMuxInvocationProgressionFamilySourceFrames_eq
+#print axioms AffineMuxInvocationProgression.frames_eq_ofFn
