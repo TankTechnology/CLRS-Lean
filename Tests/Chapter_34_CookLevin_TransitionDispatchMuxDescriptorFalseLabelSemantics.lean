@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxInvocationDescriptorFalseLabelSemantics
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchFalseArmValueRows_eq_progressionGroups
+#check verifierTransitionDispatchMuxInvocationDescriptorFalseLabelFrames_eq_semantic
+
+#print axioms transitionDispatchFalseArmValueRows_eq_progressionGroups
+#print axioms verifierTransitionDispatchMuxInvocationDescriptorFalseLabelFrames_eq_semantic
