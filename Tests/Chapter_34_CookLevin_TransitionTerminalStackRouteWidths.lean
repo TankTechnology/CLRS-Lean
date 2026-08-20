@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalStackRouteWidths
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminalRowLayout.stackValueRouteValues_map_length
+
+#print axioms TransitionStmtTerminalRowLayout.stackValueRouteValues_map_length

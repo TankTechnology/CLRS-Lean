@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackValueShape
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStackValueBlock.HasShape
+#check TransitionStackValueBlock.hasShape_ofWires
+#check TransitionStackValueBlock.HasShape.push
+#check TransitionStackValueBlock.HasShape.pop
+#check transitionStmtSelectedStackActionValues_eval_hasShape
+#check TransitionStackValueBlock.HasShape.flatten_length
+#check TransitionStackValueBlock.HasShape.flatten_length_eq_cfgStackBitWidth
+
+#print axioms transitionStmtSelectedStackActionValues_eval_hasShape
+#print axioms TransitionStackValueBlock.HasShape.flatten_length
