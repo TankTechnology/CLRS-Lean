@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowOrderReverse
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeUnaryFrameMarkedRowOrderReverse
+#check unaryFrameMarkedRowOrderReverse_run
+#check unaryFrameMarkedRowOrderReverseSteps_le
+#check unaryFrameMarkedRowOrderReverse_computableInPolyTime
+
+#print axioms unaryFrameMarkedRowOrderReverse_run
+#print axioms unaryFrameMarkedRowOrderReverseSteps_le
+#print axioms unaryFrameMarkedRowOrderReverse_computableInPolyTime
