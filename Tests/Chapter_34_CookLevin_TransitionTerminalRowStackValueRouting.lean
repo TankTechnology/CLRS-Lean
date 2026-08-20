@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalStackValueRouting
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminalRowLayout.stackValueBlocks
+#check TransitionStmtTerminalRowLayout.stackBlocks_eq_valueRoutes
+#check TransitionStmtTerminalRowLayout.structuredValues_eq_valueRoutes
+
+#print axioms TransitionStmtTerminalRowLayout.structuredValues_eq_valueRoutes
