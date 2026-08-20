@@ -56,7 +56,8 @@ def encodeAffineUnaryTripleProgressionMarkedFamily
   progressions.flatMap fun progression =>
     encodeAffineUnaryTripleProgression progression ++ [.frameEnd]
 
-private def affineUnaryTripleProgressionFields
+/-- The seven unary values stored in one progression descriptor. -/
+def affineUnaryTripleProgressionFields
     (progression : AffineUnaryTripleProgression) : List Nat :=
   [progression.base₁, progression.base₂, progression.base₃,
     progression.step₁, progression.step₂, progression.step₃,
