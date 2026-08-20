@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalPrefixAffine
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtTerminalHaltedForm_value
+#check transitionStmtTerminalLabelForms_value
+#check transitionStmtTerminalStateForms_value
+#check transitionStmtTerminalPrefixForms_value
+
+#print axioms transitionStmtTerminalPrefixForms_value
