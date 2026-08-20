@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxInvocationDescriptorTrueLabelSemantics
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchTrueArmSpanDroppedValueRows_eq_labelSpans
+#check verifierTransitionDispatchMuxInvocationDescriptorTrueLabelFrames_eq_semantic
+
+#print axioms transitionDispatchTrueArmSpanDroppedValueRows_eq_labelSpans
+#print axioms verifierTransitionDispatchMuxInvocationDescriptorTrueLabelFrames_eq_semantic
