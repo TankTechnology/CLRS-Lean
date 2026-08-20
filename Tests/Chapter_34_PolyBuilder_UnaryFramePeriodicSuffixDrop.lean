@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicSuffixDrop
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFramePeriodicSuffixDrop_groups
+#check unaryFramePeriodicSuffixDrop_computableInPolyTime
+
+#print axioms rewriteUnaryFramePeriodicSuffixDrop_groups
+#print axioms unaryFramePeriodicSuffixDrop_computableInPolyTime
