@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check oneHotMapWireOffset
+#check oneHotMapGateTrace_wire_eq_start_add_offset
+#check oneHotMapGateTrace_wires_eq_offset
+
+#print axioms oneHotMapGateTrace_wire_eq_start_add_offset
+#print axioms oneHotMapGateTrace_wires_eq_offset

@@ -39,12 +39,12 @@ def oneHotPreimage {n m : Nat} (f : Fin n → Fin m) (target : Fin m) :
 
 /-- Source wires belonging to one fixed target fiber, in canonical finite-set
 order. -/
-private def oneHotPreimageWires {n m : Nat}
+def oneHotPreimageWires {n m : Nat}
     (source : Fin n → CircuitBuilder.Wire)
     (f : Fin n → Fin m) (target : Fin m) : List CircuitBuilder.Wire :=
   (oneHotPreimage f target).toList.map source
 
-@[simp] private theorem oneHotPreimageWires_length {n m : Nat}
+@[simp] theorem oneHotPreimageWires_length {n m : Nat}
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Fin m)
     (target : Fin m) :
     (oneHotPreimageWires source f target).length =
@@ -107,7 +107,7 @@ structure OneHotMapGateTrace (m : Nat) where
   gates : List CircuitGate
   wires : Fin m → CircuitBuilder.Wire
 
-private def oneHotMapBodyGateTrace {n m : Nat} (start : Nat)
+def oneHotMapBodyGateTrace {n m : Nat} (start : Nat)
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Fin m) :
     (k : Nat) → (hk : k ≤ m) → OneHotMapGateTrace k
   | 0, _ =>
