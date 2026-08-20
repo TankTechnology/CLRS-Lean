@@ -231,6 +231,21 @@ private def affineUnaryTripleProgressionCfg
   counter₂ := current₂
   counter₃ := current₃
 
+/-- Clean contextual entry used by continuous family wrappers. -/
+def affineUnaryTripleProgressionLoopCfg
+    (input output : List UnaryFrameSym) :
+    BuilderCfg affineUnaryTripleProgressionRevProgram :=
+  affineUnaryTripleProgressionCfg .loadBase₁ none none false
+    input output [] [] [] [] []
+
+/-- Redirectable clean exit after one progression has consumed exactly its
+seven unary fields.  The input tail and existing output suffix are preserved. -/
+def affineUnaryTripleProgressionFinishCfg
+    (tail output : List UnaryFrameSym) :
+    BuilderCfg affineUnaryTripleProgressionRevProgram :=
+  affineUnaryTripleProgressionCfg .halt none none false
+    tail output [] [] [] [] []
+
 private theorem triple_replicate_append_cons {α : Type} (value : α)
     (count : Nat) (tail : List α) :
     List.replicate count value ++ value :: tail =
@@ -1234,7 +1249,7 @@ private theorem clearSteps_eval (values : List UnaryFrameSym)
             buffer₂ test input output values work₂ current₁ current₂ current₃)) = _
       simpa using ih (some value)
 
-private def affineUnaryTripleProgressionRevSteps
+def affineUnaryTripleProgressionRevSteps
     (progression : AffineUnaryTripleProgression) : Nat :=
   (2 * progression.base₁ + 1) +
     (2 * progression.base₂ + 1) +
@@ -1251,15 +1266,26 @@ private def affineUnaryTripleProgressionRevSteps
     (progression.base₃ + progression.count * progression.step₃ + 1) +
     (progression.step₁ + progression.step₂ + progression.step₃ + 3) + 1
 
-/-- Exact successful run on every canonical structured triple input. -/
-def affineUnaryTripleProgressionRev_run
-    (progression : AffineUnaryTripleProgression) :
+/-- Exact cost through the redirectable finish label, before its standalone
+halt instruction. -/
+def affineUnaryTripleProgressionBodySteps
+    (progression : AffineUnaryTripleProgression) : Nat :=
+  affineUnaryTripleProgressionRevSteps progression - 1
+
+/-- Exact contextual run through the redirectable finish label.  It consumes
+one canonical seven-field descriptor and preserves both the remaining input
+tail and the existing output suffix. -/
+def affineUnaryTripleProgression_runToFinishWithTail
+    (progression : AffineUnaryTripleProgression)
+    (tail outputSuffix : List UnaryFrameSym) :
     EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
-      (initialCfg affineUnaryTripleProgressionRevProgram
-        (encodeAffineUnaryTripleProgression progression))
-      (some (haltCfg affineUnaryTripleProgressionRevProgram
-        (affineUnaryTripleProgressionFrameStream progression).reverse))
-      (affineUnaryTripleProgressionRevSteps progression) := by
+      (affineUnaryTripleProgressionLoopCfg
+        (encodeAffineUnaryTripleProgression progression ++ tail)
+        outputSuffix)
+      (some (affineUnaryTripleProgressionFinishCfg tail
+        ((affineUnaryTripleProgressionFrameStream progression).reverse ++
+          outputSuffix)))
+      (affineUnaryTripleProgressionBodySteps progression) := by
   let base₂Frame := encodeUnaryFrameBlock progression.base₂
   let base₃Frame := encodeUnaryFrameBlock progression.base₃
   let step₁Frame := encodeUnaryFrameBlock progression.step₁
@@ -1273,65 +1299,76 @@ def affineUnaryTripleProgressionRev_run
   let afterBase₁ := affineUnaryTripleProgressionCfg .loadBase₂
     (some .separator) none false
     (base₂Frame ++ base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++
-      countFrame) [] [] [] (List.replicate progression.base₁ ()) [] []
+      countFrame ++ tail) outputSuffix [] []
+    (List.replicate progression.base₁ ()) [] []
   let afterBase₂ := affineUnaryTripleProgressionCfg .loadBase₃
     (some .separator) none false
-    (base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame)
-    [] [] [] (List.replicate progression.base₁ ())
+    (base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++
+      countFrame ++ tail)
+    outputSuffix [] [] (List.replicate progression.base₁ ())
     (List.replicate progression.base₂ ()) []
   let afterBase₃ := affineUnaryTripleProgressionCfg .loadStep₁
     (some .separator) none false
-    (step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame) [] [] []
+    (step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame ++ tail)
+    outputSuffix [] []
     (List.replicate progression.base₁ ())
     (List.replicate progression.base₂ ())
     (List.replicate progression.base₃ ())
   let afterStep₁ := affineUnaryTripleProgressionCfg .loadStep₂
-    (some .separator) none false (step₂Frame ++ step₃Frame ++ countFrame)
-    [] (.separator :: List.replicate progression.step₁ .tick) []
+    (some .separator) none false
+    (step₂Frame ++ step₃Frame ++ countFrame ++ tail)
+    outputSuffix (.separator :: List.replicate progression.step₁ .tick) []
     (List.replicate progression.base₁ ())
     (List.replicate progression.base₂ ())
     (List.replicate progression.base₃ ())
   let afterStep₂ := affineUnaryTripleProgressionCfg .loadStep₃
-    (some .separator) none false (step₃Frame ++ countFrame) []
+    (some .separator) none false (step₃Frame ++ countFrame ++ tail)
+    outputSuffix
     (.separator :: (List.replicate progression.step₂ .tick ++
       .separator :: List.replicate progression.step₁ .tick)) []
     (List.replicate progression.base₁ ())
     (List.replicate progression.base₂ ())
     (List.replicate progression.base₃ ())
   let afterStep₃ := affineUnaryTripleProgressionCfg .next
-    (some .separator) none false countFrame [] steps []
+    (some .separator) none false (countFrame ++ tail) outputSuffix steps []
     (List.replicate progression.base₁ ())
     (List.replicate progression.base₂ ())
     (List.replicate progression.base₃ ())
   have hbase₁ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
-      (initialCfg affineUnaryTripleProgressionRevProgram
-        (encodeAffineUnaryTripleProgression progression))
+      (affineUnaryTripleProgressionLoopCfg
+        (encodeAffineUnaryTripleProgression progression ++ tail)
+        outputSuffix)
       (some afterBase₁) (2 * progression.base₁ + 1) :=
     ⟨⟨_, by simpa [encodeAffineUnaryTripleProgression, encodeUnaryFrame,
       base₂Frame, base₃Frame, step₁Frame, step₂Frame, step₃Frame, countFrame,
-      afterBase₁, initialCfg, affineUnaryTripleProgressionCfg,
+      afterBase₁, affineUnaryTripleProgressionLoopCfg,
+      affineUnaryTripleProgressionCfg,
       affineUnaryTripleProgressionRevProgram, List.append_assoc] using
       (loadBase₁_eval progression.base₁ none none false
         (base₂Frame ++ base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++
-          countFrame) [] [] [] [] [] [])⟩, le_rfl⟩
+          countFrame ++ tail) outputSuffix [] [] [] [] [])⟩, le_rfl⟩
   have hbase₂ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       afterBase₁ (some afterBase₂) (2 * progression.base₂ + 1) :=
     ⟨⟨_, by simpa [afterBase₁, afterBase₂] using
       (loadBase₂_eval progression.base₂ (some .separator) none false
-        (base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame)
-        [] [] [] (List.replicate progression.base₁ ()) [] [])⟩, le_rfl⟩
+        (base₃Frame ++ step₁Frame ++ step₂Frame ++ step₃Frame ++
+          countFrame ++ tail)
+        outputSuffix [] [] (List.replicate progression.base₁ ()) [] [])⟩,
+      le_rfl⟩
   have hbase₃ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       afterBase₂ (some afterBase₃) (2 * progression.base₃ + 1) :=
     ⟨⟨_, by simpa [afterBase₂, afterBase₃] using
       (loadBase₃_eval progression.base₃ (some .separator) none false
-        (step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame) [] [] []
+        (step₁Frame ++ step₂Frame ++ step₃Frame ++ countFrame ++ tail)
+        outputSuffix [] []
         (List.replicate progression.base₁ ())
         (List.replicate progression.base₂ ()) [])⟩, le_rfl⟩
   have hstep₁ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       afterBase₃ (some afterStep₁) (2 * progression.step₁ + 2) :=
     ⟨⟨_, by simpa [afterBase₃, afterStep₁] using
       (loadStep₁_eval progression.step₁ (some .separator) none false
-        (step₂Frame ++ step₃Frame ++ countFrame) [] [] []
+        (step₂Frame ++ step₃Frame ++ countFrame ++ tail)
+        outputSuffix [] []
         (List.replicate progression.base₁ ())
         (List.replicate progression.base₂ ())
         (List.replicate progression.base₃ ()))⟩, le_rfl⟩
@@ -1339,7 +1376,7 @@ def affineUnaryTripleProgressionRev_run
       afterStep₁ (some afterStep₂) (2 * progression.step₂ + 2) :=
     ⟨⟨_, by simpa [afterStep₁, afterStep₂] using
       (loadStep₂_eval progression.step₂ (some .separator) none false
-        (step₃Frame ++ countFrame) []
+        (step₃Frame ++ countFrame ++ tail) outputSuffix
         (.separator :: List.replicate progression.step₁ .tick) []
         (List.replicate progression.base₁ ())
         (List.replicate progression.base₂ ())
@@ -1348,7 +1385,7 @@ def affineUnaryTripleProgressionRev_run
       afterStep₂ (some afterStep₃) (2 * progression.step₃ + 1) :=
     ⟨⟨_, by simpa [afterStep₂, afterStep₃, steps] using
       (loadStep₃_eval progression.step₃ (some .separator) none false
-        countFrame []
+        (countFrame ++ tail) outputSuffix
         (.separator :: (List.replicate progression.step₂ .tick ++
           .separator :: List.replicate progression.step₁ .tick)) []
         (List.replicate progression.base₁ ())
@@ -1357,16 +1394,18 @@ def affineUnaryTripleProgressionRev_run
   rcases affineUnaryTripleProgression_inputPhases
       progression.base₁ progression.base₂ progression.base₃
       progression.step₁ progression.step₂ progression.step₃
-      (some .separator) progression.count [.separator] [] with
+      (some .separator) progression.count (.separator :: tail) outputSuffix with
     ⟨finalBuffer, phases⟩
   let final₁ := progression.base₁ + progression.count * progression.step₁
   let final₂ := progression.base₂ + progression.count * progression.step₂
   let final₃ := progression.base₃ + progression.count * progression.step₃
-  let output := (affineUnaryTripleProgressionFrameStream progression).reverse
+  let output :=
+    (affineUnaryTripleProgressionFrameStream progression).reverse ++
+      outputSuffix
   have hphases : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       afterStep₃
       (some (affineUnaryTripleProgressionCfg .next finalBuffer none false
-        [.separator] output steps []
+        (.separator :: tail) output steps []
         (List.replicate final₁ ()) (List.replicate final₂ ())
         (List.replicate final₃ ())))
       (affineUnaryTripleProgressionPhaseSteps
@@ -1378,39 +1417,39 @@ def affineUnaryTripleProgressionRev_run
       affineUnaryTripleProgressionRows,
       affineUnaryTripleProgressionStreamFrom_eq] using phases
   let beforeClear₁ := affineUnaryTripleProgressionCfg .clear₁
-    (some .separator) none false [] output steps []
+    (some .separator) none false tail output steps []
     (List.replicate final₁ ()) (List.replicate final₂ ())
     (List.replicate final₃ ())
   let beforeClear₂ := affineUnaryTripleProgressionCfg .clear₂
-    (some .separator) none false [] output steps [] []
+    (some .separator) none false tail output steps [] []
     (List.replicate final₂ ()) (List.replicate final₃ ())
   let beforeClear₃ := affineUnaryTripleProgressionCfg .clear₃
-    (some .separator) none false [] output steps [] [] []
+    (some .separator) none false tail output steps [] [] []
     (List.replicate final₃ ())
   let beforeClearSteps := affineUnaryTripleProgressionCfg .clearSteps
-    (some .separator) none false [] output steps [] [] [] []
+    (some .separator) none false tail output steps [] [] [] []
   let beforeHalt := affineUnaryTripleProgressionCfg .halt
-    none none false [] output [] [] [] [] []
+    none none false tail output [] [] [] [] []
   have hcount : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       (affineUnaryTripleProgressionCfg .next finalBuffer none false
-        [.separator] output steps []
+        (.separator :: tail) output steps []
         (List.replicate final₁ ()) (List.replicate final₂ ())
         (List.replicate final₃ ()))
       (some beforeClear₁) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hclear₁ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       beforeClear₁ (some beforeClear₂) (final₁ + 1) :=
     ⟨⟨_, by simpa [beforeClear₁, beforeClear₂] using
-      (clear₁_eval final₁ (some .separator) none false [] output steps []
+      (clear₁_eval final₁ (some .separator) none false tail output steps []
         (List.replicate final₂ ()) (List.replicate final₃ ()))⟩, le_rfl⟩
   have hclear₂ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       beforeClear₂ (some beforeClear₃) (final₂ + 1) :=
     ⟨⟨_, by simpa [beforeClear₂, beforeClear₃] using
-      (clear₂_eval final₂ (some .separator) none false [] output steps [] []
+      (clear₂_eval final₂ (some .separator) none false tail output steps [] []
         (List.replicate final₃ ()))⟩, le_rfl⟩
   have hclear₃ : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
       beforeClear₃ (some beforeClearSteps) (final₃ + 1) :=
     ⟨⟨_, by simpa [beforeClear₃, beforeClearSteps] using
-      (clear₃_eval final₃ (some .separator) none false [] output steps [] [] [])⟩,
+      (clear₃_eval final₃ (some .separator) none false tail output steps [] [] [])⟩,
       le_rfl⟩
   have hstepsLength : steps.length =
       progression.step₁ + progression.step₂ + progression.step₃ + 2 := by
@@ -1420,14 +1459,10 @@ def affineUnaryTripleProgressionRev_run
       (step affineUnaryTripleProgressionRevProgram)
       beforeClearSteps (some beforeHalt)
       (progression.step₁ + progression.step₂ + progression.step₃ + 3) := by
-    have h := clearSteps_eval steps (some .separator) none false [] output []
+    have h := clearSteps_eval steps (some .separator) none false tail output []
       [] [] []
     rw [hstepsLength] at h
     exact ⟨⟨_, by simpa [beforeClearSteps, beforeHalt] using h⟩, le_rfl⟩
-  have hhalt : EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
-      beforeHalt
-      (some (haltCfg affineUnaryTripleProgressionRevProgram output)) 1 :=
-    ⟨⟨1, rfl⟩, le_rfl⟩
   let h₁ := EvalsToInTime.trans (step affineUnaryTripleProgressionRevProgram)
     (2 * progression.base₁ + 1) (2 * progression.base₂ + 1)
     _ afterBase₁ _ hbase₁ hbase₂
@@ -1498,20 +1533,8 @@ def affineUnaryTripleProgressionRev_run
             ((2 * progression.base₂ + 1) + (2 * progression.base₁ + 1)))))))))))
     (progression.step₁ + progression.step₂ + progression.step₃ + 3)
     _ beforeClearSteps _ h₁₀ hclearSteps
-  let full := EvalsToInTime.trans (step affineUnaryTripleProgressionRevProgram)
-    ((progression.step₁ + progression.step₂ + progression.step₃ + 3) +
-      ((final₃ + 1) + ((final₂ + 1) + ((final₁ + 1) +
-        (1 + (affineUnaryTripleProgressionPhaseSteps
-          progression.base₁ progression.base₂ progression.base₃
-          progression.step₁ progression.step₂ progression.step₃
-          progression.count +
-          ((2 * progression.step₃ + 1) + ((2 * progression.step₂ + 2) +
-            ((2 * progression.step₁ + 2) + ((2 * progression.base₃ + 1) +
-              ((2 * progression.base₂ + 1) +
-                (2 * progression.base₁ + 1))))))))))))
-    1 _ beforeHalt _ h₁₁ hhalt
   have hbound :
-      1 + ((progression.step₁ + progression.step₂ + progression.step₃ + 3) +
+      (progression.step₁ + progression.step₂ + progression.step₃ + 3) +
         ((final₃ + 1) + ((final₂ + 1) + ((final₁ + 1) +
           (1 + (affineUnaryTripleProgressionPhaseSteps
             progression.base₁ progression.base₂ progression.base₃
@@ -1520,12 +1543,50 @@ def affineUnaryTripleProgressionRev_run
             ((2 * progression.step₃ + 1) + ((2 * progression.step₂ + 2) +
               ((2 * progression.step₁ + 2) + ((2 * progression.base₃ + 1) +
                 ((2 * progression.base₂ + 1) +
-                  (2 * progression.base₁ + 1)))))))))))) =
-        affineUnaryTripleProgressionRevSteps progression := by
-    simp only [affineUnaryTripleProgressionRevSteps, final₁, final₂, final₃]
+                  (2 * progression.base₁ + 1))))))))))) =
+        affineUnaryTripleProgressionBodySteps progression := by
+    simp only [affineUnaryTripleProgressionBodySteps,
+      affineUnaryTripleProgressionRevSteps, final₁, final₂, final₃]
     omega
   rw [← hbound]
-  simpa [output] using full
+  simpa [output, affineUnaryTripleProgressionFinishCfg] using h₁₁
+
+/-- Exact successful run on every standalone canonical structured input. -/
+def affineUnaryTripleProgressionRev_run
+    (progression : AffineUnaryTripleProgression) :
+    EvalsToInTime (step affineUnaryTripleProgressionRevProgram)
+      (initialCfg affineUnaryTripleProgressionRevProgram
+        (encodeAffineUnaryTripleProgression progression))
+      (some (haltCfg affineUnaryTripleProgressionRevProgram
+        (affineUnaryTripleProgressionFrameStream progression).reverse))
+      (affineUnaryTripleProgressionRevSteps progression) := by
+  have body := affineUnaryTripleProgression_runToFinishWithTail
+    progression [] []
+  have body' : EvalsToInTime
+      (step affineUnaryTripleProgressionRevProgram)
+      (affineUnaryTripleProgressionLoopCfg
+        (encodeAffineUnaryTripleProgression progression) [])
+      (some (affineUnaryTripleProgressionFinishCfg []
+        (affineUnaryTripleProgressionFrameStream progression).reverse))
+      (affineUnaryTripleProgressionBodySteps progression) := by
+    simpa using body
+  have haltStep : EvalsToInTime
+      (step affineUnaryTripleProgressionRevProgram)
+      (affineUnaryTripleProgressionFinishCfg []
+        (affineUnaryTripleProgressionFrameStream progression).reverse)
+      (some (haltCfg affineUnaryTripleProgressionRevProgram
+        (affineUnaryTripleProgressionFrameStream progression).reverse)) 1 :=
+    ⟨⟨1, rfl⟩, le_rfl⟩
+  let full := EvalsToInTime.trans
+    (step affineUnaryTripleProgressionRevProgram)
+    (affineUnaryTripleProgressionBodySteps progression) 1 _ _ _
+    body' haltStep
+  convert full using 1
+  · rfl
+  · unfold affineUnaryTripleProgressionBodySteps
+    have hpos : 0 < affineUnaryTripleProgressionRevSteps progression := by
+      simp [affineUnaryTripleProgressionRevSteps]
+    omega
 
 private theorem affineUnaryTripleProgressionPhaseSteps_le
     (current₁ current₂ current₃ stride₁ stride₂ stride₃ count : Nat) :
@@ -1552,7 +1613,7 @@ private theorem encodeAffineUnaryTripleProgression_length
   simp [encodeAffineUnaryTripleProgression]
   omega
 
-private theorem affineUnaryTripleProgressionRev_steps_le
+theorem affineUnaryTripleProgressionRev_steps_le
     (progression : AffineUnaryTripleProgression) :
     affineUnaryTripleProgressionRevSteps progression ≤
       100 * (encodeAffineUnaryTripleProgression progression).length ^ 3 +
@@ -1627,6 +1688,15 @@ private theorem affineUnaryTripleProgressionRev_steps_le
   change affineUnaryTripleProgressionRevSteps progression ≤ 100 * n ^ 3 + 100
   simp only [affineUnaryTripleProgressionRevSteps]
   omega
+
+/-- The redirectable contextual body inherits the standalone cubic bound. -/
+theorem affineUnaryTripleProgressionBody_steps_le
+    (progression : AffineUnaryTripleProgression) :
+    affineUnaryTripleProgressionBodySteps progression ≤
+      100 * (encodeAffineUnaryTripleProgression progression).length ^ 3 +
+        100 :=
+  (Nat.sub_le _ _).trans
+    (affineUnaryTripleProgressionRev_steps_le progression)
 
 /-- Concrete polynomial-time machine for the reversed triple frame stream. -/
 noncomputable def affineUnaryTripleProgressionRev_computableInPolyTime :

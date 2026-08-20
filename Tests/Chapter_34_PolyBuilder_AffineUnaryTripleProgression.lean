@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleProgression
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleProgressionFamily
 
 open CLRS.Chapter34.Turing.PolyBuilder
 
@@ -7,11 +7,23 @@ open CLRS.Chapter34.Turing.PolyBuilder
 #check affineUnaryTripleProgressionRows
 #check affineUnaryTripleProgressionRows_eq_ofFn
 #check affineUnaryTripleProgressionFrameStream
+#check affineUnaryTripleProgressionLoopCfg
+#check affineUnaryTripleProgressionFinishCfg
+#check affineUnaryTripleProgression_runToFinishWithTail
 #check affineUnaryTripleProgressionRev_run
 #check affineUnaryTripleProgressionFrameStream_computableInPolyTime
+#check encodeAffineUnaryTripleProgressionFamily
+#check affineUnaryTripleProgressionFamilyFrameStream
+#check affineUnaryTripleProgressionFamily_runToFinish
+#check affineUnaryTripleProgressionFamilyStepsToFinish_le
+#check affineUnaryTripleProgressionFamilyFrameStream_computableInPolyTime
 
+#print axioms affineUnaryTripleProgression_runToFinishWithTail
 #print axioms affineUnaryTripleProgressionRev_run
 #print axioms affineUnaryTripleProgressionFrameStream_computableInPolyTime
+#print axioms affineUnaryTripleProgressionFamily_runToFinish
+#print axioms affineUnaryTripleProgressionFamilyStepsToFinish_le
+#print axioms affineUnaryTripleProgressionFamilyFrameStream_computableInPolyTime
 
 example :
     affineUnaryTripleProgressionRows
