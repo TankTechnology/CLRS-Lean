@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalAffineSpanFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionTerminalAffineSpanFrames_computableInPolyTime
+#check TransitionStmtTerminalRowLayout.terminalAffineSpanSegments_values
+#check TransitionStmtTerminalRowLayout.verifierTerminalAffineSpanFrames_eq
+
+#print axioms TransitionStmtTerminalRowLayout.verifierTerminalAffineSpanFrames_eq

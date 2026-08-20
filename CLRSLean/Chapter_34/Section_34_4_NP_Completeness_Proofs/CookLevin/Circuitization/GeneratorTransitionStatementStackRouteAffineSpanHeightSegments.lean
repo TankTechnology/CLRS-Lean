@@ -108,6 +108,29 @@ private theorem fixedGroupPrefixDropValues_replicate_zero
         List.flatten_cons]
       rw [ih]
 
+/-- The fixed prefix-drop semantics with zero deletion evaluates a singleton
+segment table to its affine form list. -/
+theorem transitionStackAffineSpanConstantSegments_zeroDrop_values
+    (seed : TransitionRowSeed) (forms : List AffineUnaryTripleForm) :
+    unaryFrameFixedGroupPrefixDropValues
+        (List.replicate forms.length 0)
+        (transitionAffineSegmentValueRows seed
+          (transitionStackAffineSpanConstantSegments forms)) =
+      affineUnaryTripleMap forms (transitionTailAffineSeed seed) := by
+  unfold transitionAffineSegmentValueRows
+  have hzero := fixedGroupPrefixDropValues_replicate_zero
+    ((transitionStackAffineSpanConstantSegments forms).map
+      (transitionWidenedFallbackSegmentValues seed))
+  simp only [List.length_map,
+    transitionStackAffineSpanConstantSegments_length] at hzero
+  rw [hzero]
+  rw [show
+      ((transitionStackAffineSpanConstantSegments forms).map
+        (transitionWidenedFallbackSegmentValues seed)).flatten =
+        (transitionStackAffineSpanConstantSegments forms).flatMap
+          (transitionWidenedFallbackSegmentValues seed) by rfl]
+  exact transitionStackAffineSpanConstantSegments_values seed forms
+
 private theorem fixedZeroConstantSegments_then
     (seed : TransitionRowSeed) (forms : List AffineUnaryTripleForm)
     (drops : List Nat) (rows : List (List Nat)) :
