@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteAtomNormalization
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionRouteAtom
+#check TransitionStackRouteAtomBlock.ofSource_eval
+#check TransitionStackRouteAtomBlock.eval_push
+#check TransitionStackRouteAtomBlock.eval_pop
+#check transitionStmtSelectedStackActionAtoms_eval
+
+#print axioms TransitionStackRouteAtomBlock.ofSource_eval
+#print axioms transitionStmtSelectedStackActionAtoms_eval
