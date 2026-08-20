@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteTrueArms
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchTrueArmNormalizedLayout.descriptorValueRoute_eq
+#check transitionDispatchTrueArmDescriptorRoutes_eq
+#check transitionDispatchTrueArmDescriptorRoutes_eq_seed
+
+#print axioms TransitionDispatchTrueArmNormalizedLayout.descriptorValueRoute_eq
+#print axioms transitionDispatchTrueArmDescriptorRoutes_eq
+#print axioms transitionDispatchTrueArmDescriptorRoutes_eq_seed
