@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxTrueArmRouteFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionDispatchTrueArmRouteValueFrames_eq
+#check verifierTransitionDispatchTrueArmRouteValueFrames_eq_semantic
+
+#print axioms verifierTransitionDispatchTrueArmRouteValueFrames_eq
+#print axioms verifierTransitionDispatchTrueArmRouteValueFrames_eq_semantic
