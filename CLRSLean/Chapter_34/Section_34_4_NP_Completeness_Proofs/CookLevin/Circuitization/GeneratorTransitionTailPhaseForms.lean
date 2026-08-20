@@ -173,7 +173,7 @@ private theorem zipWith_const_of_lengths {alpha beta : Type}
                 List.cons.injEq, true_and]
               exact ih left right hleft hright
 
-private theorem transitionNarrowInvocationForms_length
+theorem transitionNarrowInvocationForms_length
     (tm : _root_.Turing.FinTM2) :
     (transitionNarrowInvocationForms tm).length =
       5 * (Fintype.card tm.K * maxPushesPerStep tm) := by

@@ -819,7 +819,7 @@ private theorem transitionNarrowInvocationDelimiter_frames
         encodeAffineOrFinFrames frames
       exact ih
 
-private theorem transitionNarrowInvocationValues_eq_script
+theorem transitionNarrowInvocationValues_eq_script
     (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
     (nextRowBase : Nat) :
     transitionNarrowInvocationValues tm seed =
