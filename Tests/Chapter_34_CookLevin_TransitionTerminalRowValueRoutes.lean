@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxTrueArmTerminalValueRouting
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchTrueArmNormalizedLayout.terminalRowValueRoute
+#check TransitionDispatchTrueArmNormalizedLayout.terminalRowValueRoute_eq
+#check transitionDispatchTerminalRowValueRoutes
+#check transitionDispatchTerminalRowValueRoutes_eq
+
+#print axioms transitionDispatchTerminalRowValueRoutes_eq
