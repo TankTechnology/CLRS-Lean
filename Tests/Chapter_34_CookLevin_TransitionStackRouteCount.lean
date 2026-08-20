@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteCount
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRouteSubtractCount
+#check rewriteTransitionStackRouteCounts
+#check transitionStackRouteCountCompiler_computableInPolyTime
+
+#print axioms rewriteTransitionStackRouteCounts
+#print axioms transitionStackRouteCountCompiler_computableInPolyTime

@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameFixedFieldSubtract
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check UnaryFrameFixedFieldSubtractRow
+#check rewriteUnaryFrameFixedFieldSubtract_rows
+#check unaryFrameFixedFieldSubtract_computableInPolyTime
+
+#print axioms rewriteUnaryFrameFixedFieldSubtract_rows
+#print axioms unaryFrameFixedFieldSubtract_computableInPolyTime
