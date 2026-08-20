@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteSpanNormalization
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionRouteSpan.eval_dropHead
+#check TransitionRouteSpan.eval_dropTail
+#check TransitionRouteSpan.eval_prepend
+#check TransitionRouteSpan.eval_append
+
+#print axioms TransitionRouteSpan.eval_dropHead
+#print axioms TransitionRouteSpan.eval_dropTail
