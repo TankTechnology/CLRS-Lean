@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouting
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtSelectedStackAction
+#check TransitionStmtStackAction.selectFor
+#check transitionStmtStackActionsFor
+#check transitionStmtStackActions_eval_stack_eq_selected
+
+#print axioms transitionStmtStackActions_eval_stack_eq_selected
