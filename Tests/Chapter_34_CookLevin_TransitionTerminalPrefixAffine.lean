@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxTrueArmTerminalPrefixAffine
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchTrueArmNormalizedLayout.terminalPrefixForms_value
+#check transitionDispatchTerminalPrefixForms_value
+
+#print axioms transitionDispatchTerminalPrefixForms_value
