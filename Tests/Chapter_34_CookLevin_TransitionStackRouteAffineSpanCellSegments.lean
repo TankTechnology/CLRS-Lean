@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteAffineSpanCellSegments
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackAffineSpanCellSegments
+#check transitionStackAffineSpanCellDropAmounts
+#check transitionStackAffineSpanCellSegments_values
+#check TransitionStmtTerminalRowLayout.stackAffineSpanCellSegments_values
+
+#print axioms TransitionStmtTerminalRowLayout.stackAffineSpanCellSegments_values
