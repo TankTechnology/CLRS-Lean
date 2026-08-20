@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicMarkedRowFilter
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFramePeriodicMarkedRows_encode
+#check unaryFramePeriodicMarkedRowFilter_computableInPolyTime
+
+#print axioms rewriteUnaryFramePeriodicMarkedRows_encode
+#print axioms unaryFramePeriodicMarkedRowFilter_computableInPolyTime
