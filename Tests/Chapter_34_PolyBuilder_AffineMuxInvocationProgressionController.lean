@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineMuxInvocationProgressionController
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineMuxInvocationProgressionControllerRevProgram
+#check affineMuxInvocationProgressionController_row_emit
+
+#print axioms affineMuxInvocationProgressionController_row_emit
