@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteAffineSpanHeightFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionStackAffineSpanHeightFrames_computableInPolyTime
+#check verifierTransitionStackAffineSpanHeightFrames_eq
+#check TransitionStmtTerminalRowLayout.verifierStackAffineSpanHeightFrames_eq
+
+#print axioms TransitionStmtTerminalRowLayout.verifierStackAffineSpanHeightFrames_eq
