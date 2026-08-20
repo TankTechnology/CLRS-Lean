@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameFixedGroupPrefixDrop
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFrameFixedGroupPrefixDrop_groups
+#check unaryFrameFixedGroupPrefixDrop_computableInPolyTime
+
+#print axioms rewriteUnaryFrameFixedGroupPrefixDrop_groups
+#print axioms unaryFrameFixedGroupPrefixDrop_computableInPolyTime
