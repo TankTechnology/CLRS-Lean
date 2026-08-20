@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteAffineAtomNormalization
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStackAffineRouteAtomBlock.eval_push
+#check TransitionStackAffineRouteAtomBlock.eval_pop
+#check transitionStmtSelectedStackAffineActionAtoms_eval
+#check transitionStmtSelectedStackAffineActionAtoms_values
+
+#print axioms TransitionStackAffineRouteAtomBlock.eval_push
+#print axioms TransitionStackAffineRouteAtomBlock.eval_pop
+#print axioms transitionStmtSelectedStackAffineActionAtoms_eval
+#print axioms transitionStmtSelectedStackAffineActionAtoms_values
