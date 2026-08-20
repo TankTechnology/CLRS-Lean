@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRoutePopAffine
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRoutePopSegments_length
+#check transitionStackRoutePopDropAmounts_length
+#check transitionStackRoutePopSegments_values
+
+#print axioms transitionStackRoutePopSegments_values
