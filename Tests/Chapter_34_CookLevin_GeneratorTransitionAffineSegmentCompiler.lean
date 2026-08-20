@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineSegmentCompiler
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionAffineSegmentDescriptorForms_value
+#check verifierTransitionAffineSegmentDescriptorFrames_eq
+#check verifierTransitionAffineSegmentValueFrames_eq
+#check verifierTransitionAffineSegmentValueFrames_computableInPolyTime
+
+#print axioms verifierTransitionAffineSegmentValueFrames_eq
+#print axioms verifierTransitionAffineSegmentValueFrames_computableInPolyTime
