@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.AffineUnaryTripleProgressionFixedGroups
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check affineUnaryTripleProgressionFixedGroupFrameStream
+#check affineUnaryTripleProgressionFixedGroupFrameStream_computableInPolyTime
+
+#print axioms affineUnaryTripleProgressionFixedGroupFrameStream_computableInPolyTime
