@@ -62,6 +62,50 @@ def encodeUnaryFrameFixedWidthPacket : List Nat → List UnaryFrameSym
       List.replicate value .tick ++ .separator ::
         encodeUnaryFrameFixedWidthPacket (next :: rest)
 
+/-- Payload of one nonempty packet, excluding its final physical marker. -/
+def encodeUnaryFrameFixedWidthPacketBody : List Nat → List UnaryFrameSym
+  | [] => []
+  | [value] => List.replicate value .tick
+  | value :: next :: rest =>
+      List.replicate value .tick ++ .separator ::
+        encodeUnaryFrameFixedWidthPacketBody (next :: rest)
+
+/-- A nonempty marked packet is exactly its marker-free body followed by one
+outer row boundary. -/
+theorem encodeUnaryFrameFixedWidthPacket_eq_body
+    (value : Nat) (values : List Nat) :
+    encodeUnaryFrameFixedWidthPacket (value :: values) =
+      encodeUnaryFrameFixedWidthPacketBody (value :: values) ++
+        [.frameEnd] := by
+  induction values generalizing value with
+  | nil => simp [encodeUnaryFrameFixedWidthPacket,
+      encodeUnaryFrameFixedWidthPacketBody]
+  | cons next rest ih =>
+      simp [encodeUnaryFrameFixedWidthPacket,
+        encodeUnaryFrameFixedWidthPacketBody, ih, List.append_assoc]
+
+/-- Packet bodies use only ticks and ordinary separators. -/
+theorem encodeUnaryFrameFixedWidthPacketBody_frameEnd_free
+    (values : List Nat) :
+    ∀ symbol ∈ encodeUnaryFrameFixedWidthPacketBody values,
+      symbol ≠ UnaryFrameSym.frameEnd := by
+  intro symbol hsymbol
+  induction values with
+  | nil => simp [encodeUnaryFrameFixedWidthPacketBody] at hsymbol
+  | cons value values ih =>
+      cases values with
+      | nil =>
+          simp [encodeUnaryFrameFixedWidthPacketBody] at hsymbol
+          rcases hsymbol with ⟨_, rfl⟩
+          simp
+      | cons next rest =>
+          simp only [encodeUnaryFrameFixedWidthPacketBody,
+            List.mem_append, List.mem_replicate, List.mem_cons] at hsymbol
+          rcases hsymbol with ⟨_, rfl⟩ | rfl | hrest
+          · simp
+          · simp
+          · exact ih hrest
+
 private theorem fixedWidthPacket_ticks (width : Nat)
     (hpositive : 0 < width) (position : Fin width) (count : Nat)
     (tail : List UnaryFrameSym) :
