@@ -30,7 +30,7 @@ private theorem transitionDispatchTrueArmKeepLastBoundary_length
   simp [transitionDispatchTrueArmKeepLastBoundary]
   omega
 
-private theorem
+theorem
     transitionDispatchTrueArmNormalizedLayout_dropAmounts_nonempty
     (tm : _root_.Turing.FinTM2)
     (layout : TransitionDispatchTrueArmNormalizedLayout tm) :
