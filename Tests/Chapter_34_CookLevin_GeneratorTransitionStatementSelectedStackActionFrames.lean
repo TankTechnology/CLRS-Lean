@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementSelectedStackActionFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionSelectedStackActionValueFrames_eq
+#check verifierTransitionSelectedStackActionValueFrames_computableInPolyTime
+
+#print axioms verifierTransitionSelectedStackActionValueFrames_eq
+#print axioms verifierTransitionSelectedStackActionValueFrames_computableInPolyTime
