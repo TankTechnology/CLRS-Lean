@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameFixedSuffixDrop
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check rewriteUnaryFrameFixedSuffixDrop_rows
+#check unaryFrameFixedSuffixDrop_computableInPolyTime
+
+#print axioms rewriteUnaryFrameFixedSuffixDrop_rows
+#print axioms unaryFrameFixedSuffixDrop_computableInPolyTime
