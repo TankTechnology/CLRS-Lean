@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionEqSlotIntervals
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionEqSlotEnumeration
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionEqSegmentAlignment
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionInputCompiler
 
 open CLRS.Chapter34.Turing
@@ -69,6 +70,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionEqStackSlots_values
 #check transitionEqPublicSlots_values
 #check transitionEqPublicSlots_eq_canonical
+#check transitionEqProgressionRows_eq_slots
+#check transitionEqCoordinateSeeds_eq_slots
+#check transitionEqGeneratedFrames_eq_slotFrames
 #check transitionSeedFamilyUnaryInput_eq_flatMap
 #check transitionSeedFamilyInput_eq_map_data
 #check verifierTransitionFamilyScripts
@@ -123,6 +127,9 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms transitionEqStackSlots_values
 #print axioms transitionEqPublicSlots_values
 #print axioms transitionEqPublicSlots_eq_canonical
+#print axioms transitionEqProgressionRows_eq_slots
+#print axioms transitionEqCoordinateSeeds_eq_slots
+#print axioms transitionEqGeneratedFrames_eq_slotFrames
 #print axioms verifierTransitionFamilyInputTarget_eq_canonical
 #print axioms verifierTransitionFamilyUnaryInputTarget_eq_flatMap
 #print axioms verifierTransitionRowMarkedSeedFrames_eq_seeds
