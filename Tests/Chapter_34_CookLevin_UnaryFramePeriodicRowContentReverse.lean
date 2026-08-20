@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFramePeriodicRowContentReverse
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check unaryFramePeriodicRowContentReverseRowsFrom
+#check encodeUnaryFramePeriodicRowContentReverse
+#check unaryFramePeriodicRowContentReverseRev_run
+#check unaryFramePeriodicRowContentReverseStepsFrom_le
+#check unaryFramePeriodicRowContentReverse_computableInPolyTime
+
+#print axioms unaryFramePeriodicRowContentReverseRev_run
+#print axioms unaryFramePeriodicRowContentReverseStepsFrom_le
+#print axioms unaryFramePeriodicRowContentReverse_computableInPolyTime
