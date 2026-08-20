@@ -161,7 +161,7 @@ def affineMuxInvocationProgressionControllerRevProgram :
     | .finish => .halt
     | .invalid => .halt
 
-private def affineMuxInvocationProgressionControllerCfg
+def affineMuxInvocationProgressionControllerCfg
     (label : AffineMuxInvocationProgressionControllerLabel)
     (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
     (input output work₁ work₂ : List UnaryFrameSym)
@@ -231,7 +231,7 @@ private theorem muxInvocation_replicate_append_cons {alpha : Type}
       simp only [List.replicate_succ, List.cons_append]
       exact congrArg (List.cons value) ih
 
-private theorem muxInvocation_loadSelector_eval
+theorem muxInvocation_loadSelector_eval
     (selector : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym)
     (test : Bool) (tail output work₁ work₂ : List UnaryFrameSym)
     (currentSelector selectorNot scratch : List Unit) :
@@ -263,7 +263,7 @@ private theorem muxInvocation_loadSelector_eval
         muxInvocation_replicate_append_cons, List.cons_append] using
         ih (some .tick) (() :: currentSelector)
 
-private theorem muxInvocation_loadSelectorNot_eval
+theorem muxInvocation_loadSelectorNot_eval
     (selector selectorNot : Nat)
     (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
     (tail output work₁ work₂ : List UnaryFrameSym)
@@ -298,7 +298,7 @@ private theorem muxInvocation_loadSelectorNot_eval
         muxInvocation_replicate_append_cons, List.cons_append] using
         ih (some .tick) (() :: currentSelectorNot)
 
-private theorem muxInvocation_headerFlag_false_eval
+theorem muxInvocation_headerFlag_false_eval
     (selector selectorNot : Nat)
     (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
     (tail output : List UnaryFrameSym) :
@@ -312,7 +312,7 @@ private theorem muxInvocation_headerFlag_false_eval
         (List.replicate selector ()) (List.replicate selectorNot ()) []) := by
   rfl
 
-private theorem muxInvocation_headerFlag_true_eval
+theorem muxInvocation_headerFlag_true_eval
     (selector selectorNot : Nat)
     (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool)
     (tail output : List UnaryFrameSym) :
@@ -392,7 +392,7 @@ private theorem muxInvocation_headerRestoreSelector_eval
         muxInvocation_replicate_append_cons, List.cons_append] using
         ih (some .tick) (() :: currentSelector)
 
-private def muxInvocation_header_emit
+def muxInvocation_header_emit
     (selector selectorNot : Nat) (buffer₁ buffer₂ : Option UnaryFrameSym)
     (test : Bool) (input output : List UnaryFrameSym) :
     EvalsToInTime
