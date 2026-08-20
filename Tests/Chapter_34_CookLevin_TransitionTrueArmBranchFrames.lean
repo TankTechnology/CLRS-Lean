@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxTrueArmBranchFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionDispatchBranchTrueArmValueFrames_eq
+#check verifierTransitionDispatchBranchTrueArmValueFrames_computableInPolyTime
+
+#print axioms verifierTransitionDispatchBranchTrueArmValueFrames_eq
+#print axioms verifierTransitionDispatchBranchTrueArmValueFrames_computableInPolyTime
