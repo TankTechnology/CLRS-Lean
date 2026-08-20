@@ -54,7 +54,7 @@ private theorem
           rw [ih]
           simp
 
-private theorem transitionDispatchPreviousOutputProgressions_length
+theorem transitionDispatchPreviousOutputProgressions_length
     (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
     (transitionDispatchPreviousOutputProgressions tm seed).length =
       (programLabels tm).length - 1 := by
