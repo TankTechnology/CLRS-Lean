@@ -73,6 +73,8 @@ open CLRS.Chapter34.Turing.CookLevin
 #check transitionEqProgressionRows_eq_slots
 #check transitionEqCoordinateSeeds_eq_slots
 #check transitionEqGeneratedFrames_eq_slotFrames
+#check transitionEqGeneratedFrames_eq_script
+#check verifierTransitionEqInvocationInput_eq_scripts
 #check transitionSeedFamilyUnaryInput_eq_flatMap
 #check transitionSeedFamilyInput_eq_map_data
 #check verifierTransitionFamilyScripts
@@ -130,6 +132,8 @@ open CLRS.Chapter34.Turing.CookLevin
 #print axioms transitionEqProgressionRows_eq_slots
 #print axioms transitionEqCoordinateSeeds_eq_slots
 #print axioms transitionEqGeneratedFrames_eq_slotFrames
+#print axioms transitionEqGeneratedFrames_eq_script
+#print axioms verifierTransitionEqInvocationInput_eq_scripts
 #print axioms verifierTransitionFamilyInputTarget_eq_canonical
 #print axioms verifierTransitionFamilyUnaryInputTarget_eq_flatMap
 #print axioms verifierTransitionRowMarkedSeedFrames_eq_seeds
