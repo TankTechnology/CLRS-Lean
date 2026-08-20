@@ -74,7 +74,7 @@ private theorem transitionNarrowNotInvocationDelimiter_sources
         transitionNarrowNotInvocationDelimiterTable, encodeUnaryFrame,
         encodeUnaryFrameBlock] using ih
 
-private theorem transitionNarrowNotInvocationValues_eq_script
+theorem transitionNarrowNotInvocationValues_eq_script
     (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
     (nextRowBase : Nat) :
     transitionNarrowNotInvocationValues tm seed =

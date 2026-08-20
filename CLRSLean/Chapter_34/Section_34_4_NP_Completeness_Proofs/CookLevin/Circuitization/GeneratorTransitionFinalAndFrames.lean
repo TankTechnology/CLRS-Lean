@@ -85,7 +85,7 @@ private theorem transitionFinalAndInvocationDelimiter_frames
         encodeAffineAndFinFrames frames
       exact ih
 
-private theorem transitionFinalAndInvocationValues_eq_script
+theorem transitionFinalAndInvocationValues_eq_script
     (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
     (nextRowBase : Nat) :
     transitionFinalAndInvocationValues tm seed =
