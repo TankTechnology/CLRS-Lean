@@ -70,12 +70,13 @@ theorem transitionStackRoutePushCellValues_eq
 /-- The descriptor pop route is exactly the flattened cell component of the
 real list-valued stack pop. -/
 theorem transitionStackRoutePopCellValues_eq
-    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) (k : tm.K) :
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) (k : tm.K)
+    (fresh : Nat) :
     transitionStackRoutePopCellValues tm seed k =
       ((TransitionStackValueBlock.ofWires
         ((arithmeticWidenedCfgWires tm seed.height seed.start
           seed.rowBase).stack k)).pop tm k (workHeight tm seed.height)
-            seed.start (seed.start + 1) seed.start).cellRows.flatten := by
+            seed.start (seed.start + 1) fresh).cellRows.flatten := by
   have hshape := TransitionStackValueBlock.hasShape_ofWires tm k
     (workHeight tm seed.height)
     ((arithmeticWidenedCfgWires tm seed.height seed.start
