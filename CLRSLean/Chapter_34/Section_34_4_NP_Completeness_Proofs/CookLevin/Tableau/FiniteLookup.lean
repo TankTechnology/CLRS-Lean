@@ -443,7 +443,7 @@ structure OneHotPairAndGateTrace (k : Nat) where
   gates : List CircuitGate
   wires : Fin k → CircuitBuilder.Wire
 
-private def oneHotPairAndBodyGateTrace {n p : Nat} (start : Nat)
+def oneHotPairAndBodyGateTrace {n p : Nat} (start : Nat)
     (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) :
     (k : Nat) → (hk : k ≤ n * p) → OneHotPairAndGateTrace k
