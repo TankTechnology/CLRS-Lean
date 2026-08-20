@@ -4,7 +4,9 @@ open CLRS.Chapter34.Turing.CookLevin
 
 #check TransitionStmtTerminalRowLayout
 #check transitionStmtTerminalRowLayout
+#check transitionStmtTerminalRowLayout_isSome_iff_terminal
 #check TransitionStmtTerminalRowLayout.wires
 #check transitionStmtOutputWires_terminal_row
 
 #print axioms transitionStmtOutputWires_terminal_row
+#print axioms transitionStmtTerminalRowLayout_isSome_iff_terminal

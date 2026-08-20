@@ -30,6 +30,109 @@ noncomputable def transitionStmtTerminalRowLayout
       some { terminal, state, stackActions }
   | _, _, _ => none
 
+private theorem
+    transitionStmtTerminalStackActionsFrom_isSome_iff_terminal
+    (tm : _root_.Turing.FinTM2)
+    (gateOffset : TransitionAffineNat)
+    (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ) :
+    ∀ hsupport : ∀ k,
+        stmtPushSet tm q k ⊆ reachableAlphabet tm k,
+      (transitionStmtTerminalStackActionsFrom tm gateOffset q
+        hsupport).isSome ↔
+        (transitionStmtTerminalLayout tm q).isSome := by
+  induction q generalizing gateOffset with
+  | halt =>
+      intro hsupport
+      simp [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout]
+  | goto jump =>
+      intro hsupport
+      simp [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout]
+  | load update continuation ih =>
+      intro hsupport
+      have hcontinuation :
+          ∀ k, stmtPushSet tm continuation k ⊆ reachableAlphabet tm k := by
+        simpa [stmtPushSet] using hsupport
+      simpa [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout] using
+        ih (gateOffset.add (TransitionAffineNat.const
+          (stateCount tm + stateCount tm))) hcontinuation
+  | push k emit continuation ih =>
+      intro hsupport
+      have hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        intro j symbol hsymbol
+        apply hsupport j
+        simp only [stmtPushSet]
+        exact Finset.mem_union_right _ hsymbol
+      simpa [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout] using
+        ih (gateOffset.add (TransitionAffineNat.const
+          (stateCount tm + (reachableAlphabet tm k).card))) hcontinuation
+  | peek k update continuation ih =>
+      intro hsupport
+      have hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        simpa [stmtPushSet] using hsupport
+      simpa [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout] using
+        ih (gateOffset.add (TransitionAffineNat.const
+          (2 * stateCount tm * ((reachableAlphabet tm k).card + 1) +
+            stateCount tm))) hcontinuation
+  | pop k update continuation ih =>
+      intro hsupport
+      have hcontinuation :
+          ∀ j, stmtPushSet tm continuation j ⊆ reachableAlphabet tm j := by
+        simpa [stmtPushSet] using hsupport
+      simpa [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout] using
+        ih (gateOffset.add (TransitionAffineNat.const
+          (1 + 2 * stateCount tm *
+            ((reachableAlphabet tm k).card + 1) + stateCount tm)))
+          hcontinuation
+  | branch test whenTrue whenFalse ihTrue ihFalse =>
+      intro hsupport
+      simp [transitionStmtTerminalStackActionsFrom,
+        transitionStmtTerminalLayout]
+
+/-- The stack-action extractor is defined on exactly the terminal-ending
+statement spines. -/
+theorem transitionStmtTerminalStackActions_isSome_iff_terminal
+    (tm : _root_.Turing.FinTM2)
+    (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ)
+    (hsupport : ∀ k,
+      stmtPushSet tm q k ⊆ reachableAlphabet tm k) :
+    (transitionStmtTerminalStackActions tm q hsupport).isSome ↔
+      (transitionStmtTerminalLayout tm q).isSome := by
+  exact transitionStmtTerminalStackActionsFrom_isSome_iff_terminal tm
+    (TransitionAffineNat.const 0) q hsupport
+
+/-- The complete terminal row normal form is available exactly when the
+statement spine does not end in a branch. -/
+theorem transitionStmtTerminalRowLayout_isSome_iff_terminal
+    (tm : _root_.Turing.FinTM2)
+    (q : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ)
+    (hsupport : ∀ k, stmtPushSet tm q k ⊆ reachableAlphabet tm k) :
+    (transitionStmtTerminalRowLayout tm q hsupport).isSome ↔
+      (transitionStmtTerminalLayout tm q).isSome := by
+  cases hterminal : transitionStmtTerminalLayout tm q with
+  | none => simp [transitionStmtTerminalRowLayout, hterminal]
+  | some terminal =>
+      have hterminalSome :
+          (transitionStmtTerminalLayout tm q).isSome := by
+        simp [hterminal]
+      have hstateSome :=
+        (transitionStmtTerminalStateLayout_isSome_iff_terminal tm q).2
+          hterminalSome
+      have hstackSome :=
+        (transitionStmtTerminalStackActions_isSome_iff_terminal tm q
+          hsupport).2 hterminalSome
+      rcases Option.isSome_iff_exists.mp hstateSome with ⟨state, hstate⟩
+      rcases Option.isSome_iff_exists.mp hstackSome with
+        ⟨stackActions, hstack⟩
+      simp [transitionStmtTerminalRowLayout, hterminal, hstate, hstack]
+
 /-- Evaluate a complete terminal row normal form. -/
 def TransitionStmtTerminalRowLayout.wires
     (tm : _root_.Turing.FinTM2) (start height falseWire trueWire : Nat)
