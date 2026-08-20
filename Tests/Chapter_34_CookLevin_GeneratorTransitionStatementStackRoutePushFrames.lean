@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRoutePushFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStackRoutePushSegments_values
+#check verifierTransitionStackRoutePushValueFrames_eq
+#check verifierTransitionStackRoutePushValueFrames_computableInPolyTime
+
+#print axioms transitionStackRoutePushSegments_values
+#print axioms verifierTransitionStackRoutePushValueFrames_computableInPolyTime
