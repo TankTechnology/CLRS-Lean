@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalStackActionBounds
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check stmtMaxStackActions
+#check maxStackActionsPerStep
+#check stmtMaxStackActions_le_maxStackActionsPerStep
+#check verifierHeight_actionPadding_le
+#check transitionStmtTerminalStackActions_length_eq_stmtMaxStackActions
+#check TransitionStmtTerminalRowLayout.selectedActionCount_le_maxStackActionsPerStep
+
+#print axioms stmtMaxStackActions_le_maxStackActionsPerStep
+#print axioms verifierHeight_actionPadding_le
+#print axioms TransitionStmtTerminalRowLayout.selectedActionCount_le_maxStackActionsPerStep

@@ -83,7 +83,7 @@ theorem verifierInputBound_le_height {Γ : Type} {L : Language Γ}
     (W : VerifierWitness L) (n : Nat) :
     (verifierInputBound W).eval n ≤ (verifierHeight W).eval n := by
   rw [verifierHeight_eval]
-  exact Nat.le_add_right _ _
+  omega
 
 /-! ## Canonical stack point projections -/
 
