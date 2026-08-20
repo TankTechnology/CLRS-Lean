@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxInvocationDescriptorAlignment
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchMuxCoordinateProgressionGroups_values
+#check transitionDispatchPreviousOutputProgressionsForLabels_rows
+#check transitionDispatchFalseArmProgressionGroups_values
+#check transitionDispatchMuxDescriptorSections_length_aligned
+
+#print axioms transitionDispatchMuxCoordinateProgressionGroups_values
+#print axioms transitionDispatchFalseArmProgressionGroups_values
+#print axioms transitionDispatchMuxDescriptorSections_length_aligned
