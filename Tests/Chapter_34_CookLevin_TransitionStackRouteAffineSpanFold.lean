@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRouteAffineSpanFold
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionRouteSpan.removalCount_dropHead_le
+#check TransitionRouteSpan.removalCount_dropTail_le
+#check TransitionStackAffineRouteSpanBlock.HasRouteBudget.push
+#check TransitionStackAffineRouteSpanBlock.HasRouteBudget.pop
+#check transitionStmtSelectedStackAffineActionSpans_values
+
+#print axioms transitionStmtSelectedStackAffineActionSpans_values
