@@ -101,18 +101,34 @@ theorem VerifierWitness.stutter_horizon_eq_haltList {Γ : Type}
     ⟨W.outputsInHorizon hc⟩
 
 /-- Polynomial height sufficient for the initial verifier input and for every
-stack at every row up to the uniform horizon. -/
+stack at every row up to the uniform horizon.  The final machine-static
+summand reserves two cells per possible selected-stack action.  This slack is
+semantically inert (the cells remain blank) and lets the concrete transition
+generator normalize an arbitrary fixed push/pop sequence without crossing the
+public stack boundary. -/
 def verifierHeight {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
     Polynomial Nat :=
   verifierInputBound W +
-    verifierHorizon W * Polynomial.C (maxPushesPerStep W.machine.tm)
+    verifierHorizon W * Polynomial.C (maxPushesPerStep W.machine.tm) +
+    Polynomial.C (2 * maxStackActionsPerStep W.machine.tm)
 
 @[simp] theorem verifierHeight_eval {Γ : Type} {L : Language Γ}
     (W : VerifierWitness L) (n : Nat) :
     (verifierHeight W).eval n =
       (verifierInputBound W).eval n +
-        (verifierHorizon W).eval n * maxPushesPerStep W.machine.tm := by
+        (verifierHorizon W).eval n * maxPushesPerStep W.machine.tm +
+        2 * maxStackActionsPerStep W.machine.tm := by
   simp [verifierHeight]
+
+/-- The published height contains the complete machine-static routing slack;
+the extra unit comes from the mandatory pair-encoding separator in the input
+envelope. -/
+theorem verifierHeight_actionPadding_le {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (n : Nat) :
+    2 * maxStackActionsPerStep W.machine.tm + 1 ≤
+      (verifierHeight W).eval n := by
+  rw [verifierHeight_eval, verifierInputBound_eval]
+  omega
 
 /-- The mapped initial verifier input itself fits the published height. -/
 theorem VerifierWitness.machineInput_length_le_height {Γ : Type}
@@ -121,10 +137,11 @@ theorem VerifierWitness.machineInput_length_le_height {Γ : Type}
     (List.map W.machine.inputAlphabet.invFun (pairEncoding c x)).length ≤
       (verifierHeight W).eval x.length := by
   rw [W.machineInput_length, verifierHeight_eval]
-  exact le_trans
+  refine le_trans
     (by simpa only [pairEncoding_length] using
       W.pairEncoding_length_le_inputBound hc)
-    (Nat.le_add_right _ _)
+    ?_
+  omega
 
 /-- Every machine stack at every row no later than the horizon fits the
 published polynomial height. -/
@@ -139,9 +156,13 @@ theorem VerifierWitness.stack_length_le_height {Γ : Type} {L : Language Γ}
       (verifierHeight W).eval x.length := by
   refine le_trans (stack_length_at_horizon_le W.machine.tm _ ht k) ?_
   rw [verifierHeight_eval]
-  exact Nat.add_le_add_right
-    (by simpa only [List.length_map] using
-      W.pairEncoding_length_le_inputBound hc) _
+  have hinput :
+      (List.map W.machine.inputAlphabet.invFun
+        (pairEncoding c x)).length ≤
+        (verifierInputBound W).eval x.length := by
+    simpa only [List.length_map] using
+      W.pairEncoding_length_le_inputBound hc
+  omega
 
 end
 

@@ -630,6 +630,57 @@ theorem stmtMaxPushes_le_maxPushesPerStep (tm : _root_.Turing.FinTM2)
       Finset.univ.sup fun k : tm.K => stmtMaxPushes tm k (tm.m label))
       (Finset.mem_univ label))
 
+/-- Maximum number of push or pop commands aimed at one selected stack along
+any complete path through a statement tree.  Unlike `stmtMaxPushes`, this
+counts destructive stack actions as well.  The bound is machine-static and is
+used only to reserve a fixed amount of routing slack in the Cook--Levin
+tableau. -/
+def stmtMaxStackActions (tm : _root_.Turing.FinTM2) (selected : tm.K) :
+    _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ → Nat
+  | push stack _ continuation =>
+      (if stack = selected then 1 else 0) +
+        stmtMaxStackActions tm selected continuation
+  | pop stack _ continuation =>
+      (if stack = selected then 1 else 0) +
+        stmtMaxStackActions tm selected continuation
+  | peek _ _ continuation | load _ continuation =>
+      stmtMaxStackActions tm selected continuation
+  | branch _ left right =>
+      max (stmtMaxStackActions tm selected left)
+        (stmtMaxStackActions tm selected right)
+  | goto _ | halt => 0
+
+/-- Uniform per-transition stack-action bound, maximized over every finite
+program label and every finite stack index. -/
+noncomputable def maxStackActionsPerStep
+    (tm : _root_.Turing.FinTM2) : Nat := by
+  letI := tm.ΛFin
+  letI := tm.kFin
+  classical
+  exact Finset.univ.sup fun label : tm.Λ =>
+    Finset.univ.sup fun k : tm.K =>
+      stmtMaxStackActions tm k (tm.m label)
+
+/-- Every program statement's selected-stack action count is below the
+uniform machine bound. -/
+theorem stmtMaxStackActions_le_maxStackActionsPerStep
+    (tm : _root_.Turing.FinTM2) (label : tm.Λ) (k : tm.K) :
+    stmtMaxStackActions tm k (tm.m label) ≤
+      maxStackActionsPerStep tm := by
+  letI := tm.ΛFin
+  letI := tm.kFin
+  classical
+  unfold maxStackActionsPerStep
+  exact le_trans
+    (Finset.le_sup
+      (f := fun k : tm.K => stmtMaxStackActions tm k (tm.m label))
+      (Finset.mem_univ k))
+    (Finset.le_sup
+      (f := fun label : tm.Λ =>
+        Finset.univ.sup fun k : tm.K =>
+          stmtMaxStackActions tm k (tm.m label))
+      (Finset.mem_univ label))
+
 /-- One genuine bundled-machine transition grows each stack by at most the
 uniform program bound. -/
 theorem step_stack_length_le (tm : _root_.Turing.FinTM2) {c next : tm.Cfg}
