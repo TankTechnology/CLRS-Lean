@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameStatefulMap
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check UnaryFrameStatefulMapSpec
+#check rewriteUnaryFrameStatefulFrom
+#check rewriteUnaryFrameStateful
+#check unaryFrameStatefulMapRev_run
+#check unaryFrameStatefulMapRev_computableInPolyTime
+#check unaryFrameStatefulMap_computableInPolyTime
+
+#print axioms unaryFrameStatefulMapRev_run
+#print axioms unaryFrameStatefulMapRev_computableInPolyTime
+#print axioms unaryFrameStatefulMap_computableInPolyTime
