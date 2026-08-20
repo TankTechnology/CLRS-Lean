@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxTrueArmTerminalStackFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionDispatchTrueArmNormalizedLayout.terminalStackDescriptorRoute_eq
+#check verifierTransitionDispatchTerminalStackRouteValueFrames_eq
+
+#print axioms TransitionDispatchTrueArmNormalizedLayout.terminalStackDescriptorRoute_eq
+#print axioms verifierTransitionDispatchTerminalStackRouteValueFrames_eq
