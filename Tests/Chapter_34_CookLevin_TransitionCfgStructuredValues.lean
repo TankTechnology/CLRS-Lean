@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionCfgStructuredValues
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionCfgPrefixWireValues
+#check transitionCfgStackWireBlocks
+#check transitionCfgStructuredWireValues
+#check transitionCfgStructuredWireValues_eq_canonical
+
+#print axioms transitionCfgStructuredWireValues_eq_canonical

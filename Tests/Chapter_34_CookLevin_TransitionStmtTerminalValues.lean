@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementTerminalValues
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminalRowLayout.prefixValues
+#check TransitionStmtTerminalRowLayout.stackBlocks
+#check TransitionStmtTerminalRowLayout.structuredValues
+#check TransitionStmtTerminalRowLayout.prefixValues_eq
+#check TransitionStmtTerminalRowLayout.stackBlocks_eq
+#check TransitionStmtTerminalRowLayout.structuredValues_eq_canonical
+
+#print axioms TransitionStmtTerminalRowLayout.structuredValues_eq_canonical
