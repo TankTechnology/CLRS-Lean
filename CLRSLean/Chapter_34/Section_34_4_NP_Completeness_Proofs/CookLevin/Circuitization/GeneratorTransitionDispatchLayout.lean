@@ -220,7 +220,7 @@ def transitionDispatchMuxFreshLayout (start selector width : Nat) :
       (start, start + 1 + 3 * coordinate.val,
         start + 2 + 3 * coordinate.val) }
 
-private theorem affineMuxFinCanonicalFrames_freshCoordinates
+theorem affineMuxFinCanonicalFrames_freshCoordinates
     (start selector : Nat) :
     ∀ (width : Nat) (whenTrue whenFalse : Fin width → CircuitBuilder.Wire),
       (affineMuxFinCanonicalFrames start selector width
