@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackRoutePopFrames
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionStackRoutePopValueFrames_eq
+#check verifierTransitionStackRoutePopValueFrames_computableInPolyTime
+
+#print axioms verifierTransitionStackRoutePopValueFrames_eq
+#print axioms verifierTransitionStackRoutePopValueFrames_computableInPolyTime
