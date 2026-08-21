@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowParallelInterleaveFinalize
+
+open CLRS.Chapter34.Turing.PolyBuilder
+open UnaryFrameMarkedRowParallelInterleave
+
+#check encodeUnaryFrameMarkedRows_interleave_length
+#check finalizeAlignedRowsSteps
+#check finalize_aligned_rows_run
+
+#print axioms finalize_aligned_rows_run
