@@ -47,17 +47,18 @@ focused `lake env lean` interface checks, staged Git commits.
 - Create: `Tests/Chapter_34_CookLevin_TransitionStmtRecursivePlan.lean`
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization.lean`
 
-- [ ] Add failing interface checks for `TransitionStmtRecursivePlan`,
-  `transitionStmtRecursivePlan`, and `transitionStmtRecursivePlan_isSome`.
-- [ ] Define plan leaves carrying the existing branch-free forms/result and
+- [x] Add failing interface checks for `TransitionStmtRecursivePlan`,
+  `transitionStmtRecursivePlan`, and its exact branch-coverage theorem.
+- [x] Define plan leaves carrying the existing branch-free forms/result and
   branch nodes carrying the predicate phase, recursively compiled arms, and
   the parent mux descriptor.
-- [ ] Define prefix insertion for `load`, `push`, `peek`, and `pop`, keeping
+- [x] Define prefix insertion for `load`, `push`, `peek`, and `pop`, keeping
   source order and affine contexts exact.
-- [ ] Define the compiler by structural recursion on `TM2.Stmt`; recursive
+- [x] Define the compiler by structural recursion on `TM2.Stmt`; recursive
   calls occur only on syntactic continuations or branch arms.
-- [ ] Prove totality for every statement satisfying the reachable-alphabet
-  support invariant; run the focused test and commit.
+- [x] Make the compiler total for every statement satisfying the
+  reachable-alphabet support invariant, and prove that its plan contains
+  exactly every syntactic branch; run the focused test and commit.
 
 ### Task 3: Exact recursive phase and output semantics
 
