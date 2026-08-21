@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalBranchComplete
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminalBranchPlan.completePhases
+#check transitionStmtTerminalBranchPlan_completePhases_eq_script
+
+end CLRSLeanTest.Chapter34
