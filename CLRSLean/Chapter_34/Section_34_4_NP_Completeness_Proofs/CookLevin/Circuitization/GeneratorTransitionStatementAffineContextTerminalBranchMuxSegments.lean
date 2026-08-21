@@ -31,6 +31,114 @@ def TransitionStmtTerminalBranchPlan.muxInvocationSegments
     (plan.muxInvocationView tm seed labelOffset context test whenTrue
       whenFalse).frames
 
+private theorem invocationView_frames_selector
+    (view : TransitionDispatchMuxInvocationView) :
+    ∀ frame ∈ view.frames, frame.selector = view.selector := by
+  rcases view with ⟨selector, coordinates, whenTrue, whenFalse⟩
+  induction coordinates generalizing whenTrue whenFalse with
+  | nil =>
+      intro frame hframe
+      simp only [TransitionDispatchMuxInvocationView.frames,
+        List.zipWith3] at hframe
+      simp at hframe
+  | cons coordinate coordinates ih =>
+      cases whenTrue with
+      | nil =>
+          intro frame hframe
+          simp only [TransitionDispatchMuxInvocationView.frames,
+            List.zipWith3] at hframe
+          simp at hframe
+      | cons trueHead trueTail =>
+          cases whenFalse with
+          | nil =>
+              intro frame hframe
+              simp only [TransitionDispatchMuxInvocationView.frames,
+                List.zipWith3] at hframe
+              simp at hframe
+          | cons falseHead falseTail =>
+              intro frame hframe
+              simp only [TransitionDispatchMuxInvocationView.frames,
+                List.zipWith3, List.mem_cons] at hframe
+              rcases hframe with rfl | htail
+              · rfl
+              · exact ih trueTail falseTail frame htail
+
+private theorem invocationView_frames_falseArm_of_coordinates
+    (selector : Nat) (coordinates : List (Nat × Nat × Nat))
+    (whenTrue whenFalse : List Nat)
+    (hcoordinates : ∀ coordinate ∈ coordinates,
+      coordinate.2.2 = coordinate.2.1 + 1) :
+    ∀ frame ∈ TransitionDispatchMuxInvocationView.frames
+        { selector := selector, coordinates, whenTrue, whenFalse },
+      frame.falseArm = frame.trueArm + 1 := by
+  induction coordinates generalizing whenTrue whenFalse with
+  | nil =>
+      intro frame hframe
+      simp only [TransitionDispatchMuxInvocationView.frames,
+        List.zipWith3] at hframe
+      simp at hframe
+  | cons coordinate coordinates ih =>
+      cases whenTrue with
+      | nil =>
+          intro frame hframe
+          simp only [TransitionDispatchMuxInvocationView.frames,
+            List.zipWith3] at hframe
+          simp at hframe
+      | cons trueHead trueTail =>
+          cases whenFalse with
+          | nil =>
+              intro frame hframe
+              simp only [TransitionDispatchMuxInvocationView.frames,
+                List.zipWith3] at hframe
+              simp at hframe
+          | cons falseHead falseTail =>
+              intro frame hframe
+              simp only [TransitionDispatchMuxInvocationView.frames,
+                List.zipWith3, List.mem_cons] at hframe
+              rcases hframe with rfl | htail
+              · exact hcoordinates coordinate (by simp)
+              · apply ih trueTail falseTail
+                · intro other hother
+                  exact hcoordinates other (by simp [hother])
+                · exact htail
+
+private theorem transitionStmtBranchMuxCoordinates_falseArm
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (labelOffset : TransitionAffineNat)
+    (context : TransitionStmtAffineContext tm) (test : tm.σ → Bool)
+    (whenTrue whenFalse : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ) :
+    ∀ coordinate ∈ transitionStmtBranchMuxCoordinates tm seed
+        labelOffset context test whenTrue whenFalse,
+      coordinate.2.2 = coordinate.2.1 + 1 := by
+  intro coordinate hcoordinate
+  unfold transitionStmtBranchMuxCoordinates at hcoordinate
+  rw [List.mem_ofFn] at hcoordinate
+  rcases hcoordinate with ⟨index, rfl⟩
+  change _ + 2 + 3 * index.val = (_ + 1 + 3 * index.val) + 1
+  omega
+
+/-- Segment expansion is structurally exact before any semantic arm theorem:
+the view itself fixes the shared selector and adjacent output coordinates. -/
+theorem
+    transitionStmtTerminalBranchPlan_muxInvocationSegments_frames_structural
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed)
+    (labelOffset : TransitionAffineNat)
+    (context : TransitionStmtAffineContext tm) (test : tm.σ → Bool)
+    (whenTrue whenFalse : _root_.Turing.TM2.Stmt tm.Γ tm.Λ tm.σ)
+    (plan : TransitionStmtTerminalBranchPlan tm) :
+    affineMuxInvocationProgressionFamilyFrames
+        (plan.muxInvocationSegments tm seed labelOffset context test whenTrue
+          whenFalse) =
+      (plan.muxInvocationView tm seed labelOffset context test whenTrue
+        whenFalse).encode := by
+  unfold TransitionStmtTerminalBranchPlan.muxInvocationSegments
+    TransitionDispatchMuxInvocationView.encode
+  apply affineMuxInvocationSingletonSegments_frames
+  · exact invocationView_frames_selector _
+  · apply invocationView_frames_falseArm_of_coordinates
+    exact transitionStmtBranchMuxCoordinates_falseArm tm seed labelOffset
+      context test whenTrue whenFalse
+
 /-- The generic controller expands the segment source exactly to the mux
 invocation view, including the shared header and every coordinate delimiter. -/
 theorem transitionStmtTerminalBranchPlan_muxInvocationSegments_frames

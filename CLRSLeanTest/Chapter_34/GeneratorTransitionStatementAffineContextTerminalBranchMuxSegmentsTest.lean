@@ -5,6 +5,7 @@ namespace CLRSLeanTest.Chapter34
 open CLRS.Chapter34.Turing.CookLevin
 
 #check TransitionStmtTerminalBranchPlan.muxInvocationSegments
+#check transitionStmtTerminalBranchPlan_muxInvocationSegments_frames_structural
 #check transitionStmtTerminalBranchPlan_muxInvocationSegments_frames
 #check transitionStmtTerminalBranchPlan_muxInvocationSegments_encode
 
