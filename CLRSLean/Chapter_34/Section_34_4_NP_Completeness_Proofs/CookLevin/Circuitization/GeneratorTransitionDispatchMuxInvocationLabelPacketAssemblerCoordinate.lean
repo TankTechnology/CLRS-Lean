@@ -18,18 +18,30 @@ namespace CLRS.Chapter34.Turing.CookLevin
 
 open PolyBuilder
 
-/-- Entry state for one aligned coordinate of a loaded label packet. -/
-def transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg
+/-- Entry state for one aligned coordinate, allowing the two one-symbol
+buffers and the test bit inherited from the preceding local phase.  The first
+coordinate inherits the loading sentinels; later coordinates inherit the two
+row separators. -/
+def transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartFromCfg
     (selector : Nat) (first : Bool) (frame : AffineMuxFinPairFrame)
-    (coordinateTail trueTail falseTail output : List UnaryFrameSym) :
+    (coordinateTail trueTail falseTail output : List UnaryFrameSym)
+    (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool) :
     BuilderCfg transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram :=
   transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-    (.coordinateCheck first) none none false
+    (.coordinateCheck first) buffer₁ buffer₂ test
     (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
     (encodeUnaryFrame
         [frame.selectorNot, frame.trueArm, frame.falseArm] ++ coordinateTail)
     (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
     (List.replicate selector ()) [] []
+
+/-- Clean-buffer specialization used by standalone one-coordinate clients. -/
+def transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg
+    (selector : Nat) (first : Bool) (frame : AffineMuxFinPairFrame)
+    (coordinateTail trueTail falseTail output : List UnaryFrameSym) :
+    BuilderCfg transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram :=
+  transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartFromCfg
+    selector first frame coordinateTail trueTail falseTail output none none false
 
 /-- Exit state after one coordinate.  The next coordinate, if present, starts
 at the same public loop boundary with only the aligned tails remaining. -/
@@ -406,35 +418,39 @@ private theorem assemblerCoordinate_discardFalseArm_eval
             scratch)) = _
       exact ih (buffer₁ := some .tick)
 
-/-- Exact one-coordinate execution of the fixed label-packet assembler. -/
-def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
+/-- Exact one-coordinate execution from arbitrary inherited one-symbol
+buffers.  Every successful coordinate normalizes the buffers to the aligned
+row separators and the test bit to `false`. -/
+def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate_from
     (selector : Nat) (first : Bool) (frame : AffineMuxFinPairFrame)
-    (coordinateTail trueTail falseTail output : List UnaryFrameSym) :
+    (coordinateTail trueTail falseTail output : List UnaryFrameSym)
+    (buffer₁ buffer₂ : Option UnaryFrameSym) (test : Bool) :
     EvalsToInTime
       (step transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram)
-      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg
-        selector first frame coordinateTail trueTail falseTail output)
+      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartFromCfg
+        selector first frame coordinateTail trueTail falseTail output buffer₁
+        buffer₂ test)
       (some
         (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateFinishCfg
           selector first frame coordinateTail trueTail falseTail output))
       (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateSteps
         selector frame) := by
   let afterCheck := transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-    (.loadSelectorNot first) none none false
+    (.loadSelectorNot first) buffer₁ buffer₂ test
     (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
     (encodeUnaryFrame [frame.selectorNot, frame.trueArm, frame.falseArm] ++
       coordinateTail)
     (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
     (List.replicate selector ()) [] []
   let afterSelectorNot := transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-    (.emitSelector first) (some .separator) none false
+    (.emitSelector first) (some .separator) buffer₂ test
     (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
     (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
     (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
     (List.replicate selector ()) (List.replicate frame.selectorNot ()) []
   let selectorOutput := (encodeUnaryFrameBlock selector).reverse ++ output
   let afterSelector := transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-    (.emitSelectorNot first) (some .separator) none false
+    (.emitSelectorNot first) (some .separator) buffer₂ false
     (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) selectorOutput
     (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
     (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
@@ -443,7 +459,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
     (encodeUnaryFrameBlock frame.selectorNot).reverse ++ selectorOutput
   let afterSelectorNotEmit :=
     transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-      (.emitHeaderFlag first) (some .separator) none false
+      (.emitHeaderFlag first) (some .separator) buffer₂ false
       (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) selectorNotOutput
       (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
       (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
@@ -452,7 +468,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
     (encodeUnaryFrameBlock (if first then 1 else 0)).reverse ++
       selectorNotOutput
   let beforeTrue := transitionDispatchMuxInvocationLabelPacketAssemblerCfg
-    .loadTrueValue (some .separator) none false
+    .loadTrueValue (some .separator) buffer₂ false
     (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) headerOutput
     (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
     (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
@@ -478,8 +494,9 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
     trueTail (List.replicate selector ()) [] []
   have hcheck : EvalsToInTime
       (step transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram)
-      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg
-        selector first frame coordinateTail trueTail falseTail output)
+      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartFromCfg
+        selector first frame coordinateTail trueTail falseTail output buffer₁
+        buffer₂ test)
       (some afterCheck) 1 := ⟨⟨1, rfl⟩, le_rfl⟩
   have hloadSelectorNot : EvalsToInTime
       (step transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram)
@@ -488,7 +505,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
       simpa [afterCheck, afterSelectorNot, encodeUnaryFrame,
         List.append_assoc] using
         assemblerCoordinate_loadSelectorNot_eval frame.selectorNot first
-          none none false
+          buffer₁ buffer₂ test
           (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
           (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
           (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
@@ -497,8 +514,8 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
       (step transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram)
       afterSelectorNot (some afterSelector) (5 * selector + 3) := by
     simpa [afterSelectorNot, afterSelector, selectorOutput] using
-      assemblerCoordinate_emitSelector selector first (some .separator) none
-        false (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
+      assemblerCoordinate_emitSelector selector first (some .separator) buffer₂
+        test (encodeUnaryFrameBlock frame.whenFalse ++ falseTail) output
         (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
         (encodeUnaryFrameBlock frame.whenTrue ++ trueTail)
         (List.replicate frame.selectorNot ())
@@ -510,7 +527,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
       simpa [afterSelector, afterSelectorNotEmit, selectorOutput,
         selectorNotOutput] using
         assemblerCoordinate_emitSelectorNot_eval frame.selectorNot first
-          (some .separator) none false
+          (some .separator) buffer₂ false
           (encodeUnaryFrameBlock frame.whenFalse ++ falseTail)
           selectorOutput
           (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
@@ -522,7 +539,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
     ⟨⟨2, by
       simpa [afterSelectorNotEmit, beforeTrue, selectorNotOutput,
         headerOutput] using
-        assemblerCoordinate_emitHeaderFlag_eval first (some .separator) none
+        assemblerCoordinate_emitHeaderFlag_eval first (some .separator) buffer₂
           false (encodeUnaryFrameBlock frame.whenFalse ++ falseTail)
           selectorNotOutput
           (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
@@ -534,7 +551,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
     ⟨⟨2 * frame.whenTrue + 2, by
       simpa [beforeTrue, beforeFalse, headerOutput, trueOutput] using
         assemblerCoordinate_emitTrue_eval frame.whenTrue (some .separator)
-          none false (encodeUnaryFrameBlock frame.whenFalse ++ falseTail)
+          buffer₂ false (encodeUnaryFrameBlock frame.whenFalse ++ falseTail)
           headerOutput
           (encodeUnaryFrame [frame.trueArm, frame.falseArm] ++ coordinateTail)
           trueTail (List.replicate selector ()) [] []⟩, le_rfl⟩
@@ -602,5 +619,23 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
   convert full using 1 <;>
     simp [transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateSteps] <;>
     omega
+
+/-- Clean-buffer specialization of the inherited-buffer coordinate theorem. -/
+def transitionDispatchMuxInvocationLabelPacketAssembler_coordinate
+    (selector : Nat) (first : Bool) (frame : AffineMuxFinPairFrame)
+    (coordinateTail trueTail falseTail output : List UnaryFrameSym) :
+    EvalsToInTime
+      (step transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram)
+      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg
+        selector first frame coordinateTail trueTail falseTail output)
+      (some
+        (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateFinishCfg
+          selector first frame coordinateTail trueTail falseTail output))
+      (transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateSteps
+        selector frame) := by
+  simpa [transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartCfg]
+    using transitionDispatchMuxInvocationLabelPacketAssembler_coordinate_from
+      selector first frame coordinateTail trueTail falseTail output none none
+      false
 
 end CLRS.Chapter34.Turing.CookLevin
