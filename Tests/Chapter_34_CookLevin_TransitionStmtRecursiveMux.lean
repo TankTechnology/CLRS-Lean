@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveMux
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtRecursiveBranchMuxInvocationView
+#check transitionStmtRecursiveBranchMuxInvocationView_rowAligned
+#check transitionStmtRecursiveBranchMuxInvocationView_frames
+
+#print axioms transitionStmtRecursiveBranchMuxInvocationView_frames
