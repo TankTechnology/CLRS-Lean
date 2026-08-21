@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveFamily
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionSeedRecursiveLocalUnaryInput
+#check verifierTransitionRecursiveFamilyUnaryTarget
+#check verifierTransitionRecursiveFamilyUnaryTarget_eq_canonical
+#print axioms verifierTransitionRecursiveFamilyUnaryTarget_eq_canonical
