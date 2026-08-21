@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveAllOutputRouteSources
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtHasOutputRouteSource
+#check transitionStmtRecursiveOutputRouteSources
+#check transitionStmtRecursiveOutputRouteSources_of_uniformPlanBounds
+#check verifierTransitionLabel_recursiveOutputRouteSources
+#print axioms verifierTransitionLabel_recursiveOutputRouteSources
