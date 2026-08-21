@@ -204,6 +204,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchQuotedMuxLabelSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchQuotedLabelProgramSource
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchQuotedLabelProgramSemantics
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionLocalPrefixQuotedSource
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionCompleteInputCompiler
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailCoordinates
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionTailLayout
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.ReductionMap
@@ -238,8 +240,11 @@ public tableau row in polynomial time.  A second fixed source compiler emits
 the row-major `(height, gateStart, rowBase)` seeds whose arithmetic expansion
 is exactly the full semantic row-frame family.  The continuous one-hot seed
 expander is polynomial-time and produces the canonical four-field operands.
-The remaining tail target is pinned byte-for-byte to the canonical stack/cell
-and final-conjunction frames.  Its fixed stack and final-prefix operands are
-now compiled directly from the raw word; delimiter rewriting and insertion of
-the runtime-height one-hot family remain the next boundary.
+The transition source is closed byte-for-byte: one fixed polynomial-time TM2
+now constructs the unrestricted recursive dispatch, transition boundary, and
+complete narrowing/equality/final-conjunction tail for every canonical seed.
+A delimiter-safe quoted-row construction and a verified continuous decoder
+produce the exact unary input of the established transition-family controller,
+and composition yields the complete semantic transition gate stream directly
+from the raw verifier word.
 -/
