@@ -70,6 +70,56 @@ def TransitionStmtAffineContext.afterPop
   ((context.recordPop tm k).replaceStateByPairMap tm 1
     (stmtHeadStateTable tm k update)).advance (transitionStmtPopCost tm k)
 
+@[simp] theorem TransitionStmtAffineContext.afterLoad_gateOffset_eval
+    (tm : _root_.Turing.FinTM2) (context : TransitionStmtAffineContext tm)
+    (update : tm.σ → tm.σ) (height : Nat) :
+    (context.afterLoad tm update).gateOffset.eval height =
+      context.gateOffset.eval height + stateCount tm + stateCount tm := by
+  simp [TransitionStmtAffineContext.afterLoad,
+    TransitionStmtAffineContext.advance, transitionStmtLoadCost,
+    TransitionStmtAffineContext.replaceStateByMap,
+    TransitionAffineNat.eval_add, Nat.add_assoc]
+
+@[simp] theorem TransitionStmtAffineContext.afterPush_gateOffset_eval
+    (tm : _root_.Turing.FinTM2) (context : TransitionStmtAffineContext tm)
+    (k : tm.K)
+    (table : Fin (stateCount tm) → Fin (reachableAlphabet tm k).card)
+    (height : Nat) :
+    (context.afterPush tm k table).gateOffset.eval height =
+      context.gateOffset.eval height + stateCount tm +
+        (reachableAlphabet tm k).card := by
+  simp [TransitionStmtAffineContext.afterPush,
+    TransitionStmtAffineContext.advance, transitionStmtPushCost,
+    TransitionStmtAffineContext.recordPush,
+    TransitionAffineNat.eval_add, Nat.add_assoc]
+
+@[simp] theorem TransitionStmtAffineContext.afterPeek_gateOffset_eval
+    (tm : _root_.Turing.FinTM2) (context : TransitionStmtAffineContext tm)
+    (k : tm.K) (update : tm.σ → Option (tm.Γ k) → tm.σ)
+    (height : Nat) :
+    (context.afterPeek tm k update).gateOffset.eval height =
+      context.gateOffset.eval height +
+        2 * stateCount tm * ((reachableAlphabet tm k).card + 1) +
+          stateCount tm := by
+  simp [TransitionStmtAffineContext.afterPeek,
+    TransitionStmtAffineContext.advance, transitionStmtPeekCost,
+    TransitionStmtAffineContext.replaceStateByPairMap,
+    TransitionAffineNat.eval_add, Nat.add_assoc]
+
+@[simp] theorem TransitionStmtAffineContext.afterPop_gateOffset_eval
+    (tm : _root_.Turing.FinTM2) (context : TransitionStmtAffineContext tm)
+    (k : tm.K) (update : tm.σ → Option (tm.Γ k) → tm.σ)
+    (height : Nat) :
+    (context.afterPop tm k update).gateOffset.eval height =
+      context.gateOffset.eval height + 1 +
+        2 * stateCount tm * ((reachableAlphabet tm k).card + 1) +
+          stateCount tm := by
+  simp [TransitionStmtAffineContext.afterPop,
+    TransitionStmtAffineContext.advance, transitionStmtPopCost,
+    TransitionStmtAffineContext.recordPop,
+    TransitionStmtAffineContext.replaceStateByPairMap,
+    TransitionAffineNat.eval_add, Nat.add_assoc]
+
 @[simp] theorem TransitionStmtAffineContext.advance_wires
     (tm : _root_.Turing.FinTM2) (originStart height falseWire trueWire : Nat)
     (source : CfgWires tm height) (context : TransitionStmtAffineContext tm)
