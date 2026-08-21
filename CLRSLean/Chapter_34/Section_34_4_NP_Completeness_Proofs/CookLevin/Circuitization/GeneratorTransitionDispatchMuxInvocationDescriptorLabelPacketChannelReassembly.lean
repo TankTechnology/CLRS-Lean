@@ -25,6 +25,13 @@ structure TransitionDispatchMuxInvocationLabelPacketChannelFamily where
   trueRows : List (List UnaryFrameSym)
   falseRows : List (List UnaryFrameSym)
 
+/-- All four channels carry one row for the same label positions. -/
+def TransitionDispatchMuxInvocationLabelPacketChannelFamily.RowAligned
+    (family : TransitionDispatchMuxInvocationLabelPacketChannelFamily) : Prop :=
+  family.selectorRows.length = family.coordinateRows.length ∧
+    family.selectorRows.length = family.trueRows.length ∧
+    family.selectorRows.length = family.falseRows.length
+
 /-- Encode delimiter-free payload rows with one physical marker per row. -/
 def encodeTransitionDispatchMuxInvocationLabelPacketChannelRows
     (rows : List (List UnaryFrameSym)) : List UnaryFrameSym :=
@@ -42,6 +49,59 @@ def transitionDispatchMuxInvocationLabelPacketRowsFromChannels :
         transitionDispatchMuxInvocationLabelPacketRowsFromChannels
           selectors coordinateRows trueRows falseRows
   | _, _, _, _ => []
+
+/-- A row-aligned four-way zipper emits exactly four rows per label. -/
+theorem
+    transitionDispatchMuxInvocationLabelPacketRowsFromChannels_length_of_rowAligned
+    (family : TransitionDispatchMuxInvocationLabelPacketChannelFamily)
+    (haligned : family.RowAligned) :
+    (transitionDispatchMuxInvocationLabelPacketRowsFromChannels
+      family.selectorRows family.coordinateRows family.trueRows
+      family.falseRows).length = 4 * family.selectorRows.length := by
+  rcases family with ⟨selectors, coordinates, trueRows, falseRows⟩
+  change
+    (transitionDispatchMuxInvocationLabelPacketRowsFromChannels
+      selectors coordinates trueRows falseRows).length =
+      4 * selectors.length
+  change selectors.length = coordinates.length ∧
+    selectors.length = trueRows.length ∧
+    selectors.length = falseRows.length at haligned
+  rcases haligned with ⟨hcoordinates, htrue, hfalse⟩
+  induction selectors generalizing coordinates trueRows falseRows with
+  | nil =>
+      have hcoordinatesNil : coordinates = [] :=
+        List.eq_nil_of_length_eq_zero hcoordinates.symm
+      have htrueNil : trueRows = [] :=
+        List.eq_nil_of_length_eq_zero htrue.symm
+      have hfalseNil : falseRows = [] :=
+        List.eq_nil_of_length_eq_zero hfalse.symm
+      subst coordinates
+      subst trueRows
+      subst falseRows
+      rfl
+  | cons selector selectors ih =>
+      cases coordinates with
+      | nil => simp at hcoordinates
+      | cons coordinate coordinates =>
+          cases trueRows with
+          | nil => simp at htrue
+          | cons whenTrue trueRows =>
+              cases falseRows with
+              | nil => simp at hfalse
+              | cons whenFalse falseRows =>
+                  simp only [List.length_cons] at hcoordinates htrue hfalse
+                  have hcoordinates' : selectors.length = coordinates.length := by
+                    omega
+                  have htrue' : selectors.length = trueRows.length := by
+                    omega
+                  have hfalse' : selectors.length = falseRows.length := by
+                    omega
+                  simp only [
+                    transitionDispatchMuxInvocationLabelPacketRowsFromChannels,
+                    List.length_cons]
+                  rw [ih coordinates trueRows falseRows hcoordinates'
+                    htrue' hfalse']
+                  omega
 
 /-- Zipping the four row projections of a view family reconstructs exactly
 the canonical four-row packet family. -/
@@ -77,6 +137,17 @@ noncomputable def
       transitionDispatchMuxCoordinateRowFrames view.coordinates
     trueRows := views.map fun view => encodeUnaryFrame view.whenTrue
     falseRows := views.map fun view => encodeUnaryFrame view.whenFalse }
+
+/-- The verifier-derived channel family is row-aligned by construction. -/
+theorem
+    verifierTransitionDispatchMuxInvocationDescriptorLabelPacketChannelFamily_rowAligned
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    (verifierTransitionDispatchMuxInvocationDescriptorLabelPacketChannelFamily
+      W input).RowAligned := by
+  simp [
+    verifierTransitionDispatchMuxInvocationDescriptorLabelPacketChannelFamily,
+    TransitionDispatchMuxInvocationLabelPacketChannelFamily.RowAligned]
 
 /-- The four typed row encodings are precisely the four concrete label-channel
 streams already produced by the descriptor pipelines. -/
