@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextBranchRouteSource
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtBranchRouteSegment
+#check transitionStmtBranchRouteSegment_values
+#check verifierTransitionStmtBranchRouteFrames
+#check verifierTransitionStmtBranchRouteFrames_eq
+#check verifierTransitionStmtBranchRouteFrames_computableInPolyTime
+#print axioms verifierTransitionStmtBranchRouteFrames_computableInPolyTime
