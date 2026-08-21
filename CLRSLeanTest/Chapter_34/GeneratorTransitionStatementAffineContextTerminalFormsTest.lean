@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalForms
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtLinearResult.prefixForms
+#check TransitionStmtLinearResult.prefixForms_value
+#check transitionStmtLinearResult_prefixForms_value_output
+
+end CLRS.Chapter34.Turing.CookLevin
