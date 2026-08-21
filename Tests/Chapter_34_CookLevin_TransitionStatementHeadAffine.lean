@@ -10,5 +10,7 @@ namespace CLRS.Chapter34.Turing.CookLevin
 #check transitionDispatchStatementHeadPhaseForms_eval
 #check verifierTransitionDispatchStatementHeadFrames_eq
 #check verifierTransitionDispatchStatementHeadFrames_computableInPolyTime
+#check verifierTransitionDispatchStatementHeadTarget_eq_nil_of_forms_eq_nil
+#check verifierTransitionDispatchStatementHeadTarget_computableInPolyTime
 
 end CLRS.Chapter34.Turing.CookLevin
