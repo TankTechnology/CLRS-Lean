@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineOneHotMap
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionOneHotFiberForms_eval
+#check transitionAffineOneHotCanonicalGroups_eval
+#check verifierTransitionAffineOneHotMap_eq_rows
+#check verifierTransitionAffineOneHotMap_computableInPolyTime
+
+#print axioms verifierTransitionAffineOneHotMap_computableInPolyTime
