@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalRoute
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtLinearResult.stackRouteBlocks
+#check TransitionStmtLinearResult.completeRouteValues
+#check TransitionStmtLinearResult.completeRouteValues_eq_canonical
+#check transitionStmtLinearResult_completeRouteValues_eq_output
+
+end CLRS.Chapter34.Turing.CookLevin
