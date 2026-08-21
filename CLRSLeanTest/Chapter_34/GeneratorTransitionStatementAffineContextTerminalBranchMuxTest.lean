@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalBranchMux
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtBranchSelectorForm_value
+#check transitionStmtBranchMuxStartForm_value
+#check transitionStmtTerminalBranchPlan_trueRouteValues_eq
+#check transitionStmtTerminalBranchPlan_falseRouteValues_eq
+
+end CLRS.Chapter34.Turing.CookLevin
