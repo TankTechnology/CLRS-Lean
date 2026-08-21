@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchMuxInvocationLabelPacketAssemblerCoordinate
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchMuxInvocationLabelPacketAssemblerCoordinateStartFromCfg
+#check transitionDispatchMuxInvocationLabelPacketAssembler_coordinate_from
+
+#print axioms transitionDispatchMuxInvocationLabelPacketAssembler_coordinate_from
