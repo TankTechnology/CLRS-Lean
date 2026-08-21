@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveSource
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.PolyBuilder
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtRecursiveControllerFrames
+#check transitionStmtRecursiveControllerFrames_eq_phases
+#check transitionStmtRecursiveInitialControllerFrames_eq_script
+
+#print axioms transitionStmtRecursiveInitialControllerFrames_eq_script
