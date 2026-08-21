@@ -103,6 +103,47 @@ def buildSeparatorNots {tm : _root_.Turing.FinTM2} {H : Nat}
     (Nat.le_refl H)
   exact { result with }
 
+private theorem buildSeparatorNotsPrefix_wires_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (base : CircuitBuilder) (stack : StackWires tm H k)
+    (hstack : stack.ValidIn base)
+    (separator : Fin ((reachableAlphabet tm k).card + 1)) :
+    ∀ (n : Nat) (hn : n ≤ H)
+      (cell : Fin n),
+      (buildSeparatorNotsPrefix base stack hstack separator n hn).wires cell =
+        base.gates.length + cell.val := by
+  intro n
+  induction n with
+  | zero =>
+      intro hn cell
+      exact Fin.elim0 cell
+  | succ n ih =>
+      intro hn cell
+      simp only [buildSeparatorNotsPrefix]
+      split
+      next hcell =>
+        exact ih (by omega) ⟨cell.val, hcell⟩
+      next hcell =>
+        have hval : cell.val = n := by omega
+        rw [CircuitBuilder.not_wire_eq]
+        rw [(buildSeparatorNotsPrefix base stack hstack separator n
+          (by omega)).gate_delta]
+        rw [hval]
+
+/-- The separator-negation output for physical cell `i` is the `i`-th fresh
+wire after the incoming builder. -/
+theorem buildSeparatorNots_wires_eq
+    {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
+    (base : CircuitBuilder) (stack : StackWires tm H k)
+    (hstack : stack.ValidIn base)
+    (separator : Fin ((reachableAlphabet tm k).card + 1))
+    (cell : Fin H) :
+    (buildSeparatorNots base stack hstack separator).wires cell =
+      base.gates.length + cell.val := by
+  unfold buildSeparatorNots
+  exact buildSeparatorNotsPrefix_wires_eq base stack hstack separator H
+    (Nat.le_refl H) cell
+
 private def separatorNotsPrefixGateTrace
     {tm : _root_.Turing.FinTM2} {H : Nat} {k : tm.K}
     (stack : StackWires tm H k)
@@ -395,6 +436,44 @@ def buildInputArms {Γ : Type} {L : Language Γ}
             rw [arm.gate_delta, previous.gate_delta, Fin.sum_univ_castSucc]
             simp only [Fin.val_castSucc, Fin.val_last]
             omega }
+
+/-- At every fitting candidate index, the recursive family stores the last
+fresh conjunction wire at its exact prefix-sum coordinate. -/
+theorem buildInputArms_wires_eq {Γ : Type} {L : Language Γ}
+    (W : VerifierWitness L) (H : Nat) (x : List Γ)
+    (start : CircuitBuilder) (pool : start.BoolWirePool)
+    (stack : StackWires W.machine.tm H W.machine.tm.k₀)
+    (hstack : stack.ValidIn start)
+    (separatorNots : Fin H → CircuitBuilder.Wire)
+    (hseparatorNots : ∀ cell, start.WireValid (separatorNots cell))
+    (hseparatorEval : ∀ inputs cell,
+      start.evalWire inputs (separatorNots cell) =
+        !(start.evalWire inputs
+          (stack.cell cell (verifierInputCode W none))))
+    (n : Nat) (index : Fin n)
+    (hfit : index.val + 1 + x.length ≤ H) :
+    (buildInputArms W H x start pool stack hstack separatorNots
+      hseparatorNots hseparatorEval n).wires index =
+      start.gates.length +
+        (∑ previous : Fin index.val,
+          verifierInputArmGateCost H x.length previous.val) +
+        index.val + x.length + 2 := by
+  induction n with
+  | zero => exact Fin.elim0 index
+  | succ n ih =>
+      simp only [buildInputArms]
+      split
+      next hindex =>
+        exact ih ⟨index.val, hindex⟩ hfit
+      next hindex =>
+        have hindexEq : index.val = n := by omega
+        rw [hindexEq] at hfit ⊢
+        simp only [buildInputArm, hfit, dite_true]
+        rw [CircuitBuilder.conjunction_wire_eq_trace,
+          CircuitBuilder.conjunctionGateTrace_wire_eq]
+        rw [InputArmsResult.gate_delta]
+        simp only [inputArmWires_length]
+        simp only [Nat.add_assoc]
 
 /-- Literal ordered trace for the recursive candidate-length family. -/
 def inputArmsGateTrace {Γ : Type} {L : Language Γ}
