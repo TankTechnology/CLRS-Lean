@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowDelimiterMap
+
+open CLRS.Chapter34 Turing
+open CLRS.Chapter34.Turing PolyBuilder
+
+#check rewriteUnaryFrameDelimiters_markedRows
+#print axioms rewriteUnaryFrameDelimiters_markedRows
