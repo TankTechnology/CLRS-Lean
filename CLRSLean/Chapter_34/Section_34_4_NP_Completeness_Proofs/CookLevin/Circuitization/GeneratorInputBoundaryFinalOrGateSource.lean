@@ -163,6 +163,43 @@ theorem verifierInputFinalOrFrames_eq_canonical
     (verifierInputFinalOrStart W input)
     (verifierInputFinalOrWires W input)).symm
 
+/-- Exact delimiter-bearing input consumed by the final OR controller. -/
+def verifierInputFinalOrFrameInput
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  encodeAffineOrFinFrames (verifierInputFinalOrFrames W input)
+
+theorem verifierInputFinalOrFrameInput_eq_canonical
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) :
+    verifierInputFinalOrFrameInput W input =
+      encodeAffineOrFinFrames (affineOrFinCanonicalFrames
+        (verifierInputFinalOrStart W input)
+        (verifierInputFinalOrWires W input)) := by
+  unfold verifierInputFinalOrFrameInput
+  rw [verifierInputFinalOrFrames_eq_canonical]
+
+/-- A fixed polynomial-time TM2 emits the complete canonical final-OR frame
+input from the original verifier word. -/
+noncomputable def verifierInputFinalOrFrameInput_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierInputFinalOrFrameInput W) := by
+  letI : Fintype Γ := W.alphabetFintype
+  let frames := verifierInputFinalOrFrames_computableInPolyTime W
+  let formattedExists :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch frames
+      unaryFrameMarkedOrPairFormat_computableInPolyTime
+  let formatted := Classical.choice formattedExists
+  exact
+    { tm := formatted.tm
+      inputAlphabet := formatted.inputAlphabet
+      outputAlphabet := formatted.outputAlphabet
+      time := formatted.time
+      outputsFun := fun input => by
+        have run := formatted.outputsFun input
+        simpa [Function.comp_def, verifierInputFinalOrFrameInput] using run }
+
 /-- Literal circuit-byte stream of the final input-arm disjunction. -/
 def verifierInputFinalOrGateStream
     {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
@@ -192,11 +229,7 @@ noncomputable def verifierInputFinalOrGateStream_computableInPolyTime
     _root_.Turing.TM2ComputableInPolyTime id id
       (verifierInputFinalOrGateStream W) := by
   letI : Fintype Γ := W.alphabetFintype
-  let frames := verifierInputFinalOrFrames_computableInPolyTime W
-  let formattedExists :=
-    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch frames
-      unaryFrameMarkedOrPairFormat_computableInPolyTime
-  let formatted := Classical.choice formattedExists
+  let formatted := verifierInputFinalOrFrameInput_computableInPolyTime W
   let formattedTyped :
       _root_.Turing.TM2ComputableInPolyTime id encodeAffineOrFinFrames
         (verifierInputFinalOrFrames W) :=
@@ -206,7 +239,7 @@ noncomputable def verifierInputFinalOrGateStream_computableInPolyTime
       time := formatted.time
       outputsFun := fun input => by
         have run := formatted.outputsFun input
-        simpa [Function.comp_def] using run }
+        simpa [verifierInputFinalOrFrameInput] using run }
   let gatesExists :=
     _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch formattedTyped
       affineOrFinGateStream_computableInPolyTime
