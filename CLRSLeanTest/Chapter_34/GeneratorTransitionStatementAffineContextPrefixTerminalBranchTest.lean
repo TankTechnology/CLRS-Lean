@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextPrefixTerminalBranch
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtPrefixTerminalBranchPlan
+#check TransitionStmtPrefixTerminalBranchPlan.fixedPhaseForms
+#check transitionStmtEndsInTerminalBranch
+#check transitionStmtPrefixTerminalBranchPlan
+#check transitionStmtPrefixTerminalBranchPlan_isSome_iff
+
+end CLRSLeanTest.Chapter34
