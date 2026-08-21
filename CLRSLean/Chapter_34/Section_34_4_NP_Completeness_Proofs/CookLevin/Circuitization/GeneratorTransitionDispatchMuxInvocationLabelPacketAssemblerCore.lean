@@ -40,7 +40,7 @@ inductive TransitionDispatchMuxInvocationLabelPacketAssemblerLabel
   | emitEmptySelector | emitEmptySelectorTick | emitEmptySelectorBoundary
   | emitEmptyZeroBoundary | emitEmptyFlagTick | emitEmptyFlagBoundary
   | emitEmptyFrameEnd
-  | clearSelector | finish | invalid
+  | clearSelector | resetBuffer | finish | invalid
 deriving DecidableEq, Fintype
 
 /-- One fixed assembler for every verifier, input, label count, and mux width.
@@ -130,8 +130,9 @@ def transitionDispatchMuxInvocationLabelPacketAssemblerRevProgram :
     | .emitEmptyFlagTick => .pushOutput .tick .emitEmptyFlagBoundary
     | .emitEmptyFlagBoundary =>
         .pushOutput .separator .emitEmptyFrameEnd
-    | .emitEmptyFrameEnd => .pushOutput .frameEnd .loadSelector
-    | .clearSelector => .dec₁ .loadSelector .clearSelector
+    | .emitEmptyFrameEnd => .pushOutput .frameEnd .resetBuffer
+    | .clearSelector => .dec₁ .resetBuffer .clearSelector
+    | .resetBuffer => .popWork₁ .loadSelector (fun _ => .invalid)
     | .finish => .halt
     | .invalid => .halt
 
