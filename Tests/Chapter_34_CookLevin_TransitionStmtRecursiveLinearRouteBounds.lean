@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveLinearRouteBounds
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtRecursivePlan.LinearRouteBounds
+#check transitionStmtRecursivePlan_linearRouteBounds
+#check verifierTransitionRecursivePlan_linearRouteBounds
+#print axioms verifierTransitionRecursivePlan_linearRouteBounds
