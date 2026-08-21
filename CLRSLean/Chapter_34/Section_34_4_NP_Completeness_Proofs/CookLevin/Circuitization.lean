@@ -301,6 +301,8 @@ from the raw verifier word.
 The raw-input compiler now also crosses the complete optional accepting
 boundary.  In the representable branch it emits and semantically aligns every
 halted output-row equality; in the static negative branch it emits the exact
-absent-operand marker.  Thus only the final conjunction and output-wire fields
-remain outside the continuous compiled body prefix.
+absent-operand marker.  The final conjunction and selected output wire are
+compiled as well; a reusable finite-alphabet same-input concatenator joins the
+header/input/pool prefix to this complete body and emits the canonical circuit
+encoding directly from the original verifier input.
 -/

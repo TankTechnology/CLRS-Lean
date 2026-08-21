@@ -9,13 +9,11 @@ the circuitization level normally exposed inside a textbook proof: an explicit m
 exact preservation and reflection of membership, and a polynomial bound on the
 serialized output length.
 
-The distinction from the repository's stronger machine interface is
-intentional.  `PolynomialOutputReduction` does not assert that its map is
-computed in polynomial time, so the results in this module are not named
-`NPHard` or `NPComplete`.  Polynomial output length alone cannot establish
-either standard predicate.  The theorem
-`PolynomialOutputReduction.toPolyTimeReducible` records the exact remaining
-bridge: a `PolyTimeComputable` proof for the same explicit map.
+The semantic certificate remains separate from the stronger machine
+interface: `PolynomialOutputReduction` does not itself assert that its map is
+computed in polynomial time.  The theorem
+`PolynomialOutputReduction.toPolyTimeReducible` is the upgrade bridge, and
+`CookLevin.MainTheorem` now supplies its concrete `PolyTimeComputable` premise.
 -/
 
 namespace CLRS.Chapter34
@@ -87,10 +85,9 @@ theorem cookLevin_polyTimeReducible_of_computable {Γ : Type}
 language has an explicit semantics-correct circuit map to `GeneralCircuitSAT`
 whose serialized output length is polynomially bounded.
 
-This is the semantic-and-size core of the textbook construction, not the
-standard NP-hardness theorem: the latter additionally requires the map's
-`PolyTimeComputable` premise exposed by
-`cookLevin_polyTimeReducible_of_computable`. -/
+This is the semantic-and-size core of the textbook construction.  The standard
+NP-hardness theorem is exported separately by `CookLevin.MainTheorem`, using
+the concrete map compiler and `cookLevin_polyTimeReducible_of_computable`. -/
 theorem cookLevin_textbookCircuitization {Γ : Type} {L : Language Γ}
     (hL : PolyTimeVerifiable L) :
     Nonempty (PolynomialOutputReduction L GeneralCircuitSAT) :=
