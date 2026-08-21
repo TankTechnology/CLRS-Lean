@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextLinearResultFamily
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionLinearResultRouteFamily
+#check verifierTransitionLinearResultRouteFamily_encoding_eq
+#check verifierTransitionLinearResultRouteFamily_computableInPolyTime
+#print axioms verifierTransitionLinearResultRouteFamily_computableInPolyTime
