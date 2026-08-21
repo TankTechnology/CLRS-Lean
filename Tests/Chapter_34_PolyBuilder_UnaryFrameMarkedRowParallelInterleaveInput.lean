@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowParallelInterleaveInput
+
+open CLRS.Chapter34.Turing.PolyBuilder
+open UnaryFrameMarkedRowParallelInterleave
+
+#check duplicate_copyout_phase
+#check duplicate_restore_phase
+#check duplicate_phase
+
+#print axioms duplicate_phase
