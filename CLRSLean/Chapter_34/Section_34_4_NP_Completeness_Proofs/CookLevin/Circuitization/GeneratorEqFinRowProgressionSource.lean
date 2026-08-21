@@ -19,6 +19,35 @@ namespace CLRS.Chapter34.Turing.CookLevin
 
 open PolyBuilder
 
+/-- Pointwise description of the canonical recursive equality-frame list. -/
+theorem affineEqFinCanonicalFrames_eq_ofFn (start : Nat) :
+    ∀ (n : Nat) (left right : Fin n → CircuitBuilder.Wire),
+      affineEqFinCanonicalFrames start n left right =
+        List.ofFn fun coordinate : Fin n =>
+          { eqStart := start + 1 + 6 * coordinate.val
+            left := left coordinate
+            right := right coordinate
+            matched := start + 5 + 6 * coordinate.val
+            previous := start + 6 * coordinate.val } := by
+  intro n
+  induction n with
+  | zero =>
+      intro left right
+      rfl
+  | succ n ih =>
+      intro left right
+      rw [show affineEqFinCanonicalFrames start (n + 1) left right =
+        affineEqFinCanonicalFrames start n
+            (fun i => left i.castSucc) (fun i => right i.castSucc) ++
+          [{ eqStart := start + 1 + 6 * n
+             left := left (Fin.last n)
+             right := right (Fin.last n)
+             matched := start + 5 + 6 * n
+             previous := start + 6 * n }] by rfl]
+      rw [ih, List.ofFn_succ']
+      simp only [List.concat_eq_append]
+      congr 1
+
 /-- Equality frames for the suffix of a logical row beginning at `offset`.
 Each coordinate consumes six gates, so the preceding equality carry advances
 by six while the left wire advances by one. -/
