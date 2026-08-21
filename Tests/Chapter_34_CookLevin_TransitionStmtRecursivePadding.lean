@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursivePadding
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtRecursiveContextPadding
+#check transitionStmtRecursiveContextPadding_to_linear
+#check transitionStmtRecursiveContextPadding_linearResult_capacity
+
+#print axioms transitionStmtRecursiveContextPadding_linearResult_capacity
