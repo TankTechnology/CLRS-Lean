@@ -72,7 +72,7 @@ focused `lake env lean` interface checks, staged Git commits.
   prefix/predicate, true arm, false arm, then parent mux.
 - [ ] Prove by plan induction that `completePhases` is byte-for-byte the
   existing `transitionStmtScript`, including nested branches.
-- [ ] Prove each plan's canonical output route equals the semantic statement
+- [x] Prove each plan's canonical output route equals the semantic statement
   output; branch leaves use Task 1 and terminal leaves reuse
   `TransitionStmtLinearResult.completeRouteValues`.
 - [ ] Run focused tests, audit for `sorry`/`admit`/new axioms, and commit.

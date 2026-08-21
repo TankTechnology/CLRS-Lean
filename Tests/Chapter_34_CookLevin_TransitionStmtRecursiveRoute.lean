@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveRoute
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtLinearOrBranch
+#check transitionStmtOutputRouteValues
+#check transitionStmtOutputRouteValues_eq_output
+
+#print axioms transitionStmtOutputRouteValues_eq_output
