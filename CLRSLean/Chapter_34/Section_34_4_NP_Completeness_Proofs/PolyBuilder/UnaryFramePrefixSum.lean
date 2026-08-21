@@ -29,6 +29,22 @@ theorem unaryFramePrefixSumFinal_eq_add_sum
       rw [ih]
       omega
 
+/-- Closed positional form of the prefix-value list. -/
+theorem unaryFramePrefixSumValuesFrom_eq_ofFn
+    (current : Nat) (increments : List Nat) :
+    unaryFramePrefixSumValuesFrom current increments =
+      List.ofFn fun index : Fin increments.length =>
+        current + (increments.take index.val).sum := by
+  induction increments generalizing current with
+  | nil => rfl
+  | cons increment rest ih =>
+      rw [unaryFramePrefixSumValuesFrom, List.ofFn_succ, ih]
+      congr 1
+      apply List.ofFn_inj.mpr
+      funext index
+      simp [List.take_succ_cons]
+      omega
+
 /-- One symbol per unary unit and one delimiter per input field. -/
 theorem encodeUnaryFramePrefixSum_length (frame : UnaryFramePrefixSum) :
     (encodeUnaryFramePrefixSum frame).length =
