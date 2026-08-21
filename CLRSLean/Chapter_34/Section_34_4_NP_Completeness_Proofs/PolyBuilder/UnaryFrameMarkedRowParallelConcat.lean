@@ -23,6 +23,25 @@ def concatUnaryFrameMarkedRows :
       (left ++ right) :: concatUnaryFrameMarkedRows lefts rights
   | _, _ => []
 
+/-- Row-wise concatenation preserves the common row count. -/
+theorem concatUnaryFrameMarkedRows_length_of_aligned
+    (left right : List (List UnaryFrameSym))
+    (haligned : left.length = right.length) :
+    (concatUnaryFrameMarkedRows left right).length = left.length := by
+  induction left generalizing right with
+  | nil =>
+      have hright : right = [] :=
+        List.eq_nil_of_length_eq_zero haligned.symm
+      subst right
+      rfl
+  | cons leftRow leftRows ih =>
+      cases right with
+      | nil => simp at haligned
+      | cons rightRow rightRows =>
+          simp only [List.length_cons] at haligned
+          simp only [concatUnaryFrameMarkedRows, List.length_cons]
+          rw [ih rightRows (by omega)]
+
 private theorem mem_concatUnaryFrameMarkedRows
     (left right : List (List UnaryFrameSym))
     (row : List UnaryFrameSym)
