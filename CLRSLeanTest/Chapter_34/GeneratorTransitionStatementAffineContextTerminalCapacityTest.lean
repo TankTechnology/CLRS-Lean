@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalCapacity
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtLinearResult_capacity_of_padding
+#check transitionStmtTerminalBranchPlan_capacities_of_padding
+
+end CLRSLeanTest.Chapter34
