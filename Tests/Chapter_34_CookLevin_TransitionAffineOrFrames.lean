@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineOrFrames
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionAffineOrFieldForms_value
+#check transitionAffineOrRow_eq_encoding
+#check verifierTransitionAffineOrFrames_eq_rows
+#check verifierTransitionAffineOrFrames_computableInPolyTime
+
+#print axioms verifierTransitionAffineOrFrames_computableInPolyTime
