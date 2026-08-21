@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineOneHotPairPhase
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionAffineOneHotPairAndFrames_eval
+#check transitionAffineOneHotPairOrGroups_eval
+#check transitionAffineOneHotPairPhase_fixed_encoding
+#check verifierTransitionAffineOneHotPairPhase_eq_rows
+#check verifierTransitionAffineOneHotPairPhase_computableInPolyTime
+
+#print axioms verifierTransitionAffineOneHotPairPhase_computableInPolyTime

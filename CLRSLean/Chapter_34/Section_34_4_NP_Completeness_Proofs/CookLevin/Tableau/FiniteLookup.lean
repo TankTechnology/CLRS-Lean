@@ -468,7 +468,7 @@ def oneHotPairAndGateTrace {n p : Nat} (start : Nat)
     OneHotPairAndGateTrace (n * p) :=
   oneHotPairAndBodyGateTrace start left right (n * p) (Nat.le_refl _)
 
-private def oneHotPairBodyOperands {n p : Nat}
+def oneHotPairBodyOperands {n p : Nat}
     (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) :
     (k : Nat) → (hk : k ≤ n * p) →
@@ -488,6 +488,26 @@ def oneHotPairOperands {n p : Nat}
     (right : Fin p → CircuitBuilder.Wire) :
     List (CircuitBuilder.Wire × CircuitBuilder.Wire) :=
   oneHotPairBodyOperands left right (n * p) (Nat.le_refl _)
+
+private theorem oneHotPairBodyOperands_length {n p : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    ∀ (k : Nat) (hk : k ≤ n * p),
+      (oneHotPairBodyOperands left right k hk).length = k := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      rfl
+  | succ k ih =>
+      intro hk
+      simp [oneHotPairBodyOperands, ih]
+
+@[simp] theorem oneHotPairOperands_length {n p : Nat}
+    (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    (oneHotPairOperands left right).length = n * p :=
+  oneHotPairBodyOperands_length left right (n * p) (Nat.le_refl _)
 
 private theorem oneHotPairAndBodyGateTrace_gates_eq_operands {n p : Nat}
     (start : Nat) (left : Fin n → CircuitBuilder.Wire)
