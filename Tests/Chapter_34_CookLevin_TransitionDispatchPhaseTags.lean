@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionDispatchPhaseTags
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtPhaseKindTagCode_kind
+#check compileTransitionFamilyScriptsAt_dispatchPhaseTagFrames_eq
+#check verifierTransitionRowMarkedSeedFrames_expandPhaseTags
+#check verifierTransitionDispatchPhaseTagFrames_eq_scripts
+#check verifierTransitionDispatchPhaseTagFrames_computableInPolyTime
+
+#print axioms verifierTransitionDispatchPhaseTagFrames_computableInPolyTime
