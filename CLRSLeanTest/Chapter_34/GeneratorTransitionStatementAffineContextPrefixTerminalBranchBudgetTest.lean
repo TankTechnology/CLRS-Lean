@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextPrefixTerminalBranchBudget
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtPrefixTerminalBranchPadding_of_budget
+#check transitionStmtPrefixTerminalBranchPadding_initial_verifier
+#check transitionStmtPrefixTerminalBranchInitial_completePhases_eq_script
+
+end CLRSLeanTest.Chapter34
