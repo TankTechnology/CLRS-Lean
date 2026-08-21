@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementInitialAffine
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtInitialPhaseBlock_prefix
+#check transitionStmtInitialPhaseForms_eval
+#check transitionDispatchStatementInitialForms_eval
+#check verifierTransitionAffineStmtScriptTarget_initial_eq
+#check verifierTransitionDispatchStatementInitialBlockTarget_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
