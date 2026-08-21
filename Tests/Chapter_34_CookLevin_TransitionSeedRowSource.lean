@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionSeedRowSource
+
+open CLRS.Chapter34 Turing
+open CLRS.Chapter34.Turing CookLevin PolyBuilder
+
+#check VerifierTransitionSeedRowSource
+#check VerifierTransitionSeedRowSource.rows_length
+#check VerifierTransitionSeedRowSource.append
+#check VerifierTransitionSeedRowSource.append_row
+
+#print axioms VerifierTransitionSeedRowSource.append
