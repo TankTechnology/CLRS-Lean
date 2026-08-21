@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameDelimiterMapCycle
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check encodeUnaryFrameWithDelimiterCycle_eq_fixedRows
+#check encodeUnaryFrameWithFixedDelimiters_append
+#check encodeUnaryFrameWithOwnFinalDelimiter
+
+#print axioms encodeUnaryFrameWithDelimiterCycle_eq_fixedRows
+#print axioms encodeUnaryFrameWithFixedDelimiters_append
+#print axioms encodeUnaryFrameWithOwnFinalDelimiter
