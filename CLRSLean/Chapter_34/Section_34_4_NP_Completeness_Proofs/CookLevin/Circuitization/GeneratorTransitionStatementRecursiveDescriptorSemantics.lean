@@ -99,8 +99,10 @@ noncomputable def transitionStmtRecursiveNumericDescriptorRow
         transitionStmtRecursiveNumericDescriptorRow tm seed labelOffset
           (transitionStmtBranchFalseContext tm context test whenTrue)
             whenFalse hfalseSupport ++
-        (transitionStmtRecursiveBranchMuxInvocationView tm seed labelOffset
-          context test whenTrue whenFalse hsupport).numericDescriptorRow
+        transitionStmtRecursiveBranchLengthPrefixedNumericDescriptorRow tm
+          seed
+          (transitionStmtRecursiveBranchMuxInvocationView tm seed labelOffset
+            context test whenTrue whenFalse hsupport)
 
 /-- The recursively assembled concrete source implements the independent
 numeric descriptor semantics exactly for every transition seed. -/
@@ -159,7 +161,8 @@ theorem verifierTransitionStmtRecursiveDescriptorSeedRowSource_row_eq
       simp only [verifierTransitionStmtRecursiveDescriptorSeedRowSource,
         transitionStmtRecursiveNumericDescriptorRow,
         VerifierTransitionSeedRowSource.append_row]
-      rw [ihTrue, ihFalse]
+      rw [ihTrue, ihFalse,
+        verifierTransitionRecursiveBranchSeedRowSource_row]
       simp only [List.append_assoc]
       rfl
 
