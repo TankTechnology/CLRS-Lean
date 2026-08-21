@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineCanonicalOrGroups
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionAffineOrCanonicalFrameForms_eval
+#check transitionAffineOrCanonicalGroupFormsFrom_eval
+#check verifierTransitionAffineCanonicalOrGroups_eq_rows
+#check verifierTransitionAffineCanonicalOrGroups_computableInPolyTime
+
+#print axioms verifierTransitionAffineCanonicalOrGroups_computableInPolyTime
