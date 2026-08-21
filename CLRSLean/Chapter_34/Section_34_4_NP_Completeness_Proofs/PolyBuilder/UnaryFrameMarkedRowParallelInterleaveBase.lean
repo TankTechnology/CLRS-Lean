@@ -312,7 +312,7 @@ def combinedStacks
 def mapCfg₁
     (cfg : _root_.Turing.TM2.Cfg M₁.tm.Γ M₁.tm.Λ M₁.tm.σ)
     (second : ∀ k : M₂.tm.K, List (M₂.tm.Γ k)) :
-    _root_.Turing.TM2.Cfg (StackAlphabet M₁ M₂) (Λ M₁ M₂) (σ M₁ M₂) :=
+    (machine M₁ M₂).Cfg :=
   { l := match cfg.l with
       | some label => some (Sum.inl (Sum.inl label))
       | none => some (Sum.inl (Sum.inr M₂.tm.main))
@@ -324,7 +324,7 @@ def mapCfg₁
 def mapCfg₂
     (cfg : _root_.Turing.TM2.Cfg M₂.tm.Γ M₂.tm.Λ M₂.tm.σ)
     (first : ∀ k : M₁.tm.K, List (M₁.tm.Γ k)) :
-    _root_.Turing.TM2.Cfg (StackAlphabet M₁ M₂) (Λ M₁ M₂) (σ M₁ M₂) :=
+    (machine M₁ M₂).Cfg :=
   { l := match cfg.l with
       | some label => some (Sum.inl (Sum.inr label))
       | none => some (Sum.inr ExtraΛ.mergeLeft)
