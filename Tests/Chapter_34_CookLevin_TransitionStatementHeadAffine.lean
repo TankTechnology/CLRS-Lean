@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementHeadAffine
+
+namespace CLRS.Chapter34.Turing.CookLevin
+
+#check transitionWidenedStateForm_value
+#check transitionWidenedStackHeightForm_value
+#check transitionWidenedStackCellZeroForm_value
+#check transitionStmtHeadPhaseForm_eval
+#check transitionDispatchStatementHeadForms_eval
+#check transitionDispatchStatementHeadPhaseForms_eval
+#check verifierTransitionDispatchStatementHeadFrames_eq
+#check verifierTransitionDispatchStatementHeadFrames_computableInPolyTime
+
+end CLRS.Chapter34.Turing.CookLevin
