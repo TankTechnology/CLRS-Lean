@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameFixedFieldRowMark
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check unaryFrameFixedFieldRowDelimiterTable
+#check markUnaryFrameFixedFieldRows
+#check markUnaryFrameFixedFieldRows_encode
+#check markUnaryFrameFixedFieldRows_computableInPolyTime
+#print axioms markUnaryFrameFixedFieldRows_computableInPolyTime

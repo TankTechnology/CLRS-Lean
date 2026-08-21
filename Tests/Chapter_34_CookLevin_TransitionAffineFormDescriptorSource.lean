@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineFormDescriptorSource
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionAffineFormDescriptorFamily
+#check verifierTransitionAffineFormDescriptorFamily_encoding_eq
+#check verifierTransitionAffineFormDescriptorFamily_computableInPolyTime
+#print axioms verifierTransitionAffineFormDescriptorFamily_computableInPolyTime
