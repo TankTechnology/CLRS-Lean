@@ -17,7 +17,7 @@ def oneHotPairMapWireOffset {n p m : Nat}
     (f : Fin n → Fin p → Fin m) (target : Fin m) : Nat :=
   n * p + oneHotMapWireOffset (oneHotPairFunction f) target
 
-private theorem oneHotPairAndBodyGateTrace_length
+theorem oneHotPairAndBodyGateTrace_length
     {n p : Nat} (start : Nat) (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) :
     ∀ (k : Nat) (hk : k ≤ n * p),
@@ -31,12 +31,52 @@ private theorem oneHotPairAndBodyGateTrace_length
       intro hk
       simp [oneHotPairAndBodyGateTrace, ih]
 
-private theorem oneHotPairAndGateTrace_length
+theorem oneHotPairAndGateTrace_length
     {n p : Nat} (start : Nat) (left : Fin n → CircuitBuilder.Wire)
     (right : Fin p → CircuitBuilder.Wire) :
     (oneHotPairAndGateTrace start left right).gates.length = n * p := by
   exact oneHotPairAndBodyGateTrace_length start left right
     (n * p) (Nat.le_refl _)
+
+private theorem oneHotPairAndBodyGateTrace_wire_eq_start_add_val
+    {n p : Nat} (start : Nat) (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    ∀ (k : Nat) (hk : k ≤ n * p) (q : Fin k),
+      (oneHotPairAndBodyGateTrace start left right k hk).wires q =
+        start + q.val := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk q
+      exact Fin.elim0 q
+  | succ k ih =>
+      intro hk q
+      by_cases hq : q.val < k
+      · simp only [oneHotPairAndBodyGateTrace, dif_pos hq]
+        exact ih (by omega) ⟨q.val, hq⟩
+      · simp only [oneHotPairAndBodyGateTrace, dif_neg hq]
+        rw [oneHotPairAndBodyGateTrace_length]
+        have hqEq : q.val = k :=
+          Nat.le_antisymm (Nat.le_of_lt_succ q.isLt)
+            (Nat.le_of_not_gt hq)
+        rw [hqEq]
+
+/-- Pair materialization emits one gate per pair in flattened pair order, so
+fresh pair wire `q` is exactly `start + q.val`. -/
+theorem oneHotPairAndGateTrace_wire_eq_start_add_val
+    {n p : Nat} (start : Nat) (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) (q : Fin (n * p)) :
+    (oneHotPairAndGateTrace start left right).wires q = start + q.val :=
+  oneHotPairAndBodyGateTrace_wire_eq_start_add_val start left right
+    (n * p) (Nat.le_refl _) q
+
+theorem oneHotPairAndGateTrace_wires_eq_start_add_val
+    {n p : Nat} (start : Nat) (left : Fin n → CircuitBuilder.Wire)
+    (right : Fin p → CircuitBuilder.Wire) :
+    (oneHotPairAndGateTrace start left right).wires =
+      fun q => start + q.val := by
+  funext q
+  exact oneHotPairAndGateTrace_wire_eq_start_add_val start left right q
 
 /-- Every binary lookup output coordinate is the gate start plus its fixed
 pair-table offset. -/
