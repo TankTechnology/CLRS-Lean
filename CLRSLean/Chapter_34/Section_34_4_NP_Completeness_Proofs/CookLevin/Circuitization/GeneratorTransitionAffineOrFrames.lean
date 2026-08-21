@@ -112,7 +112,9 @@ theorem transitionAffineOrFieldForms_value
       rw [transitionAffineFormAddConst_value]
       simp [transitionZeroForm, affineUnaryTripleFormValue]
 
-private theorem transitionAffineOr_fixed_encoding
+/-- Fixed-delimiter evaluation of a symbolic frame table is exactly the
+canonical concrete OR-frame encoding. -/
+theorem transitionAffineOr_fixed_encoding
     (frames : List TransitionAffineOrPairForm)
     (seed : AffineUnaryTripleSeed) :
     encodeUnaryFrameWithFixedDelimiters

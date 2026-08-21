@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineOrGroups
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionAffineOrGroupRow_eq_encoding
+#check verifierTransitionAffineOrGroups_eq_rows
+#check verifierTransitionAffineOrGroups_computableInPolyTime
+
+#print axioms verifierTransitionAffineOrGroups_computableInPolyTime
