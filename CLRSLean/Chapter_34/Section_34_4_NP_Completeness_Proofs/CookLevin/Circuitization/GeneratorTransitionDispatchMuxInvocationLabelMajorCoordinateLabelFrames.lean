@@ -157,18 +157,35 @@ noncomputable def
     _root_.Turing.TM2ComputableInPolyTime id id
       (verifierTransitionDispatchMuxInvocationLabelMajorCoordinateLabelFrames
         W) := by
-  let existing :=
-    verifierTransitionDispatchMuxInvocationDescriptorCoordinateLabelFrames_computableInPolyTime
+  let descriptors :=
+    verifierTransitionDispatchMuxInvocationLabelMajorCoordinateFrames_computableInPolyTime
       W
-  exact
-    { tm := existing.tm
-      inputAlphabet := existing.inputAlphabet
-      outputAlphabet := existing.outputAlphabet
-      time := existing.time
+  let structured : _root_.Turing.TM2ComputableInPolyTime id
+      encodeAffineUnaryTripleProgressionFamily
+      (verifierTransitionDispatchMuxInvocationLabelMajorCoordinateProgressions
+        W) :=
+    { tm := descriptors.tm
+      inputAlphabet := descriptors.inputAlphabet
+      outputAlphabet := descriptors.outputAlphabet
+      time := descriptors.time
       outputsFun := fun input => by
-        have run := existing.outputsFun input
+        have run := descriptors.outputsFun input
         simpa only [id_eq,
-          verifierTransitionDispatchMuxInvocationLabelMajorCoordinateLabelFrames_eq_existing]
+          verifierTransitionDispatchMuxInvocationLabelMajorCoordinateFrames_eq
+            W input] using run }
+  let composed :=
+    _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch structured
+      (affineUnaryTripleProgressionFixedGroupFrameStream_computableInPolyTime 0)
+  let result := Classical.choice composed
+  exact
+    { tm := result.tm
+      inputAlphabet := result.inputAlphabet
+      outputAlphabet := result.outputAlphabet
+      time := result.time
+      outputsFun := fun input => by
+        have run := result.outputsFun input
+        simpa only [Function.comp_apply, id_eq,
+          verifierTransitionDispatchMuxInvocationLabelMajorCoordinateLabelFrames]
           using run }
 
 end CLRS.Chapter34.Turing.CookLevin
