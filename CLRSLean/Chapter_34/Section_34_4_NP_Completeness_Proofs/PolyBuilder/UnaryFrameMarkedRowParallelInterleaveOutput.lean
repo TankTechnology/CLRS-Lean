@@ -25,7 +25,8 @@ variable
   (M₂ : _root_.Turing.TM2ComputableInPolyTime id
     encodeUnaryFrameMarkedRowFamily rightFamily)
 
-private def restoredCfg
+/-- Halted combined configuration with an explicitly supplied stack family. -/
+def restoredCfg
     (values : ∀ k : K M₁ M₂, List (StackAlphabet M₁ M₂ k)) :
     (machine M₁ M₂).Cfg :=
   ⟨none, (M₁.tm.initialState, M₂.tm.initialState, ExtraState.initial), values⟩
