@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveSemantics
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtRecursivePhases
+#check transitionStmtRecursivePhases_eq_script
+
+#print axioms transitionStmtRecursivePhases_eq_script

@@ -67,15 +67,15 @@ focused `lake env lean` interface checks, staged Git commits.
 - Create: `Tests/Chapter_34_CookLevin_TransitionStmtRecursiveSemantics.lean`
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization.lean`
 
-- [ ] Add failing checks for the exact complete-phase and output-route theorems.
-- [ ] Define `completePhases` in depth-first circuit-construction order:
+- [x] Add failing checks for the exact complete-phase and output-route theorems.
+- [x] Define the recursive phases in depth-first circuit-construction order:
   prefix/predicate, true arm, false arm, then parent mux.
-- [ ] Prove by plan induction that `completePhases` is byte-for-byte the
+- [x] Prove by statement/plan induction that the recursive phases are byte-for-byte the
   existing `transitionStmtScript`, including nested branches.
 - [x] Prove each plan's canonical output route equals the semantic statement
   output; branch leaves use Task 1 and terminal leaves reuse
   `TransitionStmtLinearResult.completeRouteValues`.
-- [ ] Run focused tests, audit for `sorry`/`admit`/new axioms, and commit.
+- [x] Run focused tests, audit for `sorry`/`admit`/new axioms, and commit.
 
 ### Task 4: Fixed-controller source stream for recursive plans
 
