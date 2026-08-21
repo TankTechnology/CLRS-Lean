@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineMuxPhase
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check TransitionAffineMuxPairForm.eval
+#check transitionAffineMuxFrames_fixed_encoding
+#check transitionAffineMuxPhase_fixed_encoding
+#check verifierTransitionAffineMuxPhase_eq_rows
+#check verifierTransitionAffineMuxPhase_computableInPolyTime
+
+#print axioms verifierTransitionAffineMuxPhase_computableInPolyTime
