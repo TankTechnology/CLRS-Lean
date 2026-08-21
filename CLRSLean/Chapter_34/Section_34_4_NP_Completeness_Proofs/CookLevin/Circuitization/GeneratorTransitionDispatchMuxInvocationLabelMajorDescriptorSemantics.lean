@@ -27,6 +27,19 @@ def transitionDispatchMuxInvocationLabelMajorDescriptorValueGroupsFrom :
           selectors coordinateGroups trueGroups falseGroups
   | _, _, _, _ => []
 
+/-- The same label-major zipper with the four semantic sections kept as
+separate rows.  This is the value-level shape materialized by the concrete
+four-row delimiter source. -/
+def transitionDispatchMuxInvocationLabelMajorFourRowDescriptorValueGroupsFrom :
+    List Nat → List (List Nat) → List (List Nat) → List (List Nat) →
+      List (List Nat)
+  | selector :: selectors, coordinates :: coordinateGroups,
+      whenTrue :: trueGroups, whenFalse :: falseGroups =>
+      [[selector], coordinates, whenTrue, whenFalse] ++
+        transitionDispatchMuxInvocationLabelMajorFourRowDescriptorValueGroupsFrom
+          selectors coordinateGroups trueGroups falseGroups
+  | _, _, _, _ => []
+
 private theorem
     transitionDispatchMuxInvocationLabelMajorDescriptorFormGroupsFrom_values
     (seed : TransitionRowSeed)
@@ -173,6 +186,45 @@ noncomputable def
       layout.affineSpanDescriptorValues tm seed)
     ((transitionDispatchFalseArmProgressionGroups tm seed).map
       transitionDispatchProgressionDescriptorValues)
+
+/-- Canonical physical descriptor rows by label: selector, fresh-coordinate
+progressions, normalized true spans, and false-arm progressions. -/
+noncomputable def
+    transitionDispatchMuxInvocationLabelMajorCanonicalFourRowDescriptorValueGroups
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
+    List (List Nat) :=
+  transitionDispatchMuxInvocationLabelMajorFourRowDescriptorValueGroupsFrom
+    (transitionDispatchSelectors tm seed)
+    ((transitionDispatchMuxCoordinateProgressionGroups tm seed).map
+      transitionDispatchProgressionDescriptorValues)
+    ((transitionDispatchTrueArmNormalizedLayouts tm).map fun layout =>
+      layout.affineSpanDescriptorValues tm seed)
+    ((transitionDispatchFalseArmProgressionGroups tm seed).map
+      transitionDispatchProgressionDescriptorValues)
+
+/-- Evaluating the verifier-fixed form tables section by section gives the
+canonical four physical descriptor rows for every label. -/
+theorem
+    transitionDispatchMuxInvocationLabelMajorCanonicalFourRowDescriptorValueGroups_eq_forms
+    (tm : _root_.Turing.FinTM2) (seed : TransitionRowSeed) :
+    transitionDispatchMuxInvocationLabelMajorCanonicalFourRowDescriptorValueGroups
+        tm seed =
+      transitionDispatchMuxInvocationLabelMajorFourRowDescriptorValueGroupsFrom
+        (affineUnaryTripleMap (transitionDispatchSelectorForms tm)
+          (transitionTailAffineSeed seed))
+        ((transitionDispatchMuxCoordinateDescriptorFormGroups tm).map
+          fun group =>
+            affineUnaryTripleMap group (transitionTailAffineSeed seed))
+        ((transitionDispatchTrueArmDescriptorFormGroups tm).map fun group =>
+          affineUnaryTripleMap group (transitionTailAffineSeed seed))
+        ((transitionDispatchFalseArmDescriptorFormGroups tm).map fun group =>
+          affineUnaryTripleMap group (transitionTailAffineSeed seed)) := by
+  unfold
+    transitionDispatchMuxInvocationLabelMajorCanonicalFourRowDescriptorValueGroups
+  rw [transitionDispatchSelectorForms_value]
+  rw [transitionDispatchMuxCoordinateDescriptorFormGroups_values]
+  rw [transitionDispatchTrueArmDescriptorFormGroups_values]
+  rw [transitionDispatchFalseArmDescriptorFormGroups_values]
 
 /-- The runtime values emitted by the fixed label-major affine table are
 exactly the canonical per-label descriptor packets. -/
