@@ -417,6 +417,15 @@ def conjunctionGateTrace (start : Nat) : List Wire → ConjunctionGateTrace
   | nil => rfl
   | cons wire rest ih => simp [conjunctionGateTrace, ih]
 
+/-- The conjunction output is the last fresh wire of its trace. -/
+@[simp] theorem conjunctionGateTrace_wire_eq
+    (start : Nat) (wires : List Wire) :
+    (conjunctionGateTrace start wires).wire = start + wires.length := by
+  cases wires with
+  | nil => rfl
+  | cons wire rest =>
+      simp [conjunctionGateTrace]
+
 /-- Internal result package used to compose builders while retaining the
 extension and fresh-wire invariants. -/
 private structure BuiltWire (base : CircuitBuilder) where
