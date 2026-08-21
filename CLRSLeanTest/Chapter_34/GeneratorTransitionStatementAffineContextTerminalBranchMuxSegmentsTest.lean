@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextTerminalBranchMuxSegments
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtTerminalBranchPlan.muxInvocationSegments
+#check transitionStmtTerminalBranchPlan_muxInvocationSegments_frames
+#check transitionStmtTerminalBranchPlan_muxInvocationSegments_encode
+
+end CLRSLeanTest.Chapter34
