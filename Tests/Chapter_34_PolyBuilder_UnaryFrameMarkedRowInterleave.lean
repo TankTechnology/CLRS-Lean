@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowInterleave
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check UnaryFrameAlignedMarkedRowPair.interleaved
+#check interleaveUnaryFrameMarkedRows_length_of_aligned
+#check UnaryFrameAlignedMarkedRowPair.encode_interleaved
+
+#print axioms interleaveUnaryFrameMarkedRows_length_of_aligned
