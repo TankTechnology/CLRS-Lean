@@ -131,7 +131,7 @@ def oneHotMapGateTrace {n m : Nat} (start : Nat)
     OneHotMapGateTrace m :=
   oneHotMapBodyGateTrace start source f m (Nat.le_refl m)
 
-private def oneHotMapBodyFibers {n m : Nat}
+def oneHotMapBodyFibers {n m : Nat}
     (source : Fin n → CircuitBuilder.Wire) (f : Fin n → Fin m) :
     (k : Nat) → (hk : k ≤ m) → List (List CircuitBuilder.Wire)
   | 0, _ => []
