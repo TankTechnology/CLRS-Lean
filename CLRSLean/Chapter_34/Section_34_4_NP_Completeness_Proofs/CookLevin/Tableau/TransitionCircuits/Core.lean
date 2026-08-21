@@ -112,6 +112,18 @@ theorem transitionCircuit_gate_delta (tm : _root_.Turing.FinTM2) (H : Nat)
       base.gates.length + transitionCircuitGateCost tm H :=
   (transitionCircuit tm H base current next hcurrent hnext).gate_delta
 
+/-- The local transition result is the last wire freshly appended by the
+complete transition circuit. -/
+theorem transitionCircuit_wire_add_one_eq_gate_length
+    (tm : _root_.Turing.FinTM2) (H : Nat)
+    (base : CircuitBuilder) (current next : CfgWires tm H)
+    (hcurrent : current.ValidIn base) (hnext : next.ValidIn base) :
+    (transitionCircuit tm H base current next hcurrent hnext).wire + 1 =
+      (transitionCircuit tm H base current next hcurrent hnext).builder.gates.length := by
+  unfold transitionCircuit
+  dsimp only
+  rw [CircuitBuilder.and_wire_eq, CircuitBuilder.and_gate_delta]
+
 /-- Local transition construction is independent of public validity proofs. -/
 theorem transitionCircuit_proof_irrel (tm : _root_.Turing.FinTM2) (H : Nat)
     (base : CircuitBuilder) (current next : CfgWires tm H)

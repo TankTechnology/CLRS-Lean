@@ -194,6 +194,48 @@ theorem transitionCircuitFamily_gate_delta
       base.gates.length + T * transitionCircuitGateCost tm H :=
   (transitionCircuitFamily tm H base rows hrows).gate_delta
 
+/-- Every family output is the last wire of its step-local transition block. -/
+theorem transitionCircuitFamily_output_add_one_eq
+    (tm : _root_.Turing.FinTM2) (H : Nat) {T : Nat}
+    (base : CircuitBuilder) (rows : Fin (T + 1) → CfgWires tm H)
+    (hrows : ∀ row, (rows row).ValidIn base) (step : Fin T) :
+    (transitionCircuitFamily tm H base rows hrows).outputs step + 1 =
+      base.gates.length + (step.val + 1) * transitionCircuitGateCost tm H := by
+  induction T generalizing base with
+  | zero => exact Fin.elim0 step
+  | succ T ih =>
+      let prefixRows : Fin (T + 1) → CfgWires tm H :=
+        fun row => rows row.castSucc
+      let previous := transitionCircuitFamily tm H base prefixRows
+        (fun row => hrows row.castSucc)
+      let currentRow : Fin (T + 2) := (Fin.last T).castSucc
+      let nextRow : Fin (T + 2) := Fin.last (T + 1)
+      let hcurrent : (rows currentRow).ValidIn previous.builder :=
+        (hrows currentRow).mono previous.extension
+      let hnext : (rows nextRow).ValidIn previous.builder :=
+        (hrows nextRow).mono previous.extension
+      simp only [transitionCircuitFamily, buildTransitionCircuitFamily]
+      split
+      next hstep =>
+        have hprefix := ih base prefixRows
+          (fun row => hrows row.castSucc) ⟨step.val, hstep⟩
+        unfold transitionCircuitFamily at hprefix
+        simpa [prefixRows, previous, Nat.add_assoc] using hprefix
+      next hstep =>
+        have hlastStep : step = Fin.last T := by
+          apply Fin.ext
+          simp
+          omega
+        subst step
+        rw [transitionCircuit_wire_add_one_eq_gate_length]
+        rw [transitionCircuit_gate_delta]
+        have hprevious := transitionCircuitFamily_gate_delta tm H base
+          prefixRows (fun row => hrows row.castSucc)
+        unfold transitionCircuitFamily at hprevious
+        rw [hprevious]
+        simp only [Fin.val_last]
+        ring
+
 /-- Every old row has the same complete bit evaluation after all transition
 circuits have been appended. -/
 theorem transitionCircuitFamily_evalCfgBits
