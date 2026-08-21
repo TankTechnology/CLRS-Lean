@@ -26,7 +26,8 @@ variable
   (M₂ : _root_.Turing.TM2ComputableInPolyTime id
     encodeUnaryFrameMarkedRowFamily rightFamily)
 
-private def mergeCfg (label : ExtraΛ) (state : ExtraState Γ)
+/-- Configuration at one of the physical merge phases. -/
+def mergeCfg (label : ExtraΛ) (state : ExtraState Γ)
     (values : ∀ k : K M₁ M₂, List (StackAlphabet M₁ M₂ k)) :
     (machine M₁ M₂).Cfg :=
   ⟨some (Sum.inr label),
