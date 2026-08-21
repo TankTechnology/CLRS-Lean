@@ -83,7 +83,10 @@ def encodeUnaryFramePeriodicMarkedRowOutput
   encodeUnaryFramePeriodicMarkedRowOutputFrom selection hnonempty
     ⟨0, hnonempty⟩ rows
 
-private theorem periodicMarkedRow_prefix
+/-- A delimiter-free payload is either copied or erased without advancing
+the periodic table.  This public form lets typed marked-row families reuse
+the same verified controller. -/
+theorem periodicMarkedRow_prefix
     (selection : List Bool) (hnonempty : 0 < selection.length)
     (position : UnaryFramePeriodicMarkedRowFilterMode selection)
     (rowSymbols tail : List UnaryFrameSym)
