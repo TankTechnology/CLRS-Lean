@@ -113,24 +113,13 @@ theorem verifierAcceptingBoundary_wire_eq
   by_cases hmember : verifierAcceptingSymbol W ∈
       reachableAlphabet W.machine.tm W.machine.tm.k₁
   · have hfit := verifierAcceptingOutputFitsOfSymbol W input hmember
+    have hfitRaw : AcceptingOutputFits W.machine.tm
+        ((verifierHeight W).eval input.length)
+        (List.map W.machine.outputAlphabet.invFun (boolEncoding true)) := by
+      simpa [verifierAcceptingOutput] using hfit
     unfold verifierAcceptingBoundary
-    rw [show acceptingOutputCircuit W.machine.tm
-          ((verifierHeight W).eval input.length)
-          (verifierInputBoundary W input).builder
-          ((verifierPool W input).pool.mono
-            ((verifierValidity W input).extension.trans
-              ((verifierTransitions W input).extension.trans
-                ((verifierInitialBoundary W input).extension.trans
-                  (verifierInputBoundary W input).extension))))
-          ((verifierRows W input).rows
-            (Fin.last ((verifierHorizon W).eval input.length)))
-          _ (verifierAcceptingOutput W) =
-        cfgEqBoundaryCircuit (verifierInputBoundary W input).builder
-          ((verifierRows W input).rows
-            (Fin.last ((verifierHorizon W).eval input.length)))
-          (verifierAcceptingTargetWires W input hfit) _ _ by
-      simp only [acceptingOutputCircuit, hfit]
-      rfl]
+    simp only [acceptingOutputCircuit, hfitRaw]
+    simp only [dif_pos True.intro]
     unfold cfgEqBoundaryCircuit
     dsimp only
     rw [cfgEq_wire_eq_trace,
@@ -142,26 +131,12 @@ theorem verifierAcceptingBoundary_wire_eq
         ((verifierHeight W).eval input.length)
         (verifierAcceptingOutput W) :=
       (verifierAcceptingOutputFits_iff W input).not.mpr hmember
+    have hfitRaw : ¬ AcceptingOutputFits W.machine.tm
+        ((verifierHeight W).eval input.length)
+        (List.map W.machine.outputAlphabet.invFun (boolEncoding true)) := by
+      simpa [verifierAcceptingOutput] using hfit
     unfold verifierAcceptingBoundary
-    rw [show acceptingOutputCircuit W.machine.tm
-          ((verifierHeight W).eval input.length)
-          (verifierInputBoundary W input).builder
-          ((verifierPool W input).pool.mono
-            ((verifierValidity W input).extension.trans
-              ((verifierTransitions W input).extension.trans
-                ((verifierInitialBoundary W input).extension.trans
-                  (verifierInputBoundary W input).extension))))
-          ((verifierRows W input).rows
-            (Fin.last ((verifierHorizon W).eval input.length)))
-          _ (verifierAcceptingOutput W) =
-        falseBoundaryCircuit (verifierInputBoundary W input).builder
-          ((verifierPool W input).pool.mono
-            ((verifierValidity W input).extension.trans
-              ((verifierTransitions W input).extension.trans
-                ((verifierInitialBoundary W input).extension.trans
-                  (verifierInputBoundary W input).extension)))) by
-      simp only [acceptingOutputCircuit, hfit]
-      rfl]
+    simp only [acceptingOutputCircuit, hfitRaw]
     change (verifierPool W input).pool.falseWire = _
     rw [verifierPool_falseWire_eq]
     simp [verifierAcceptingBoundaryOutput, hmember]

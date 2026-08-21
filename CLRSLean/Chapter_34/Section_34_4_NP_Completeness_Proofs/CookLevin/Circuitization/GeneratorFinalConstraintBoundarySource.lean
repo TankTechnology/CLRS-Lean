@@ -47,6 +47,8 @@ def verifierInputBoundaryOutputFrame
       encodeUnaryFrameBlock (verifierInputBoundary W input).wire := by
   rw [verifierInputBoundary_wire_eq]
   simp [verifierInputBoundaryOutputFrame, verifierInputBoundaryOutput]
+  unfold encodeUnaryFrame
+  simp
 
 /-- Unary singleton for the total accepting-boundary output. -/
 def verifierAcceptingBoundaryOutputFrame
@@ -72,6 +74,8 @@ def verifierAcceptingBoundaryOutputFrame
       reachableAlphabet W.machine.tm W.machine.tm.k₁
   · simp [verifierAcceptingBoundaryOutputFrame,
       verifierAcceptingBoundaryOutput, hmember]
+    unfold encodeUnaryFrame
+    simp
   · simp [verifierAcceptingBoundaryOutputFrame,
       verifierAcceptingBoundaryOutput, hmember,
       exactPolynomialUnaryFrame]
@@ -114,7 +118,15 @@ noncomputable def verifierInputBoundaryOutputFrame_computableInPolyTime
   let base : _root_.Turing.TM2ComputableInPolyTime id id
       (fun input => encodeUnaryFrame
         [verifierInputFinalOrStart W input]) := by
-    simpa only [verifierInputFinalOrStartFrame_eq] using raw
+    exact
+      { tm := raw.tm
+        inputAlphabet := raw.inputAlphabet
+        outputAlphabet := raw.outputAlphabet
+        time := raw.time
+        outputsFun := fun input => by
+          have run := raw.outputsFun input
+          rw [verifierInputFinalOrStartFrame_eq] at run
+          simpa only [id_eq] using run }
   exact unaryFrameSameInputAddPolynomial_computableInPolyTime
     (verifierInputFinalOrStart W)
     (verifierInputArmCountPolynomial W) base
@@ -131,14 +143,35 @@ noncomputable def verifierAcceptingBoundaryOutputFrame_computableInPolyTime
     let base : _root_.Turing.TM2ComputableInPolyTime id id
         (fun input => encodeUnaryFrame
           [verifierInputBoundaryEnd W input]) := by
-      simpa only [verifierInputBoundaryEndFrame_eq] using raw
+      exact
+        { tm := raw.tm
+          inputAlphabet := raw.inputAlphabet
+          outputAlphabet := raw.outputAlphabet
+          time := raw.time
+          outputsFun := fun input => by
+            have run := raw.outputsFun input
+            rw [verifierInputBoundaryEndFrame_eq] at run
+            simpa only [id_eq] using run }
     have result := unaryFrameSameInputAddPolynomial_computableInPolyTime
       (verifierInputBoundaryEnd W)
       (Polynomial.C 6 * verifierCfgBitCountPolynomial W) base
-    simpa [verifierAcceptingBoundaryOutputFrame, hmember] using result
+    have htarget : verifierAcceptingBoundaryOutputFrame W =
+        unaryFrameSameInputAddPolynomial
+          (verifierInputBoundaryEnd W)
+          (Polynomial.C 6 * verifierCfgBitCountPolynomial W) := by
+      funext input
+      simp [verifierAcceptingBoundaryOutputFrame, hmember]
+    rw [htarget]
+    exact result
   · have result := exactPolynomialUnaryFrame_computableInPolyTime
       (Γ := Γ) (verifierInitialFalseWirePolynomial W)
-    simpa [verifierAcceptingBoundaryOutputFrame, hmember] using result
+    have htarget : verifierAcceptingBoundaryOutputFrame W =
+        exactPolynomialUnaryFrame
+          (verifierInitialFalseWirePolynomial W) := by
+      funext input
+      simp [verifierAcceptingBoundaryOutputFrame, hmember]
+    rw [htarget]
+    exact result
 
 /-- One fixed polynomial-time TM2 emits all three boundary outputs in their
 public conjunction order. -/
@@ -154,6 +187,14 @@ noncomputable def verifierBoundaryOutputSource_computableInPolyTime
   let accepting := verifierAcceptingBoundaryOutputFrame_computableInPolyTime W
   let complete := unaryFrameSameInputConcat_computableInPolyTime
     first accepting
-  simpa [verifierBoundaryOutputSource, List.append_assoc] using complete
+  exact
+    { tm := complete.tm
+      inputAlphabet := complete.inputAlphabet
+      outputAlphabet := complete.outputAlphabet
+      time := complete.time
+      outputsFun := fun input => by
+        have run := complete.outputsFun input
+        simpa only [id_eq, verifierBoundaryOutputSource,
+          List.append_assoc] using run }
 
 end CLRS.Chapter34.Turing.CookLevin

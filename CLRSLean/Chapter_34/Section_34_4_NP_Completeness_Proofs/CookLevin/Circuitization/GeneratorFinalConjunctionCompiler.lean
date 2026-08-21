@@ -45,13 +45,20 @@ noncomputable def verifierFinalConjunctionInputTarget_computableInPolyTime
   letI : Fintype Γ := W.alphabetFintype
   let start := verifierAcceptingBoundaryEndFrame_computableInPolyTime W
   let wires := verifierConstraintOutputReversedSource_computableInPolyTime W
-  let prefix := unaryFrameSameInputConcat_computableInPolyTime start wires
+  let joined := unaryFrameSameInputConcat_computableInPolyTime start wires
   let boundary := constantUnarySingleton_computableInPolyTime
     (Γ := Γ) .frameEnd
   let complete := unaryFrameSameInputConcat_computableInPolyTime
-    prefix boundary
-  simpa [verifierFinalConjunctionInputTarget,
-    constantUnarySingleton, List.append_assoc] using complete
+    joined boundary
+  exact
+    { tm := complete.tm
+      inputAlphabet := complete.inputAlphabet
+      outputAlphabet := complete.outputAlphabet
+      time := complete.time
+      outputsFun := fun input => by
+        have run := complete.outputsFun input
+        simpa only [id_eq, verifierFinalConjunctionInputTarget,
+          constantUnarySingleton, List.append_assoc] using run }
 
 /-- Complete unary verifier body through the final conjunction field. -/
 def verifierBodyThroughConjunctionUnaryTarget
@@ -78,13 +85,21 @@ noncomputable def
     _root_.Turing.TM2ComputableInPolyTime id id
       (verifierBodyThroughConjunctionUnaryTarget W) := by
   letI : Fintype Γ := W.alphabetFintype
-  let prefix :=
+  let bodyPrefix :=
     verifierBodyThroughAcceptingUnaryTarget_computableInPolyTime W
   let conjunction :=
     verifierFinalConjunctionInputTarget_computableInPolyTime W
   let complete := unaryFrameSameInputConcat_computableInPolyTime
-    prefix conjunction
-  simpa [verifierBodyThroughConjunctionUnaryTarget] using complete
+    bodyPrefix conjunction
+  exact
+    { tm := complete.tm
+      inputAlphabet := complete.inputAlphabet
+      outputAlphabet := complete.outputAlphabet
+      time := complete.time
+      outputsFun := fun input => by
+        have run := complete.outputsFun input
+        simpa only [id_eq,
+          verifierBodyThroughConjunctionUnaryTarget] using run }
 
 /-- Common-alphabet body target through final conjunction. -/
 def verifierBodyThroughConjunctionTarget
