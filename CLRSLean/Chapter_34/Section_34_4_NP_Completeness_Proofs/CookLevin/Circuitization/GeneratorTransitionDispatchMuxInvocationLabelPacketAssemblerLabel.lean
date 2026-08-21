@@ -85,7 +85,8 @@ def transitionDispatchMuxInvocationLabelPacketAssemblerRowsStartCfg
     (transitionDispatchMuxCoordinateRowFrames coordinates)
     (encodeUnaryFrame whenTrue) (List.replicate selector ()) [] []
 
-private def assemblerFrames
+/-- Reconstructed affine frames for three raw coordinate-indexed rows. -/
+def transitionDispatchMuxInvocationLabelPacketAssemblerFrames
     (selector : Nat) (coordinates : List (Nat × Nat × Nat))
     (whenTrue whenFalse : List Nat) : List AffineMuxFinPairFrame :=
   ({ selector := selector
@@ -107,10 +108,12 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_rows
         selector first coordinates whenTrue whenFalse tail output)
       (some (transitionDispatchMuxInvocationLabelPacketAssemblerLoopCfg tail
         ((transitionDispatchMuxInvocationLabelPacketAssemblerRows selector
-          first (assemblerFrames selector coordinates whenTrue whenFalse)
+          first (transitionDispatchMuxInvocationLabelPacketAssemblerFrames
+            selector coordinates whenTrue whenFalse)
           ).reverse ++ output)))
       (transitionDispatchMuxInvocationLabelPacketAssemblerRowsSteps selector
-        first (assemblerFrames selector coordinates whenTrue whenFalse)) := by
+        first (transitionDispatchMuxInvocationLabelPacketAssemblerFrames
+          selector coordinates whenTrue whenFalse)) := by
   induction coordinates generalizing first whenTrue whenFalse output with
   | nil =>
       have htrueNil : whenTrue = [] := by simpa using htrue.symm
@@ -122,7 +125,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_rows
           simpa [transitionDispatchMuxInvocationLabelPacketAssemblerRowsStartCfg,
             transitionDispatchMuxInvocationLabelPacketAssemblerRows,
             transitionDispatchMuxInvocationLabelPacketAssemblerRowsSteps,
-            assemblerFrames,
+            transitionDispatchMuxInvocationLabelPacketAssemblerFrames,
             TransitionDispatchMuxInvocationView.frames, encodeUnaryFrame,
             transitionDispatchMuxCoordinateRowFrames,
             transitionDispatchMuxInvocationLabelPacketAssemblerFinishStartCfg]
@@ -133,7 +136,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_rows
           simpa [transitionDispatchMuxInvocationLabelPacketAssemblerRowsStartCfg,
             transitionDispatchMuxInvocationLabelPacketAssemblerRows,
             transitionDispatchMuxInvocationLabelPacketAssemblerRowsSteps,
-            assemblerFrames,
+            transitionDispatchMuxInvocationLabelPacketAssemblerFrames,
             TransitionDispatchMuxInvocationView.frames, encodeUnaryFrame,
             transitionDispatchMuxCoordinateRowFrames,
             transitionDispatchMuxInvocationLabelPacketAssemblerLoadedCfg,
@@ -198,15 +201,15 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_rows
                   selector frame)
                 (transitionDispatchMuxInvocationLabelPacketAssemblerRowsSteps
                   selector false
-                  (assemblerFrames selector coordinates whenTrueTail
-                    whenFalseTail))
+                  (transitionDispatchMuxInvocationLabelPacketAssemblerFrames
+                    selector coordinates whenTrueTail whenFalseTail))
                 _
                 (transitionDispatchMuxInvocationLabelPacketAssemblerRowsStartCfg
                   selector false coordinates whenTrueTail whenFalseTail tail
                   coordinateOutput)
                 _ hcoordinate htail
               convert full using 1 <;>
-                simp [assemblerFrames,
+                simp [transitionDispatchMuxInvocationLabelPacketAssemblerFrames,
                   TransitionDispatchMuxInvocationView.frames,
                   List.zipWith3,
                 transitionDispatchMuxInvocationLabelPacketAssemblerRows,
@@ -233,7 +236,7 @@ def transitionDispatchMuxInvocationLabelPacketAssembler_label
   rcases haligned with ⟨htrue, hfalse⟩
   simpa [transitionDispatchMuxInvocationLabelPacketAssemblerLoadedCfg,
     transitionDispatchMuxInvocationLabelPacketAssemblerRowsStartCfg,
-    assemblerFrames,
+    transitionDispatchMuxInvocationLabelPacketAssemblerFrames,
     transitionDispatchMuxInvocationLabelPacketAssemblerRows_true] using
     transitionDispatchMuxInvocationLabelPacketAssembler_rows
       selector true coordinates whenTrue whenFalse tail
