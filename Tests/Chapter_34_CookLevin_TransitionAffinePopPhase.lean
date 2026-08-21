@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffinePopPhase
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check transitionAffinePopPhase_fixed_encoding
+#check verifierTransitionAffinePopPhase_eq_rows
+#check verifierTransitionAffinePopPhase_computableInPolyTime
+
+#print axioms verifierTransitionAffinePopPhase_computableInPolyTime
