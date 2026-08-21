@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveLabels
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionDispatchRecursiveStatementControllerFrames
+#check transitionDispatchRecursiveStatementSemanticFrames
+#check verifierTransitionDispatchRecursiveStatementControllerFrames_eq
+
+#print axioms verifierTransitionDispatchRecursiveStatementControllerFrames_eq
