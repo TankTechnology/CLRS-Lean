@@ -70,11 +70,16 @@ theorem verifierTransitions_output_eq
         ((verifierPool W input).extension.trans
           (verifierValidity W input).extension)) step
   change (verifierTransitions W input).outputs step + 1 = _ at hfamily
-  rw [← verifierTransitionStartPolynomial_eval_eq_validity_length W
-    input.length] at hfamily
+  have hstart :
+      (verifierTransitionStartPolynomial W).eval input.length =
+        (verifierValidity W input).builder.gates.length := by
+    simpa [verifierValidity, verifierRows, verifierPool,
+      arithmeticValidityAt, arithmeticPoolAt, arithmeticRowsAt] using
+      verifierTransitionStartPolynomial_eval_eq_validity_length W
+        input.length
+  rw [← hstart] at hfamily
   have hoff := verifierTransitionOutputOffsetPolynomial_eval_add_one W
     input.length
-  rw [← hoff] at hfamily
   have hcancel :
       (verifierTransitions W input).outputs step + 1 =
         ((verifierTransitionStartPolynomial W).eval input.length +
@@ -82,7 +87,17 @@ theorem verifierTransitions_output_eq
               ((verifierHeight W).eval input.length) +
             (verifierTransitionOutputOffsetPolynomial W).eval input.length) +
           1 := by
-    simpa only [Nat.add_assoc, Nat.add_mul] using hfamily
+    rw [Nat.add_mul] at hfamily
+    simp only [one_mul] at hfamily
+    calc
+      (verifierTransitions W input).outputs step + 1 =
+          (verifierTransitionStartPolynomial W).eval input.length +
+            step.val * transitionCircuitGateCost W.machine.tm
+              ((verifierHeight W).eval input.length) +
+            transitionCircuitGateCost W.machine.tm
+              ((verifierHeight W).eval input.length) := by
+        simpa only [Nat.add_assoc] using hfamily
+      _ = _ := by rw [← hoff]; omega
   exact Nat.add_right_cancel hcancel
 
 end CLRS.Chapter34.Turing.CookLevin

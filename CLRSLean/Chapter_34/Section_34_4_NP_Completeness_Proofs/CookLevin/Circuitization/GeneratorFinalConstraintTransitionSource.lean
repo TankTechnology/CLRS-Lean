@@ -49,7 +49,6 @@ theorem verifierTransitionOutputSource_eq
   apply List.ofFn_inj.mpr
   funext step
   rw [verifierTransitions_output_eq]
-  simp only [Fin.val_cast]
   ring
 
 /-- A fixed polynomial-time TM2 emits every transition output source from the
