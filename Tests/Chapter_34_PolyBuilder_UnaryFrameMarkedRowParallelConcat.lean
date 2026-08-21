@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowParallelConcat
+
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check concatUnaryFrameMarkedRows
+#check UnaryFrameAlignedMarkedRowPair.concatenated
+#check rewriteUnaryFrameMarkedRowConcat_interleaved
+#check UnaryFrameMarkedRowParallelConcat.concatenatedFamily
+#check UnaryFrameMarkedRowParallelConcat.computableInPolyTime
+#print axioms UnaryFrameMarkedRowParallelConcat.computableInPolyTime
