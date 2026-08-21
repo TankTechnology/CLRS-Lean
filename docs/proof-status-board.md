@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, NP-Completeness | The three represented §34.4 machine reductions compile. Cook--Levin has a well-formed whole-tableau circuit, exact satisfiability semantics, polynomial gate/input/encoding bounds, an exact function-level map, and finite `GeneralCircuitSAT` certificate semantics. It does not yet have concrete polynomial-time generator/checker TM2s or the final NP-completeness wrappers. | Prove the all-input polynomial runtime of the GeneralCircuit certificate checker, then implement the concrete Cook--Levin generator TM2 and assemble the `GeneralCircuitSAT` NP and NP-hardness wrappers. |
+| P0 | Chapter 34, NP-Completeness | The three represented §34.4 machine reductions compile. Cook--Levin now has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness; the concrete certificate checker and `GeneralCircuitSAT ∈ NP` are also closed. | Add the honest general graph-plus-`k` CLIQUE language and then formalize the selected §34.5 textbook reductions. |
 | P1 | Chapter 34, general CLIQUE and §34.5 | The current CLIQUE target is the specialized occurrence graph generated from 3-CNF. General graph-plus-`k` CLIQUE and the §34.5 reduction chain are not represented. | Add the general CLIQUE semantic/encoding layer, then formalize the selected §34.5 textbook reductions without treating open complexity questions as proof obligations. |
 
 ## Stable Represented Scope
