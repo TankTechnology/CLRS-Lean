@@ -30,7 +30,7 @@ def encodeUnaryFrameMarkedRows (rows : List (List UnaryFrameSym)) :
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ] [Inhabited Γ]
+variable {Γ : Type} [Fintype Γ]
 variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
 variable
   (M₁ : _root_.Turing.TM2ComputableInPolyTime id

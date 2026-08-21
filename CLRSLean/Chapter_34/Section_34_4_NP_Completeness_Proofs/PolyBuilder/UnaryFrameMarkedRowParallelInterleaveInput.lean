@@ -16,7 +16,7 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ] [Inhabited Γ]
+variable {Γ : Type} [Fintype Γ]
 variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
 variable
   (M₁ : _root_.Turing.TM2ComputableInPolyTime id
@@ -93,8 +93,11 @@ lemma duplicate_copyout_phase
         rw [update_swap M₁ M₂ (inputK M₁ M₂) (inputTempK M₁ M₂)
           ([] : List (M₁.tm.Γ M₁.tm.k₀)) temp (by simp)]
         rw [update_self M₁ M₂ (inputTempK M₁ M₂) temp htemp]
-      simp [machine, program, extraProgram, flip, hhead, htail]
-      rw [hcollapse]
+      by_cases hnonempty : Nonempty Γ
+      · simp [machine, program, extraProgram, flip, hnonempty, hhead, htail]
+        rw [hcollapse]
+      · simp [machine, program, extraProgram, flip, hnonempty, hhead, htail]
+        rw [hcollapse]
   | cons symbol rest ih =>
       have hhead : (values (inputK M₁ M₂)).head? =
           some (M₁.inputAlphabet.invFun symbol) := by
@@ -119,7 +122,9 @@ lemma duplicate_copyout_phase
                     (List.map M₁.inputAlphabet.invFun rest))
                   (inputTempK M₁ M₂) (symbol :: temp)⟩ :
                     (machine M₁ M₂).Cfg) := by
-        simp [machine, program, extraProgram, flip, hhead, htail, htemp]
+        have hnonempty : Nonempty Γ := ⟨symbol⟩
+        simp [machine, program, extraProgram, flip, hnonempty, hhead, htail,
+          htemp]
       rw [show (symbol :: rest).length + 1 =
           (rest.length + 1) + 1 by simp,
         Function.iterate_succ_apply, hone]
@@ -209,8 +214,11 @@ lemma duplicate_restore_phase
             · subst key
               simp [Function.update]
             · simp [Function.update, h₁, h₂, h₃]
-      simp [machine, program, extraProgram, flip, hhead, htail]
-      rw [hcollapse]
+      by_cases hnonempty : Nonempty Γ
+      · simp [machine, program, extraProgram, flip, hnonempty, hhead, htail]
+        rw [hcollapse]
+      · simp [machine, program, extraProgram, flip, hnonempty, hhead, htail]
+        rw [hcollapse]
   | cons symbol rest ih =>
       have hhead : (values (inputTempK M₁ M₂)).head? = some symbol := by
         rw [htemp]
@@ -235,8 +243,9 @@ lemma duplicate_restore_phase
                       (M₁.inputAlphabet.invFun symbol :: first))
                   (secondInputK M₁ M₂)
                     (M₂.inputAlphabet.invFun symbol :: second)⟩ :
-                      (machine M₁ M₂).Cfg) := by
-        simp [machine, program, extraProgram, flip, hhead, htail,
+                    (machine M₁ M₂).Cfg) := by
+        have hnonempty : Nonempty Γ := ⟨symbol⟩
+        simp [machine, program, extraProgram, flip, hnonempty, hhead, htail,
           hfirst, hsecond]
       rw [show (symbol :: rest).length + 1 =
           (rest.length + 1) + 1 by simp,

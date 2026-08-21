@@ -255,8 +255,7 @@ private theorem coordinate_false_aligned
   exact h.1.symm.trans h.2.2
 
 private noncomputable def selectorTrueCompiler
-    {Γ : Type} {L : Language Γ} [Inhabited Γ]
-    (W : VerifierWitness L) := by
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) := by
   letI : Fintype Γ := W.alphabetFintype
   exact
     PolyBuilder.UnaryFrameMarkedRowParallelInterleave.computableInPolyTime
@@ -264,8 +263,7 @@ private noncomputable def selectorTrueCompiler
       (selector_true_aligned W)
 
 private noncomputable def coordinateFalseCompiler
-    {Γ : Type} {L : Language Γ} [Inhabited Γ]
-    (W : VerifierWitness L) := by
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) := by
   letI : Fintype Γ := W.alphabetFintype
   exact
     PolyBuilder.UnaryFrameMarkedRowParallelInterleave.computableInPolyTime
@@ -399,8 +397,7 @@ theorem
 -/
 noncomputable def
     verifierTransitionDispatchMuxInvocationLabelMajorPacketFamily_computableInPolyTime
-    {Γ : Type} {L : Language Γ} [Inhabited Γ]
-    (W : VerifierWitness L) :
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
     _root_.Turing.TM2ComputableInPolyTime id
       AlignedTransitionDispatchMuxInvocationViewFamily.labelPacketFrames
       (verifierTransitionDispatchMuxInvocationAlignedViewFamily W) := by
@@ -435,8 +432,7 @@ noncomputable def
 verifier input by the concrete label-major packet compiler. -/
 noncomputable def
     verifierTransitionDispatchMuxInvocationFrames_labelMajor_computableInPolyTime
-    {Γ : Type} {L : Language Γ} [Inhabited Γ]
-    (W : VerifierWitness L) :
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
     _root_.Turing.TM2ComputableInPolyTime id id
       (verifierTransitionDispatchMuxInvocationFrames W) :=
   verifierTransitionDispatchMuxInvocationFrames_computableInPolyTime_of_labelPacketCompiler

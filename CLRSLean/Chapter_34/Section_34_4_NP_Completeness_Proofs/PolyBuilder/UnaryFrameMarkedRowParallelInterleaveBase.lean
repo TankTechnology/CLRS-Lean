@@ -23,7 +23,7 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ] [Inhabited Γ]
+variable {Γ : Type} [Fintype Γ]
 variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
 
 variable
@@ -157,10 +157,12 @@ def mapStmt₂ :
   | .goto f => .goto (fun state => Sum.inl (Sum.inr (f state.2.1)))
   | .halt => .goto (fun _ => Sum.inr ExtraΛ.mergeLeft)
 
-private def inputDefault : Inhabited (M₁.tm.Γ M₁.tm.k₀) :=
+private def inputDefault [Inhabited Γ] :
+    Inhabited (M₁.tm.Γ M₁.tm.k₀) :=
   ⟨M₁.inputAlphabet.invFun default⟩
 
-private def secondInputDefault : Inhabited (M₂.tm.Γ M₂.tm.k₀) :=
+private def secondInputDefault [Inhabited Γ] :
+    Inhabited (M₂.tm.Γ M₂.tm.k₀) :=
   ⟨M₂.inputAlphabet.invFun default⟩
 
 private def outputDefault : Inhabited (M₂.tm.Γ M₂.tm.k₁) :=
@@ -169,51 +171,73 @@ private def outputDefault : Inhabited (M₂.tm.Γ M₂.tm.k₁) :=
 /-- Extra program implementing duplication, alternating row transfer, and
 final output restoration. -/
 def extraProgram : ExtraΛ →
-    _root_.Turing.TM2.Stmt (StackAlphabet M₁ M₂) (Λ M₁ M₂) (σ M₁ M₂) :=
-  fun label =>
-    letI : Inhabited (M₁.tm.Γ M₁.tm.k₀) := inputDefault M₁
-    letI : Inhabited (M₂.tm.Γ M₂.tm.k₀) := secondInputDefault M₂
+    _root_.Turing.TM2.Stmt (StackAlphabet M₁ M₂) (Λ M₁ M₂) (σ M₁ M₂) := by
+  classical
+  exact fun label =>
     letI : Inhabited (M₂.tm.Γ M₂.tm.k₁) := outputDefault M₂
     match label with
     | .duplicateScan =>
-        .pop (inputK M₁ M₂)
-          (fun state value => (state.1, state.2.1,
-            match value with
-            | some symbol => .duplicateSymbol (M₁.inputAlphabet symbol)
-            | none => .duplicateDone))
-          (.branch
-            (fun state => match state.2.2 with
-              | .duplicateSymbol _ => true
-              | _ => false)
-            (.push (inputTempK M₁ M₂)
+        if h : Nonempty Γ then
+          letI : Inhabited Γ := ⟨Classical.choice h⟩
+          .pop (inputK M₁ M₂)
+            (fun state value => (state.1, state.2.1,
+              match value with
+              | some symbol => .duplicateSymbol (M₁.inputAlphabet symbol)
+              | none => .duplicateDone))
+            (.branch
               (fun state => match state.2.2 with
-                | .duplicateSymbol symbol => symbol
-                | _ => default)
-              (.goto fun _ => Sum.inr .duplicateScan))
-            (.goto fun _ => Sum.inr .duplicateRestore))
-    | .duplicateRestore =>
-        .pop (inputTempK M₁ M₂)
-          (fun state value => (state.1, state.2.1,
-            match value with
-            | some symbol => .restoreSymbol symbol
-            | none => .restoreDone))
-          (.branch
-            (fun state => match state.2.2 with
-              | .restoreSymbol _ => true
-              | _ => false)
-            (.push (inputK M₁ M₂)
-              (fun state => match state.2.2 with
-                | .restoreSymbol symbol => M₁.inputAlphabet.invFun symbol
-                | _ => default)
-              (.push (secondInputK M₁ M₂)
+                | .duplicateSymbol _ => true
+                | _ => false)
+              (.push (inputTempK M₁ M₂)
                 (fun state => match state.2.2 with
-                  | .restoreSymbol symbol => M₂.inputAlphabet.invFun symbol
+                  | .duplicateSymbol symbol => symbol
                   | _ => default)
-                (.goto fun _ => Sum.inr .duplicateRestore)))
+                (.goto fun _ => Sum.inr .duplicateScan))
+              (.goto fun _ => Sum.inr .duplicateRestore))
+        else
+          .pop (inputK M₁ M₂)
+            (fun state value => (state.1, state.2.1,
+              match value with
+              | some symbol => .duplicateSymbol (M₁.inputAlphabet symbol)
+              | none => .duplicateDone))
+            (.goto fun _ => Sum.inr .duplicateRestore)
+    | .duplicateRestore =>
+        if h : Nonempty Γ then
+          letI : Inhabited Γ := ⟨Classical.choice h⟩
+          letI : Inhabited (M₁.tm.Γ M₁.tm.k₀) := inputDefault M₁
+          letI : Inhabited (M₂.tm.Γ M₂.tm.k₀) := secondInputDefault M₂
+          .pop (inputTempK M₁ M₂)
+            (fun state value => (state.1, state.2.1,
+              match value with
+              | some symbol => .restoreSymbol symbol
+              | none => .restoreDone))
+            (.branch
+              (fun state => match state.2.2 with
+                | .restoreSymbol _ => true
+                | _ => false)
+              (.push (inputK M₁ M₂)
+                (fun state => match state.2.2 with
+                  | .restoreSymbol symbol => M₁.inputAlphabet.invFun symbol
+                  | _ => default)
+                (.push (secondInputK M₁ M₂)
+                  (fun state => match state.2.2 with
+                    | .restoreSymbol symbol => M₂.inputAlphabet.invFun symbol
+                    | _ => default)
+                  (.goto fun _ => Sum.inr .duplicateRestore)))
+              (.load
+                (fun _ => (M₁.tm.initialState, M₂.tm.initialState,
+                  ExtraState.initial))
+                (.goto fun _ => Sum.inl (Sum.inl M₁.tm.main))))
+        else
+          .pop (inputTempK M₁ M₂)
+            (fun state value => (state.1, state.2.1,
+              match value with
+              | some symbol => .restoreSymbol symbol
+              | none => .restoreDone))
             (.load
               (fun _ => (M₁.tm.initialState, M₂.tm.initialState,
                 ExtraState.initial))
-              (.goto fun _ => Sum.inl (Sum.inl M₁.tm.main))))
+              (.goto fun _ => Sum.inl (Sum.inl M₁.tm.main)))
     | .mergeLeft =>
         .pop (firstOutputK M₁ M₂)
           (fun state value => (state.1, state.2.1,

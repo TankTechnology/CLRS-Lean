@@ -18,7 +18,7 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ] [Inhabited Γ]
+variable {Γ : Type} [Fintype Γ]
 variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
 variable
   (M₁ : _root_.Turing.TM2ComputableInPolyTime id

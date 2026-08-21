@@ -9,4 +9,18 @@ open UnaryFrameMarkedRowParallelInterleave
 #check outputsFun
 #check computableInPolyTime
 
+/-- Regression: the physical interleaver also supports the empty input
+alphabet; no hidden `Inhabited` premise remains. -/
+noncomputable example
+    {leftFamily rightFamily : List Empty → UnaryFrameMarkedRowFamily}
+    (M₁ : Turing.TM2ComputableInPolyTime id
+      encodeUnaryFrameMarkedRowFamily leftFamily)
+    (M₂ : Turing.TM2ComputableInPolyTime id
+      encodeUnaryFrameMarkedRowFamily rightFamily)
+    (hAligned : ∀ input,
+      (leftFamily input).rows.length = (rightFamily input).rows.length) :
+    Turing.TM2ComputableInPolyTime id encodeUnaryFrameMarkedRowFamily
+      (interleavedFamily hAligned) :=
+  computableInPolyTime M₁ M₂ hAligned
+
 #print axioms computableInPolyTime
