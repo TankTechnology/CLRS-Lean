@@ -84,12 +84,12 @@ focused `lake env lean` interface checks, staged Git commits.
 - Create: `Tests/Chapter_34_CookLevin_TransitionStmtRecursiveSource.lean`
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Circuitization.lean`
 
-- [ ] Add a failing check for the recursive source/controller output theorem.
-- [ ] Flatten fixed affine-form blocks and tagged variable-width mux invocation
+- [x] Add a failing check for the recursive source/controller output theorem.
+- [x] Flatten fixed affine-form blocks and tagged variable-width mux invocation
   segments in exactly the recursive phase order.
-- [ ] Reuse the affine statement controller and mux-segment controller rather
+- [x] Reuse the affine statement controller and mux-segment controller rather
   than introducing a verifier-specific machine.
-- [ ] Prove the concatenated controller frames equal
+- [x] Prove the concatenated controller frames equal
   `encodeAffineStmtControllerScript plan.completePhases`.
 - [ ] Establish a polynomial bound in encoded recursive source length; run the
   focused controller test and commit.
