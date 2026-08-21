@@ -1,0 +1,12 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowParallelInterleaveRuntime
+
+open CLRS.Chapter34.Turing.PolyBuilder
+open UnaryFrameMarkedRowParallelInterleave
+
+#check interleavedFamily
+#check first_halt_eq_second_start
+#check time
+#check outputsFun
+#check computableInPolyTime
+
+#print axioms computableInPolyTime
