@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementRemainder
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtInitialPhaseBlock_append_remainder
+#check transitionStmtRemainderScript_load
+#check transitionStmtRemainderScript_push
+#check transitionStmtRemainderScript_peek
+#check transitionStmtRemainderScript_pop
+#check transitionStmtRemainderScript_branch
