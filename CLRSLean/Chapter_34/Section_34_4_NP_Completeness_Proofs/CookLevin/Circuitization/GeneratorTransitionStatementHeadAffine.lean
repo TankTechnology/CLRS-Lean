@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineStmtScript
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementHead
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionWidenedFallbackAffine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Macros
 
 /-!
 # Affine compilers for the real dispatch statement heads
@@ -411,5 +412,101 @@ noncomputable def
       (verifierTransitionDispatchStatementHeadFrames W hnonempty) :=
   verifierTransitionAffineStmtScript_computableInPolyTime W
     (transitionDispatchStatementHeadPhaseForms W.machine.tm) hnonempty
+
+/-! ## Unconditional source, including the all-halt machine -/
+
+/-- Canonical head-phase target without a nonempty side condition. -/
+def verifierTransitionDispatchStatementHeadTarget
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (input : List Γ) : List UnaryFrameSym :=
+  (verifierTransitionRowSeeds W input).flatMap fun seed =>
+    encodeAffineStmtControllerScript
+      ((transitionDispatchStatementHeadsFromSeed W.machine.tm seed).filterMap
+        id)
+
+/-- If the fixed symbolic table is empty, every real verifier head script is
+empty as well. -/
+theorem verifierTransitionDispatchStatementHeadTarget_eq_nil_of_forms_eq_nil
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L)
+    (hforms : transitionDispatchStatementHeadPhaseForms W.machine.tm = [])
+    (input : List Γ) :
+    verifierTransitionDispatchStatementHeadTarget W input = [] := by
+  unfold verifierTransitionDispatchStatementHeadTarget
+  rw [List.flatMap_eq_nil_iff]
+  intro seed hseed
+  have heval := transitionDispatchStatementHeadPhaseForms_eval W.machine.tm
+    seed (by
+      rw [verifierTransitionRowSeeds_height_eq W input seed hseed]
+      exact verifierHeight_eval_pos W input.length)
+  rw [hforms] at heval
+  simp only [List.map_nil] at heval
+  rw [← heval]
+  rfl
+
+/-- Symbol-local eraser used only for the degenerate empty head schedule. -/
+def transitionDispatchStatementHeadEraseBody (Γ : Type) :
+    LoopBody Γ UnaryFrameSym where
+  emit _ := []
+  cost _ := 0
+  emit_length_le_cost _ := le_rfl
+
+/-- The verified bounded loop gives a concrete machine for the constant empty
+output on the verifier alphabet. -/
+private noncomputable def
+    verifierTransitionDispatchStatementHeadEmpty_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (fun _ : List Γ => ([] : List UnaryFrameSym)) := by
+  letI : Fintype Γ := W.alphabetFintype
+  let base := boundedLoop_computableInPolyTime
+    (transitionDispatchStatementHeadEraseBody Γ)
+  exact
+    { tm := base.tm
+      inputAlphabet := base.inputAlphabet
+      outputAlphabet := base.outputAlphabet
+      time := base.time
+      outputsFun := fun input => by
+        have run := base.outputsFun input
+        have hempty : input.flatMap
+            (transitionDispatchStatementHeadEraseBody Γ).emit = [] := by
+          simp [transitionDispatchStatementHeadEraseBody]
+        rw [hempty] at run
+        simpa only [id_eq, List.map_nil] using run }
+
+/-- A concrete raw-input polynomial-time TM2 emits every real dispatch head
+phase for an arbitrary verifier, including the degenerate all-halt case. -/
+noncomputable def
+    verifierTransitionDispatchStatementHeadTarget_computableInPolyTime
+    {Γ : Type} {L : Language Γ} (W : VerifierWitness L) :
+    _root_.Turing.TM2ComputableInPolyTime id id
+      (verifierTransitionDispatchStatementHeadTarget W) := by
+  by_cases hforms :
+      transitionDispatchStatementHeadPhaseForms W.machine.tm = []
+  · let base :=
+      verifierTransitionDispatchStatementHeadEmpty_computableInPolyTime W
+    exact
+      { tm := base.tm
+        inputAlphabet := base.inputAlphabet
+        outputAlphabet := base.outputAlphabet
+        time := base.time
+        outputsFun := fun input => by
+          have run := base.outputsFun input
+          rw [verifierTransitionDispatchStatementHeadTarget_eq_nil_of_forms_eq_nil
+            W hforms input]
+          simpa only [id_eq] using run }
+  · let base :=
+      verifierTransitionDispatchStatementHeadFrames_computableInPolyTime W
+        hforms
+    exact
+      { tm := base.tm
+        inputAlphabet := base.inputAlphabet
+        outputAlphabet := base.outputAlphabet
+        time := base.time
+        outputsFun := fun input => by
+          have run := base.outputsFun input
+          rw [verifierTransitionDispatchStatementHeadFrames_eq W hforms input]
+            at run
+          simpa only [id_eq,
+            verifierTransitionDispatchStatementHeadTarget] using run }
 
 end CLRS.Chapter34.Turing.CookLevin
