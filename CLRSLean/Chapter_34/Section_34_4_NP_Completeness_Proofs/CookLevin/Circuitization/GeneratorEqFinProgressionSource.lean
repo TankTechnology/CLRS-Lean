@@ -118,6 +118,34 @@ def exactPolynomialAffineEqFinFrames {Γ : Type}
       basePrevious baseLeft baseRight
       stepPrevious stepLeft stepRight count input)
 
+/-- Pointwise closed form of an exact-polynomial equality progression. -/
+theorem exactPolynomialAffineEqFinFrames_eq_ofFn {Γ : Type}
+    (basePrevious baseLeft baseRight
+      stepPrevious stepLeft stepRight count : Polynomial Nat)
+    (input : List Γ) :
+    exactPolynomialAffineEqFinFrames
+        basePrevious baseLeft baseRight
+        stepPrevious stepLeft stepRight count input =
+      List.ofFn fun index : Fin (count.eval input.length) =>
+        { eqStart := basePrevious.eval input.length +
+              index.val * stepPrevious.eval input.length + 1
+          left := baseLeft.eval input.length +
+            index.val * stepLeft.eval input.length
+          right := baseRight.eval input.length +
+            index.val * stepRight.eval input.length
+          matched := basePrevious.eval input.length +
+              index.val * stepPrevious.eval input.length + 5
+          previous := basePrevious.eval input.length +
+            index.val * stepPrevious.eval input.length } := by
+  unfold exactPolynomialAffineEqFinFrames eqFinProgressionFrames
+    eqFinProgressionSeeds
+  rw [affineUnaryTripleProgressionRows_eq_ofFn, List.map_ofFn,
+    List.map_ofFn]
+  apply List.ofFn_inj.mpr
+  funext index
+  simp [exactPolynomialAffineUnaryTripleProgression,
+    transitionEqCoordinateSeed, transitionEqCoordinateFrame]
+
 /-- Byte-exact input consumed by the established `EqFin` controller. -/
 def exactPolynomialAffineEqFinInput {Γ : Type}
     (basePrevious baseLeft baseRight
