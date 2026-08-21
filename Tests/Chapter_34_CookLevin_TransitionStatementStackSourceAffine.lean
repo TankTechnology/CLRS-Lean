@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackSourceAffine
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionWidenedStackCellForm_zero
+#check transitionWidenedStackCellForm_value
+#check verifierTransitionRouteSourceCell_lt_height
+#check verifierTransitionWidenedStackCellForm_value

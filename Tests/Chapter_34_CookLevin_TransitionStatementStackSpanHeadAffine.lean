@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementStackSpanHeadAffine
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionRouteSpan.frontForm_value
+#check TransitionStackAffineRouteSpanBlock.heightFrontForm_value
+#check TransitionStackAffineRouteSpanBlock.cellFrontFormRow_value
