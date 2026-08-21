@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursivePlan
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtRecursivePlan
+#check transitionStmtRecursivePlan
+#check TransitionStmtRecursivePlan.branchCount
+#check transitionStmtRecursivePlan_branchCount
+
+#print axioms transitionStmtRecursivePlan_branchCount
