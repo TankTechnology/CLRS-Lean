@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameMarkedRowParallelInterleaveOutput
+
+open CLRS.Chapter34.Turing.PolyBuilder
+open UnaryFrameMarkedRowParallelInterleave
+
+#check merge_finish_step
+#check output_restore_phase
+
+#print axioms merge_finish_step
+#print axioms output_restore_phase
