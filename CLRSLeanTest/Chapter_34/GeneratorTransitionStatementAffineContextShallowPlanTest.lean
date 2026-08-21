@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextShallowPlan
+
+namespace CLRSLeanTest.Chapter34
+
+open CLRS.Chapter34.Turing.CookLevin
+
+#check TransitionStmtShallowPlan
+#check transitionStmtShallowPlan
+#check transitionStmtShallowPlan_isSome_iff
+#check TransitionStmtShallowPlan.completePhases
+#check transitionStmtShallowInitial_completePhases_eq_script
+
+end CLRSLeanTest.Chapter34
