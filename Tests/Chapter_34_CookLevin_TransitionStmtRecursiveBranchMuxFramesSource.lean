@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveBranchMuxFramesSource
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing.CookLevin
+
+#check verifierTransitionRecursiveBranchMuxFrames
+#check verifierTransitionRecursiveBranchMuxFrames_eq
+#check verifierTransitionRecursiveBranchMuxFrames_computableInPolyTime
+#print axioms verifierTransitionRecursiveBranchMuxFrames_computableInPolyTime
