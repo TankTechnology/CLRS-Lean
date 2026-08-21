@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionStatementAffineContextRecursiveBudget
+
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+
+#check transitionStmtRecursiveContextPadding_of_budget
+#check transitionStmtRecursiveContextPadding_initial_verifier
+#check transitionStmtRecursiveInitial_phases_eq_script
+
+#print axioms transitionStmtRecursiveInitial_phases_eq_script
