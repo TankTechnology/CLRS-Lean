@@ -166,12 +166,12 @@ private theorem markedCellAffineRows_encodeUnaryFrame_free
   simp [encodeUnaryFrameBlock] at hblock
   rcases hblock with ⟨_, rfl⟩ | rfl <;> decide
 
-private def markedCellAffineRows_firstCopySteps : List Nat → Nat
+def markedCellAffineRows_firstCopySteps : List Nat → Nat
   | [] => 1
   | value :: rest =>
       3 * (value + 1) + 1 + markedCellAffineRows_firstCopySteps rest
 
-private theorem markedCellAffineRows_firstCopySteps_eq
+theorem markedCellAffineRows_firstCopySteps_eq
     (cells : List Nat) :
     markedCellAffineRows_firstCopySteps cells =
       3 * (encodeUnaryFrame cells).length + cells.length + 1 := by
@@ -423,7 +423,7 @@ private theorem markedCellAffineRows_addSeparator_eval
   rw [← hsteps]
   exact full.evals_in_steps
 
-private def markedCellAffineRows_scanCellsSteps (amount : Nat) : List Nat → Nat
+def markedCellAffineRows_scanCellsSteps (amount : Nat) : List Nat → Nat
   | [] => 1
   | value :: rest =>
       3 * value + 1 + (6 * amount + 4) +
@@ -551,14 +551,14 @@ private def markedCellAffineRows_successorRows
       let next := cells.map fun value => value + amount
       next :: markedCellAffineRows_successorRows amount remaining next
 
-private def markedCellAffineRows_finalCells
+def markedCellAffineRows_finalCells
     (amount : Nat) : Nat → List Nat → List Nat
   | 0, cells => cells
   | remaining + 1, cells =>
       markedCellAffineRows_finalCells amount remaining
         (cells.map fun value => value + amount)
 
-private def markedCellAffineRows_rowsSteps
+def markedCellAffineRows_rowsSteps
     (amount : Nat) : Nat → List Nat → Nat
   | 0, _ => 1
   | remaining + 1, cells =>
@@ -729,7 +729,7 @@ private theorem markedCellAffineRows_clearStep_eval
             output work₁ work₂ temp (List.replicate amount ()) rowCount)) = _
       exact ih (test := true)
 
-private def markedCellAffineRows_cleanupSteps
+def markedCellAffineRows_cleanupSteps
     (input work₁ : List UnaryFrameSym) (amount : Nat) : Nat :=
   input.length + work₁.length + amount + 7
 
