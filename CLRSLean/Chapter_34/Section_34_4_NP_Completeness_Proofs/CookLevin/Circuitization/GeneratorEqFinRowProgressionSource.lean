@@ -68,6 +68,46 @@ def affineEqFinRowFrames (rightForms : List AffineUnaryTripleForm)
     (seed : AffineUnaryTripleSeed) : List AffineEqFinPairFrame :=
   affineEqFinRowFramesFrom 0 rightForms seed
 
+/-- Pointwise form of a row block whose right-target table is given by a
+finite function. -/
+theorem affineEqFinRowFramesFrom_ofFn (offset : Nat) :
+    ∀ {count : Nat} (rightForms : Fin count → AffineUnaryTripleForm)
+      (seed : AffineUnaryTripleSeed),
+      affineEqFinRowFramesFrom offset (List.ofFn rightForms) seed =
+        List.ofFn fun index : Fin count =>
+          { eqStart := seed.first + 6 * (offset + index.val) + 1
+            left := seed.second + (offset + index.val)
+            right := affineUnaryTripleFormValue (rightForms index) seed
+            matched := seed.first + 6 * (offset + index.val) + 5
+            previous := seed.first + 6 * (offset + index.val) } := by
+  intro count
+  induction count generalizing offset with
+  | zero =>
+      intro rightForms seed
+      rfl
+  | succ count ih =>
+      intro rightForms seed
+      rw [List.ofFn_succ, List.ofFn_succ]
+      simp only [affineEqFinRowFramesFrom]
+      congr 1
+      rw [ih]
+      apply List.ofFn_inj.mpr
+      funext index
+      congr 1 <;> simp <;> ring
+
+theorem affineEqFinRowFrames_ofFn {count : Nat}
+    (rightForms : Fin count → AffineUnaryTripleForm)
+    (seed : AffineUnaryTripleSeed) :
+    affineEqFinRowFrames (List.ofFn rightForms) seed =
+      List.ofFn fun index : Fin count =>
+        { eqStart := seed.first + 6 * index.val + 1
+          left := seed.second + index.val
+          right := affineUnaryTripleFormValue (rightForms index) seed
+          matched := seed.first + 6 * index.val + 5
+          previous := seed.first + 6 * index.val } := by
+  simpa [affineEqFinRowFrames] using
+    affineEqFinRowFramesFrom_ofFn 0 rightForms seed
+
 /-- Ordinary affine values needed by the delimiter controller for the suffix
 of a logical equality row. -/
 def affineEqFinRowInvocationFormsFrom (offset : Nat) :
@@ -227,6 +267,32 @@ def exactPolynomialAffineEqFinRowFrames {Γ : Type}
     (exactPolynomialAffineUnaryTripleProgression
       basePrevious baseLeft baseAux
       stepPrevious stepLeft stepAux count input)
+
+/-- Row-major pointwise form of the exact-polynomial row-block source. -/
+theorem exactPolynomialAffineEqFinRowFrames_eq_flatMap_ofFn {Γ : Type}
+    (rightForms : List AffineUnaryTripleForm)
+    (basePrevious baseLeft baseAux
+      stepPrevious stepLeft stepAux count : Polynomial Nat)
+    (input : List Γ) :
+    exactPolynomialAffineEqFinRowFrames rightForms
+        basePrevious baseLeft baseAux
+        stepPrevious stepLeft stepAux count input =
+      (List.ofFn fun index : Fin (count.eval input.length) =>
+        { first := basePrevious.eval input.length +
+              index.val * stepPrevious.eval input.length
+          second := baseLeft.eval input.length +
+            index.val * stepLeft.eval input.length
+          third := baseAux.eval input.length +
+            index.val * stepAux.eval input.length }).flatMap
+        (affineEqFinRowFrames rightForms) := by
+  unfold exactPolynomialAffineEqFinRowFrames eqFinRowProgressionFrames
+    eqFinProgressionSeeds
+  rw [affineUnaryTripleProgressionRows_eq_ofFn, List.map_ofFn]
+  apply congrArg (List.flatMap (affineEqFinRowFrames rightForms))
+  apply List.ofFn_inj.mpr
+  funext index
+  simp [exactPolynomialAffineUnaryTripleProgression,
+    transitionEqCoordinateSeed]
 
 /-- Byte-exact input consumed by the established `EqFin` controller. -/
 def exactPolynomialAffineEqFinRowInput {Γ : Type}
