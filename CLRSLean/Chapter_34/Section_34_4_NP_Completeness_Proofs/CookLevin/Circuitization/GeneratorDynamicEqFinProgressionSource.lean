@@ -112,6 +112,33 @@ def dynamicFirstAffineEqFinFrames {Γ : Type}
     (dynamicFirstAffineUnaryTripleProgression first
       baseLeft baseRight stepPrevious stepLeft stepRight count input)
 
+/-- Pointwise closed form of a dynamic-first equality progression. -/
+theorem dynamicFirstAffineEqFinFrames_eq_ofFn {Γ : Type}
+    (first : List Γ → Nat)
+    (baseLeft baseRight stepPrevious stepLeft stepRight count : Polynomial Nat)
+    (input : List Γ) :
+    dynamicFirstAffineEqFinFrames first
+        baseLeft baseRight stepPrevious stepLeft stepRight count input =
+      List.ofFn fun index : Fin (count.eval input.length) =>
+        { eqStart := first input +
+              index.val * stepPrevious.eval input.length + 1
+          left := baseLeft.eval input.length +
+            index.val * stepLeft.eval input.length
+          right := baseRight.eval input.length +
+            index.val * stepRight.eval input.length
+          matched := first input +
+              index.val * stepPrevious.eval input.length + 5
+          previous := first input +
+            index.val * stepPrevious.eval input.length } := by
+  unfold dynamicFirstAffineEqFinFrames eqFinProgressionFrames
+    eqFinProgressionSeeds
+  rw [affineUnaryTripleProgressionRows_eq_ofFn, List.map_ofFn,
+    List.map_ofFn]
+  apply List.ofFn_inj.mpr
+  funext index
+  simp [dynamicFirstAffineUnaryTripleProgression,
+    transitionEqCoordinateSeed, transitionEqCoordinateFrame]
+
 /-- Byte-exact equality-controller input for the dynamic-first progression. -/
 def dynamicFirstAffineEqFinInput {Γ : Type}
     (first : List Γ → Nat)
@@ -182,6 +209,31 @@ def dynamicFirstAffineEqFinRowFrames {Γ : Type}
   eqFinRowProgressionFrames rightForms
     (dynamicFirstAffineUnaryTripleProgression first
       baseLeft baseAux stepPrevious stepLeft stepAux count input)
+
+/-- Row-major closed form of dynamic-first row-block equality frames. -/
+theorem dynamicFirstAffineEqFinRowFrames_eq_flatMap_ofFn {Γ : Type}
+    (rightForms : List AffineUnaryTripleForm)
+    (first : List Γ → Nat)
+    (baseLeft baseAux stepPrevious stepLeft stepAux count : Polynomial Nat)
+    (input : List Γ) :
+    dynamicFirstAffineEqFinRowFrames rightForms first
+        baseLeft baseAux stepPrevious stepLeft stepAux count input =
+      (List.ofFn fun index : Fin (count.eval input.length) =>
+        { first := first input +
+              index.val * stepPrevious.eval input.length
+          second := baseLeft.eval input.length +
+            index.val * stepLeft.eval input.length
+          third := baseAux.eval input.length +
+            index.val * stepAux.eval input.length }).flatMap
+        (affineEqFinRowFrames rightForms) := by
+  unfold dynamicFirstAffineEqFinRowFrames eqFinRowProgressionFrames
+    eqFinProgressionSeeds
+  rw [affineUnaryTripleProgressionRows_eq_ofFn, List.map_ofFn]
+  apply congrArg (List.flatMap (affineEqFinRowFrames rightForms))
+  apply List.ofFn_inj.mpr
+  funext index
+  simp [dynamicFirstAffineUnaryTripleProgression,
+    transitionEqCoordinateSeed]
 
 /-- Byte-exact row-block input with a dynamic equality-carry base. -/
 def dynamicFirstAffineEqFinRowInput {Γ : Type}
