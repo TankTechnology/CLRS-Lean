@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorTransitionAffineStmtScript
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.CookLevin
+open CLRS.Chapter34.Turing.PolyBuilder
+
+#check TransitionAffineStmtPhaseForm.eval
+#check transitionAffineStmtPhaseForm_fixed_encoding
+#check transitionAffineStmtScriptForms_fixed_encoding
+#check verifierTransitionAffineStmtScript_eq_rows
+#check verifierTransitionAffineStmtScript_computableInPolyTime
+
+#print axioms verifierTransitionAffineStmtScript_computableInPolyTime
