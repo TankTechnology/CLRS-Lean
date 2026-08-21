@@ -210,6 +210,15 @@ def concatenatedFamily
     (input : List Γ) : UnaryFrameMarkedRowFamily :=
   (alignedPair hAligned input).concatenated
 
+/-- The public row semantics of the same-input concatenated family. -/
+@[simp] theorem concatenatedFamily_rows
+    (hAligned : ∀ input,
+      (leftFamily input).rows.length = (rightFamily input).rows.length)
+    (input : List Γ) :
+    (concatenatedFamily hAligned input).rows =
+      concatUnaryFrameMarkedRows (leftFamily input).rows
+        (rightFamily input).rows := rfl
+
 /-- A fixed polynomial-time TM2 runs both sources and concatenates their
 corresponding rows without retaining the internal join boundary. -/
 noncomputable def computableInPolyTime
