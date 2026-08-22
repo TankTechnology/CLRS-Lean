@@ -21,7 +21,7 @@ inductive CliqueSym
   | vertexMark
   | pairSep
   | recordEnd
-  deriving DecidableEq, Repr
+  deriving DecidableEq, Repr, Fintype
 
 /-- Prepend a unary natural number to a fixed suffix. -/
 def prependCliqueTicks : Nat → List CliqueSym → List CliqueSym
