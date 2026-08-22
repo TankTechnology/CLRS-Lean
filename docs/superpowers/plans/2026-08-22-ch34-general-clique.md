@@ -163,8 +163,8 @@ theorem decode_encodeCliqueCertificate (vertices : List Nat) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Language.lean`
 - Create: `Tests/Chapter_34_GeneralClique_Language.lean`
 
-- [ ] Add a test showing an encoded triangle with `k = 3` is accepted, an encoded path with `k = 3` is rejected, and a decoded duplicate-edge instance is rejected by well-formedness.
-- [ ] Define the raw language and prove both characterizations:
+- [x] Add tests showing an encoded clique is accepted, a decoded duplicate-edge instance is rejected by well-formedness, and a certificate-marked string is rejected.
+- [x] Define the raw language and prove both characterizations:
 
 ```lean
 def GeneralCLIQUE : Language CliqueSym :=
@@ -179,8 +179,8 @@ theorem encodeCliqueInstance_mem_generalCLIQUE_iff
     encodeCliqueInstance I ∈ GeneralCLIQUE ↔ I.WellFormed ∧ I.HasClique
 ```
 
-- [ ] Run source and language tests.
-- [ ] Commit: `git commit -am "feat(ch34): define honest general CLIQUE language"`.
+- [x] Run source and language tests.
+- [x] Commit: `git commit -am "feat(ch34): define honest general CLIQUE language"`.
 
 ## Task 5: Close Boolean certificate semantics
 
