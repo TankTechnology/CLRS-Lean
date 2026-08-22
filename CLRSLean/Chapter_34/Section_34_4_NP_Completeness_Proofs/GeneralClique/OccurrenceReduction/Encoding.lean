@@ -5,10 +5,12 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Occ
 /-!
 # Raw 3-CNF-SAT to general CLIQUE reduction
 
-The total map decodes every source string, checks the project's at-most-three
-condition, and emits either the indexed occurrence graph or a fixed well-formed
-no-instance.  The semantic theorem is exact on arbitrary raw strings, and the
-serialized output has an explicit cubic bound.
+The total map decodes every source string and emits the indexed occurrence
+graph.  Its target size is the clause count on three-CNF inputs and one more
+than the vertex count otherwise.  The latter branch is structurally invalid
+and hence a guaranteed no-instance.  This guarded form permits one common edge
+stream in the later concrete machine.  The semantic theorem is exact on
+arbitrary raw strings, and the serialized output has an explicit cubic bound.
 -/
 
 namespace CLRS
@@ -41,22 +43,40 @@ instance decidableIsThreeCNF (formula : CNF) : Decidable (IsThreeCNF formula) :=
   unfold IsThreeCNF
   infer_instance
 
+/-- Occurrence instance guarded against source formulas outside three-CNF.
+The invalid branch deliberately makes the target larger than the vertex set. -/
+def guardedOccurrenceCliqueInstance (formula : CNF) : CliqueInstance :=
+  let occurrence := occurrenceCliqueInstance formula
+  if IsThreeCNF formula then occurrence
+  else { occurrence with targetSize := occurrence.vertexCount + 1 }
+
+theorem guardedOccurrenceCliqueInstance_eq_of_threeCNF {formula : CNF}
+    (hthree : IsThreeCNF formula) :
+    guardedOccurrenceCliqueInstance formula =
+      occurrenceCliqueInstance formula := by
+  simp [guardedOccurrenceCliqueInstance, hthree]
+
+theorem guardedOccurrenceCliqueInstance_not_wellFormed_of_not_threeCNF
+    {formula : CNF} (hthree : ¬ IsThreeCNF formula) :
+    ¬ (guardedOccurrenceCliqueInstance formula).WellFormed := by
+  intro hwell
+  have htarget := hwell.1
+  simp [guardedOccurrenceCliqueInstance, hthree,
+    occurrenceCliqueInstance] at htarget
+
 /-- Total raw reduction from the source CNF alphabet to the honest CLIQUE
 alphabet. -/
 def threeCNFToGeneralCliqueMap (input : List CNFSym) : List CliqueSym :=
-  let formula := decodeCNF input
-  if IsThreeCNF formula then
-    encodeCliqueInstance (occurrenceCliqueInstance formula)
-  else
-    encodeCliqueInstance noCliqueInstance
+  encodeCliqueInstance (guardedOccurrenceCliqueInstance (decodeCNF input))
 
 /-- Exact raw-language correctness of the 3-CNF occurrence reduction. -/
 theorem threeCNFToGeneralCliqueMap_mem_iff (input : List CNFSym) :
     threeCNFToGeneralCliqueMap input ∈ GeneralCLIQUE ↔
       input ∈ ThreeCNFSat := by
   unfold threeCNFToGeneralCliqueMap ThreeCNFSat
+  rw [encodeCliqueInstance_mem_generalCLIQUE_iff]
   by_cases hthree : IsThreeCNF (decodeCNF input)
-  · rw [if_pos hthree, encodeCliqueInstance_mem_generalCLIQUE_iff]
+  · rw [guardedOccurrenceCliqueInstance_eq_of_threeCNF hthree]
     constructor
     · rintro ⟨_, hclique⟩
       exact ⟨hthree,
@@ -64,8 +84,13 @@ theorem threeCNFToGeneralCliqueMap_mem_iff (input : List CNFSym) :
     · rintro ⟨_, hsatisfiable⟩
       exact ⟨occurrenceCliqueInstance_wellFormed_of_cnfSatisfiable hsatisfiable,
         (cnfSatisfiable_iff_occurrenceCliqueInstance _).mp hsatisfiable⟩
-  · rw [if_neg hthree, encodeCliqueInstance_mem_generalCLIQUE_iff]
-    simp [noCliqueInstance_not_hasClique, hthree]
+  · constructor
+    · rintro ⟨hwell, _⟩
+      exact False.elim
+        (guardedOccurrenceCliqueInstance_not_wellFormed_of_not_threeCNF
+          hthree hwell)
+    · rintro ⟨hthree', _⟩
+      exact False.elim (hthree hthree')
 
 /-! ## Source-size and output-size bounds -/
 
@@ -226,13 +251,37 @@ theorem occurrenceCliqueEncodingLength_le (formula : CNF) :
     (le_trans hedgeEncoding
       (Nat.mul_le_mul_right (2 * vertexCount + 3) hedgeCount)) _
 
+/-- Outside three-CNF, the guarded target contributes only one more unary tick
+than the vertex counter; the common occurrence-edge stream keeps the same
+cubic envelope. -/
+theorem guardedOccurrenceCliqueEncodingLength_le_of_not_threeCNF
+    {formula : CNF} (hthree : ¬ IsThreeCNF formula) :
+    (encodeCliqueInstance (guardedOccurrenceCliqueInstance formula)).length ≤
+      let vertexCount := (indexedOccurrences formula).length
+      2 * vertexCount + 4 +
+        vertexCount ^ 2 * (2 * vertexCount + 3) := by
+  let vertexCount := (indexedOccurrences formula).length
+  have hedgeCount := occurrenceCliqueEdges_length_le_square formula
+  have hedgeEncoding :
+      cliqueEdgesEncodingLength (occurrenceCliqueEdges formula) ≤
+        vertexCount ^ 2 * (2 * vertexCount + 3) := by
+    apply le_trans (cliqueEdgesEncodingLength_le (bound := vertexCount) ?_)
+    · exact Nat.mul_le_mul_right (2 * vertexCount + 3) hedgeCount
+    · intro edge hedge
+      exact occurrenceCliqueEdges_in_range hedge
+  rw [guardedOccurrenceCliqueInstance, if_neg hthree,
+    encodeCliqueInstance_length]
+  dsimp [occurrenceCliqueInstance]
+  dsimp [vertexCount] at hedgeEncoding ⊢
+  omega
+
 /-- The total raw reduction has cubic serialized output length. -/
 theorem threeCNFToGeneralCliqueMap_length (input : List CNFSym) :
     (threeCNFToGeneralCliqueMap input).length ≤
       64 * (input.length + 1) ^ 3 := by
   unfold threeCNFToGeneralCliqueMap
   by_cases hthree : IsThreeCNF (decodeCNF input)
-  · rw [if_pos hthree]
+  · rw [guardedOccurrenceCliqueInstance_eq_of_threeCNF hthree]
     let vertexCount := (indexedOccurrences (decodeCNF input)).length
     have hstored := decodeCNF_storedSize_le input
     rw [← indexedOccurrences_length] at hstored
@@ -263,12 +312,35 @@ theorem threeCNFToGeneralCliqueMap_length (input : List CNFSym) :
       _ ≤ 8 * (input.length + 1) ^ 3 := by
         nlinarith
       _ ≤ 64 * (input.length + 1) ^ 3 := by omega
-  · rw [if_neg hthree]
-    norm_num [encodeCliqueInstance_length, noCliqueInstance,
-      cliqueEdgesEncodingLength]
-    have : 0 < (input.length + 1) ^ 3 := by
-      exact pow_pos (by omega) 3
-    omega
+  · let vertexCount := (indexedOccurrences (decodeCNF input)).length
+    have hstored := decodeCNF_storedSize_le input
+    rw [← indexedOccurrences_length] at hstored
+    have hencoded :=
+      guardedOccurrenceCliqueEncodingLength_le_of_not_threeCNF hthree
+    dsimp only at hencoded
+    have hvertex : vertexCount ≤ input.length + 1 := by
+      dsimp [vertexCount]
+      omega
+    have hsquare : vertexCount ^ 2 ≤ (input.length + 1) ^ 2 :=
+      Nat.pow_le_pow_left hvertex 2
+    have hfactor : 2 * vertexCount + 3 ≤ 5 * (input.length + 1) := by
+      omega
+    have hproduct : vertexCount ^ 2 * (2 * vertexCount + 3) ≤
+        (input.length + 1) ^ 2 * (5 * (input.length + 1)) :=
+      Nat.mul_le_mul hsquare hfactor
+    have hheader : 2 * vertexCount + 4 ≤ 4 * (input.length + 1) := by
+      omega
+    have hcubic : 4 * (input.length + 1) ≤
+        4 * (input.length + 1) ^ 3 := by
+      nlinarith
+    calc
+      (encodeCliqueInstance
+          (guardedOccurrenceCliqueInstance (decodeCNF input))).length
+          ≤ 2 * vertexCount + 4 +
+              vertexCount ^ 2 * (2 * vertexCount + 3) := hencoded
+      _ ≤ 9 * (input.length + 1) ^ 3 := by
+        nlinarith
+      _ ≤ 64 * (input.length + 1) ^ 3 := by omega
 
 end Chapter34
 end CLRS
