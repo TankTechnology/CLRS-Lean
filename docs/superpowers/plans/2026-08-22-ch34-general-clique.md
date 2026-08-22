@@ -112,10 +112,11 @@ end CliqueInstance
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding/Basic.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding/Parser.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding/RoundTrip.lean`
+- Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding/Length.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding.lean`
 - Create: `Tests/Chapter_34_GeneralClique_Encoding.lean`
 
-- [ ] Introduce the disjoint eight-symbol alphabet and encoders:
+- [x] Introduce the disjoint eight-symbol alphabet and encoders:
 
 ```lean
 inductive CliqueSym
@@ -139,8 +140,8 @@ def encodeCliqueCertificate (vertices : List Nat) : List CliqueSym :=
   .certificateMark :: vertices.flatMap encodeCliqueVertex
 ```
 
-- [ ] Implement total, complete-consumption parsers `decodeCliqueInstance` and `decodeCliqueCertificate`; reject missing markers, partial records, misplaced grammar tokens, and trailing fragments.
-- [ ] Prove unconditional round trips:
+- [x] Implement total, complete-consumption parsers `decodeCliqueInstance` and `decodeCliqueCertificate`; reject missing markers, partial records, misplaced grammar tokens, and trailing fragments.
+- [x] Prove unconditional round trips:
 
 ```lean
 theorem decode_encodeCliqueInstance (I : CliqueInstance) :
@@ -150,10 +151,10 @@ theorem decode_encodeCliqueCertificate (vertices : List Nat) :
     decodeCliqueCertificate (encodeCliqueCertificate vertices) = some vertices
 ```
 
-- [ ] Prove encoder length formulae and the lower bounds `vertexCount + 3 ≤ input.length` and `targetSize + 3 ≤ input.length` for successfully decoded inputs.
-- [ ] Test both round trips and at least six malformed cases.
-- [ ] Run all four source files and `Tests/Chapter_34_GeneralClique_Encoding.lean`.
-- [ ] Commit: `git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique Tests/Chapter_34_GeneralClique_Encoding.lean && git commit -m "feat(ch34): add exact general CLIQUE codecs"`.
+- [x] Prove encoder length formulae and the stronger combined bound `vertexCount + targetSize + 3 ≤ input.length` for successfully decoded inputs.
+- [x] Test both round trips and at least six malformed cases.
+- [x] Run all focused encoding source files and `Tests/Chapter_34_GeneralClique_Encoding.lean`.
+- [x] Commit: `git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique Tests/Chapter_34_GeneralClique_Encoding.lean && git commit -m "feat(ch34): add exact general CLIQUE codecs"`.
 
 ## Task 4: Define the raw language and its typed bridge
 
