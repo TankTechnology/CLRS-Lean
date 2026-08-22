@@ -311,8 +311,8 @@ theorem threeCNFToGeneralCliqueMap_length (input : List CNFSym) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Machine/PolynomialRuntime.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Machine.lean`
 
-- [ ] Reuse the existing CNF parser phases for the `IsThreeCNF` branch and the verified row-major bounded-loop controllers for the pair enumeration; keep the controller state type local to `Turing.TMClique`.
-- [ ] Define a fixed machine `threeCNFToGeneralCliqueMachine` and prove its exact output on every raw source string:
+- [x] Reuse the existing CNF parser phases for the `IsThreeCNF` branch and the verified row-major bounded-loop controllers for the pair enumeration; keep the controller state type local to `Turing.TMClique`.
+- [x] Define a fixed machine `threeCNFToGeneralCliqueMachine` and prove its exact output on every raw source string:
 
 ```lean
 theorem threeCNFToGeneralCliqueMachine_outputs (input : List CNFSym) :
@@ -320,16 +320,16 @@ theorem threeCNFToGeneralCliqueMachine_outputs (input : List CNFSym) :
       (threeCNFToGeneralCliqueMap input)
 ```
 
-- [ ] Derive a named polynomial runtime bound `threeCNFToGeneralCliqueRuntimePolynomial` from the phase bounds, rather than using only the output-length theorem.
-- [ ] Assemble `threeCNFToGeneralCliqueComputableInPolyTime` and:
+- [x] Derive a named polynomial runtime bound `threeCNFToGeneralCliqueRuntimePolynomial` from the phase bounds, rather than using only the output-length theorem.
+- [x] Assemble `threeCNFToGeneralCliqueComputableInPolyTime` and:
 
 ```lean
 theorem threeCNFSat_reducible_to_generalCLIQUE :
     PolyTimeReducible ThreeCNFSat GeneralCLIQUE
 ```
 
-- [ ] Run every machine submodule and a focused interface file checking the exact machine, map theorem, runtime polynomial, and reduction.
-- [ ] Commit: `git commit -am "feat(ch34): add concrete 3-CNF to general CLIQUE machine"`.
+- [x] Run every machine submodule and a focused interface file checking the exact machine, map theorem, runtime polynomial, and reduction.
+- [x] Commit: `git commit -am "feat(ch34): add concrete 3-CNF to general CLIQUE machine"`.
 
 ## Task 10: Build the concrete verifier TM2 and NP assembly
 
