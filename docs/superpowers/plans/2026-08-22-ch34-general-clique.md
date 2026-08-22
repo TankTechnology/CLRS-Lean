@@ -192,7 +192,7 @@ theorem encodeCliqueInstance_mem_generalCLIQUE_iff
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Certificate.lean`
 - Create: `Tests/Chapter_34_GeneralClique_Certificate.lean`
 
-- [ ] Define an executable list predicate and checker:
+- [x] Define an executable list predicate and checker:
 
 ```lean
 def CliqueInstance.ListRepresentsClique
@@ -207,9 +207,9 @@ def cliqueVerifier (certificate input : List CliqueSym) : Bool :=
   | _, _ => false
 ```
 
-- [ ] Prove the all-input truth theorem `cliqueVerifier_eq_true_iff` by case-splitting both decoders and reducing `decide`.
-- [ ] Prove a nodup list represents a clique iff its `toFinset` witnesses `HasClique`; use `Finset.sort (· ≤ ·)` to construct the canonical certificate in the reverse direction.
-- [ ] Prove:
+- [x] Prove the all-input truth theorem `cliqueVerifier_eq_true_iff` by case-splitting both decoders and reducing `decide`.
+- [x] Prove a nodup list represents a clique iff its `toFinset` witnesses `HasClique`; use the finite set's duplicate-free `toList` to construct the canonical certificate in the reverse direction.
+- [x] Prove:
 
 ```lean
 theorem mem_generalCLIQUE_iff_exists_certificate (input : List CliqueSym) :
@@ -219,8 +219,8 @@ theorem mem_generalCLIQUE_iff_exists_certificate (input : List CliqueSym) :
         cliqueVerifier certificate input = true
 ```
 
-- [ ] Run source and certificate tests.
-- [ ] Commit: `git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Certificate* Tests/Chapter_34_GeneralClique_Certificate.lean && git commit -m "feat(ch34): prove general CLIQUE certificate semantics"`.
+- [x] Run source and certificate tests.
+- [x] Commit: `git add CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Certificate* Tests/Chapter_34_GeneralClique_Certificate.lean && git commit -m "feat(ch34): prove general CLIQUE certificate semantics"`.
 
 ## Task 6: Construct the indexed occurrence graph
 
