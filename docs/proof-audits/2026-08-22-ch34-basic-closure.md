@@ -24,16 +24,20 @@ all raw input strings, not only a hidden well-formed subset.
 
 ## Acceptance evidence
 
-- `lake build CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT`
-- `lake env lean Tests/Chapter_34_GeneralCircuit_ToSAT.lean`
-- the interface test's `#print axioms` output contains only the standard
-  Mathlib foundations `propext`, `Classical.choice`, and `Quot.sound`
-- no project-local axiom or proof hole is introduced by the new bridge
+- `lake env lean Tests/Chapter_34_GeneralCircuit_ToSAT.lean`: passed;
+- `lake env lean Tests/Chapter_34_CookLevin_MainTheorem.lean`: passed;
+- `lake build
+  CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.MainTheorem`:
+  passed, `3607/3607` jobs;
+- `lake build CLRSLean.Chapter_34`: passed, `3674/3674` jobs;
+- `lake build CLRSLean`: passed, `9917/9917` jobs;
+- `python3 scripts/check_repository.py`: passed, including progress, status,
+  literate-site, placeholder, and local-link policies;
+- `git diff --check`: passed.
 
-The final branch acceptance also runs the Chapter 34 root build, the Cook--
-Levin main-theorem interface, repository policy checks, and the full library
-build; their exact results belong in the merge handoff rather than being
-predicted here.
+Both Chapter 34 interface tests report only the standard Mathlib foundations
+`propext`, `Classical.choice`, and `Quot.sound` for the audited main theorems.
+No project-local axiom or proof hole is introduced by this checkpoint.
 
 ## Deliberately deferred boundary
 
