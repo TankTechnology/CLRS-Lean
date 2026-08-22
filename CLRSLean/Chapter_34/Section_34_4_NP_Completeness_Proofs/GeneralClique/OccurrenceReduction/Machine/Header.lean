@@ -214,6 +214,19 @@ private theorem relabel_encCNF_clauseCount (formula : CNF) :
         relabel_encClause_clauseCount, ih]
       simpa using Nat.add_comm 1 formula.length
 
+/-- The canonical occurrence stream has one vertex marker per decoded literal
+position. -/
+theorem canonicalOccurrenceStream_vertexCount (input : List CNFSym) :
+    (canonicalOccurrenceStream input).count GraphSym.vertexMark =
+      cnfLiteralCount (decodeCNF input) := by
+  rw [canonicalOccurrenceStream_eq, relabel_encCNF_vertexCount]
+
+/-- The canonical occurrence stream has one clause marker per decoded clause. -/
+theorem canonicalOccurrenceStream_clauseCount (input : List CNFSym) :
+    (canonicalOccurrenceStream input).count GraphSym.clauseMark =
+      (decodeCNF input).length := by
+  rw [canonicalOccurrenceStream_eq, relabel_encCNF_clauseCount]
+
 /-- The generated raw-input header carries exactly the vertex and target
 counts of the decoded occurrence graph. -/
 theorem canonicalCliqueHeader_eq (input : List CNFSym) :
