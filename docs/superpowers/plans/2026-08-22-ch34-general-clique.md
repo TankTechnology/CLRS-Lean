@@ -252,20 +252,19 @@ def occurrenceCliqueInstance (f : CNF) : CliqueInstance where
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Semantics.lean`
 - Create: `Tests/Chapter_34_GeneralClique_OccurrenceSemantics.lean`
 
-- [ ] Build an explicit map between old occurrence vertices `(clauseIndex, literal)` plus a membership proof and the new numeric row-major positions; use clause-position indices so repeated literals are not collapsed.
-- [ ] In the forward direction, select the first true literal position in each nonempty clause; derive nonemptiness from satisfiability, exact cardinality from distinct clause indices, and non-complementarity from simultaneous truth.
-- [ ] In the reverse direction, prove exact size `f.length` plus cross-clause adjacency forces one selected position per clause; define the assignment from selected positive literals and prove each selected literal evaluates true.
-- [ ] Publish:
+- [x] Build an explicit map between old occurrence vertices `(clauseIndex, literal)` plus a membership proof and the new numeric row-major positions; use clause-position indices so repeated literals are not collapsed.
+- [x] In the forward direction, transport the existing first-true-literal occurrence witness through a proved injective choice of numeric positions; preserve exact cardinality and non-complementarity.
+- [x] In the reverse direction, map numeric positions back to occurrence vertices, prove injectivity from adjacency, and reuse the existing assignment-from-clique theorem.
+- [x] Publish the stronger all-CNF theorem:
 
 ```lean
-theorem cnfSatisfiable_iff_occurrenceCliqueInstance (f : CNF)
-    (hf : IsThreeCNF f) :
+theorem cnfSatisfiable_iff_occurrenceCliqueInstance (f : CNF) :
     CnfSatisfiable f ↔ (occurrenceCliqueInstance f).HasClique
 ```
 
-- [ ] Cross-check the new theorem against the existing `cnfSatisfiable_iff_hasClique` on representative formulae.
-- [ ] Run source and semantic tests.
-- [ ] Commit: `git commit -am "proof(ch34): reduce 3-CNF semantics to general CLIQUE"`.
+- [x] Cross-check the new theorem against the existing `cnfSatisfiable_iff_hasClique` on satisfiable, contradictory, and empty-clause formulae.
+- [x] Run source and semantic tests.
+- [x] Commit: `git commit -am "proof(ch34): reduce 3-CNF semantics to general CLIQUE"`.
 
 ## Task 8: Close the total raw map and cubic output bound
 
