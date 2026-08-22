@@ -41,15 +41,17 @@ Cook--Levin map and the exact finite-certificate semantics of
 {lit}`GeneralCircuitSAT` are also complete.  The certificate checker now has a
 concrete polynomial-time TM2 and yields `GeneralCircuitSAT ∈ NP`.  The explicit
 map, its exact semantics, and its polynomial output bound are assembled into
-{lit}`cookLevin_textbookCircuitization`.  This semantic-and-size package does
-not imply NP-hardness: the concrete polynomial-time TM2 implementation of the
-map, needed for the standard {lit}`NPHard` and {lit}`NPComplete` predicates,
-remains downstream.
+{lit}`cookLevin_textbookCircuitization`.  A fixed polynomial-time TM2 computes
+the map from the original input, and {lit}`cookLevin_theorem`,
+{lit}`generalCircuitSAT_npHard`, and {lit}`generalCircuitSAT_npComplete` close
+the standard Cook--Levin result.
 
 The honest general-circuit language now also has the direct textbook bridge to
 SAT.  `generalCircuitToFormula` is semantically exact on well-formed circuits;
 the total raw map `generalCircuitToSATMap` preserves membership on every input
 string and has an explicit cubic output-length bound.  This closes the semantic
-and representation-size layer, while leaving a concrete TM2 implementation of
-that raw map as an explicitly documented refinement.
+and representation-size layer.  A concrete TM2 implementation of that direct
+map and a concrete SAT NP verifier remain explicit refinements; honest general
+graph-plus-{lit}`k` CLIQUE and Section 34.5 remain the principal textbook-
+coverage gaps.
 -/

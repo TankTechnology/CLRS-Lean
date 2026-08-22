@@ -25,8 +25,8 @@ preservation theorem (`cnfSatisfiable_to3CNF_iff`), and the list encoding
 `ThreeCNFSat`) are in place.  `SatTo3CNFMachine` contains the reduction machine,
 its complete `outputsFun`, and the assembled theorem
 `Turing.TM3CNF.sat_reducible_to_threeCNFSat`.  Focused source and interface
-checks pass; the repository-wide acceptance build and status-ledger promotion
-are deliberately deferred.
+checks and the repository-wide acceptance build pass; the theorem is part of
+the promoted Chapter 34 public interface and status ledger.
 -/
 
 namespace CLRS

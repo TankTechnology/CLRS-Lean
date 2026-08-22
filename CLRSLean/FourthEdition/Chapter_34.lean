@@ -61,7 +61,14 @@ checker whose accepted certificates of length at most the instance length
 characterize membership exactly, together with a concrete polynomial-time TM2
 and the resulting `GeneralCircuitSAT ∈ NP` theorem.  The explicit Cook--Levin
 map and its semantic and size contracts are packaged for every NP language by
-{lit}`cookLevin_textbookCircuitization`.
+{lit}`cookLevin_textbookCircuitization`.  A fixed polynomial-time TM2 computes
+that map from the original input; {lit}`cookLevin_theorem` and
+{lit}`generalCircuitSAT_npComplete` close the standard Cook--Levin theorem.
+The honest general-circuit language additionally has a direct consistency-
+formula translation to SAT.  `generalCircuitToSATMap_mem_SAT_iff` proves exact
+membership preservation on every raw input string, including malformed and
+ill-formed inputs, and `generalCircuitToSATMap_length_le` gives a cubic output-
+length bound.
 
 ## Coverage boundary
 
@@ -74,12 +81,13 @@ semantic core of Lemma 34.10) are proved.  General graph-plus-`k` CLIQUE and
 Section 34.5 (NP-complete problems) are not yet represented.  Within
 Cook--Levin circuitization, the whole-tableau semantic circuit and its
 polynomial gate bound are complete; the mathematical reduction map and
-finite-certificate semantics are also complete.  The semantic-and-size
-circuitization package is closed, but polynomial output length alone is not a
-polynomial-time reduction.  The concrete polynomial-time TM2 implementation of
-the circuit generator, and therefore the standard {lit}`NPHard` and
-{lit}`NPComplete GeneralCircuitSAT` theorems, remain downstream.  This guide
-remains partial and does not claim those theorems.
+finite-certificate semantics are also complete.  The concrete polynomial-time
+generator closes the universal reduction, NP-hardness, and
+{lit}`NPComplete GeneralCircuitSAT`.  The direct general-circuit-to-SAT bridge
+is closed at semantic and serialized polynomial-size level.  Its concrete TM2,
+a concrete SAT NP verifier, general graph-plus-{lit}`k` CLIQUE, and Section
+34.5 remain downstream.  This guide remains partial because those represented-
+scope and refinement boundaries are not all closed.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

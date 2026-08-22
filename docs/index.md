@@ -23,6 +23,7 @@ during the compatibility period.
 | [`workflows/lean-fast-verification.md`](workflows/lean-fast-verification.md) | Narrow-to-wide Lean verification loop |
 | [`site-architecture.md`](site-architecture.md) | Verso navigation, rendering, and deployment design |
 | [`randomized-treap-height.md`](randomized-treap-height.md) | Expected-height bound for the randomized treap: `E[height] ≤ 30 · H_n` |
+| [`proof-audits/2026-08-22-ch34-basic-closure.md`](proof-audits/2026-08-22-ch34-basic-closure.md) | Chapter 34 basic textbook closure and exact remaining boundary |
 
 ## Documentation Roles
 
@@ -1007,6 +1008,9 @@ CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Basic.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Encoding.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/NP.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Encoding.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Semantics.lean
+CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/Verification.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/VerifierMachine/Basic.lean
 CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/VerifierMachine/BoundedReject.lean

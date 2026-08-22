@@ -11,7 +11,6 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Basic
@@ -32,6 +31,9 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Ve
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.Runtime
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine.PolynomialRuntime
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Semantics
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Encoding
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
@@ -769,7 +771,11 @@ certificate checker whose bounded-certificate semantics is exact.  A concrete
 TM2 computes that checker Boolean on every input; every successful, rejecting,
 and malformed route is covered by one explicit quartic step polynomial.
 Consequently `GeneralCircuitSAT` is now proved polynomially verifiable and a
-member of `ClassNP`.  The explicit Cook--Levin map, semantic equivalence, and
+member of `ClassNP`.  The direct textbook consistency-formula bridge to SAT is
+also closed at semantic and representation-size level:
+`generalCircuitToSATMap_mem_SAT_iff` is total on raw strings and
+`generalCircuitToSATMap_length_le` gives a cubic output bound.  The explicit
+Cook--Levin map, semantic equivalence, and
 polynomial output-length theorem are packaged for every NP language by
 {lit}`cookLevin_textbookCircuitization`.  A fixed polynomial-time TM2 now
 computes the exact map directly from the original input.  Consequently
@@ -796,6 +802,9 @@ Theorem layer:
 - `Turing.CookLevin.generalCircuitSAT_npComplete`: `GeneralCircuitSAT` is
   NP-complete, combining the universal Cook--Levin reduction with the concrete
   certificate checker.
+- `generalCircuitToSATMap_mem_SAT_iff`: the total serialized direct bridge from
+  `GeneralCircuitSAT` to `SAT` preserves membership exactly; its output length
+  is bounded by `generalCircuitToSATMap_length_le`.
 
 Open problems (whether `P = NP`) and the Section 34.5 reductions such as
 VERTEX-COVER, HAM-CYCLE, and SUBSET-SUM are intentionally out of scope for now.
