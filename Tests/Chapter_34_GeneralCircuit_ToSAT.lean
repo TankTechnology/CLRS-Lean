@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT
+
+open CLRS Chapter34
+
+#check generalCircuitToFormula
+#check generalCircuitSatisfiable_iff_satisfiable_generalCircuitToFormula
+#check generalCircuitToSATMap
+#check generalCircuitToSATMap_mem_SAT_iff
+#check generalCircuitToSATMap_length_le
+
+#print axioms generalCircuitSatisfiable_iff_satisfiable_generalCircuitToFormula
+#print axioms generalCircuitToSATMap_mem_SAT_iff
+#print axioms generalCircuitToSATMap_length_le
