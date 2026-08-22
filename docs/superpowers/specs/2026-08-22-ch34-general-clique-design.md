@@ -175,6 +175,13 @@ not complementary.  Generated edges are normalized to `u < v`, listed without
 duplicates, and all endpoints are below the number of literal occurrences.
 The target size is `f.length`.
 
+The project's `IsThreeCNF` predicate uses the at-most-three convention and
+therefore permits empty clauses.  Consequently, structural well-formedness of
+the literal-position instance uses the exact hypothesis that every clause is
+nonempty, not merely `IsThreeCNF f`.  A satisfying assignment supplies this
+hypothesis automatically.  If a 3-CNF contains an empty clause, it is
+unsatisfiable and its occurrence instance is rejected, as required.
+
 The semantic bridge reuses the existing assignment/clique argument through an
 explicit equivalence between selected numeric positions and valid occurrence
 vertices.  Its headline theorem is:
@@ -189,7 +196,8 @@ The total raw reduction is:
 ```text
 decode source CNF
   ├─ if it is an at-most-three-literal CNF: encode its occurrence instance
-  └─ otherwise: encode the canonical no-instance (n = 0, k = 1)
+  └─ otherwise: encode a well-formed canonical no-instance
+       (two vertices, target two, and no edge)
 ```
 
 It proves, for every raw source string:
