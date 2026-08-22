@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.OccurrenceReduction.Machine
+
+namespace CLRS.Chapter34.Turing.TMClique
+
+#check threeCNFToGeneralCliqueMap_eq_header_edges
+#check threeCNFToGeneralCliqueComputableInPolyTime
+#check threeCNFToGeneralCliqueRuntimePolynomial
+#check threeCNFToGeneralCliqueMachine
+#check threeCNFToGeneralCliqueMachine_outputs
+#check threeCNFSat_reducible_to_generalCLIQUE
+
+#print axioms threeCNFToGeneralCliqueMap_eq_header_edges
+#print axioms threeCNFToGeneralCliqueComputableInPolyTime
+#print axioms threeCNFToGeneralCliqueMachine_outputs
+#print axioms threeCNFSat_reducible_to_generalCLIQUE
+
+end CLRS.Chapter34.Turing.TMClique
