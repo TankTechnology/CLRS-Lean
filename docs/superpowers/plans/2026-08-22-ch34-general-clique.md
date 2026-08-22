@@ -229,21 +229,21 @@ theorem mem_generalCLIQUE_iff_exists_certificate (input : List CliqueSym) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Instance.lean`
 - Create: `Tests/Chapter_34_GeneralClique_OccurrenceInstance.lean`
 
-- [ ] Enumerate literal positions row-major as records carrying clause index, position index, and literal; define numeric vertex lookup by list index.
-- [ ] Define `occurrenceCliqueEdges` by filtering all normalized numeric pairs `u < v` for different-clause and non-complementary positions, then define:
+- [x] Enumerate literal positions row-major as records carrying clause index, position index, and literal; define numeric vertex lookup by list index.
+- [x] Define `occurrenceCliqueEdges` by filtering all normalized numeric pairs `u < v` for different-clause and non-complementary positions, then define:
 
 ```lean
 def occurrenceCliqueInstance (f : CNF) : CliqueInstance where
-  vertexCount := f.foldl (fun n clause => n + clause.length) 0
+  vertexCount := (indexedOccurrences f).length
   targetSize := f.length
   edges := occurrenceCliqueEdges f
 ```
 
-- [ ] Prove edge nodup, normalized endpoints, range bounds, and `occurrenceCliqueInstance_wellFormed` under `IsThreeCNF f`.
-- [ ] Prove exact adjacency/indexed-occurrence lookup equivalence.
-- [ ] Test repeated equal literals in one or different clauses to ensure positions remain distinct.
-- [ ] Run source and occurrence-instance tests.
-- [ ] Commit: `git commit -am "feat(ch34): construct indexed occurrence clique graph"`.
+- [x] Prove edge nodup, normalized endpoints, range bounds, and `occurrenceCliqueInstance_wellFormed` under the exact hypothesis that every clause is nonempty. (`IsThreeCNF` alone permits empty clauses.)
+- [x] Prove exact adjacency/indexed-occurrence lookup equivalence.
+- [x] Test repeated equal literals in one or different clauses to ensure positions remain distinct.
+- [x] Run source and occurrence-instance tests.
+- [x] Commit: `git commit -am "feat(ch34): construct indexed occurrence clique graph"`.
 
 ## Task 7: Prove the textbook semantic reduction
 
@@ -278,7 +278,7 @@ theorem cnfSatisfiable_iff_occurrenceCliqueInstance (f : CNF)
 
 ```lean
 def noCliqueInstance : CliqueInstance :=
-  { vertexCount := 0, targetSize := 1, edges := [] }
+  { vertexCount := 2, targetSize := 2, edges := [] }
 
 def threeCNFToGeneralCliqueMap (input : List CNFSym) : List CliqueSym :=
   let f := decodeCNF input
