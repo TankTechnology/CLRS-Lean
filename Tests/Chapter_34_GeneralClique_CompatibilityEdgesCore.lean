@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.OccurrenceReduction.Machine.CompatibilityEdgesEmitEdge
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.OccurrenceReduction.Machine.CompatibilityEdgesEmitRows
 
 open CLRS.Chapter34.Turing.PolyBuilder
 
@@ -24,6 +24,8 @@ namespace CLRS.Chapter34.Turing.TMClique
 #check compatibilityEdges_restoreTaggedRowsRun
 #check compatibilityEdges_emitFlaggedRowRun
 #check compatibilityEdges_emitCompatibleEdgeRun
+#check compatibilityEdges_emitPriorRowRun
+#check compatibilityEdges_emitPriorRowsRun
 #print axioms compatibilityEdges_currentRowRun
 #print axioms compatibilityEdges_priorClauseEqRun
 #print axioms compatibilityEdges_priorVariableEqRun
@@ -35,6 +37,7 @@ namespace CLRS.Chapter34.Turing.TMClique
 #print axioms compatibilityEdges_restoreTaggedRowsRun
 #print axioms compatibilityEdges_emitFlaggedRowRun
 #print axioms compatibilityEdges_emitCompatibleEdgeRun
+#print axioms compatibilityEdges_emitPriorRowsRun
 
 private def runCompatibilityFuel : Nat →
     BuilderCfg compatibilityEdgesProgram → BuilderCfg compatibilityEdgesProgram
