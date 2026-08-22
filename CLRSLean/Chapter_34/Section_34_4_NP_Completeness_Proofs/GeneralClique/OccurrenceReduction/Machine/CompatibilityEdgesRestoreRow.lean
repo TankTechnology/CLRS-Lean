@@ -128,6 +128,13 @@ private def compatibilityEdges_restoreVertexTicksRun
       simp only [Nat.succ_ne_zero, if_false, ite_self,
         replicate_tick_append_tick]
 
+/-- Exact budget for restoring one tagged occurrence row. -/
+def compatibilityEdgesRestoreTaggedRowSteps
+    (prior : IndexedOccurrence × Nat) : Nat :=
+  2 * prior.2 + prior.1.clauseIndex +
+    occurrencePolarityCode prior.1.literal +
+    occurrenceVariableCode prior.1.literal + 7
+
 /-- Exact local run from a previously consumed tag marker through one reversed
 row.  The row is restored in forward order above work one, followed by its
 one-symbol compatibility flag. -/
@@ -148,9 +155,7 @@ def compatibilityEdges_restoreTaggedRowRun
           (encodeIndexedOccurrenceEntry prior ++
             [if compatible then .tick else .separator] ++ work₁)
           tail upper 0 0))
-        (2 * prior.2 + prior.1.clauseIndex +
-          occurrencePolarityCode prior.1.literal +
-          occurrenceVariableCode prior.1.literal + 7) := by
+        (compatibilityEdgesRestoreTaggedRowSteps prior) := by
   rcases prior with ⟨priorOccurrence, priorVertex⟩
   rcases priorOccurrence with ⟨priorClause, priorPosition, priorLiteral⟩
   let rowFlag : UnaryFrameSym := if compatible then .tick else .separator
@@ -269,6 +274,7 @@ def compatibilityEdges_restoreTaggedRowRun
     simp [encodeIndexedOccurrenceEntry, indexedOccurrenceRowValues,
       encodeUnaryFrame, encodeUnaryFrameBlock, rowFlag, afterFlagWork₁,
       afterEndWork₁, afterVariableSeparatorWork₁,
+      compatibilityEdgesRestoreTaggedRowSteps,
       List.append_assoc, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
   omega
 
