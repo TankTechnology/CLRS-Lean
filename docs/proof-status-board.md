@@ -7,7 +7,7 @@ from [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv); theorem-level
 evidence lives in [`proof-map.md`](proof-map.md). This page owns priorities,
 not a duplicate completion ledger.
 
-Last evidence reconciliation: 2026-08-14.
+Last evidence reconciliation: 2026-08-22.
 
 The six-phase maintenance cleanup is complete: the ledger audit is reconciled,
 branch hygiene is done, and the final Pages deployment (`Build and deploy Verso
@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, NP-Completeness | The three represented §34.4 machine reductions compile. Cook--Levin now has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness; the concrete certificate checker and `GeneralCircuitSAT ∈ NP` are also closed. | Add the honest general graph-plus-`k` CLIQUE language and then formalize the selected §34.5 textbook reductions. |
+| P0 | Chapter 34, NP-Completeness | The three represented §34.4 machine reductions compile. Cook--Levin has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness. The direct general-circuit-to-SAT bridge is semantically exact on honest circuits, total on raw strings, and polynomial in output size. | Add the honest general graph-plus-`k` CLIQUE language and then formalize the selected §34.5 textbook reductions. A direct-map TM2 and SAT NP verifier are optional refinements, not prerequisites for this coverage step. |
 | P1 | Chapter 34, general CLIQUE and §34.5 | The current CLIQUE target is the specialized occurrence graph generated from 3-CNF. General graph-plus-`k` CLIQUE and the §34.5 reduction chain are not represented. | Add the general CLIQUE semantic/encoding layer, then formalize the selected §34.5 textbook reductions without treating open complexity questions as proof obligations. |
 
 ## Stable Represented Scope

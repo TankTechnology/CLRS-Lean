@@ -27,9 +27,9 @@ proves the decoder, encoder-size, and polynomial-time bounds;
 `TM2ComputableInPolyTime`.  The theorem below exposes the resulting
 `PolyTimeReducible SAT ThreeCNFSat`.
 
-The focused source and interface gates pass.  The deliberately deferred
-repository-wide build remains the final acceptance gate before the project
-ledger is promoted from partial to complete.
+The focused source and interface gates and the repository-wide build pass.
+This represented reduction is promoted in the Chapter 34 public interface;
+the chapter remains partial only for separately recorded coverage gaps.
 -/
 
 namespace CLRS

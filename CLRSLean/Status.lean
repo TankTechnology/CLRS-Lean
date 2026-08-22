@@ -54,12 +54,15 @@ repository row whose status remains {lit}`partial`.
   checker Boolean on every input, and all successful, rejecting, and malformed
   routes share an explicit polynomial runtime bound, proving
   `GeneralCircuitSAT ∈ NP`.  The explicit Cook--Levin map, semantic equivalence,
-  and polynomial output-length bound now yield the separately named
-  {lit}`cookLevin_textbookCircuitization` semantic-and-size package.  This is
-  not NP-hardness: the concrete polynomial-time generator TM2 and hence the
-  standard {lit}`NPHard GeneralCircuitSAT` and
-  {lit}`NPComplete GeneralCircuitSAT`, general graph-plus-{lit}`k` CLIQUE, and
-  Section 34.5 remain open.
+  and polynomial output-length bound yield the separately named
+  {lit}`cookLevin_textbookCircuitization` semantic-and-size package.  A fixed
+  polynomial-time TM2 now computes that exact map, so
+  {lit}`cookLevin_theorem`, {lit}`generalCircuitSAT_npHard`, and
+  {lit}`generalCircuitSAT_npComplete` close the Cook--Levin main theorem.
+  The direct textbook general-circuit-to-SAT formula is also semantically
+  exact; its total raw map preserves language membership and has a cubic
+  output-length bound.  A concrete TM2 for this latter map, a concrete SAT NP
+  verifier, general graph-plus-{lit}`k` CLIQUE, and Section 34.5 remain open.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
