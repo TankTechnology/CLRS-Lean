@@ -1,0 +1,15 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique
+
+namespace CLRS.Chapter34
+
+#check CliqueInstance
+#check GeneralCLIQUE
+#check cliqueVerifier_eq_true_iff
+#check mem_generalCLIQUE_iff_exists_certificate
+#check occurrenceCliqueInstance
+#check occurrenceCliqueInstance_wellFormed
+#check cnfSatisfiable_iff_occurrenceCliqueInstance
+#check threeCNFToGeneralCliqueMap_mem_iff
+#check threeCNFToGeneralCliqueMap_length
+
+end CLRS.Chapter34

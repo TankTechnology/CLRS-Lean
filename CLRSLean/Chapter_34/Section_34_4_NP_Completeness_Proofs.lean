@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin
 
@@ -10,8 +11,9 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin
 
 The represented polynomial-time reductions around CLRS §34.4: CIRCUIT-SAT
 poly-reduces to SAT, SAT to at-most-three-literal 3-CNF-SAT, and 3-CNF-SAT to
-the specialized occurrence-graph clique language.  This facade imports both
-the semantic and machine constructions.
+both the specialized occurrence language and the honest serialized general
+CLIQUE language.  This facade imports the completed semantic constructions and
+the machine constructions that have reached their own verification boundary.
 
 Focused implementation status (2026-08-13): CIRCUIT-SAT → SAT is complete
 (`circuitSAT_reducible_to_SAT`), and the 3-CNF-SAT occurrence-graph semantic
@@ -19,8 +21,12 @@ core (`cnfSatisfiable_iff_hasClique`) and machine reduction are in place.  The
 SAT → 3-CNF-SAT semantic layer and concrete machine now assemble
 `Turing.TM3CNF.sat_reducible_to_threeCNFSat`.  Focused source and public
 interface checks and repository policy checks pass; a full-repository Lean
-build is not part of this checkpoint.  A genuine general graph-plus-`k` CLIQUE
-encoding remains a separate gap.  The bounded-builder core now includes
+build is not part of this checkpoint.  General graph-plus-{lit}`k` CLIQUE now
+has a unique raw grammar, well-formed graph semantics, exact Boolean
+certificate semantics with a quadratic certificate bound, and an indexed
+3-CNF occurrence reduction with exact raw-language correctness and a cubic
+output-size bound.  Its concrete reduction and verifier TM2s remain the next
+machine-strengthening boundary.  The bounded-builder core now includes
 its typed independent semantics, concrete compiler, one-step correctness, and
 an exact bounded-run bridge to TM2 output witnesses.  Reusable scan/copy,
 symbol-local bounded-loop, and row-major nested-loop macros are verified with
@@ -52,6 +58,6 @@ the total raw map `generalCircuitToSATMap` preserves membership on every input
 string and has an explicit cubic output-length bound.  This closes the semantic
 and representation-size layer.  A concrete TM2 implementation of that direct
 map and a concrete SAT NP verifier remain explicit refinements; honest general
-graph-plus-{lit}`k` CLIQUE and Section 34.5 remain the principal textbook-
-coverage gaps.
+general CLIQUE machine assembly and Section 34.5 remain the principal
+textbook-coverage gaps.
 -/
