@@ -25,7 +25,7 @@
 
 - Create: `Tests/Chapter_34_GeneralClique_Interface.lean`
 
-- [ ] Add checks for the exact final API:
+- [x] Add checks for the exact final API:
 
 ```lean
 import CLRSLean.Chapter_34
@@ -60,8 +60,8 @@ namespace CLRS.Chapter34
 end CLRS.Chapter34
 ```
 
-- [ ] Run `lake env lean Tests/Chapter_34_GeneralClique_Interface.lean` and confirm it fails first at unknown `CliqueSym`.
-- [ ] Commit the red contract: `git add Tests/Chapter_34_GeneralClique_Interface.lean && git commit -m "test(ch34): specify honest general CLIQUE interface"`.
+- [x] Run `lake env lean Tests/Chapter_34_GeneralClique_Interface.lean` and confirm it fails first at unknown `CliqueSym`.
+- [x] Commit the red contract: `git add Tests/Chapter_34_GeneralClique_Interface.lean && git commit -m "test(ch34): specify honest general CLIQUE interface"`.
 
 ## Task 2: Define graph-plus-`k` semantics
 
