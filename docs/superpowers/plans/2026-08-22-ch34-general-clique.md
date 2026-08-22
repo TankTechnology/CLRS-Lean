@@ -70,8 +70,8 @@ end CLRS.Chapter34
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Instance.lean`
 - Create: `Tests/Chapter_34_GeneralClique_Instance.lean`
 
-- [ ] Add executable small examples first: the triangle has a 3-clique, the three-vertex path does not, malformed oriented edges are not well formed.
-- [ ] Define:
+- [x] Add executable small examples first: the triangle has a 3-clique, the three-vertex path does not, malformed oriented edges are not well formed.
+- [x] Define:
 
 ```lean
 structure CliqueInstance where
@@ -101,9 +101,9 @@ def HasClique (I : CliqueInstance) : Prop :=
 end CliqueInstance
 ```
 
-- [ ] Prove `Adj` symmetry, irreflexivity, and the normalized-edge introduction/elimination lemmas used by the reduction.
-- [ ] Run `lake env lean Tests/Chapter_34_GeneralClique_Instance.lean` and the source file.
-- [ ] Commit: `git commit -am "feat(ch34): define general CLIQUE semantics"`.
+- [x] Prove `Adj` symmetry, irreflexivity, and the normalized-edge introduction/elimination lemmas used by the reduction.
+- [x] Run `lake env lean Tests/Chapter_34_GeneralClique_Instance.lean` and the source file.
+- [x] Commit: `git commit -am "feat(ch34): define general CLIQUE semantics"`.
 
 ## Task 3: Implement the unique instance and certificate codecs
 
