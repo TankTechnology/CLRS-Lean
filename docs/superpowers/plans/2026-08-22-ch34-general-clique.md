@@ -273,7 +273,7 @@ theorem cnfSatisfiable_iff_occurrenceCliqueInstance (f : CNF) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Encoding.lean`
 - Create: `Tests/Chapter_34_GeneralClique_RawReduction.lean`
 
-- [ ] Define the canonical well-formed no-instance and total map:
+- [x] Define the canonical well-formed no-instance and total map:
 
 ```lean
 def noCliqueInstance : CliqueInstance :=
@@ -285,22 +285,22 @@ def threeCNFToGeneralCliqueMap (input : List CNFSym) : List CliqueSym :=
   else encodeCliqueInstance noCliqueInstance
 ```
 
-- [ ] Prove rejection of the fallback, then the exact raw theorem:
+- [x] Prove rejection of the fallback, then the exact raw theorem:
 
 ```lean
 theorem threeCNFToGeneralCliqueMap_mem_iff (input : List CNFSym) :
     threeCNFToGeneralCliqueMap input ∈ GeneralCLIQUE ↔ input ∈ ThreeCNFSat
 ```
 
-- [ ] Bound the position count by `input.length`, edge count by its square, every endpoint by the position count, and assemble:
+- [x] Bound the position count by `input.length`, edge count by its square, every endpoint by the position count, and assemble:
 
 ```lean
 theorem threeCNFToGeneralCliqueMap_length (input : List CNFSym) :
     (threeCNFToGeneralCliqueMap input).length ≤ 64 * (input.length + 1) ^ 3
 ```
 
-- [ ] Run source and raw-reduction tests.
-- [ ] Commit: `git commit -am "proof(ch34): close raw 3-CNF to CLIQUE map"`.
+- [x] Run source and raw-reduction tests.
+- [x] Commit: `git commit -am "proof(ch34): close raw 3-CNF to CLIQUE map"`.
 
 ## Task 9: Build the concrete reduction TM2
 
