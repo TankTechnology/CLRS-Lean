@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Ba
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Verification
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.VerifierMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT
 
 /-!
 # General Acyclic Boolean Circuits
@@ -14,4 +15,6 @@ finite-certificate semantics.  The concrete TM2 verifier computes that Boolean
 on every input; all successful, canonical-rejecting, and malformed routes lie
 under one explicit quartic polynomial.  The facade also exports polynomial
 verifiability and `GeneralCircuitSAT ∈ NP`.
+The `ToSAT` layer additionally exports the textbook consistency formula, its
+exact raw-language semantics, and its polynomial output-size bound.
 -/

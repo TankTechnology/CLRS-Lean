@@ -45,4 +45,11 @@ map, its exact semantics, and its polynomial output bound are assembled into
 not imply NP-hardness: the concrete polynomial-time TM2 implementation of the
 map, needed for the standard {lit}`NPHard` and {lit}`NPComplete` predicates,
 remains downstream.
+
+The honest general-circuit language now also has the direct textbook bridge to
+SAT.  `generalCircuitToFormula` is semantically exact on well-formed circuits;
+the total raw map `generalCircuitToSATMap` preserves membership on every input
+string and has an explicit cubic output-length bound.  This closes the semantic
+and representation-size layer, while leaving a concrete TM2 implementation of
+that raw map as an explicitly documented refinement.
 -/
