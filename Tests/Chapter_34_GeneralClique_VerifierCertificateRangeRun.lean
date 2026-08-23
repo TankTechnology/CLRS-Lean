@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.CertificateRange.Run
+
+open CLRS Chapter34 StateTransition
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.CertificateRange
+
+#check vertexFieldSteps
+#check instanceSteps
+#check certificateRange_run
