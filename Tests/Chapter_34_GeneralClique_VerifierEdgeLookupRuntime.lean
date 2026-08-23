@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.EdgeLookup.Runtime
+
+open CLRS Chapter34 StateTransition
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.EdgeLookup
+
+#check edgeLookupSteps_le
+#check edgeLookup_outputs_in_time
+#check edgeLookupComputableInPolyTime
