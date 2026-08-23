@@ -54,10 +54,10 @@ namespace Turing
 
 namespace TM2AndOr
 
-variable {Γ : Type} [Fintype Γ] [Inhabited Γ]
-variable {f₁ f₂ : List Γ → Bool}
-variable (M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁)
-variable (M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂)
+variable {α Γ : Type} [Fintype Γ] [Inhabited Γ]
+variable {encode : α → List Γ} {f₁ f₂ : α → Bool}
+variable (M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁)
+variable (M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂)
 
 /-- The extra stack: a scratch used to duplicate the input. -/
 inductive AndOrExtraK : Type
@@ -101,23 +101,23 @@ abbrev AndOrΛ := Sum (Sum M₁.tm.Λ M₂.tm.Λ) AndOrExtraΛ
 abbrev AndOrσ := M₁.tm.σ × M₂.tm.σ × AndOrSt Γ
 
 /-- `M₁`'s input stack (also the combined input stack). -/
-abbrev inK {M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁}
-    {M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
+abbrev inK {M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁}
+    {M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
   Sum.inl (Sum.inl M₁.tm.k₀)
 
 /-- `M₂`'s input stack (holds the duplicated copy of the input). -/
-abbrev in2K {M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁}
-    {M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
+abbrev in2K {M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁}
+    {M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
   Sum.inl (Sum.inr M₂.tm.k₀)
 
 /-- The combined output stack: `M₂`'s output stack. -/
-abbrev outK {M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁}
-    {M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
+abbrev outK {M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁}
+    {M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
   Sum.inl (Sum.inr M₂.tm.k₁)
 
 /-- The scratch stack, holding `Γ` elements. -/
-abbrev tmpK {M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁}
-    {M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
+abbrev tmpK {M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁}
+    {M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂} : AndOrK M₁ M₂ :=
   Sum.inr AndOrExtraK.dupTemp
 
 /-- The combined index type is decidable. -/
@@ -148,13 +148,13 @@ def andOrσFintype : Fintype (AndOrσ M₁ M₂) := by
 def andOrΓk₀Fintype : Fintype (AndOrΓ M₁ M₂ inK) :=
   M₁.tm.Γk₀Fin
 
-instance andOrKInst (M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁)
-    (M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂) :
+instance andOrKInst (M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁)
+    (M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂) :
     DecidableEq (AndOrK M₁ M₂) :=
   andOrKDecidableEq M₁ M₂
 
-instance andOrKFinInst (M₁ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₁)
-    (M₂ : TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding f₂) :
+instance andOrKFinInst (M₁ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₁)
+    (M₂ : TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding f₂) :
     Fintype (AndOrK M₁ M₂) :=
   andOrKFintype M₁ M₂
 
@@ -277,7 +277,7 @@ def dupInput (x : List Γ) : ∀ k : M₂.tm.K, List (M₂.tm.Γ k) :=
   (initList M₂.tm (List.map M₂.inputAlphabet.invFun x)).stk
 
 /-- `M₁`'s stacks frozen after phase 1: the `haltList` stacks for output `[f₁ x]`. -/
-def halt₁stk (x : List Γ) : ∀ k : M₁.tm.K, List (M₁.tm.Γ k) :=
+def halt₁stk (x : α) : ∀ k : M₁.tm.K, List (M₁.tm.Γ k) :=
   (haltList M₁.tm (List.map M₁.outputAlphabet.invFun [f₁ x])).stk
 
 /-- Embedding both machines' stacks in the combined machine. -/
@@ -702,9 +702,12 @@ lemma dup_phase (x : List Γ) :
 /-- The phase-1 halt configuration is the phase-2 start configuration: `M₁`'s
 output `[f₁ x]` is `M₂`'s input and the duplicated copy of the input is already
 on `M₂`'s input stack. -/
-lemma mapCfg₁to₂ (x : List Γ) :
-    mapCfg₁ M₁ M₂ (haltList M₁.tm (List.map M₁.outputAlphabet.invFun [f₁ x])) (dupInput M₂ x)
-      = mapCfg₂ M₁ M₂ (initList M₂.tm (List.map M₂.inputAlphabet.invFun x)) (halt₁stk M₁ x) := by
+lemma mapCfg₁to₂ (x : α) :
+    mapCfg₁ M₁ M₂ (haltList M₁.tm (List.map M₁.outputAlphabet.invFun [f₁ x]))
+        (dupInput M₂ (encode x)) =
+      mapCfg₂ M₁ M₂
+        (initList M₂.tm (List.map M₂.inputAlphabet.invFun (encode x)))
+        (halt₁stk M₁ x) := by
   apply Turing.TM2Comp.Cfg_ext
   · rfl
   · rfl
@@ -728,7 +731,7 @@ lemma mapCfg₁to₂ (x : List Γ) :
 /-- The combine phase: one step pops `b₁` from `M₁`'s output, pops `b₂` from
 `M₂`'s output, pushes `op b₁ b₂` onto the combined output stack, resets the
 state and halts. -/
-lemma combine_step (x : List Γ) :
+lemma combine_step (x : α) :
     (flip bind (andOrMachine M₁ M₂ op).step)
         (some (mapCfg₂ M₁ M₂ (haltList M₂.tm (List.map M₂.outputAlphabet.invFun [f₂ x])) (halt₁stk M₁ x)))
       = some (haltList (andOrMachine M₁ M₂ op) (List.map M₂.outputAlphabet.invFun [op (f₁ x) (f₂ x)])) := by
@@ -765,48 +768,57 @@ def andOrTime : Polynomial ℕ := M₁.time + M₂.time + (2 * Polynomial.X + 3)
 
 /-- The combined machine's `outputsFun`: duplicate the input, run `M₁`, run
 `M₂`, combine the two Boolean results with `op`. -/
-def andOr_outputsFun (op : Bool → Bool → Bool) (x : List Γ) :
+def andOr_outputsFun (op : Bool → Bool → Bool) (x : α) :
     TM2OutputsInTime (andOrMachine M₁ M₂ op)
-      (List.map (andOrInputAlphabet M₁ M₂).invFun (id x))
+      (List.map (andOrInputAlphabet M₁ M₂).invFun (encode x))
       (some (List.map (andOrOutputAlphabet M₁ M₂).invFun (Turing.TM2Comp.boolEncoding (op (f₁ x) (f₂ x)))))
-      ((andOrTime M₁ M₂).eval x.length) := by
-  let n := x.length
+      ((andOrTime M₁ M₂).eval (encode x).length) := by
+  let input := encode x
+  let n := input.length
   let m₁ := (M₁.time).eval n
   let m₂ := (M₂.time).eval n
-  let initC := initList (andOrMachine M₁ M₂ op) (List.map M₁.inputAlphabet.invFun x)
-  let init₁ := initList M₁.tm (List.map M₁.inputAlphabet.invFun x)
+  let initC := initList (andOrMachine M₁ M₂ op)
+    (List.map M₁.inputAlphabet.invFun input)
+  let init₁ := initList M₁.tm (List.map M₁.inputAlphabet.invFun input)
   let halt₁ := haltList M₁.tm (List.map M₁.outputAlphabet.invFun [f₁ x])
-  let init₂ := initList M₂.tm (List.map M₂.inputAlphabet.invFun x)
+  let init₂ := initList M₂.tm (List.map M₂.inputAlphabet.invFun input)
   let halt₂ := haltList M₂.tm (List.map M₂.outputAlphabet.invFun [f₂ x])
-  let C₁ := mapCfg₁ M₁ M₂ init₁ (dupInput M₂ x)
+  let C₁ := mapCfg₁ M₁ M₂ init₁ (dupInput M₂ input)
   let C₃ := mapCfg₂ M₁ M₂ init₂ (halt₁stk M₁ x)
   let C₄ := mapCfg₂ M₁ M₂ halt₂ (halt₁stk M₁ x)
   let haltC := haltList (andOrMachine M₁ M₂ op) (List.map M₂.outputAlphabet.invFun [op (f₁ x) (f₂ x)])
   change EvalsToInTime (andOrMachine M₁ M₂ op).step initC (some haltC) ((andOrTime M₁ M₂).eval n)
 
   -- duplicate phase
-  have hdupIt : EvalsToInTime (andOrMachine M₁ M₂ op).step initC (some C₁) (2 * x.length + 2) := by
-    refine ⟨⟨2 * x.length + 2, ?_⟩, le_rfl⟩
-    change (flip bind (andOrMachine M₁ M₂ op).step)^[2 * x.length + 2] (some initC) = some C₁
-    exact dup_phase M₁ M₂ x
+  have hdupIt : EvalsToInTime (andOrMachine M₁ M₂ op).step initC
+      (some C₁) (2 * input.length + 2) := by
+    refine ⟨⟨2 * input.length + 2, ?_⟩, le_rfl⟩
+    change (flip bind (andOrMachine M₁ M₂ op).step)^[2 * input.length + 2]
+      (some initC) = some C₁
+    exact dup_phase M₁ M₂ input
 
   -- phase 1
   have h₁run : EvalsToInTime M₁.tm.step init₁ (some halt₁) m₁ := by
     have hh := M₁.outputsFun x
-    simpa [n, m₁, init₁, Turing.TM2Comp.boolEncoding, halt₁, TM2OutputsInTime, id] using hh
+    simpa [input, n, m₁, init₁, Turing.TM2Comp.boolEncoding, halt₁,
+      TM2OutputsInTime] using hh
   have hstop₁ : M₁.tm.step halt₁ = none := rfl
-  have hlift₁ : EvalsToInTime (andOrMachine M₁ M₂ op).step (mapCfg₁ M₁ M₂ init₁ (dupInput M₂ x))
-        (some (mapCfg₁ M₁ M₂ halt₁ (dupInput M₂ x))) m₁ :=
-    Turing.TM2Comp.evalsToInTime_lift (fun c₁ => mapCfg₁ M₁ M₂ c₁ (dupInput M₂ x)) h₁run hstop₁
-      (stepC_sim₁ M₁ M₂ (dupInput M₂ x))
-  have hbridge₁ : mapCfg₁ M₁ M₂ halt₁ (dupInput M₂ x) = C₃ := mapCfg₁to₂ M₁ M₂ x
+  have hlift₁ : EvalsToInTime (andOrMachine M₁ M₂ op).step
+        (mapCfg₁ M₁ M₂ init₁ (dupInput M₂ input))
+        (some (mapCfg₁ M₁ M₂ halt₁ (dupInput M₂ input))) m₁ :=
+    Turing.TM2Comp.evalsToInTime_lift
+      (fun c₁ => mapCfg₁ M₁ M₂ c₁ (dupInput M₂ input)) h₁run hstop₁
+      (stepC_sim₁ M₁ M₂ (dupInput M₂ input))
+  have hbridge₁ : mapCfg₁ M₁ M₂ halt₁ (dupInput M₂ input) = C₃ := by
+    simpa [input, halt₁, init₂, C₃] using mapCfg₁to₂ M₁ M₂ x
   have h₁ : EvalsToInTime (andOrMachine M₁ M₂ op).step C₁ (some C₃) m₁ := by
     simpa [C₁, C₃] using (by rwa [hbridge₁] at hlift₁)
 
   -- phase 2
   have h₂run : EvalsToInTime M₂.tm.step init₂ (some halt₂) m₂ := by
     have hh := M₂.outputsFun x
-    simpa [n, m₂, init₂, Turing.TM2Comp.boolEncoding, halt₂, TM2OutputsInTime, id] using hh
+    simpa [input, n, m₂, init₂, Turing.TM2Comp.boolEncoding, halt₂,
+      TM2OutputsInTime] using hh
   have hstop₂ : M₂.tm.step halt₂ = none := rfl
   have hlift₂ : EvalsToInTime (andOrMachine M₁ M₂ op).step (mapCfg₂ M₁ M₂ init₂ (halt₁stk M₁ x))
         (some (mapCfg₂ M₁ M₂ halt₂ (halt₁stk M₁ x))) m₂ :=
@@ -822,19 +834,27 @@ def andOr_outputsFun (op : Bool → Bool → Bool) (x : List Γ) :
     exact combine_step M₁ M₂ x
 
   -- chain the phases
-  have h₁₂It : EvalsToInTime (andOrMachine M₁ M₂ op).step initC (some C₃) (m₁ + (2 * x.length + 2)) :=
-    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step (2 * x.length + 2) m₁ initC C₁ (some C₃) hdupIt h₁
-  have h₁₂₃It : EvalsToInTime (andOrMachine M₁ M₂ op).step initC (some C₄) (m₂ + (m₁ + (2 * x.length + 2))) :=
-    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step (m₁ + (2 * x.length + 2)) m₂ initC C₃ (some C₄) h₁₂It h₂
+  have h₁₂It : EvalsToInTime (andOrMachine M₁ M₂ op).step initC
+      (some C₃) (m₁ + (2 * input.length + 2)) :=
+    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step
+      (2 * input.length + 2) m₁ initC C₁ (some C₃) hdupIt h₁
+  have h₁₂₃It : EvalsToInTime (andOrMachine M₁ M₂ op).step initC
+      (some C₄) (m₂ + (m₁ + (2 * input.length + 2))) :=
+    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step
+      (m₁ + (2 * input.length + 2)) m₂ initC C₃ (some C₄) h₁₂It h₂
   have hchain : EvalsToInTime (andOrMachine M₁ M₂ op).step initC (some haltC)
-        (1 + (m₂ + (m₁ + (2 * x.length + 2)))) :=
-    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step (m₂ + (m₁ + (2 * x.length + 2))) 1 initC C₄ (some haltC) h₁₂₃It hcombIt
+        (1 + (m₂ + (m₁ + (2 * input.length + 2)))) :=
+    EvalsToInTime.trans (andOrMachine M₁ M₂ op).step
+      (m₂ + (m₁ + (2 * input.length + 2))) 1 initC C₄
+      (some haltC) h₁₂₃It hcombIt
 
   -- time bound
-  have htime : (andOrTime M₁ M₂).eval n = m₁ + m₂ + (2 * x.length + 3) := by
-    simp [n, m₁, m₂, andOrTime, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_X,
-      Polynomial.eval_natCast]
-  have hbound : 1 + (m₂ + (m₁ + (2 * x.length + 2))) ≤ (andOrTime M₁ M₂).eval n := by
+  have htime : (andOrTime M₁ M₂).eval n =
+      m₁ + m₂ + (2 * input.length + 3) := by
+    simp [n, m₁, m₂, andOrTime, Polynomial.eval_add,
+      Polynomial.eval_mul, Polynomial.eval_X, Polynomial.eval_natCast]
+  have hbound : 1 + (m₂ + (m₁ + (2 * input.length + 2))) ≤
+      (andOrTime M₁ M₂).eval n := by
     rw [htime]
     omega
   exact { hchain with steps_le_m := le_trans hchain.steps_le_m hbound }
@@ -842,7 +862,8 @@ def andOr_outputsFun (op : Bool → Bool → Bool) (x : List Γ) :
 /-- The combination of two polytime deciders is polytime: `x ↦ [op (f₁ x) (f₂ x)]`
 is computed by the combined machine. -/
 def andOrComputableInPolyTime (op : Bool → Bool → Bool) :
-    TM2ComputableInPolyTime (id : List Γ → List Γ) Turing.TM2Comp.boolEncoding (fun x => op (f₁ x) (f₂ x)) where
+    TM2ComputableInPolyTime encode Turing.TM2Comp.boolEncoding
+      (fun x => op (f₁ x) (f₂ x)) where
   tm := andOrMachine M₁ M₂ op
   inputAlphabet := andOrInputAlphabet M₁ M₂
   outputAlphabet := andOrOutputAlphabet M₁ M₂
