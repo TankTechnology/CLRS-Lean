@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.CertificateRange.Header
+
+open CLRS Chapter34 StateTransition
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.CertificateRange
+
+#check certificatePhaseSteps
+#check certificatePhase_run
+#check finishCertificateSteps
+#check finishCertificate_run
