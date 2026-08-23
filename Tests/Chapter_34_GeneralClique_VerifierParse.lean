@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.Parse
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.ParseSemantics
 
 open CLRS.Chapter34
 
@@ -7,3 +7,4 @@ open CLRS.Chapter34
 #check Turing.GeneralCliqueVerifier.parsePairStream_pairEncoding
 #check Turing.GeneralCliqueVerifier.parsePairStream_encoded
 #check Turing.GeneralCliqueVerifier.parsePairComputableInPolyTime
+#check Turing.GeneralCliqueVerifier.parsePairStatus_eq_syntaxOK_iff
