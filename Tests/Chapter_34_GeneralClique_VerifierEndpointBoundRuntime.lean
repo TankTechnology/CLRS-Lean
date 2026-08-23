@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.EndpointBound.Runtime
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.EndpointBound
+
+#check endpointBound_run
+#check endpointBoundSteps_le
+#check endpointBound_outputs_in_time
+#check endpointBoundPassComputableInPolyTime
