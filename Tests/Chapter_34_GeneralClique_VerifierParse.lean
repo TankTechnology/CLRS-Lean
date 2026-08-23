@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.Parse
+
+open CLRS.Chapter34
+
+#check Turing.GeneralCliqueVerifier.TaggedSym
+#check Turing.GeneralCliqueVerifier.parsePairStream
+#check Turing.GeneralCliqueVerifier.parsePairStream_pairEncoding
+#check Turing.GeneralCliqueVerifier.parsePairStream_encoded
+#check Turing.GeneralCliqueVerifier.parsePairComputableInPolyTime
