@@ -192,13 +192,14 @@ theorem rewriteUnaryFrameMarkedRowConcat_interleaved
 
 namespace UnaryFrameMarkedRowParallelConcat
 
-variable {Γ : Type} [Fintype Γ]
-variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
+variable {α Γ : Type} [Fintype Γ]
+variable {encode : α → List Γ}
+variable {leftFamily rightFamily : α → UnaryFrameMarkedRowFamily}
 
 private def alignedPair
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length)
-    (input : List Γ) : UnaryFrameAlignedMarkedRowPair :=
+    (input : α) : UnaryFrameAlignedMarkedRowPair :=
   { left := leftFamily input
     right := rightFamily input
     rowAligned := hAligned input }
@@ -207,14 +208,14 @@ private def alignedPair
 def concatenatedFamily
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length)
-    (input : List Γ) : UnaryFrameMarkedRowFamily :=
+    (input : α) : UnaryFrameMarkedRowFamily :=
   (alignedPair hAligned input).concatenated
 
 /-- The public row semantics of the same-input concatenated family. -/
 @[simp] theorem concatenatedFamily_rows
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length)
-    (input : List Γ) :
+    (input : α) :
     (concatenatedFamily hAligned input).rows =
       concatUnaryFrameMarkedRows (leftFamily input).rows
         (rightFamily input).rows := rfl
@@ -222,18 +223,18 @@ def concatenatedFamily
 /-- A fixed polynomial-time TM2 runs both sources and concatenates their
 corresponding rows without retaining the internal join boundary. -/
 noncomputable def computableInPolyTime
-    (M₁ : _root_.Turing.TM2ComputableInPolyTime id
+    (M₁ : _root_.Turing.TM2ComputableInPolyTime encode
       encodeUnaryFrameMarkedRowFamily leftFamily)
-    (M₂ : _root_.Turing.TM2ComputableInPolyTime id
+    (M₂ : _root_.Turing.TM2ComputableInPolyTime encode
       encodeUnaryFrameMarkedRowFamily rightFamily)
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length) :
-    _root_.Turing.TM2ComputableInPolyTime id
+    _root_.Turing.TM2ComputableInPolyTime encode
       encodeUnaryFrameMarkedRowFamily (concatenatedFamily hAligned) := by
   let interleaved :=
     UnaryFrameMarkedRowParallelInterleave.computableInPolyTime M₁ M₂ hAligned
   let interleavedRaw :
-      _root_.Turing.TM2ComputableInPolyTime id id
+      _root_.Turing.TM2ComputableInPolyTime encode id
         (fun input => encodeUnaryFrameMarkedRowFamily
           (UnaryFrameMarkedRowParallelInterleave.interleavedFamily hAligned
             input)) :=
