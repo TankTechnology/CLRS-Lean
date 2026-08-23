@@ -98,7 +98,7 @@ def program : Program (Option CliqueSym) Bool where
     | .targetField => .popInput (.clearInput false) fun
         | some .fieldSep => .edges
         | _ => .targetField
-    | .edges => .popInput (.clearInput true) fun
+    | .edges => .popInput (.clearInput false) fun
         | some .edgeMark => .left true
         | _ => .clearInput false
     | .left equal => .popInput (.clearInput false) fun
