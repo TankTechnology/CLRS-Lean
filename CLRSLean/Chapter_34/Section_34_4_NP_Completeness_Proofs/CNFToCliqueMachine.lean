@@ -13,13 +13,12 @@ back) and halts.
 
 The semantic reduction `cnfSatisfiable_iff_hasClique` and the occurrence-graph
 encoding live in `CNFToClique`; this file assembles the machine, its
-`outputsFun`, and the reduction to `ThreeCNFOccurrenceCLIQUE`.  The legacy
-`CLIQUE` name is a compatibility alias for that specialized intermediate, not
-the general graph-plus-`k` problem.
+`outputsFun`, and the reduction to `ThreeCNFOccurrenceCLIQUE`.
 
 **Status (2026-08-13).**  The scan/copyOut machine, the phase lemmas, the
 `outputsFun`, and the assembled reduction to the guarded occurrence-graph
-language are written.  A genuine general CLIQUE target remains pending.
+language are written.  The public textbook `CLIQUE` reduction is exported by
+the honest general-CLIQUE facade.
 -/
 
 namespace CLRS
@@ -357,12 +356,6 @@ theorem threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE :
     simp only [ThreeCNFSat, ThreeCNFOccurrenceCLIQUE, Set.mem_setOf_eq,
       undoRelabel_relabel]
     exact and_congr_right fun _ => cnfSatisfiable_iff_hasClique (decodeCNF x)
-
-/-- Compatibility spelling for the specialized target currently abbreviated
-as `CLIQUE`. -/
-theorem threeCNFSat_reducible_to_CLIQUE :
-    PolyTimeReducible ThreeCNFSat CLIQUE :=
-  threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE
 
 end TMClique
 

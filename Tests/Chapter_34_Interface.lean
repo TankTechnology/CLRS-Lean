@@ -31,6 +31,9 @@ example (x : List CNFSym) (hx : x ∈ ThreeCNFSat) :
     IsThreeCNF (decodeCNF x) := hx.1
 #check ThreeCNFOccurrenceCLIQUE
 #check Turing.TMClique.threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE
+#check CLIQUE
+#check generalCLIQUE_mem_ClassNP
+#check Turing.TMClique.threeCNFSat_reducible_to_CLIQUE
 
 -- basic sanity checks
 example (Γ : Type) : ClassP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp

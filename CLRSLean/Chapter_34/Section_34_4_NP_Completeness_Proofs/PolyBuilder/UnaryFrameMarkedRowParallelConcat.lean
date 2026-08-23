@@ -268,9 +268,9 @@ noncomputable def computableInPolyTime
           simpa only [Function.comp_def, rewriteUnaryFrameMarkedRowConcat,
             UnaryFrameMarkedRowParallelInterleave.interleavedFamily,
             concatenatedFamily, alignedPair] using hrewrite
-        rw [hrewrite'] at run
+        have transported := hrewrite' ▸ run
         simpa only [Function.comp_def, id_eq, concatenatedFamily,
-          alignedPair] using run }
+          alignedPair] using transported }
 
 end UnaryFrameMarkedRowParallelConcat
 
