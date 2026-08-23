@@ -161,7 +161,8 @@ private theorem encodeReversedOccurrenceEntries_length
       simp [encodeReversedOccurrenceEntries,
         encodeIndexedOccurrenceEntries]
 
-private theorem encodeIndexedOccurrenceEntries_reverse_length
+/-- Reversing a row family preserves its serialized unary length. -/
+theorem encodeIndexedOccurrenceEntries_reverse_length
     (entries : List (IndexedOccurrence × Nat)) :
     (encodeIndexedOccurrenceEntries entries.reverse).length =
       (encodeIndexedOccurrenceEntries entries).length := by
@@ -268,7 +269,9 @@ theorem compatibilityEdgesOuterIterationsSteps_le_input
   nlinarith
 
 
-private theorem load_rows_steps_le
+/-- Loading an arbitrary well-shaped row family is linear in its serialized
+length. -/
+theorem compatibilityEdgesLoadRowsSteps_le_input
     (entries : List (IndexedOccurrence × Nat)) :
     compatibilityEdgesLoadRowsSteps entries ≤
       4 * ((encodeIndexedOccurrenceEntries entries).length + 1) := by
@@ -303,7 +306,7 @@ theorem compatibilityEdgesSteps_le_input (formula : CNF) :
   have hreverse :
       (encodeIndexedOccurrenceEntries entries.reverse).length = inputLength := by
     rw [encodeIndexedOccurrenceEntries_reverse_length, hencoding]
-  have hload := load_rows_steps_le entries
+  have hload := compatibilityEdgesLoadRowsSteps_le_input entries
   rw [hencoding] at hload
   have houter := compatibilityEdgesOuterIterationsSteps_le_input entries.reverse
   rw [hreverse] at houter
@@ -316,4 +319,3 @@ theorem compatibilityEdgesSteps_le_input (formula : CNF) :
   nlinarith
 
 end CLRS.Chapter34.Turing.TMClique
-
