@@ -28,8 +28,8 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, NP-Completeness | The three represented §34.4 machine reductions compile. Cook--Levin has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness. The direct general-circuit-to-SAT bridge is semantically exact on honest circuits, total on raw strings, and polynomial in output size. | Add the honest general graph-plus-`k` CLIQUE language and then formalize the selected §34.5 textbook reductions. A direct-map TM2 and SAT NP verifier are optional refinements, not prerequisites for this coverage step. |
-| P1 | Chapter 34, general CLIQUE and §34.5 | The current CLIQUE target is the specialized occurrence graph generated from 3-CNF. General graph-plus-`k` CLIQUE and the §34.5 reduction chain are not represented. | Add the general CLIQUE semantic/encoding layer, then formalize the selected §34.5 textbook reductions without treating open complexity questions as proof obligations. |
+| P0 | Chapter 34, NP-Completeness | Cook--Levin has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness. Public `CLIQUE` is now the honest serialized graph-plus-`k` language, with exact certificate semantics, a concrete polynomial-time verifier, NP membership, and a concrete 3-CNF-SAT reduction. | Build the concrete `GeneralCircuitSAT → SAT` TM2 needed to compose the full universal NP-hardness chain and publish `NPComplete CLIQUE`. |
+| P1 | Chapter 34, §34.5 | The general CLIQUE layer is represented; the §34.5 NP-complete-problem reductions are not. | Formalize the selected §34.5 textbook chain, beginning with VERTEX-COVER and then HAM-CYCLE → TSP and SUBSET-SUM, without treating open complexity questions as proof obligations. |
 
 ## Stable Represented Scope
 
