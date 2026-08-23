@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.CertificateRange.Runtime
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.CertificateRange
+
+#check certificateRangeSteps
+#check certificateRangeSteps_le
+#check certificateRange_outputs_in_time
+#check certificateRangePassComputableInPolyTime
