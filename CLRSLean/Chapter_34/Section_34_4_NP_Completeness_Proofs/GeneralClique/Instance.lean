@@ -8,7 +8,7 @@ problem.  An undirected edge is stored once, with its smaller endpoint first.
 
 Main definitions:
 
-- `CliqueInstance.WellFormed`: canonical finite graph encoding invariants.
+- `CliqueInstance.WellFormed`: finite graph encoding invariants.
 - `CliqueInstance.Adj`: symmetric adjacency induced by normalized edges.
 - `CliqueInstance.HasClique`: a clique of exactly the requested size.
 -/
@@ -29,10 +29,14 @@ structure CliqueInstance where
 namespace CliqueInstance
 
 /-- A CLIQUE instance is well formed when the target fits in the vertex set
-and its edge list is duplicate-free, normalized, and in range. -/
+and every stored edge is normalized and in range.
+
+Repeated edge records are accepted: adjacency is defined by membership, so
+duplicates do not change the represented simple graph or its cliques.  Edge
+list uniqueness remains available as a separate serialization-canonicality
+predicate when a downstream construction needs it. -/
 def WellFormed (I : CliqueInstance) : Prop :=
   I.targetSize ≤ I.vertexCount ∧
-    I.edges.Nodup ∧
     ∀ e ∈ I.edges, e.1 < e.2 ∧ e.2 < I.vertexCount
 
 /-- Symmetric adjacency induced by the normalized edge list. -/

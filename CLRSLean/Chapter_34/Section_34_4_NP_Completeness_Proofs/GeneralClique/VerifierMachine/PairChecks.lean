@@ -10,7 +10,9 @@ side of `cliqueVerifier`.
 
 namespace CLRS.Chapter34.Turing.GeneralCliqueVerifier
 
-/-- Executable duplicate check for the normalized edge records. -/
+/-- Executable duplicate check for clients that require a canonical edge-list
+serialization.  Textbook CLIQUE semantics itself is insensitive to repeated
+edge records. -/
 def edgeListNodupBool : List (Nat × Nat) → Bool
   | [] => true
   | edge :: rest => decide (edge ∉ rest) && edgeListNodupBool rest
@@ -38,13 +40,12 @@ def edgeBoundsBool (vertexCount : Nat) (edges : List (Nat × Nat)) : Bool :=
 /-- Boolean factorization of the complete instance well-formedness check. -/
 def instanceWellFormedBool (I : CliqueInstance) : Bool :=
   decide (I.targetSize ≤ I.vertexCount) &&
-    edgeListNodupBool I.edges &&
     edgeBoundsBool I.vertexCount I.edges
 
 /-- The factored graph scan is exactly `CliqueInstance.WellFormed`. -/
 theorem instanceWellFormedBool_eq_true_iff (I : CliqueInstance) :
     instanceWellFormedBool I = true ↔ I.WellFormed := by
-  simp [instanceWellFormedBool, CliqueInstance.WellFormed, and_assoc]
+  simp [instanceWellFormedBool, CliqueInstance.WellFormed]
 
 /-- Symmetric lookup of one unordered pair in the normalized edge list. -/
 def adjacencyBool (I : CliqueInstance) (u v : Nat) : Bool :=

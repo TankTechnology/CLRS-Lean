@@ -9,8 +9,8 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Ver
 # General CLIQUE verifier: already-compiled base checks
 
 This module gives a stable Boolean interface to the six independent raw passes
-whose concrete machines have already been verified.  Graph-edge uniqueness and
-certificate pairwise adjacency are intentionally not included here.
+whose concrete machines have already been verified.  Certificate pairwise
+adjacency is intentionally not included here.
 -/
 
 namespace CLRS.Chapter34.Turing.GeneralCliqueVerifier.BaseChecks

@@ -84,7 +84,6 @@ namespace CliqueInstance
 
 def WellFormed (I : CliqueInstance) : Prop :=
   I.targetSize ≤ I.vertexCount ∧
-  I.edges.Nodup ∧
   ∀ e ∈ I.edges, e.1 < e.2 ∧ e.2 < I.vertexCount
 
 def Adj (I : CliqueInstance) (u v : Nat) : Prop :=
@@ -100,6 +99,10 @@ def HasClique (I : CliqueInstance) : Prop :=
 
 end CliqueInstance
 ```
+
+Repeated serialized edge records are accepted: adjacency is membership-based,
+so duplicates do not change the represented simple graph or its cliques. Edge
+list uniqueness remains available as an optional canonicalization check.
 
 - [x] Prove `Adj` symmetry, irreflexivity, and the normalized-edge introduction/elimination lemmas used by the reduction.
 - [x] Run `lake env lean Tests/Chapter_34_GeneralClique_Instance.lean` and the source file.
