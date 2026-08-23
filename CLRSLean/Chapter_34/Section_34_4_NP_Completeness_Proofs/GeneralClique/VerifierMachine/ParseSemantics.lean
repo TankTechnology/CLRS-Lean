@@ -460,4 +460,35 @@ theorem parsePairStatus_eq_syntaxOK_iff
     exact hcertificate ((certificate_scan_agree certificate).mpr
       ⟨vertices, hdecode⟩)
 
+/-- Initial parser mode for a standalone graph-instance string. -/
+def initialInstanceParseMode : ParseMode :=
+  { side := .instance, grammar := .instanceStart, valid := true }
+
+/-- Complete finite-state verdict for a standalone certificate string. -/
+def certificateSyntaxAccepts (certificate : List CliqueSym) : Bool :=
+  let final := scanSymbols initialParseMode certificate
+  final.valid && decide (final.grammar = .certificateVertices)
+
+/-- Complete finite-state verdict for a standalone graph-instance string. -/
+def instanceSyntaxAccepts (input : List CliqueSym) : Bool :=
+  let final := scanSymbols initialInstanceParseMode input
+  final.valid && decide (final.grammar = .instanceEdges)
+
+/-- Standalone certificate syntax agrees with the complete decoder on every
+raw string. -/
+theorem certificateSyntaxAccepts_eq_true_iff
+    (certificate : List CliqueSym) :
+    certificateSyntaxAccepts certificate = true ↔
+      ∃ vertices, decodeCliqueCertificate certificate = some vertices := by
+  simpa [certificateSyntaxAccepts, certificateAccepts] using
+    certificate_scan_agree certificate
+
+/-- Standalone instance syntax agrees with the complete decoder on every raw
+string. -/
+theorem instanceSyntaxAccepts_eq_true_iff (input : List CliqueSym) :
+    instanceSyntaxAccepts input = true ↔
+      ∃ I, decodeCliqueInstance input = some I := by
+  simpa [instanceSyntaxAccepts, initialInstanceParseMode, instanceAccepts,
+    instanceStartState] using instance_scan_agree input
+
 end CLRS.Chapter34.Turing.GeneralCliqueVerifier
