@@ -1,11 +1,9 @@
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Certificate
-import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.OccurrenceReduction
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Public
 
 /-!
-# Honest general CLIQUE: textbook core
+# Honest general CLIQUE
 
 This facade exposes the graph-plus-{lit}`k` language, exact certificate
-semantics, and the semantic/size layers of the 3-CNF occurrence reduction.
-Concrete reduction and verifier machines are intentionally imported only after
-their separate machine-strengthening modules are complete.
+semantics, the fixed polynomial-time certificate-checking machine, NP
+membership, and the concrete polynomial-time 3-CNF-SAT reduction.
 -/

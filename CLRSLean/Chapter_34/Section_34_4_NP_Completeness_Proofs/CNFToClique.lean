@@ -20,13 +20,14 @@ Main results:
 - The graph/list encoding `GraphSym`/`relabel`/`undoRelabel` and the specialized
   language `ThreeCNFOccurrenceCLIQUE`: the reduction maps a 3-CNF encoding to
   its occurrence-graph encoding by inserting a `vertexMark` before each
-  literal.  The legacy name `CLIQUE` is a compatibility alias for this
-  intermediate language, not yet a general graph-plus-`k` CLIQUE encoding.
+  literal.  This intermediate remains explicitly named and distinct from the
+  public graph-plus-`k` `CLIQUE` language.
 
 **Current status**: the semantic core and specialized graph/list encoding are
 in place.  The reduction machine and its `outputsFun`, assembling the
 reduction to `ThreeCNFOccurrenceCLIQUE`, live in `CNFToCliqueMachine`.  A
-general graph-plus-`k` CLIQUE language is not claimed here.
+general graph-plus-`k` CLIQUE language is provided separately by
+`GeneralClique`.
 -/
 
 namespace CLRS
@@ -334,11 +335,6 @@ def ThreeCNFOccurrenceCLIQUE : Language GraphSym :=
       IsThreeCNF (decodeCNF (undoRelabel syms)) ∧
         HasCliqueOn (decodeCNF (undoRelabel syms))
           (decodeCNF (undoRelabel syms)).length }
-
-/-- Compatibility name for the currently represented, specialized occurrence-
-graph target.  A genuine general graph-plus-`k` CLIQUE encoding remains a
-separate Chapter 34 gap. -/
-abbrev CLIQUE : Language GraphSym := ThreeCNFOccurrenceCLIQUE
 
 end Chapter34
 

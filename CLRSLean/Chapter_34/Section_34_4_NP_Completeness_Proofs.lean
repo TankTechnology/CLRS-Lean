@@ -15,7 +15,7 @@ both the specialized occurrence language and the honest serialized general
 CLIQUE language.  This facade imports the completed semantic constructions and
 the machine constructions that have reached their own verification boundary.
 
-Focused implementation status (2026-08-13): CIRCUIT-SAT → SAT is complete
+Focused implementation status (2026-08-24): CIRCUIT-SAT → SAT is complete
 (`circuitSAT_reducible_to_SAT`), and the 3-CNF-SAT occurrence-graph semantic
 core (`cnfSatisfiable_iff_hasClique`) and machine reduction are in place.  The
 SAT → 3-CNF-SAT semantic layer and concrete machine now assemble
@@ -25,8 +25,9 @@ build is not part of this checkpoint.  General graph-plus-{lit}`k` CLIQUE now
 has a unique raw grammar, well-formed graph semantics, exact Boolean
 certificate semantics with a quadratic certificate bound, and an indexed
 3-CNF occurrence reduction with exact raw-language correctness and a cubic
-output-size bound.  Its concrete reduction and verifier TM2s remain the next
-machine-strengthening boundary.  The bounded-builder core now includes
+output-size bound.  Fixed polynomial-time TM2s compute both the reduction and
+the exact raw certificate checker, yielding `GeneralCLIQUE ∈ NP`; the public
+`CLIQUE` name denotes this honest language.  The bounded-builder core includes
 its typed independent semantics, concrete compiler, one-step correctness, and
 an exact bounded-run bridge to TM2 output witnesses.  Reusable scan/copy,
 symbol-local bounded-loop, and row-major nested-loop macros are verified with
@@ -57,7 +58,6 @@ SAT.  `generalCircuitToFormula` is semantically exact on well-formed circuits;
 the total raw map `generalCircuitToSATMap` preserves membership on every input
 string and has an explicit cubic output-length bound.  This closes the semantic
 and representation-size layer.  A concrete TM2 implementation of that direct
-map and a concrete SAT NP verifier remain explicit refinements; honest general
-general CLIQUE machine assembly and Section 34.5 remain the principal
-textbook-coverage gaps.
+map and a concrete SAT NP verifier remain explicit refinements.  Section 34.5
+is now the principal remaining textbook-coverage gap.
 -/
