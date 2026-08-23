@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.CertificateNodup
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier
+
+#check nodup_of_pairwise_adj
+#check pairwiseAdjacencyBool_implies_nodup
+#check vertexAndPairChecksWithoutNodup
+#check vertexChecks_pairwise_eq_withoutNodup
