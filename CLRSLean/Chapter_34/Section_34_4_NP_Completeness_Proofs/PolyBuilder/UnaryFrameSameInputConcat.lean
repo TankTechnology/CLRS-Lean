@@ -17,22 +17,22 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 /-- Two concrete polynomial-time transducers on the same raw input can be
 combined into one concrete polynomial-time transducer for literal append. -/
 noncomputable def unaryFrameSameInputConcat_computableInPolyTime
-    {Γ : Type} [Fintype Γ]
-    {left right : List Γ → List UnaryFrameSym}
-    (M₁ : _root_.Turing.TM2ComputableInPolyTime id id left)
-    (M₂ : _root_.Turing.TM2ComputableInPolyTime id id right) :
-    _root_.Turing.TM2ComputableInPolyTime id id
+    {α Γ : Type} [Fintype Γ] {encode : α → List Γ}
+    {left right : α → List UnaryFrameSym}
+    (M₁ : _root_.Turing.TM2ComputableInPolyTime encode id left)
+    (M₂ : _root_.Turing.TM2ComputableInPolyTime encode id right) :
+    _root_.Turing.TM2ComputableInPolyTime encode id
       (fun input => left input ++ right input) := by
   let leftQuoted := unaryFrameQuoteAfter_computableInPolyTime M₁
   let rightQuoted := unaryFrameQuoteAfter_computableInPolyTime M₂
-  let hAligned : ∀ input : List Γ,
+  let hAligned : ∀ input : α,
       (quotedUnaryFrameSingleton (left input)).rows.length =
         (quotedUnaryFrameSingleton (right input)).rows.length := by
     intro input
     rfl
   let joined := UnaryFrameMarkedRowParallelConcat.computableInPolyTime
     leftQuoted rightQuoted hAligned
-  let joinedRaw : _root_.Turing.TM2ComputableInPolyTime id id
+  let joinedRaw : _root_.Turing.TM2ComputableInPolyTime encode id
       (fun input => encodeUnaryFrameMarkedRowFamily
         (UnaryFrameMarkedRowParallelConcat.concatenatedFamily hAligned
           input)) :=

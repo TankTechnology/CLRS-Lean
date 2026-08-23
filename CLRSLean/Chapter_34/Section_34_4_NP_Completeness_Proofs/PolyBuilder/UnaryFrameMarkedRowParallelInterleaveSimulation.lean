@@ -17,12 +17,13 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ]
-variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
+variable {α Γ : Type} [Fintype Γ]
+variable {encode : α → List Γ}
+variable {leftFamily rightFamily : α → UnaryFrameMarkedRowFamily}
 variable
-  (M₁ : _root_.Turing.TM2ComputableInPolyTime id
+  (M₁ : _root_.Turing.TM2ComputableInPolyTime encode
     encodeUnaryFrameMarkedRowFamily leftFamily)
-  (M₂ : _root_.Turing.TM2ComputableInPolyTime id
+  (M₂ : _root_.Turing.TM2ComputableInPolyTime encode
     encodeUnaryFrameMarkedRowFamily rightFamily)
 
 /-- Updating a first-bank stack commutes with the combined embedding. -/

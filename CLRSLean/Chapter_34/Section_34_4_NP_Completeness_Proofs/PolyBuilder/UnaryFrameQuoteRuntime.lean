@@ -70,9 +70,10 @@ noncomputable def unaryFrameQuoteMarked_computableInPolyTime :
 /-- Quote the output of any concrete unary-frame transducer as one safe outer
 row, while preserving the original raw input. -/
 noncomputable def unaryFrameQuoteAfter_computableInPolyTime
-    {Γ : Type} [Fintype Γ] {f : List Γ → List UnaryFrameSym}
-    (M : _root_.Turing.TM2ComputableInPolyTime id id f) :
-    _root_.Turing.TM2ComputableInPolyTime id
+    {α Γ : Type} [Fintype Γ] {encode : α → List Γ}
+    {f : α → List UnaryFrameSym}
+    (M : _root_.Turing.TM2ComputableInPolyTime encode id f) :
+    _root_.Turing.TM2ComputableInPolyTime encode
       encodeUnaryFrameMarkedRowFamily
       (fun input => quotedUnaryFrameSingleton (f input)) := by
   let composed :=

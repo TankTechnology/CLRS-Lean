@@ -15,19 +15,20 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 
 namespace UnaryFrameMarkedRowParallelInterleave
 
-variable {Γ : Type} [Fintype Γ]
-variable {leftFamily rightFamily : List Γ → UnaryFrameMarkedRowFamily}
+variable {α Γ : Type} [Fintype Γ]
+variable {encode : α → List Γ}
+variable {leftFamily rightFamily : α → UnaryFrameMarkedRowFamily}
 variable
-  (M₁ : _root_.Turing.TM2ComputableInPolyTime id
+  (M₁ : _root_.Turing.TM2ComputableInPolyTime encode
     encodeUnaryFrameMarkedRowFamily leftFamily)
-  (M₂ : _root_.Turing.TM2ComputableInPolyTime id
+  (M₂ : _root_.Turing.TM2ComputableInPolyTime encode
     encodeUnaryFrameMarkedRowFamily rightFamily)
 
 /-- Semantic target of the same-input interleaver. -/
 def interleavedFamily
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length)
-    (input : List Γ) : UnaryFrameMarkedRowFamily :=
+    (input : α) : UnaryFrameMarkedRowFamily :=
   UnaryFrameAlignedMarkedRowPair.interleaved
     { left := leftFamily input
       right := rightFamily input
@@ -35,16 +36,16 @@ def interleavedFamily
 
 /-- The first embedded halt configuration is definitionally the second
 embedded start configuration once their frozen stack banks are identified. -/
-lemma first_halt_eq_second_start (input : List Γ) :
+lemma first_halt_eq_second_start (input : α) :
     mapCfg₁ M₁ M₂
         (_root_.Turing.haltList M₁.tm
           (List.map M₁.outputAlphabet.invFun
             (encodeUnaryFrameMarkedRowFamily (leftFamily input))))
         (_root_.Turing.initList M₂.tm
-          (List.map M₂.inputAlphabet.invFun input)).stk =
+          (List.map M₂.inputAlphabet.invFun (encode input))).stk =
       mapCfg₂ M₁ M₂
         (_root_.Turing.initList M₂.tm
-          (List.map M₂.inputAlphabet.invFun input))
+          (List.map M₂.inputAlphabet.invFun (encode input)))
         (_root_.Turing.haltList M₁.tm
           (List.map M₁.outputAlphabet.invFun
             (encodeUnaryFrameMarkedRowFamily (leftFamily input)))).stk := by
@@ -66,14 +67,15 @@ def time
 def outputsFun
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length)
-    (input : List Γ) :
+    (input : α) :
     _root_.Turing.TM2OutputsInTime (machine M₁ M₂)
-      (List.map (inputAlphabet M₁ M₂).invFun input)
+      (List.map (inputAlphabet M₁ M₂).invFun (encode input))
       (some (List.map (outputAlphabet M₁ M₂).invFun
         (encodeUnaryFrameMarkedRowFamily
           (interleavedFamily hAligned input))))
-      ((time M₁ M₂).eval input.length) := by
-  let n := input.length
+      ((time M₁ M₂).eval (encode input).length) := by
+  let rawInput := encode input
+  let n := rawInput.length
   let m₁ := M₁.time.eval n
   let m₂ := M₂.time.eval n
   let left := leftFamily input
@@ -82,13 +84,13 @@ def outputsFun
   let leftStream := encodeUnaryFrameMarkedRowFamily left
   let rightStream := encodeUnaryFrameMarkedRowFamily right
   let initC := _root_.Turing.initList (machine M₁ M₂)
-    (List.map M₁.inputAlphabet.invFun input)
+    (List.map M₁.inputAlphabet.invFun rawInput)
   let init₁ := _root_.Turing.initList M₁.tm
-    (List.map M₁.inputAlphabet.invFun input)
+    (List.map M₁.inputAlphabet.invFun rawInput)
   let halt₁ := _root_.Turing.haltList M₁.tm
     (List.map M₁.outputAlphabet.invFun leftStream)
   let init₂ := _root_.Turing.initList M₂.tm
-    (List.map M₂.inputAlphabet.invFun input)
+    (List.map M₂.inputAlphabet.invFun rawInput)
   let halt₂ := _root_.Turing.haltList M₂.tm
     (List.map M₂.outputAlphabet.invFun rightStream)
   let afterDuplicate := mapCfg₁ M₁ M₂ init₁ init₂.stk
@@ -102,15 +104,15 @@ def outputsFun
     ((time M₁ M₂).eval n)
 
   have hdup : EvalsToInTime (machine M₁ M₂).step initC
-      (some afterDuplicate) (2 * input.length + 2) :=
-    ⟨⟨2 * input.length + 2, by
+      (some afterDuplicate) (2 * rawInput.length + 2) :=
+    ⟨⟨2 * rawInput.length + 2, by
       simpa [initC, afterDuplicate, init₁, init₂,
-        duplicatedSecondInput] using duplicate_phase M₁ M₂ input⟩,
+        duplicatedSecondInput] using duplicate_phase M₁ M₂ rawInput⟩,
       le_rfl⟩
 
   have h₁run : EvalsToInTime M₁.tm.step init₁ (some halt₁) m₁ := by
     simpa [n, m₁, init₁, halt₁, leftStream, left,
-      _root_.Turing.TM2OutputsInTime, id] using M₁.outputsFun input
+      _root_.Turing.TM2OutputsInTime, rawInput] using M₁.outputsFun input
   have hstop₁ : M₁.tm.step halt₁ = none := rfl
   have h₁lift : EvalsToInTime (machine M₁ M₂).step afterDuplicate
       (some afterFirst) m₁ := by
@@ -125,7 +127,7 @@ def outputsFun
 
   have h₂run : EvalsToInTime M₂.tm.step init₂ (some halt₂) m₂ := by
     simpa [n, m₂, init₂, halt₂, rightStream, right,
-      _root_.Turing.TM2OutputsInTime, id] using M₂.outputsFun input
+      _root_.Turing.TM2OutputsInTime, rawInput] using M₂.outputsFun input
   have hstop₂ : M₂.tm.step halt₂ = none := rfl
   have h₂lift : EvalsToInTime (machine M₁ M₂).step secondStart
       (some afterSecond) m₂ := by
@@ -141,13 +143,13 @@ def outputsFun
       finalize_aligned_rows_run M₁ M₂ left right (hAligned input)
 
   let throughFirst := EvalsToInTime.trans (machine M₁ M₂).step
-    (2 * input.length + 2) m₁ initC afterDuplicate
+    (2 * rawInput.length + 2) m₁ initC afterDuplicate
     (some secondStart) hdup h₁lift
   let throughSecond := EvalsToInTime.trans (machine M₁ M₂).step
-    (m₁ + (2 * input.length + 2)) m₂ initC secondStart
+    (m₁ + (2 * rawInput.length + 2)) m₂ initC secondStart
     (some afterSecond) throughFirst h₂lift
   let full := EvalsToInTime.trans (machine M₁ M₂).step
-    (m₂ + (m₁ + (2 * input.length + 2)))
+    (m₂ + (m₁ + (2 * rawInput.length + 2)))
     (finalizeAlignedRowsSteps left.rows right.rows)
     initC afterSecond (some haltC) throughSecond hfinal
 
@@ -163,12 +165,12 @@ def outputsFun
     dsimp [leftStream, left, n, A]
     simpa using le_trans hleftRaw
       (Nat.add_le_add_left (Nat.mul_le_mul_left
-        (_root_.Turing.TM2Comp.maxPushCount₁ M₁) hsteps₁) input.length)
+        (_root_.Turing.TM2Comp.maxPushCount₁ M₁) hsteps₁) rawInput.length)
   have hrightLen : rightStream.length ≤ n + B * m₂ := by
     dsimp [rightStream, right, n, B]
     simpa using le_trans hrightRaw
       (Nat.add_le_add_left (Nat.mul_le_mul_left
-        (_root_.Turing.TM2Comp.maxPushCount₁ M₂) hsteps₂) input.length)
+        (_root_.Turing.TM2Comp.maxPushCount₁ M₂) hsteps₂) rawInput.length)
   have hinterleaveLen :
       (encodeUnaryFrameMarkedRows
         (interleaveUnaryFrameMarkedRows left.rows right.rows)).length =
@@ -193,7 +195,7 @@ def outputsFun
       Polynomial.eval_mul, Polynomial.eval_X, Polynomial.eval_natCast,
       Polynomial.eval_ofNat]
   have hbound : finalizeAlignedRowsSteps left.rows right.rows +
-        (m₂ + (m₁ + (2 * input.length + 2))) ≤
+        (m₂ + (m₁ + (2 * rawInput.length + 2))) ≤
       (time M₁ M₂).eval n := by
     rw [htime]
     dsimp [n]
@@ -205,7 +207,7 @@ families. -/
 def computableInPolyTime
     (hAligned : ∀ input,
       (leftFamily input).rows.length = (rightFamily input).rows.length) :
-    _root_.Turing.TM2ComputableInPolyTime id
+    _root_.Turing.TM2ComputableInPolyTime encode
       encodeUnaryFrameMarkedRowFamily
       (interleavedFamily hAligned) where
   tm := machine M₁ M₂

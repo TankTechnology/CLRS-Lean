@@ -16,14 +16,15 @@ namespace CLRS.Chapter34.Turing.PolyBuilder
 /-- Two same-input transducers can be concatenated after transporting their
 output alphabet through a fixed pair code over `UnaryFrameSym`. -/
 noncomputable def fixedPairSameInputConcat_computableInPolyTime
-    {Γ Ω : Type} [Fintype Γ] [Fintype Ω]
+    {α Γ Ω : Type} [Fintype Γ] [Fintype Ω]
+    {inputEncoding : α → List Γ}
     (encode : Ω → UnaryFrameSym × UnaryFrameSym)
     (decode : UnaryFrameSym → UnaryFrameSym → Ω)
     (hleft : ∀ symbol, decode (encode symbol).1 (encode symbol).2 = symbol)
-    {left right : List Γ → List Ω}
-    (M₁ : _root_.Turing.TM2ComputableInPolyTime id id left)
-    (M₂ : _root_.Turing.TM2ComputableInPolyTime id id right) :
-    _root_.Turing.TM2ComputableInPolyTime id id
+    {left right : α → List Ω}
+    (M₁ : _root_.Turing.TM2ComputableInPolyTime inputEncoding id left)
+    (M₂ : _root_.Turing.TM2ComputableInPolyTime inputEncoding id right) :
+    _root_.Turing.TM2ComputableInPolyTime inputEncoding id
       (fun input => left input ++ right input) := by
   let encoder := fixedPairEncode_computableInPolyTime encode
   let leftEncodedExists :=
