@@ -202,8 +202,7 @@ at-most-three-literal convention intentionally permits empty clauses. -/
 theorem occurrenceCliqueInstance_wellFormed {formula : CNF}
     (hnonempty : ∀ clause ∈ formula, clause ≠ []) :
     (occurrenceCliqueInstance formula).WellFormed := by
-  refine ⟨formula_length_le_indexedOccurrences_length hnonempty,
-    occurrenceCliqueEdges_nodup formula, ?_⟩
+  refine ⟨formula_length_le_indexedOccurrences_length hnonempty, ?_⟩
   intro edge hedge
   exact occurrenceCliqueEdges_in_range hedge
 

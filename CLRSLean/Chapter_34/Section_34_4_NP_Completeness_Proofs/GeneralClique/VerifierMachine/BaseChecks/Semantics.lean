@@ -10,7 +10,7 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Ver
 
 This identifies exactly which textbook conditions are already decided by the
 composed machine.  It also makes the remaining proof boundary explicit:
-duplicate-free graph edges and certificate pairwise adjacency.
+certificate pairwise adjacency.
 -/
 
 namespace CLRS.Chapter34.Turing.GeneralCliqueVerifier.BaseChecks
@@ -51,28 +51,26 @@ theorem baseChecks_encode_iff (I : CliqueInstance) (vertices : List Nat) :
       (fun edge hedge => (hedges edge hedge).1),
       fun edge hedge => (hedges edge hedge).2⟩
 
-/-- The complete typed verifier differs from the completed base checks by
-exactly edge uniqueness and pairwise certificate adjacency.  Certificate
-uniqueness follows from irreflexive adjacency and therefore needs no separate
-machine. -/
+/-- The complete typed verifier differs from the completed base checks only by
+pairwise certificate adjacency.  Certificate uniqueness follows from
+irreflexive adjacency and therefore needs no separate machine. -/
 theorem baseConditions_complete_iff (I : CliqueInstance)
     (vertices : List Nat) :
-    BaseConditions I vertices ∧ I.edges.Nodup ∧
-        vertices.Pairwise I.Adj ↔
+    BaseConditions I vertices ∧ vertices.Pairwise I.Adj ↔
       I.WellFormed ∧ I.ListRepresentsClique vertices := by
   simp only [BaseConditions, CliqueInstance.WellFormed,
     CliqueInstance.ListRepresentsClique]
   constructor
-  · rintro ⟨⟨hlength, htarget, hrange, hedges⟩, hnodupEdges, hpairs⟩
+  · rintro ⟨⟨hlength, htarget, hrange, hedges⟩, hpairs⟩
     have hnodupVertices : vertices.Nodup := by
       letI : Std.Irrefl I.Adj := ⟨I.not_adj_self⟩
       exact hpairs.nodup
-    refine ⟨⟨htarget, hnodupEdges, hedges⟩,
+    refine ⟨⟨htarget, hedges⟩,
       hnodupVertices, hlength, hrange, ?_⟩
     exact (pairwise_adj_iff_all_distinct I hnodupVertices).mp hpairs
-  · rintro ⟨⟨htarget, hnodupEdges, hedges⟩,
+  · rintro ⟨⟨htarget, hedges⟩,
       hnodupVertices, hlength, hrange, hall⟩
-    exact ⟨⟨hlength, htarget, hrange, hedges⟩, hnodupEdges,
+    exact ⟨⟨hlength, htarget, hrange, hedges⟩,
       (pairwise_adj_iff_all_distinct I hnodupVertices).mpr hall⟩
 
 end CLRS.Chapter34.Turing.GeneralCliqueVerifier.BaseChecks

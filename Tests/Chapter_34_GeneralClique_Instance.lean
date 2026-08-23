@@ -17,9 +17,18 @@ private def reversedEdge : CliqueInstance where
   targetSize := 2
   edges := [(1, 0)]
 
+private def repeatedEdge : CliqueInstance where
+  vertexCount := 2
+  targetSize := 2
+  edges := [(0, 1), (0, 1)]
+
 example : triangle.WellFormed := by native_decide
 
 example : ¬ reversedEdge.WellFormed := by native_decide
+
+example : repeatedEdge.WellFormed := by native_decide
+
+example : repeatedEdge.Adj 0 1 := by native_decide
 
 example : triangle.Adj 0 2 := by native_decide
 
