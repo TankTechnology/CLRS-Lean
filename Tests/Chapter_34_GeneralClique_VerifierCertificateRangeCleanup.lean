@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.CertificateRange.Cleanup
+
+open CLRS Chapter34 StateTransition
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.CertificateRange
+
+#check clearInput_run
+#check discardInstance_run
+#check restoreCertificate_run
+#check restoreBudget_run
