@@ -5660,6 +5660,15 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/CookLevin/Textbook.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/VerifierMachine.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/NP.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Public.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Encoding.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Language.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/Certificate.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/VerifierMachine.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/NP.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction.lean`
+  - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Machine.lean`
 - Status: `partial` — general-circuit semantics, its honest canonical wire
   format, and exact finite-certificate semantics are available.  A concrete
   polynomial-time certificate checker proves `GeneralCircuitSAT ∈ NP`.
@@ -5667,9 +5676,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   time map compiler; `cookLevin_theorem`, `generalCircuitSAT_npHard`, and
   `generalCircuitSAT_npComplete` close the main theorem.  The direct general-
   circuit-to-SAT consistency formula is semantically exact, and its total raw
-  map preserves membership with a cubic output-size bound.  A concrete TM2 for
-  this direct map, a concrete SAT NP verifier, general graph-plus-`k` CLIQUE,
-  and Section 34.5 remain open.
+  map preserves membership with a cubic output-size bound.  Public `CLIQUE`
+  now denotes the honest serialized general graph-plus-`k` language.  It has
+  exact certificate semantics, a concrete polynomial-time verifier and NP
+  membership, plus a concrete polynomial-time 3-CNF-SAT reduction.  A
+  concrete TM2 for the direct general-circuit-to-SAT map is still needed for
+  the full universal NP-hardness chain; Section 34.5 remains open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5697,12 +5709,25 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `generalCircuitSAT_polyTimeVerifiable` and
   `generalCircuitSAT_mem_ClassNP` package the resulting NP membership.
   Separately,
-  `circuitSAT_reducible_to_SAT` proves `CIRCUIT-SAT ≤_P SAT` (Lemma 34.6, via
+  The general CLIQUE codec proves `decode_encodeCliqueInstance`
+  and exact canonicality on accepted raw strings.  `cliqueVerifier_eq_true_iff`
+  and `mem_generalCLIQUE_iff_exists_certificate` identify its Boolean checker
+  with the graph semantics under a quadratic certificate bound.  The fixed
+  `GeneralCliqueVerifier.machine` computes that checker within the named
+  `generalCliqueVerifierRuntimePolynomial`, yielding
+  `cliqueVerifierComputableInPolyTime` and `generalCLIQUE_mem_ClassNP`.
+  `threeCNFToGeneralCliqueMap_mem_iff` proves exact raw-language correctness of
+  the indexed occurrence reduction, and
+  `Turing.TMClique.threeCNFSat_reducible_to_generalCLIQUE` packages its
+  concrete polynomial-time TM2.  The public
+  `Turing.TMClique.threeCNFSat_reducible_to_CLIQUE` theorem targets this honest
+  language.  The specialized compatibility result remains separately named
+  `threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE`.
+  Separately, `circuitSAT_reducible_to_SAT` proves `CIRCUIT-SAT ≤_P SAT`
+  (Lemma 34.6, via
   `circuitSatisfiable_iff_satisfiable_circuitToFormula` and the `Turing.TM2CS`
-  machine), `cnfSatisfiable_iff_hasClique` gives the represented Lemma 34.10
-  semantic core for the specialized 3-CNF occurrence graph, and
-  `threeCNFSat_reducible_to_CLIQUE` assembles the machine reduction to that
-  specialized target via `Turing.TMClique`, while
+  machine), while `cnfSatisfiable_iff_hasClique` gives the compatibility
+  semantic core for the specialized 3-CNF occurrence graph and
   `cnfSatisfiable_to3CNF_iff` gives the Lemma 34.7 semantic core and
   `Turing.TM3CNF.sat_reducible_to_threeCNFSat` assembles the concrete
   `SAT ≤_P 3-CNF-SAT` machine reduction.  The typed
@@ -5851,14 +5876,16 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `generalCircuitSAT_npComplete` close the Cook--Levin main theorem.
 - Current gaps: the newly added direct `GeneralCircuitSAT`-to-`SAT` raw map has
   exact semantics and polynomial output size but no concrete TM2 runtime proof.
-  SAT also lacks a concrete NP verifier in the current encoding.  These are
-  representation refinements rather than gaps in the already proved Cook--
-  Levin main theorem.  The principal textbook-coverage gaps are honest general
-  graph-plus-`k` CLIQUE and Section 34.5.  `SatTo3CNFMachine` and
-  `CNFToCliqueMachine` already expose their assembled represented reductions,
-  and the scan/copy, bounded-loop, and nested-loop macro layer is complete.
-- Remaining chapter scope: general graph-plus-`k` CLIQUE and Section 34.5
-  (NP-complete problems) are not represented.
+  This concrete compiler is required to compose the already proved
+  `GeneralCircuitSAT` NP-hardness through SAT and 3-CNF-SAT to public CLIQUE.
+  SAT also lacks a standalone concrete NP verifier in the current encoding,
+  but that verifier is not required for the reduction chain.  General CLIQUE
+  itself is now represented through NP membership and the concrete 3-CNF-SAT
+  reduction.  `SatTo3CNFMachine` and the general-CLIQUE occurrence-reduction
+  machine expose their assembled reductions, and the scan/copy, bounded-loop,
+  and nested-loop macro layer is complete.
+- Remaining chapter scope: the concrete general-circuit-to-SAT compiler needed
+  for `NPComplete CLIQUE`, and Section 34.5 (NP-complete problems).
 
 ## Deferred And Blocked Items
 

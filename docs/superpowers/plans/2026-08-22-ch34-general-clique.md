@@ -347,10 +347,10 @@ theorem threeCNFSat_reducible_to_generalCLIQUE :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/VerifierMachine.lean`
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/NP.lean`
 
-- [ ] Use distinct phases for complete parsing, well-formedness, certificate nodup/range/cardinality, and pairwise edge lookup. Malformed strings share one bounded reject/cleanup path.
-- [ ] Prove exact output equivalence with the previously fixed Boolean function `cliqueVerifier`; do not redefine acceptance around the machine.
-- [ ] Publish a named polynomial `generalCliqueVerifierRuntimePolynomial` and prove the machine runs within it on the paired certificate/input encoding.
-- [ ] Assemble:
+- [x] Use distinct phases for complete parsing, well-formedness, certificate nodup/range/cardinality, and pairwise edge lookup. Malformed strings share one bounded reject/cleanup path.
+- [x] Prove exact output equivalence with the previously fixed Boolean function `cliqueVerifier`; do not redefine acceptance around the machine.
+- [x] Publish a named polynomial `generalCliqueVerifierRuntimePolynomial` and prove the machine runs within it on the paired certificate/input encoding.
+- [x] Assemble:
 
 ```lean
 theorem generalCLIQUE_polyTimeVerifiable :
@@ -363,8 +363,8 @@ theorem generalCLIQUE_mem_ClassNP : GeneralCLIQUE ∈ ClassNP CliqueSym :=
   (mem_ClassNP GeneralCLIQUE).2 generalCLIQUE_polyTimeVerifiable
 ```
 
-- [ ] Run every verifier submodule and a focused NP interface file.
-- [ ] Commit: `git commit -am "proof(ch34): place general CLIQUE in NP"`.
+- [x] Run every verifier submodule and a focused NP interface file.
+- [x] Commit: `git commit -am "proof(ch34): place general CLIQUE in NP"`.
 
 ## Task 11: Perform the atomic public migration
 
@@ -379,8 +379,8 @@ theorem generalCLIQUE_mem_ClassNP : GeneralCLIQUE ∈ ClassNP CliqueSym :=
 - Modify: `Tests/Chapter_34_Interface.lean`
 - Modify: `Tests/Chapter_34_GeneralClique_Interface.lean`
 
-- [ ] Remove only the misleading legacy `abbrev CLIQUE`; retain `ThreeCNFOccurrenceCLIQUE` and `threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE` unchanged.
-- [ ] In `Public.lean`, define:
+- [x] Remove only the misleading legacy `abbrev CLIQUE`; retain `ThreeCNFOccurrenceCLIQUE` and `threeCNFSat_reducible_to_threeCNFOccurrenceCLIQUE` unchanged.
+- [x] In `Public.lean`, define:
 
 ```lean
 abbrev CLIQUE : Language CliqueSym := GeneralCLIQUE
@@ -394,10 +394,10 @@ theorem threeCNFSat_reducible_to_CLIQUE :
 end Turing.TMClique
 ```
 
-- [ ] Import the ordered `GeneralClique` facade from the §34.4 and Chapter 34 facades.
-- [ ] Make both public interface tests pass and search for stale prose asserting that `CLIQUE` is an occurrence-language alias.
-- [ ] Run `lake build CLRSLean.Chapter_34` and `lake env lean Tests/Chapter_34_Interface.lean`.
-- [ ] Commit: `git commit -am "feat(ch34): publish honest general CLIQUE"`.
+- [x] Import the ordered `GeneralClique` facade from the §34.4 and Chapter 34 facades.
+- [x] Make both public interface tests pass and search for stale prose asserting that `CLIQUE` is an occurrence-language alias.
+- [x] Run `lake build CLRSLean.Chapter_34` and `lake env lean Tests/Chapter_34_Interface.lean`.
+- [x] Commit: `git commit -am "feat(ch34): publish honest general CLIQUE"`.
 
 ## Task 12: Documentation, policy audit, and final verification
 
@@ -408,10 +408,10 @@ end Turing.TMClique
 - Modify: the Chapter 34 progress CSV named by `CLAUDE.md`
 - Modify: `literate.toml`
 
-- [ ] State precisely that general CLIQUE now has an honest raw encoding, exact certificate checker, NP membership, and concrete 3-CNF-SAT reduction.
-- [ ] State separately that `NPComplete CLIQUE` still depends on a fully concrete upstream reduction chain from arbitrary `L ∈ NP` through GeneralCircuitSAT/SAT/3-CNF-SAT if that chain is not already available at this checkpoint.
-- [ ] Register every new literate Lean source and update proof-map ownership without counting the specialized occurrence language as the general language.
-- [ ] Run fresh verification:
+- [x] State precisely that general CLIQUE now has an honest raw encoding, exact certificate checker, NP membership, and concrete 3-CNF-SAT reduction.
+- [x] State separately that `NPComplete CLIQUE` still depends on a fully concrete upstream reduction chain from arbitrary `L ∈ NP` through GeneralCircuitSAT/SAT/3-CNF-SAT if that chain is not already available at this checkpoint.
+- [x] Register every new literate Lean source and update proof-map ownership without counting the specialized occurrence language as the general language.
+- [x] Run fresh verification:
 
 ```text
 lake env lean Tests/Chapter_34_GeneralClique_Interface.lean
@@ -422,7 +422,7 @@ git diff --check
 rg -n "\b(sorry|admit|axiom)\b" CLRSLean/Chapter_34 Tests/Chapter_34_GeneralClique_*.lean
 ```
 
-- [ ] Inspect `git status --short`, review the complete branch diff against `origin/main`, and commit only the verified documentation/audit changes:
+- [x] Inspect `git status --short`, review the complete branch diff against `origin/main`, and commit only the verified documentation/audit changes:
 
 ```text
 git add CLRSLean/Chapter_34 docs literate.toml

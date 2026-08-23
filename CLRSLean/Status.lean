@@ -61,8 +61,13 @@ repository row whose status remains {lit}`partial`.
   {lit}`generalCircuitSAT_npComplete` close the Cook--Levin main theorem.
   The direct textbook general-circuit-to-SAT formula is also semantically
   exact; its total raw map preserves language membership and has a cubic
-  output-length bound.  A concrete TM2 for this latter map, a concrete SAT NP
-  verifier, general graph-plus-{lit}`k` CLIQUE, and Section 34.5 remain open.
+  output-length bound.  General graph-plus-{lit}`k` CLIQUE now has an honest
+  raw encoding, exact certificate semantics, a concrete polynomial-time
+  verifier, membership in NP, and a concrete polynomial-time 3-CNF-SAT
+  reduction.  A concrete TM2 for the general-circuit-to-SAT map is still
+  needed to transport the universal NP-hardness chain to public CLIQUE;
+  Section 34.5 also remains open.  A standalone concrete SAT NP verifier is an
+  optional refinement rather than a dependency of that chain.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the

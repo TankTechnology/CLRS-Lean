@@ -14,3 +14,6 @@ open CLRS.Chapter34.Turing.GeneralCliqueVerifier
 #check generalCliqueVerifierMachine_outputs
 #check generalCLIQUE_polyTimeVerifiable
 #check generalCLIQUE_mem_ClassNP
+
+#print axioms cliqueVerifierComputableInPolyTime
+#print axioms generalCLIQUE_mem_ClassNP

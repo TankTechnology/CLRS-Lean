@@ -11,9 +11,10 @@ period.
 The current Chapter 34 guide imports {lit}`CLRSLean.Chapter_34`, which supplies
 Sections 34.1 (framework and closure properties), 34.2 (verification / `P ⊆ NP`),
 34.3 (reducibility / transitivity of `≤_P`), and 34.4 (the specific reductions
-`CIRCUIT-SAT ≤_P SAT`, `SAT ≤_P 3-CNF-SAT`, and
-`3-CNF-SAT ≤_P` the specialized occurrence-CLIQUE target).  A general
-graph-plus-`k` CLIQUE language is not yet represented.
+`CIRCUIT-SAT ≤_P SAT`, `SAT ≤_P 3-CNF-SAT`, and `3-CNF-SAT ≤_P CLIQUE`).
+The last reduction targets an honest serialized graph-plus-`k` language; the
+older specialized occurrence-graph language remains available under an
+explicit compatibility name.
 
 The Cook--Levin tableau foundation also connects canonical one-hot bounded
 stacks to machine-alphabet lists.  Its public contracts identify supported
@@ -69,6 +70,11 @@ formula translation to SAT.  `generalCircuitToSATMap_mem_SAT_iff` proves exact
 membership preservation on every raw input string, including malformed and
 ill-formed inputs, and `generalCircuitToSATMap_length_le` gives a cubic output-
 length bound.
+The public `CLIQUE` language now has a unique raw graph-plus-`k` encoding,
+exact certificate semantics, a concrete polynomial-time verifier TM2, and the
+resulting `GeneralCLIQUE ∈ NP` theorem.  A second concrete polynomial-time TM2
+computes the 3-CNF-SAT reduction and proves exact membership preservation on
+all raw inputs.
 
 ## Coverage boundary
 
@@ -76,18 +82,20 @@ Status: partial.  The theorem layer is complete — polytime composition,
 `P ⊆ NP`, transitivity of `≤_P`, and the closure of `P` under complement,
 union, and intersection — and the §34.4 reductions `CIRCUIT-SAT ≤_P SAT`
 (Lemma 34.6), `SAT ≤_P 3-CNF-SAT` (Lemma 34.7), and
-`3-CNF-SAT ≤_P` the specialized occurrence-CLIQUE target (the represented
-semantic core of Lemma 34.10) are proved.  General graph-plus-`k` CLIQUE and
-Section 34.5 (NP-complete problems) are not yet represented.  Within
+`3-CNF-SAT ≤_P CLIQUE` (Lemma 34.10) are proved with concrete machines.  The
+public `CLIQUE` target is the honest serialized general graph-plus-`k`
+language, not the specialized occurrence language.  Within
 Cook--Levin circuitization, the whole-tableau semantic circuit and its
 polynomial gate bound are complete; the mathematical reduction map and
 finite-certificate semantics are also complete.  The concrete polynomial-time
 generator closes the universal reduction, NP-hardness, and
-{lit}`NPComplete GeneralCircuitSAT`.  The direct general-circuit-to-SAT bridge
-is closed at semantic and serialized polynomial-size level.  Its concrete TM2,
-a concrete SAT NP verifier, general graph-plus-{lit}`k` CLIQUE, and Section
-34.5 remain downstream.  This guide remains partial because those represented-
-scope and refinement boundaries are not all closed.
+{lit}`NPComplete GeneralCircuitSAT`.  General CLIQUE has exact certificate
+semantics, a concrete polynomial-time verifier, membership in NP, and the
+concrete 3-CNF-SAT reduction.  The direct general-circuit-to-SAT bridge is
+closed at semantic and serialized polynomial-size level, but its concrete TM2
+is still required to transport the universal NP-hardness chain all the way to
+the public CLIQUE language.  Section 34.5 is not yet represented.  This guide
+remains partial because those two textbook-closure boundaries remain open.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
