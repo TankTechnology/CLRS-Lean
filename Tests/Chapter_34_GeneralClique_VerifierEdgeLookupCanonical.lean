@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.EdgeLookup.Canonical
+
+open CLRS Chapter34
+open CLRS.Chapter34.Turing.GeneralCliqueVerifier.EdgeLookup
+
+#check edgesResult_encode_edges
+#check edgesResult_encode_eq_adjacencyBool_of_lt
