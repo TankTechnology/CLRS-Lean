@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics
+
+#check CLRS.Chapter34.CliqueInstance.IsVertexCover
+#check CLRS.Chapter34.CliqueInstance.HasVertexCover
+#check CLRS.Chapter34.CliqueInstance.complementForVertexCover
+#check CLRS.Chapter34.CliqueInstance.complementForVertexCover_wellFormed
+#check CLRS.Chapter34.CliqueInstance.hasClique_iff_complement_hasVertexCover
+
+#print axioms CLRS.Chapter34.CliqueInstance.complementForVertexCover_wellFormed
+#print axioms CLRS.Chapter34.CliqueInstance.hasClique_iff_complement_hasVertexCover

@@ -41,8 +41,16 @@ in Lean; no chapter remains {lit}`not-started`.  The generated dashboard owns
 live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
-The edition map records one remaining coverage unit in Chapter 34: §34.5 is
-{lit}`not-started`.  Chapter 34 is the sole repository row whose status remains
+The edition map records one partially represented coverage unit in Chapter 34:
+§34.5 has bidirectional typed and raw CLIQUE / VERTEX-COVER complement
+semantics, cubic output-length bounds, and exact bounded certificate semantics.
+Its selected typed textbook chain is now closed through the proved
+VERTEX-COVER-to-HAM-CYCLE, HAM-CYCLE-to-decision-TSP, and
+3-CNF-SAT-to-SUBSET-SUM equivalences.  VERTEX-COVER additionally has a total
+fixed polynomial-time reduction machine, a fixed polynomial-time verifier,
+membership in NP, and a proved NP-completeness theorem.  The remaining strict
+machine layer belongs to HAM-CYCLE, TSP, and SUBSET-SUM.  Chapter 34 is the sole
+repository row whose status remains
 {lit}`partial`.
 
 * **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
@@ -67,7 +75,41 @@ The edition map records one remaining coverage unit in Chapter 34: §34.5 is
   graph-plus-{lit}`k` CLIQUE has an honest raw encoding, exact certificate
   semantics, a concrete polynomial-time verifier, membership in NP, and a
   concrete polynomial-time 3-CNF-SAT reduction; {lit}`CLIQUE` is therefore
-  NP-complete.  Section 34.5 remains open.  A standalone concrete SAT NP
+  NP-complete.  Section 34.5 now proves the typed equivalence between a
+  size-{lit}`k` clique and a size-at-most-{lit}`|V|-k` vertex cover of the
+  deterministic complement, defines the raw VERTEX-COVER language, and proves
+  exact membership preservation for a total raw CLIQUE-to-VERTEX-COVER map.
+  The reverse typed equivalence and total raw VERTEX-COVER-to-CLIQUE map make
+  this semantic bridge bidirectional; both raw maps have explicit cubic
+  output-length bounds.
+  A fixed linear-time TM2 preserves every valid raw graph encoding and maps
+  parser failures to a canonical but deliberately ill-formed sentinel, so the
+  remaining well-formedness guard cannot confuse malformed input with an empty
+  valid graph.
+  The existing CLIQUE target-bound, edge-order, and endpoint-bound machines
+  are also composed into a fixed polynomial-time guard whose canonical
+  semantics are exactly {lit}`CliqueInstance.WellFormed`.
+  A reverse/option-pair/reverse formatter connects these stages, yielding the
+  all-input fixed polynomial-time
+  {lit}`RawWellFormed.computableInPolyTime` machine.
+  Its executable Boolean certificate checker has exact all-input semantics,
+  and accepted certificates have a quadratic length bound.  A fixed
+  polynomial-time complement machine computes the total raw reduction and a
+  fixed polynomial-time verifier computes the certificate checker.  Hence
+  {lit}`generalCLIQUE_reducible_to_VERTEXCOVER`,
+  {lit}`VERTEXCOVER_mem_ClassNP`, and
+  {lit}`VERTEXCOVER_npComplete` close VERTEX-COVER completely.  At the
+  typed textbook layer, the total CLRS VERTEX-COVER-to-HAM-CYCLE construction is
+  proved correct in both directions, including the selector-budget soundness
+  argument.  The HAM-CYCLE-to-decision-TSP construction has an exact tour-cost
+  identity and a proved equivalence.  The indexed natural-number
+  3-CNF-SAT-to-SUBSET-SUM construction has explicit carry-free column packing,
+  a satisfying-assignment certificate, inverse assignment extraction, and a
+  proved equivalence that supports duplicate literal occurrences.  Concrete
+  serialized reduction and verifier machines, their polynomial runtime bounds,
+  and NP membership/completeness packaging for HAM-CYCLE, TSP, and SUBSET-SUM
+  remain open.
+  A standalone concrete SAT NP
   verifier is an optional refinement, not a dependency of the completed
   hardness chain.
 
@@ -88,11 +130,11 @@ represented section or an expository guide.
 
 ## Online And Supplementary Material
 
-The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 464 tracked theorem
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
-33, plus 43 from moved section-level developments such as maximum subarray,
+33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 43 groups are disjoint from the 1,523 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,603 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.

@@ -1,0 +1,23 @@
+{
+  "skill_name": "complexity-reduction-closure",
+  "evals": [
+    {
+      "id": "clique-to-vertex-cover",
+      "prompt": "In CLRS-Lean Chapter 34, prove textbook VERTEX-COVER NP-complete from the existing honest graph-plus-k CLIQUE. Reuse what is already present, keep the decision language serialized, and tell me the first proof milestone before writing a concrete machine.",
+      "expected_output": "A closure ledger that reuses CliqueInstance/CliqueSym, identifies the typed complement equivalence with target n-k as the first missing semantic bridge, distinguishes at-most-k cover certificates from exact-k cliques, and records later raw totality, output-size, exact-machine, verifier, hardness, and NP-completeness obligations without replaying Cook-Levin.",
+      "files": []
+    },
+    {
+      "id": "ham-cycle-gadget",
+      "prompt": "We have started a 3-CNF-to-HAM-CYCLE gadget in Lean, but the global soundness theorem is stuck and the file is already large. Plan the next proof step and say whether we should start implementing its serializer and TM2 now.",
+      "expected_output": "A closure ledger classifying the blocker as semantic, selecting one local gadget traversal/entry-exit theorem as the first bridge, splitting soundness and completeness into focused modules, and deferring encoding and machine work until the typed Hamiltonian-cycle equivalence is stable.",
+      "files": []
+    },
+    {
+      "id": "subset-sum-numeric",
+      "prompt": "A typed 3-CNF-to-SUBSET-SUM construction is proved correct and produces only polynomially many natural numbers. Can we package PolyTimeReducible now? Audit what remains in the Lean proof, including the numeric encoding.",
+      "expected_output": "A closure ledger that rejects immediate PolyTimeReducible packaging, distinguishes number count, number magnitude, binary bit-length, total raw encoding, arithmetic-generation runtime, and exact machine computation, and selects the serialized numeric representation/length theorem as the first missing bridge.",
+      "files": []
+    }
+  ]
+}

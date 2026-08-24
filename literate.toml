@@ -881,6 +881,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
   "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems",
 ]
 "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
@@ -903,6 +904,70 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseSoundness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseCompleteness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.BidirectionalSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NP",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NPCompleteness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Reduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.PairBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.EncodingBounds",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.RawWellFormed",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Total",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.TypedComplement",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Simulation",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
@@ -1176,6 +1241,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryFrameZeroTagRowDemux",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleGroupFirstProjection",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DropHead",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairSecondProjection",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineTrace",
@@ -1771,6 +1838,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.Query",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.Run",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.Runtime",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.HeadProjection",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.Canonicalizer" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.Canonicalizer.Basic",
@@ -1857,6 +1925,133 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairFirstProjection.Basic",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairFirstProjection.Run",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairFirstProjection.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.CycleInterface",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateAdjacency",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateBuilder",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateCoverage",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.ChainPaths",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.Correctness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.IncidenceCoverage",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.LocalCoverage",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.LocalPaths",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.SelectorLinks",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.WidgetCoverage",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Edges",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.IncidenceSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Numbering",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.WellFormed",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget.Basic",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.BranchChoices",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.ChainEndpoints",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.ClosedGadget",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CoreNeighbors",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.Correctness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleBoundary",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleCore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleEdges",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.EdgeClassification",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.GadgetClassification",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.PortClassification",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SameGadgetNeighbors",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectedPorts",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectorBudget",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SourceCover",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.DigitPacking",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.CertificateBuilder",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.CertificateColumns",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.ColumnSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Completeness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Correctness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.OccurrenceCount",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Soundness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.VariableBounds",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction.SlackColumns",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction.VariableColumns",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Correctness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.CostSemantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Simulation",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Simulation",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Answers",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.FilterInput",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Input",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Pipeline",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Simulation",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Simulation",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Input",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Semantics",
 ]
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -3765,6 +3960,114 @@ title = "34.3. NP-Hardness Transport"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
 title = "34.4. NP-Completeness Proofs"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems"]
+title = "34.5. NP-Complete Problems"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover"]
+title = "34.5. VERTEX-COVER"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance"]
+title = "34.5. VERTEX-COVER Typed Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement"]
+title = "34.5. Deterministic Graph Complement"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.PairBounds"]
+title = "34.5. Complement Pair-Enumeration Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.EncodingBounds"]
+title = "34.5. Complement Encoding-Size Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Soundness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Semantic Equivalence"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseSoundness"]
+title = "34.5. VERTEX-COVER-to-CLIQUE Soundness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseCompleteness"]
+title = "34.5. VERTEX-COVER-to-CLIQUE Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.BidirectionalSemantics"]
+title = "34.5. Bidirectional CLIQUE / VERTEX-COVER Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language"]
+title = "34.5. Raw VERTEX-COVER Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate"]
+title = "34.5. VERTEX-COVER Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic"]
+title = "34.5. VERTEX-COVER Boolean Certificate Checker"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics"]
+title = "34.5. Exact VERTEX-COVER Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length"]
+title = "34.5. VERTEX-COVER Certificate-Length Bound"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction"]
+title = "34.5. Total CLIQUE-to-VERTEX-COVER Semantic Map"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap"]
+title = "34.5. Shared Guarded Graph-Complement Map"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction"]
+title = "34.5. Total VERTEX-COVER-to-CLIQUE Semantic Map"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength"]
+title = "34.5. Cubic Complement-Map Output Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine"]
+title = "34.5. Complement-Machine Components"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer"]
+title = "34.5. Graph Syntax-Normalizer Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Basic"]
+title = "34.5. Syntax Normalizer Controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Simulation"]
+title = "34.5. Syntax Normalizer Local Simulations"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run"]
+title = "34.5. Syntax Normalizer Complete Run"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics"]
+title = "34.5. Syntax Normalizer Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime"]
+title = "34.5. Syntax Normalizer Polynomial Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard"]
+title = "34.5. Graph Well-Formedness Guard"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Basic"]
+title = "34.5. Well-Formedness Guard Boolean Specification"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Semantics"]
+title = "34.5. Well-Formedness Guard Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Runtime"]
+title = "34.5. Well-Formedness Guard Polynomial Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter"]
+title = "34.5. Empty-Certificate Graph-Pair Formatter"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Basic"]
+title = "34.5. Graph-Pair Formatter Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Runtime"]
+title = "34.5. Graph-Pair Formatter Polynomial Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.RawWellFormed"]
+title = "34.5. Raw Graph Well-Formedness Pipeline"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
 title = "34.4. CIRCUIT-SAT poly-reduces to SAT"
@@ -6387,6 +6690,321 @@ title = "34.4. Verified TM2 builder — OptionPairLeft facade"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairFirstProjection"]
 title = "34.4. Verified TM2 builder — PairFirstProjection facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.HeadProjection"]
+title = "34.4. Batch edge lookup: aggregate projection"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DropHead"]
+title = "34.4. Fixed streaming head deletion"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairSecondProjection"]
+title = "34.4. Second projection of a separator-encoded pair"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle"]
+title = "34.5. HAM-CYCLE"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate"]
+title = "34.5. Certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.CycleInterface"]
+title = "34.5. A local-neighbor interface for ordered Hamiltonian cycles"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance"]
+title = "34.5. Finite undirected Hamiltonian-cycle instances"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language"]
+title = "34.5. Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction"]
+title = "34.5. The typed VERTEX-COVER to HAM-CYCLE reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness"]
+title = "34.5. Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateAdjacency"]
+title = "34.5. Adjacency of the cover-induced Hamiltonian certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateBuilder"]
+title = "34.5. Executable Hamiltonian certificate induced by a vertex cover"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateCoverage"]
+title = "34.5. Full vertex coverage of the cover-induced certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.ChainPaths"]
+title = "34.5. Paths through one source vertex's incident gadgets"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.Correctness"]
+title = "34.5. Completeness of the VERTEX-COVER to HAM-CYCLE construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.IncidenceCoverage"]
+title = "34.5. Reindexing the incidences selected by a source cover"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.LocalCoverage"]
+title = "34.5. Exact local coverage supplied by a source cover"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.LocalPaths"]
+title = "34.5. Local paths induced by a source vertex cover"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.SelectorLinks"]
+title = "34.5. Selector edges used by the completeness certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.WidgetCoverage"]
+title = "34.5. Global gadget-vertex coverage"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction"]
+title = "34.5. Construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Edges"]
+title = "34.5. Edge families in the CLRS Hamiltonian-cycle reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.IncidenceSemantics"]
+title = "34.5. Semantic interface for source-edge incidence lists"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Instance"]
+title = "34.5. Typed target instance for VERTEX-COVER to HAM-CYCLE"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.Numbering"]
+title = "34.5. Vertex numbering for the CLRS VERTEX-COVER to HAM-CYCLE reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.WellFormed"]
+title = "34.5. Well-formedness of the constructed Hamiltonian graph"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget"]
+title = "34.5. CLRS Hamiltonian-cycle reduction gadget facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget.Basic"]
+title = "34.5. The CLRS edge gadget for VERTEX-COVER to HAM-CYCLE"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness"]
+title = "34.5. Soundness of the CLRS VERTEX-COVER to HAM-CYCLE reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.BranchChoices"]
+title = "34.5. Forced choices at the four branching vertices"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.ChainEndpoints"]
+title = "34.5. Reaching selectors along selected incidence chains"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.ClosedGadget"]
+title = "34.5. Excluding a closed gadget subcycle"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CoreNeighbors"]
+title = "34.5. Exact neighbors of the degree-two gadget core"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.Correctness"]
+title = "34.5. Soundness of VERTEX-COVER to HAM-CYCLE"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleBoundary"]
+title = "34.5. Boundary edges in a cyclic list"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleCore"]
+title = "34.5. Forced cyclic neighbors at gadget-core vertices"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.CycleEdges"]
+title = "34.5. Edges used by an ordered Hamiltonian cycle"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.EdgeClassification"]
+title = "34.5. Edge-family classification for reduction soundness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.GadgetClassification"]
+title = "34.5. The three allowed Hamiltonian traversals of a gadget"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.PortClassification"]
+title = "34.5. Classifying external port links"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SameGadgetNeighbors"]
+title = "34.5. Adjacency inside one global gadget block"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectedPorts"]
+title = "34.5. External links at selected gadget ports"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectorBudget"]
+title = "34.5. The selector budget"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SourceCover"]
+title = "34.5. Reading a source cover from gadget traversals"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum"]
+title = "34.5. SUBSET-SUM"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.DigitPacking"]
+title = "34.5. Carry-free decimal-column packing"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Instance"]
+title = "34.5. Finite indexed SUBSET-SUM instances"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction"]
+title = "34.5. 3-CNF-SAT to SUBSET-SUM reduction facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.CertificateBuilder"]
+title = "34.5. SUBSET-SUM certificate induced by a satisfying assignment"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.CertificateColumns"]
+title = "34.5. Column totals of the assignment certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.ColumnSemantics"]
+title = "34.5. Column semantics of the SUBSET-SUM construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Completeness"]
+title = "34.5. Completeness of the 3-CNF-SAT to SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Construction"]
+title = "34.5. The CLRS 3-CNF-SAT to SUBSET-SUM construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Correctness"]
+title = "34.5. Correctness of the 3-CNF-SAT to SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction"]
+title = "34.5. SUBSET-SUM Reduction — Inverse Certificate Extraction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction.SlackColumns"]
+title = "34.5. Bounding the contribution of clause slack items"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction.VariableColumns"]
+title = "34.5. Extracting an assignment from variable columns"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.OccurrenceCount"]
+title = "34.5. Counting true literal occurrences"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Soundness"]
+title = "34.5. Soundness of the 3-CNF-SAT to SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.VariableBounds"]
+title = "34.5. Variable bounds for finite 3-CNF formulas"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson"]
+title = "34.5. Decision traveling-salesperson problem"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance"]
+title = "34.5. Finite decision-TSP instances"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction"]
+title = "34.5. HAM-CYCLE to decision-TSP reduction facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Construction"]
+title = "34.5. The textbook HAM-CYCLE to decision-TSP construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Correctness"]
+title = "34.5. Correctness of the HAM-CYCLE to decision-TSP reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.CostSemantics"]
+title = "34.5. Cost semantics of the HAM-CYCLE to TSP construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector"]
+title = "34.5. Guard Selector"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Basic"]
+title = "34.5. VERTEX-COVER complement machine: final guarded selector"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Runtime"]
+title = "34.5. VERTEX-COVER guarded selector: polynomial runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GuardSelector.Simulation"]
+title = "34.5. VERTEX-COVER guarded selector: exact simulation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header"]
+title = "34.5. Header"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Basic"]
+title = "34.5. VERTEX-COVER complement machine: transformed header controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Runtime"]
+title = "34.5. VERTEX-COVER complement header: polynomial runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Header.Simulation"]
+title = "34.5. VERTEX-COVER complement header: phase simulation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter"]
+title = "34.5. VERTEX-COVER complement machine: repeated nonedge filter"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Answers"]
+title = "34.5. VERTEX-COVER complement machine: pointwise source-edge answers"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.FilterInput"]
+title = "34.5. VERTEX-COVER complement machine: aligned filter input"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Input"]
+title = "34.5. VERTEX-COVER complement machine: nonedge-filter input"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Pipeline"]
+title = "34.5. VERTEX-COVER complement machine: complete nonedge pipeline"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector"]
+title = "34.5. Nonedge selector facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Basic"]
+title = "34.5. VERTEX-COVER complement machine: nonedge selector controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Run"]
+title = "34.5. VERTEX-COVER complement machine: complete selector run"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Runtime"]
+title = "34.5. VERTEX-COVER complement machine: selector runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Selector.Simulation"]
+title = "34.5. VERTEX-COVER complement machine: selector phases"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream"]
+title = "34.5. VERTEX-COVER complement machine: canonical vertex-pair stream"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate"]
+title = "34.5. VERTEX-COVER pair stream: graph-to-range-certificate machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Basic"]
+title = "34.5. VERTEX-COVER pair stream: range-certificate controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Run"]
+title = "34.5. Range-certificate controller: complete typed run"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Runtime"]
+title = "34.5. Range-certificate controller: polynomial runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.RangeCertificate.Simulation"]
+title = "34.5. Range-certificate controller: local simulations"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.Runtime"]
+title = "34.5. VERTEX-COVER complement machine: polynomial pair stream"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream.Semantics"]
+title = "34.5. VERTEX-COVER complement machine: canonical pair-stream semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.Total"]
+title = "34.5. Total concrete CLIQUE-to-VERTEX-COVER machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.TypedComplement"]
+title = "34.5. Complete typed complement-instance machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NP"]
+title = "34.5. N P"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NPCompleteness"]
+title = "34.5. N P Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Reduction"]
+title = "34.5. Reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine"]
+title = "34.5. Concrete VERTEX-COVER verifier facade"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Input"]
+title = "34.5. VERTEX-COVER verifier input pipeline"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Length"]
+title = "34.5. Certificate length for the complement-clique VERTEX-COVER verifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Runtime"]
+title = "34.5. VERTEX-COVER verifier machine and runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Semantics"]
+title = "34.5. Exact semantics of the complement-clique VERTEX-COVER verifier"
 
 [modules."CLRSLean.Extensions"]
 title = "Extensions Beyond the Textbook"

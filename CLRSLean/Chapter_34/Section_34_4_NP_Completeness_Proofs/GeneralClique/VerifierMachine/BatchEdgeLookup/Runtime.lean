@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.Run
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.VerifierMachine.BatchEdgeLookup.HeadProjection
 
 /-!
 # Batch edge lookup: polynomial runtime
@@ -128,13 +129,14 @@ theorem batchSteps_le (queries : List (Nat × Nat)) (I : CliqueInstance) :
   change queryLength + 2 + iterationsSteps queries.reverse I ≤ _
   nlinarith
 
-/-- The compiled fixed controller emits the conjunction within the displayed
-cubic budget. -/
-def batch_outputs_in_time (queries : List (Nat × Nat)) (I : CliqueInstance) :
+/-- The compiled fixed controller emits the aggregate followed by every
+pointwise membership answer within the displayed cubic budget. -/
+def batchResults_outputs_in_time (queries : List (Nat × Nat))
+    (I : CliqueInstance) :
     TM2OutputsInTime (compile program)
       (pairEncoding (queries.flatMap encodeCliqueEdge)
         (encodeCliqueInstance I))
-      (some (boolEncoding (queriesInEdgesBool I queries)))
+      (some (batchResultStream I queries))
       (40 * (pairEncoding (queries.flatMap encodeCliqueEdge)
         (encodeCliqueInstance I)).length.succ ^ 3) := by
   have builderRun := batch_run queries I
@@ -143,34 +145,54 @@ def batch_outputs_in_time (queries : List (Nat × Nat)) (I : CliqueInstance) :
       (initList (compile program)
         (pairEncoding (queries.flatMap encodeCliqueEdge)
           (encodeCliqueInstance I)))
-      (some (haltList (compile program) [queriesInEdgesBool I queries]))
+      (some (haltList (compile program) (batchResultStream I queries)))
       (40 * (pairEncoding (queries.flatMap encodeCliqueEdge)
         (encodeCliqueInstance I)).length.succ ^ 3)
   refine ⟨⟨compiledRun.steps, ?_⟩, compiledRun.steps_le_m.trans
     (batchSteps_le queries I)⟩
   convert compiledRun.evals_in_steps using 1
   all_goals simp only [encodeCfg_initialCfg, encodeCfg_haltCfg]
-  all_goals rfl
 
-/-- Polynomial-time computability of the reusable batch edge lookup. -/
-noncomputable def batchComputableInPolyTime :
+/-- Polynomial-time computability of the enriched reusable batch lookup. -/
+noncomputable def batchResultsComputableInPolyTime :
     TM2ComputableInPolyTime
       (fun pr : List (Nat × Nat) × CliqueInstance =>
         pairEncoding (pr.1.flatMap encodeCliqueEdge)
           (encodeCliqueInstance pr.2))
-      boolEncoding (fun pr => queriesInEdgesBool pr.2 pr.1) where
+      id (fun pr => batchResultStream pr.2 pr.1) where
   tm := compile program
   inputAlphabet := Equiv.refl _
   outputAlphabet := Equiv.refl _
   time := 40 * (Polynomial.X + 1) ^ 3
   outputsFun := fun pr => by
     rcases pr with ⟨queries, I⟩
-    have run := batch_outputs_in_time queries I
+    have run := batchResults_outputs_in_time queries I
     convert run using 1 <;>
       simp [Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
         Polynomial.eval_X, Polynomial.eval_ofNat, Nat.succ_eq_add_one]
     all_goals
       change List.map id _ = _
       exact List.map_id _
+
+/-- Polynomial-time computability of the original aggregate-only interface. -/
+noncomputable def batchComputableInPolyTime :
+    TM2ComputableInPolyTime
+      (fun pr : List (Nat × Nat) × CliqueInstance =>
+        pairEncoding (pr.1.flatMap encodeCliqueEdge)
+          (encodeCliqueInstance pr.2))
+      boolEncoding (fun pr => queriesInEdgesBool pr.2 pr.1) := by
+  let composed := _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
+    batchResultsComputableInPolyTime HeadProjection.computableInPolyTime
+  have machine := Classical.choice composed
+  exact
+    { tm := machine.tm
+      inputAlphabet := machine.inputAlphabet
+      outputAlphabet := machine.outputAlphabet
+      time := machine.time
+      outputsFun := fun pr => by
+        have output := machine.outputsFun pr
+        convert output using 1 <;>
+          simp [Function.comp_def, batchResultStream, HeadProjection.stream,
+            _root_.Turing.TM2Comp.boolEncoding] }
 
 end CLRS.Chapter34.Turing.GeneralCliqueVerifier.BatchEdgeLookup

@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.VertexCover.ComplementMachine.PairStream
+
+#check certificateRangeRawPairs_eq_normalizedPairs
+#check certificateRangeRawPairs_eq_vertexCoverNormalizedPairs
+#check RangeCertificate.run
+#check RangeCertificate.computableInPolyTime
+#check computableInPolyTime
+
+#print axioms certificateRangeRawPairs_eq_normalizedPairs
+#print axioms certificateRangeRawPairs_eq_vertexCoverNormalizedPairs
+#print axioms RangeCertificate.computableInPolyTime
+#print axioms computableInPolyTime

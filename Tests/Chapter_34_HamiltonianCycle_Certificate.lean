@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
+
+#print axioms CLRS.Chapter34.hamiltonianCycleVerifier_eq_true_iff
+#print axioms CLRS.Chapter34.mem_generalHAMCYCLE_iff_exists_certificate
+#print axioms CLRS.Chapter34.exists_bounded_hamiltonianCycleCertificate_of_mem
+#print axioms CLRS.Chapter34.mem_generalHAMCYCLE_iff_exists_bounded_certificate
+#print axioms CLRS.Chapter34.HamiltonianCycleReduction.cycleSelectedSourceVertices_isVertexCover
+#print axioms CLRS.Chapter34.HamiltonianCycleReduction.cycleSelectedSourceVertices_card_le_targetSize
+#print axioms CLRS.Chapter34.HamiltonianCycleReduction.vertexCoverToHamiltonianInstance_sound
+#print axioms CLRS.Chapter34.HamiltonianCycleReduction.vertexCoverToHamiltonianInstance_correct

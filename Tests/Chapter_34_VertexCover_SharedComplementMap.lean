@@ -1,0 +1,20 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
+
+/-!
+# Regression test: shared guarded graph-complement map
+-/
+
+open CLRS Chapter34
+
+#check guardedGraphComplementMap
+#check guardedGraphComplementMap_of_decode_wellFormed
+#check guardedGraphComplementMap_of_decode_not_wellFormed
+#check guardedGraphComplementMap_of_decode_none
+#check cliqueToVertexCoverMap_eq_guardedGraphComplementMap
+#check vertexCoverToCliqueMap_eq_guardedGraphComplementMap
+
+#print axioms guardedGraphComplementMap_of_decode_wellFormed
+#print axioms guardedGraphComplementMap_of_decode_not_wellFormed
+#print axioms guardedGraphComplementMap_of_decode_none
+#print axioms cliqueToVertexCoverMap_eq_guardedGraphComplementMap
+#print axioms vertexCoverToCliqueMap_eq_guardedGraphComplementMap

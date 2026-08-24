@@ -97,7 +97,25 @@ concrete 3-CNF-SAT reduction.  The direct general-circuit-to-SAT bridge has a
 fixed polynomial-time TM2, and the universal NP-hardness chain reaches SAT,
 3-CNF-SAT, and public CLIQUE; general CLIQUE is proved NP-complete.  A
 standalone SAT NP verifier remains an optional direct refinement.  Section
-34.5 is not yet represented, so this guide remains partial.
+34.5 is now partially represented by the typed CLIQUE-to-VERTEX-COVER
+complement theorem, its typed reverse, the raw VERTEX-COVER language, and exact
+total raw-string semantic maps in both directions.  Both maps have explicit
+cubic output-length bounds.  Its Boolean certificate checker is semantically
+exact and has a quadratic accepted-certificate bound.  Its first concrete
+machine phase is also closed: a fixed linear-time TM2 normalizes raw graph
+syntax while preserving parser rejection through an ill-formed sentinel.  The
+existing CLIQUE target/order/endpoint machines are also combined into an exact
+fixed polynomial-time graph well-formedness guard.  A verified graph-pair
+formatter composes both phases into an all-input raw well-formedness TM2.
+Fixed complement-generation, guarded selection, and complement-clique
+verification machines close the total reduction and NP-verification layers;
+`VERTEXCOVER_npComplete` packages the result.  The selected typed textbook
+chain is now closed by the total
+VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact
+HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural
+3-CNF-SAT-to-SUBSET-SUM equivalence.  HAM-CYCLE, TSP, and SUBSET-SUM still
+need their remaining raw-language, fixed-machine, runtime, and NP-completeness
+layers; this guide therefore remains partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

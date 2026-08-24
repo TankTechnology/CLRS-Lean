@@ -1,0 +1,18 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate
+
+/-!
+# Regression test: VERTEX-COVER certificate semantics
+-/
+
+open CLRS Chapter34
+
+#check CliqueInstance.ListRepresentsVertexCover
+#check vertexCoverVerifier
+#check vertexCoverVerifier_eq_true_iff
+#check CliqueInstance.hasVertexCover_of_listRepresentsVertexCover
+#check CliqueInstance.exists_listRepresentsVertexCover_of_hasVertexCover
+#check CliqueInstance.hasVertexCover_iff_exists_listRepresentsVertexCover
+#check exists_bounded_vertexCoverCertificate_of_mem
+#check mem_generalVERTEXCOVER_iff_exists_certificate
+
+#print axioms mem_generalVERTEXCOVER_iff_exists_certificate

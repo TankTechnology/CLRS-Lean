@@ -62,5 +62,7 @@ computes this total map in polynomial time, yielding
 concrete SAT-to-3-CNF and 3-CNF-to-general-CLIQUE machines, this closes the
 full hardness chain and proves `CLIQUE_npComplete` for the honest serialized
 graph-plus-`k` language.  A standalone SAT NP verifier remains an optional
-direct refinement; Section 34.5 is now the principal textbook-coverage gap.
+direct refinement.  Section 34.5 now closes the selected typed textbook
+reduction chain; its complete serialized machine and NP-packaging layer remains
+the principal refinement gap.
 -/
