@@ -1940,6 +1940,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Header",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Basic",
@@ -6764,6 +6768,18 @@ title = "34.5. Polynomial output length of the raw HAM-CYCLE reduction"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Header"]
 title = "34.5. Fixed VERTEX-COVER to HAM-CYCLE header generator"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source"]
+title = "34.5. HAM-CYCLE reduction machine: widget occurrence source"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds"]
+title = "34.5. HAM-CYCLE reduction machine: widget occurrence seeds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints"]
+title = "34.5. HAM-CYCLE reduction machine: global widget endpoints"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter"]
+title = "34.5. HAM-CYCLE reduction machine: widget-edge formatter"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine"]
 title = "34.5. Fixed VERTEX-COVER to HAM-CYCLE reduction machinery"

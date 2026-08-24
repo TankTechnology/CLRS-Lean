@@ -131,6 +131,12 @@ Use `mem_generalHAMCYCLE_iff_exists_bounded_certificate` and the checker machine
 
 ### Task 4: Build the fixed HAM-CYCLE reduction machine and NP-completeness
 
+Progress checkpoint (2026-08-25): the fixed nondegenerate header and the
+complete fourteen-edge internal widget family are implemented.  The latter is
+split into source edge counting, occurrence-seed progression, fixed affine
+endpoint generation, and graph-record formatting, with exact canonical
+semantics and polynomial-time TM2 witnesses at every public boundary.
+
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
 - Create: focused modules under `HamiltonianCycle/ReductionMachine/`
