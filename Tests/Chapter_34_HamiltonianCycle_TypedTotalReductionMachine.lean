@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.BranchClassifier.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.BranchSelector.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.stream_encode
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.machineInstance_targetSize_eq_vertexCount
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.correct
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.computableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.TypedTotal.correct

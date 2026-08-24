@@ -8,6 +8,10 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Runtime
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics
 
 /-!
 # Fixed VERTEX-COVER to HAM-CYCLE reduction machinery
@@ -22,6 +26,9 @@ successive incidence-chain edge.  A second fixed pipeline extracts the two
 gadget ports at the ends of every nonempty incidence row, repeats them for
 every selector, and formats the complete selector-endpoint edge multiset.
 These four edge families are assembled into one exact serialized ordinary
-target; its fixed machine, well-formedness, and semantic equivalence with the
-textbook edge ordering are proved.  Only guarded total composition remains.
+target.  A fixed branch classifier and selector now totalize that construction
+over all typed instances, including the two degenerate textbook branches.  The
+selected target has exact encoding semantics, is well formed, has target size
+equal to its vertex count, and is equivalent to the textbook construction.
+Only the raw syntax guard and final hardness packaging remain.
 -/
