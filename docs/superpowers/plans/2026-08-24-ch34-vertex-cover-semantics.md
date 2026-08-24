@@ -1,6 +1,6 @@
 # Chapter 34 VERTEX-COVER Semantics Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Close the typed CLIQUE-to-VERTEX-COVER complement theorem over the existing honest graph-plus-`k` representation and wire this semantic milestone as partial §34.5 progress.
 
@@ -16,7 +16,7 @@
 - Create: `Tests/Chapter_34_VertexCover_Semantics.lean`
 - Test: `Tests/Chapter_34_VertexCover_Semantics.lean`
 
-- [ ] **Step 1: Write the intended interface before source implementation**
+- [x] **Step 1: Write the intended interface before source implementation**
 
 Create:
 
@@ -30,7 +30,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 #check CLRS.Chapter34.CliqueInstance.hasClique_iff_complement_hasVertexCover
 ```
 
-- [ ] **Step 2: Run the test and observe the expected RED failure**
+- [x] **Step 2: Run the test and observe the expected RED failure**
 
 Run:
 
@@ -46,7 +46,7 @@ Expected: FAIL because the imported module does not exist.
 - Create: `CLRSLean/Chapter_34/Section_34_5_NP_Complete_Problems/VertexCover/Instance.lean`
 - Test: `Tests/Chapter_34_VertexCover_Semantics.lean`
 
-- [ ] **Step 1: Add problem-facing representation aliases**
+- [x] **Step 1: Add problem-facing representation aliases**
 
 Import general CLIQUE encoding and define:
 
@@ -59,7 +59,7 @@ abbrev encodeVertexCoverCertificate := encodeCliqueCertificate
 abbrev decodeVertexCoverCertificate := decodeCliqueCertificate
 ```
 
-- [ ] **Step 2: Define the finite-set cover truth source**
+- [x] **Step 2: Define the finite-set cover truth source**
 
 Inside `namespace CliqueInstance`, add:
 
@@ -76,7 +76,7 @@ def HasVertexCover (I : CliqueInstance) : Prop :=
 Add direct projection lemmas for bounds and edge coverage only if the semantic
 proof uses them repeatedly.
 
-- [ ] **Step 3: Compile the new source module**
+- [x] **Step 3: Compile the new source module**
 
 Run:
 
@@ -93,7 +93,7 @@ module is still absent.
 - Create: `CLRSLean/Chapter_34/Section_34_5_NP_Complete_Problems/VertexCover/Complement.lean`
 - Test: `Tests/Chapter_34_VertexCover_Semantics.lean`
 
-- [ ] **Step 1: Define deterministic pair enumeration**
+- [x] **Step 1: Define deterministic pair enumeration**
 
 Use row-major `List.range` enumeration:
 
@@ -105,7 +105,7 @@ def normalizedPairs (n : Nat) : List (Nat × Nat) :=
   (List.range n).flatMap (normalizedPairRow n)
 ```
 
-- [ ] **Step 2: Prove the exact pair membership theorem**
+- [x] **Step 2: Prove the exact pair membership theorem**
 
 Prove:
 
@@ -118,7 +118,7 @@ First prove the corresponding row membership lemma.  Isolate all `Nat`
 subtraction arithmetic in a short `omega` block rather than mixing it into the
 later graph proof.
 
-- [ ] **Step 3: Define and characterize complement edges**
+- [x] **Step 3: Define and characterize complement edges**
 
 ```lean
 def complementEdges (I : CliqueInstance) : List (Nat × Nat) :=
@@ -129,7 +129,7 @@ theorem mem_complementEdges_iff {I : CliqueInstance} {u v : Nat} :
       u < v ∧ v < I.vertexCount ∧ (u, v) ∉ I.edges
 ```
 
-- [ ] **Step 4: Define the reduction instance and well-formedness theorem**
+- [x] **Step 4: Define the reduction instance and well-formedness theorem**
 
 ```lean
 def complementForVertexCover (I : CliqueInstance) : CliqueInstance where
@@ -145,7 +145,7 @@ theorem complementForVertexCover_wellFormed
 The target-bound conclusion uses `Nat.sub_le`; edge normalization and range use
 `mem_complementEdges_iff`.
 
-- [ ] **Step 5: Compile the complement module**
+- [x] **Step 5: Compile the complement module**
 
 Run:
 
@@ -161,7 +161,7 @@ Expected: PASS.
 - Create: `CLRSLean/Chapter_34/Section_34_5_NP_Complete_Problems/VertexCover/ComplementSoundness.lean`
 - Test: `Tests/Chapter_34_VertexCover_Semantics.lean`
 
-- [ ] **Step 1: Prove the in-range complement cardinality helper**
+- [x] **Step 1: Prove the in-range complement cardinality helper**
 
 For `vertices ⊆ Finset.range n`, expose:
 
@@ -174,7 +174,7 @@ theorem card_range_sdiff_of_subset
 
 Use `Finset.card_sdiff_of_subset` and `Finset.card_range`.
 
-- [ ] **Step 2: Prove soundness**
+- [x] **Step 2: Prove soundness**
 
 ```lean
 theorem hasVertexCover_complement_of_hasClique
@@ -187,7 +187,7 @@ is exactly `vertexCount - targetSize`.  For a complement edge `(u,v)`, if
 neither endpoint lies in the cover then both lie in `S`; clique adjacency and
 `adj_iff_of_lt` contradict source-edge nonmembership.
 
-- [ ] **Step 3: Compile soundness**
+- [x] **Step 3: Compile soundness**
 
 Run:
 
@@ -204,7 +204,7 @@ Expected: PASS.
 - Create: `CLRSLean/Chapter_34/Section_34_5_NP_Complete_Problems/VertexCover/ComplementSemantics.lean`
 - Test: `Tests/Chapter_34_VertexCover_Semantics.lean`
 
-- [ ] **Step 1: Prove the independent-set size inequality**
+- [x] **Step 1: Prove the independent-set size inequality**
 
 For a cover `C` with `C.card ≤ n - k`, `k ≤ n`, and `C ⊆ range n`, prove:
 
@@ -215,7 +215,7 @@ k ≤ (Finset.range n \ C).card
 Rewrite with `Finset.card_sdiff_of_subset`; keep the remaining natural-number
 subtraction fact in one `omega` block.
 
-- [ ] **Step 2: Select an exact-size candidate**
+- [x] **Step 2: Select an exact-size candidate**
 
 Apply:
 
@@ -225,7 +225,7 @@ Finset.exists_subset_card_eq
 
 to obtain `S ⊆ Finset.range n \ C` with `S.card = k`.
 
-- [ ] **Step 3: Prove candidate adjacency**
+- [x] **Step 3: Prove candidate adjacency**
 
 For distinct `u,v ∈ S`, split on `u < v` or `v < u`.  If the normalized pair
 were absent from the source edge list, `mem_complementEdges_iff` would make it a
@@ -233,7 +233,7 @@ target complement edge.  The cover condition would put one endpoint in `C`,
 contradicting membership in the set difference.  Use `adj_comm` for the reversed
 orientation.
 
-- [ ] **Step 4: Prove completeness and final theorem**
+- [x] **Step 4: Prove completeness and final theorem**
 
 ```lean
 theorem hasClique_of_hasVertexCover_complement
@@ -249,7 +249,7 @@ theorem hasClique_iff_complement_hasVertexCover
 `ComplementSemantics.lean` should be a thin assembly module importing the two
 directions and exporting the final `iff`.
 
-- [ ] **Step 5: Run the public interface test**
+- [x] **Step 5: Run the public interface test**
 
 Run:
 
@@ -259,7 +259,7 @@ lake env lean Tests/Chapter_34_VertexCover_Semantics.lean
 
 Expected: PASS.
 
-- [ ] **Step 6: Audit headline axioms and unfinished markers**
+- [x] **Step 6: Audit headline axioms and unfinished markers**
 
 Add temporary `#print axioms` commands to the focused interface test or use a
 small audit file for:
@@ -279,7 +279,7 @@ rg -n '\b(sorry|admit|axiom)\b' \
 
 Expected: no proof placeholders.
 
-- [ ] **Step 7: Commit the typed semantic checkpoint**
+- [x] **Step 7: Commit the typed semantic checkpoint**
 
 ```bash
 git add \
@@ -304,17 +304,17 @@ git commit -m "proof(ch34): prove clique vertex-cover complement semantics"
 - Modify: `docs/index.md`
 - Regenerate: `CLRSLean/Progress.lean`
 
-- [ ] **Step 1: Add focused aggregators and Chapter import**
+- [x] **Step 1: Add focused aggregators and Chapter import**
 
 The aggregators import `ComplementSemantics` and document the exact open
 boundary: raw language, concrete reduction, verifier, and NP-completeness.
 
-- [ ] **Step 2: Register source navigation**
+- [x] **Step 2: Register source navigation**
 
 Add all new modules to `literate.toml` with explicit human titles and include
 the new source paths in `docs/index.md`.
 
-- [ ] **Step 3: Update status ledgers**
+- [x] **Step 3: Update status ledgers**
 
 Promote §34.5 from `not-started` to `partial`.  Add the typed complement theorem
 as one tracked Chapter 34 theorem, changing Chapter 34 from 37/37 to 38/38 while
@@ -323,7 +323,7 @@ retaining one edition gap unit until the selected §34.5 chain is complete.
 State explicitly that VERTEX-COVER is only `semantic-only`; no raw decision
 language or NP-completeness theorem is claimed yet.
 
-- [ ] **Step 4: Regenerate the progress dashboard**
+- [x] **Step 4: Regenerate the progress dashboard**
 
 Run:
 
@@ -331,7 +331,7 @@ Run:
 python3 scripts/check_progress_csv.py --write-dashboard
 ```
 
-- [ ] **Step 5: Run milestone verification**
+- [x] **Step 5: Run milestone verification**
 
 Run:
 
@@ -344,7 +344,7 @@ git diff --check
 
 Expected: all commands PASS.
 
-- [ ] **Step 6: Commit wiring and status**
+- [x] **Step 6: Commit wiring and status**
 
 ```bash
 git add CLRSLean/Chapter_34.lean CLRSLean/FourthEdition/Chapter_34.lean \
@@ -359,19 +359,19 @@ git commit -m "docs(ch34): record vertex-cover semantic milestone"
 **Files:**
 - Create: `docs/proof-audits/2026-08-24-ch34-vertex-cover-semantics.md`
 
-- [ ] **Step 1: Record exact accepted evidence**
+- [x] **Step 1: Record exact accepted evidence**
 
 The audit names typed definitions, complement construction, soundness,
 completeness, final `iff`, focused test, Chapter build, placeholder scan, and
 axiom results.
 
-- [ ] **Step 2: Record the next missing bridge**
+- [x] **Step 2: Record the next missing bridge**
 
 The next ledger row is the honest raw `GeneralVERTEXCOVER` language and total
 `cliqueToVertexCoverMap` membership theorem.  Do not describe the semantic
 checkpoint as `PolyTimeReducible` or NP-complete.
 
-- [ ] **Step 3: Run fresh verification and commit**
+- [x] **Step 3: Run fresh verification and commit**
 
 Run:
 
