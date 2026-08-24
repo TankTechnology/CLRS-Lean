@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.RawWellFormed
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.PairStream
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter
 
 /-!
 # VERTEX-COVER complement-machine components
@@ -13,6 +14,8 @@ The graph-pair formatter and composition theorem close the entire original-raw-
 input to exact well-formedness-verdict pipeline.  A new graph-to-range-
 certificate controller composes with the verified general-CLIQUE positional-
 pair generator, closing the original canonical graph to exact normalized-pair
-stream as a fixed polynomial-time TM2.  Nonedge emission and final direction-
-specific fallback selection remain subsequent components.
+stream as a fixed polynomial-time TM2.  The exact candidate-pair/graph input
+for repeated lookup is also polynomial-time computable.  The repeated nonedge
+emitter and final direction-specific fallback selection remain subsequent
+components.
 -/
