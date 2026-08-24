@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Chain.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Chain.chainEdgeStream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Chain.chainEdgeStream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Chain.computableInPolyTime

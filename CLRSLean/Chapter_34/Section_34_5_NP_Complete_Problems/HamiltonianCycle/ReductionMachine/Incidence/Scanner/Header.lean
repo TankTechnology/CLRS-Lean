@@ -183,4 +183,3 @@ def header_run (query occurrence : Nat) (I : CliqueInstance)
     Nat.add_left_comm] using full
 
 end CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Scanner
-

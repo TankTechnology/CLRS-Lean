@@ -144,8 +144,12 @@ one shared repeated incidence scanner rather than two independent parsers.
 That scanner is now complete: it scans the raw graph once per descending
 vertex query, preserves occurrence indices across rows, reverses the result
 into canonical vertex order, and has an exact semantic theorem plus a uniform
-cubic runtime bound.  The active boundary is therefore reduced to the two
-formatters over this shared row stream and the final guarded composition.
+cubic runtime bound.  The incidence-chain formatter is also complete: one
+fixed controller parses each `(occurrence, side)` pair, retains consecutive
+references across a row, emits the exact normalized gadget links, and has a
+linear runtime bound in the scanner-stream length.  The active boundary is
+therefore reduced to the selector-endpoint formatter and final guarded
+composition.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
