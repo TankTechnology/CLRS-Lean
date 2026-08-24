@@ -35,7 +35,7 @@ inductive Label
   | restorePrefix (ret : OffsetReturn)
   | parseOffset (ret : OffsetReturn)
   | expectGateCount | gateCount | rows | gateTag
-  | parseInputOperand | expectRowEnd | done
+  | parseInputOperand | expectRowEnd | clearInputCount | done
 deriving DecidableEq, Fintype, Inhabited
 
 structure State where
@@ -129,7 +129,7 @@ def program : Label → Stmt
                 .push .output (fun _ => .varMark) <|
                   go (.copyPrefix .row))
             emitFalse)
-          (.push .output (fun _ => .lit true) <| go .done)
+          (.push .output (fun _ => .lit true) <| go .clearInputCount)
   | .gateTag =>
       .pop .input setInput <|
         .branch (inputIs .inputGateMark)
@@ -161,6 +161,9 @@ def program : Label → Stmt
   | .expectRowEnd =>
       .pop .input setInput <|
         .branch (inputIs .rowEnd) (go .rows) emitFalse
+  | .clearInputCount =>
+      .pop .inputCount setCounter <|
+        .branch hasCounter (go .clearInputCount) (go .done)
   | .done => .load (fun _ => initialState) .halt
 
 abbrev reverseMachine : FinTM2 :=

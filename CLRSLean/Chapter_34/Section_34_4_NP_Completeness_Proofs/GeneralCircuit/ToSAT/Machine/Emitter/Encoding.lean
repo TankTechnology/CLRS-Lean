@@ -30,6 +30,14 @@ def generalCircuitGateFormulaList (inputCount gateIndex : Nat)
   .iffMark :: (varEnc (inputCount + gateIndex) ++
     generalCircuitGateExprList inputCount gate)
 
+/-- Gate-row prefix stream before the terminal true constant. -/
+def generalCircuitGateRowsListFrom (inputCount : Nat) :
+    Nat → List CircuitGate → List FormulaSym
+  | _, [] => []
+  | gateIndex, gate :: gates =>
+      .andMark :: (generalCircuitGateFormulaList inputCount gateIndex gate ++
+        generalCircuitGateRowsListFrom inputCount (gateIndex + 1) gates)
+
 /-- Right-associated conjunction stream for a chronological gate suffix. -/
 def generalCircuitGateFamilyListFrom (inputCount : Nat) :
     Nat → List CircuitGate → List FormulaSym
