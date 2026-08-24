@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.CompleteWeights
+
+#check CLRS.Chapter34.Turing.TSPReduction.completeHamiltonianWeights_eq
+#check CLRS.Chapter34.Turing.TSPReduction.diagonalWeightFieldsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPReduction.symmetricWeightFieldsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPReduction.completeWeightFields_eq
+#check CLRS.Chapter34.Turing.TSPReduction.completeWeightFieldsComputableInPolyTime
