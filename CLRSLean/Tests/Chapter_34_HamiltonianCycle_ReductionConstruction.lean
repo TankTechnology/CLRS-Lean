@@ -153,6 +153,19 @@ example : List.Perm
   · norm_num [CliqueInstance.WellFormed, oneEdgeOneSelector]
   · norm_num [CliqueInstance.IsVertexCover, oneEdgeOneSelector]
 
+example : (clrsHamiltonianInstance oneEdgeOneSelector).ListRepresentsHamiltonianCycle
+      (coverHamiltonianCertificate oneEdgeOneSelector {0}) := by
+  apply coverHamiltonianCertificate_representsHamiltonianCycle
+  · decide
+  · decide
+  · norm_num [CliqueInstance.IsVertexCover, oneEdgeOneSelector]
+  · decide
+
+example : (vertexCoverToHamiltonianInstance oneEdgeOneSelector).HasHamiltonianCycle := by
+  apply vertexCoverToHamiltonianInstance_complete (by decide)
+  exact ⟨{0}, by decide,
+    by norm_num [CliqueInstance.IsVertexCover, oneEdgeOneSelector]⟩
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -181,5 +194,8 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms mem_selectedOccurrenceVertices_iff
 #print axioms selectedCoverOccurrences_perm_coveredOccurrences
 #print axioms selectedCoverWidgetVertices_perm_range
+#print axioms coverHamiltonianCertificate_perm_range
+#print axioms coverHamiltonianCertificate_representsHamiltonianCycle
+#print axioms vertexCoverToHamiltonianInstance_complete
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
