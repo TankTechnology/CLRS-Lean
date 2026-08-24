@@ -101,9 +101,12 @@ standalone SAT NP verifier remains an optional direct refinement.  Section
 complement theorem, its typed reverse, the raw VERTEX-COVER language, and exact
 total raw-string semantic maps in both directions.  Both maps have explicit
 cubic output-length bounds.  Its Boolean certificate checker is semantically
-exact and has a quadratic accepted-certificate bound.  The fixed reduction and
-verifier machines, NP membership/completeness closure, and the HAM-CYCLE, TSP,
-and SUBSET-SUM chains remain open; this guide therefore remains partial.
+exact and has a quadratic accepted-certificate bound.  Its first concrete
+machine phase is also closed: a fixed linear-time TM2 normalizes raw graph
+syntax while preserving parser rejection through an ill-formed sentinel.  The
+remaining complement/verifier machines, NP membership/completeness closure,
+and the HAM-CYCLE, TSP, and SUBSET-SUM chains remain open; this guide therefore
+remains partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

@@ -5583,8 +5583,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   semantics, a deterministic graph complement, exact CLIQUE/cover equivalences
   in both directions, all-input total raw semantic maps in both directions,
   cubic output-length bounds for both maps, and exact bounded Boolean-
-  certificate semantics.  Polynomial-time
-  reduction/verifier machines,
+  certificate semantics.  Its fixed linear-time syntax-normalizer preserves
+  valid graph encodings and turns parser failures into an ill-formed sentinel.
+  The remaining polynomial-time reduction/verifier machines,
   VERTEX-COVER NP membership/completeness, HAM-CYCLE, TSP, and SUBSET-SUM
   remain open.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
@@ -5699,7 +5700,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `vertexCoverToCliqueMap_length_le` give uniform cubic output bounds.  Its
   Boolean checker is
   characterized by `mem_generalVERTEXCOVER_iff_exists_certificate`, including
-  a quadratic certificate bound; machine-level closure remains open.
+  a quadratic certificate bound.  `SyntaxNormalizer.computableInPolyTime`
+  closes raw graph syntax normalization with a fixed linear-time TM2;
+  complement generation and the rest of machine-level closure remain open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5901,7 +5904,8 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Remaining chapter scope: Section 34.5 has typed and raw VERTEX-COVER
   complement semantics, total membership-preserving raw maps in both
   directions, cubic output-length bounds, and exact bounded Boolean-certificate
-  semantics; machine-level VERTEX-COVER NP
+  semantics.  Raw syntax normalization already has a fixed linear-time TM2;
+  full machine-level VERTEX-COVER NP
   membership/completeness and the HAM-CYCLE, TSP, and SUBSET-SUM reductions
   remain open.
 

@@ -16,24 +16,24 @@ yet validate all graph invariants or emit complement edges.
 
 ## Task 1: Pure contract and controller
 
-- [ ] Define the malformed-graph sentinel and prove it is not well formed.
-- [ ] Define the syntax-normalized value and byte stream.
-- [ ] Implement a fixed parser/buffer/restore/fallback controller.
+- [x] Define the malformed-graph sentinel and prove it is not well formed.
+- [x] Define the syntax-normalized value and byte stream.
+- [x] Implement a fixed parser/buffer/restore/fallback controller.
 
 ## Task 2: Local simulations
 
-- [ ] Prove scan, restore, clear, and sentinel-emission runs independently.
-- [ ] Assemble the exact all-input run theorem.
+- [x] Prove scan, restore, clear, and sentinel-emission runs independently.
+- [x] Assemble the exact all-input run theorem.
 
 ## Task 3: Semantic and runtime closure
 
-- [ ] Prove the emitted stream is exactly the canonical encoding of the
+- [x] Prove the emitted stream is exactly the canonical encoding of the
   syntax-normalized value.
-- [ ] Package a fixed linear-time `TM2ComputableInPolyTime` witness.
+- [x] Package a fixed linear-time `TM2ComputableInPolyTime` witness.
 
 ## Task 4: Verification and checkpoint
 
-- [ ] Add a focused regression interface and axiom audit.
-- [ ] Build the new modules and Chapter 34 root; run placeholder and repository
+- [x] Add a focused regression interface and axiom audit.
+- [x] Build the new modules and Chapter 34 root; run placeholder and repository
   consistency checks.
-- [ ] Commit proof and public-ledger updates as separate checkpoints.
+- [x] Commit proof and public-ledger updates as separate checkpoints.

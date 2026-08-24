@@ -43,8 +43,9 @@ completed-prefix milestone.
 
 The edition map records one partially represented coverage unit in Chapter 34:
 §34.5 has bidirectional typed and raw CLIQUE / VERTEX-COVER complement
-semantics, cubic output-length bounds, and exact bounded certificate semantics,
-but not yet the fixed polynomial-time machines or later reductions.  Chapter
+semantics, cubic output-length bounds, and exact bounded certificate semantics.
+Its raw graph syntax-normalizer is a fixed linear-time TM2, but the full
+complement machine and later reductions are not yet closed.  Chapter
 34 is the sole
 repository row whose status remains
 {lit}`partial`.
@@ -78,6 +79,10 @@ repository row whose status remains
   The reverse typed equivalence and total raw VERTEX-COVER-to-CLIQUE map make
   this semantic bridge bidirectional; both raw maps have explicit cubic
   output-length bounds.
+  A fixed linear-time TM2 preserves every valid raw graph encoding and maps
+  parser failures to a canonical but deliberately ill-formed sentinel, so the
+  remaining well-formedness guard cannot confuse malformed input with an empty
+  valid graph.
   Its executable Boolean certificate checker has exact all-input semantics,
   and accepted certificates have a quadratic length bound.  Concrete
   reduction and verifier machines, VERTEX-COVER NP membership/completeness,
