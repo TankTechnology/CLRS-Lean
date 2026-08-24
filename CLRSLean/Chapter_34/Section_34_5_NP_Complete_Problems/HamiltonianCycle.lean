@@ -30,6 +30,7 @@ a fixed polynomial-time controller, repeats those endpoints for every
 selector, and formats the complete selector-endpoint edge multiset.  The four
 families are now assembled by one fixed polynomial-time machine into an exact
 ordinary target, with a permutation bridge proving that edge-record ordering
-does not change Hamiltonian-cycle semantics.  Guarded total composition
-remains before the raw NP-hardness theorem can be packaged.
+does not change Hamiltonian-cycle semantics.  A fixed classifier and stream
+selector also totalize this target over the two degenerate typed branches.
+The raw syntax guard remains before the NP-hardness theorem can be packaged.
 -/

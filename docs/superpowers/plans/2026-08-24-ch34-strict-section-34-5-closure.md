@@ -159,8 +159,11 @@ family, preserving duplicates.  All four families are now concatenated into
 the exact serialized ordinary target by one fixed polynomial-time TM2.  A
 pair-level permutation bridge proves equality of adjacency, cycle semantics,
 and well-formedness with the textbook construction.  The active boundary is
-therefore reduced to final degenerate/raw guarded composition and the raw
-hardness packaging.
+further reduced by a fixed branch classifier and stream selector: the exact
+ordinary candidate is now totalized over empty-edge and zero-target instances,
+and the resulting typed target is well formed, has target size equal to vertex
+count, and preserves the textbook reduction semantics.  The remaining boundary
+is the raw syntax guard and the raw hardness packaging.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
