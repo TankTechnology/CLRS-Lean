@@ -11,9 +11,14 @@ open CLRS.Chapter34.Turing.VertexCover.ComplementMachine.NonedgeFilter
 #check membershipBitsComputableInPolyTime
 #check filterInput
 #check filterInputComputableInPolyTime
+#check Selector.run
+#check Selector.selectorSteps_le
+#check selectedCandidateStream_eq_complement
+#check computableInPolyTime
 #check complementEdges_eq_filter
 
 #print axioms inputStreamComputableInPolyTime
 #print axioms membershipBitsComputableInPolyTime
 #print axioms filterInputComputableInPolyTime
+#print axioms computableInPolyTime
 #print axioms complementEdges_eq_filter

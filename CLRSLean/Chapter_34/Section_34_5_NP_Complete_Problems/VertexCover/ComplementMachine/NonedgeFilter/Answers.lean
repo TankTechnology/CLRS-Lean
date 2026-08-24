@@ -24,6 +24,10 @@ def lookupResults (I : CliqueInstance) : List Bool :=
 def membershipBits (I : CliqueInstance) : List Bool :=
   BatchEdgeLookup.queryMembershipBits I (candidatePairs I)
 
+@[simp] theorem membershipBits_length (I : CliqueInstance) :
+    (membershipBits I).length = (candidatePairs I).length := by
+  simp [membershipBits, BatchEdgeLookup.queryMembershipBits]
+
 theorem lookupResults_eq (I : CliqueInstance) :
     lookupResults I =
       BatchEdgeLookup.queriesInEdgesBool I (candidatePairs I) ::
