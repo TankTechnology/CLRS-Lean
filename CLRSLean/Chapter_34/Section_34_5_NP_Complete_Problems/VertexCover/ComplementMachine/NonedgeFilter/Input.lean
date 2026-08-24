@@ -107,4 +107,22 @@ noncomputable def inputStreamComputableInPolyTime :
         rw [heq] at output
         simpa using output }
 
+/-- Typed view of the same concrete stream, matching the reusable batch
+lookup input encoder exactly. -/
+noncomputable def batchInputComputableInPolyTime :
+    TM2ComputableInPolyTime encodeCliqueInstance
+      (fun pr : List (Nat × Nat) × CliqueInstance =>
+        pairEncoding (pr.1.flatMap encodeCliqueEdge)
+          (encodeCliqueInstance pr.2))
+      (fun I => (candidatePairs I, I)) := by
+  let raw := inputStreamComputableInPolyTime
+  exact
+    { tm := raw.tm
+      inputAlphabet := raw.inputAlphabet
+      outputAlphabet := raw.outputAlphabet
+      time := raw.time
+      outputsFun := fun I => by
+        have output := raw.outputsFun I
+        simpa [inputStream, candidateStream] using output }
+
 end CLRS.Chapter34.Turing.VertexCover.ComplementMachine.NonedgeFilter
