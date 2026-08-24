@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CyclePairStream
+
+#check CLRS.Chapter34.Turing.TSPVerifier.CyclePairStream.cyclePairsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CyclePairStream.streamComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CyclePairStream.cyclePairs_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.CyclePairStream.stream_encode
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.CyclePairStream.cyclePairsComputableInPolyTime
