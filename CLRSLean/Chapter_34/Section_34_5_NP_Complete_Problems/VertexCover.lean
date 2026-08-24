@@ -16,7 +16,9 @@ function and have explicit cubic output-length bounds.
 It also exports an executable Boolean certificate checker, its exact semantics,
 and a quadratic accepted-certificate bound.
 
-The raw syntax-normalization phase already has a fixed linear-time TM2.  The
-complete complement and verifier machines, VERTEX-COVER NP membership, and the
+The raw syntax-normalization phase already has a fixed linear-time TM2, and
+the three graph-invariant passes are combined into a fixed polynomial-time
+well-formedness guard.  Stream-format composition, complement-edge emission,
+the complete reduction/verifier machines, VERTEX-COVER NP membership, and the
 NP-completeness theorem are not claimed by this facade yet.
 -/

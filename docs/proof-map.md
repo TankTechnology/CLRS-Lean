@@ -5585,7 +5585,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   cubic output-length bounds for both maps, and exact bounded Boolean-
   certificate semantics.  Its fixed linear-time syntax-normalizer preserves
   valid graph encodings and turns parser failures into an ill-formed sentinel.
-  The remaining polynomial-time reduction/verifier machines,
+  The target/order/endpoint passes are also combined into an exact fixed
+  polynomial-time well-formedness guard.  The remaining reduction/verifier
+  machines,
   VERTEX-COVER NP membership/completeness, HAM-CYCLE, TSP, and SUBSET-SUM
   remain open.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
@@ -5702,7 +5704,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   characterized by `mem_generalVERTEXCOVER_iff_exists_certificate`, including
   a quadratic certificate bound.  `SyntaxNormalizer.computableInPolyTime`
   closes raw graph syntax normalization with a fixed linear-time TM2;
-  complement generation and the rest of machine-level closure remain open.
+  `WellFormedGuard.graphComputableInPolyTime` reuses the existing CLIQUE
+  passes for exact graph-invariant checking.  Complement generation and the
+  rest of machine-level closure remain open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those

@@ -17,18 +17,18 @@ or the direction-specific fallback.
 
 ## Task 1: Shared Boolean specification
 
-- [ ] Define the conjunction of target, edge-order, and endpoint-bound passes.
-- [ ] Prove exact equivalence with `CliqueInstance.WellFormed` on canonical
+- [x] Define the conjunction of target, edge-order, and endpoint-bound passes.
+- [x] Prove exact equivalence with `CliqueInstance.WellFormed` on canonical
   graph encodings.
 
 ## Task 2: Concrete fixed machine
 
-- [ ] Combine the existing component TM2s with the reusable same-input Boolean
+- [x] Combine the existing component TM2s with the reusable same-input Boolean
   AND construction.
-- [ ] Specialize the result to the empty-certificate graph-pair encoding.
+- [x] Specialize the result to the empty-certificate graph-pair encoding.
 
 ## Task 3: Verification and checkpoint
 
-- [ ] Add a focused interface and axiom audit.
-- [ ] Build the focused test and Chapter 34 root, run repository consistency,
+- [x] Add a focused interface and axiom audit.
+- [x] Build the focused test and Chapter 34 root, run repository consistency,
   and commit proof and documentation checkpoints separately.

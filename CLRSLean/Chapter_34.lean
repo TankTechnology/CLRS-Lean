@@ -909,6 +909,10 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Runtime
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1046,7 +1050,10 @@ bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  The fixed
 linear-time {lit}`SyntaxNormalizer.computableInPolyTime` machine preserves
 valid graph syntax and maps parser failure to a canonical ill-formed sentinel.
 The remaining complement and verifier machines, NP membership, and
-NP-completeness remain open.
+NP-completeness remain open.  The independent graph-invariant stage is already
+closed by {lit}`WellFormedGuard.graphComputableInPolyTime`, which composes the
+existing CLIQUE target/order/endpoint machines and proves exact equivalence
+with {lit}`CliqueInstance.WellFormed` on canonical encodings.
 
 Theorem layer:
 
