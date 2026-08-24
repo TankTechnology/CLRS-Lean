@@ -1,17 +1,16 @@
-import CLRSLean.Chapter_34
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Machine
 
-namespace CLRS.Chapter34
+namespace CLRS.Chapter34.Turing.GeneralCircuitToSAT
 
-#check Turing.GeneralCircuitToSAT.generalCircuitToSATMapComputableInPolyTime
-#check Turing.GeneralCircuitToSAT.generalCircuitToSATRuntimePolynomial
-#check Turing.GeneralCircuitToSAT.generalCircuitToSATMachine
-#check Turing.GeneralCircuitToSAT.generalCircuitToSATMachine_outputs
-#check generalCircuitSAT_reducible_to_SAT
-#check clique_npHard
-#check clique_npComplete
+#check Emitter.reverseSuccessfulSteps_le
+#check Emitter.allGuardedInputsWithinPolynomial
+#check Emitter.reverseComputableInPolyTime
+#check Emitter.computableInPolyTime
+#check normalizerGuardedComputableInPolyTime
+#check computableInPolyTime
 
-#print axioms Turing.GeneralCircuitToSAT.generalCircuitToSATMapComputableInPolyTime
-#print axioms generalCircuitSAT_reducible_to_SAT
-#print axioms clique_npComplete
+#print axioms Emitter.reverseSuccessfulSteps_le
+#print axioms Emitter.computableInPolyTime
+#print axioms computableInPolyTime
 
-end CLRS.Chapter34
+end CLRS.Chapter34.Turing.GeneralCircuitToSAT
