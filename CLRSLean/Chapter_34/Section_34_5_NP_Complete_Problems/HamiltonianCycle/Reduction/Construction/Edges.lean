@@ -16,6 +16,17 @@ namespace CLRS.Chapter34.HamiltonianCycleReduction
 def normalizeUndirectedEdge (u v : Nat) : Nat × Nat :=
   if u < v then (u, v) else (v, u)
 
+theorem normalizeUndirectedEdge_fst_lt_snd {u v : Nat} (hne : u ≠ v) :
+    (normalizeUndirectedEdge u v).1 < (normalizeUndirectedEdge u v).2 := by
+  simp only [normalizeUndirectedEdge]
+  split <;> omega
+
+theorem normalizeUndirectedEdge_snd_lt
+    {u v bound : Nat} (hu : u < bound) (hv : v < bound) :
+    (normalizeUndirectedEdge u v).2 < bound := by
+  simp only [normalizeUndirectedEdge]
+  split <;> simp_all
+
 /-- The fourteen internal edges of one globally numbered gadget. -/
 def globalWidgetEdges (occurrence : Nat) : List (Nat × Nat) :=
   widgetEdges.map fun e =>
@@ -95,6 +106,72 @@ theorem incidenceChainEdges_length_le
       have := ihTail second
       simp only [List.length_cons] at this
       omega
+
+theorem mem_incidenceChainEdges_of_pairwise
+    {refs : List IncidentOccurrence} {edge : Nat × Nat}
+    (hpairwise : refs.Pairwise
+      (fun first second => first.occurrence < second.occurrence))
+    (hedge : edge ∈ incidenceChainEdges refs) :
+    ∃ first second,
+      first ∈ refs ∧ second ∈ refs ∧
+      first.occurrence < second.occurrence ∧
+      edge = normalizeUndirectedEdge (incidentVertex first 5)
+        (incidentVertex second 0) := by
+  induction refs using List.twoStepInduction generalizing edge with
+  | nil => simp [incidenceChainEdges] at hedge
+  | singleton ref => simp [incidenceChainEdges] at hedge
+  | cons_cons first second rest ihRest ihTail =>
+      simp only [incidenceChainEdges, List.mem_cons] at hedge
+      rcases hedge with hedge | hedge
+      · refine ⟨first, second, by simp, by simp, ?_, hedge⟩
+        exact (List.pairwise_cons.mp hpairwise).1 second (by simp)
+      · rcases ihTail second hpairwise.tail hedge with
+          ⟨left, right, hleft, hright, hlt, hedge⟩
+        exact ⟨left, right, by simp [hleft], by simp [hright], hlt, hedge⟩
+
+theorem mem_selectorEndpointEdgesFor
+    {edgeCount selectorCount : Nat} {refs : List IncidentOccurrence}
+    {edge : Nat × Nat}
+    (hedge : edge ∈ selectorEndpointEdgesFor edgeCount selectorCount refs) :
+    ∃ ref position selector,
+      ref ∈ refs ∧ position < 6 ∧ selector < selectorCount ∧
+      edge = normalizeUndirectedEdge (incidentVertex ref position)
+        (selectorVertex edgeCount selector) := by
+  cases refs with
+  | nil => simp [selectorEndpointEdgesFor] at hedge
+  | cons first rest =>
+      simp only [selectorEndpointEdgesFor, List.mem_flatMap,
+        List.mem_range] at hedge
+      rcases hedge with ⟨selector, hselector, hedge⟩
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hedge
+      rcases hedge with hedge | hedge
+      · exact ⟨first, 0, selector, by simp, by omega, hselector, hedge⟩
+      · exact ⟨(first :: rest).getLast (by simp), 5, selector,
+          List.getLast_mem _, by omega, hselector, hedge⟩
+
+theorem mem_selectorCliqueEdges_iff
+    {edgeCount selectorCount : Nat} {edge : Nat × Nat} :
+    edge ∈ selectorCliqueEdges edgeCount selectorCount ↔
+      ∃ first second,
+        first < second ∧ second < selectorCount ∧
+        edge = (selectorVertex edgeCount first,
+          selectorVertex edgeCount second) := by
+  induction selectorCount with
+  | zero => simp [selectorCliqueEdges]
+  | succ selectorCount ih =>
+      simp only [selectorCliqueEdges, List.mem_append, ih, List.mem_map,
+        List.mem_range]
+      constructor
+      · rintro (⟨first, second, hlt, hbound, rfl⟩ | ⟨first, hfirst, rfl⟩)
+        · exact ⟨first, second, hlt, Nat.lt.step hbound, rfl⟩
+        · exact ⟨first, selectorCount, hfirst, Nat.lt_add_one _, rfl⟩
+      · rintro ⟨first, second, hlt, hbound, hedge⟩
+        by_cases hsecond : second = selectorCount
+        · right
+          subst second
+          exact ⟨first, hlt, hedge.symm⟩
+        · left
+          exact ⟨first, second, hlt, by omega, hedge⟩
 
 theorem selectorCliqueEdges_length_le_square
     (edgeCount selectorCount : Nat) :
