@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Ordinary.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Ordinary.stream_encode
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Ordinary.hasHamiltonianCycle_iff
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Ordinary.computableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Ordinary.hasHamiltonianCycle_iff
