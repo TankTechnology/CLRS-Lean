@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.NondegeneratePrefix
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.NondegeneratePrefix.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.NondegeneratePrefix.stream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.NondegeneratePrefix.stream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.NondegeneratePrefix.computableInPolyTime
