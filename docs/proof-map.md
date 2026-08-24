@@ -5676,12 +5676,13 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   time map compiler; `cookLevin_theorem`, `generalCircuitSAT_npHard`, and
   `generalCircuitSAT_npComplete` close the main theorem.  The direct general-
   circuit-to-SAT consistency formula is semantically exact, and its total raw
-  map preserves membership with a cubic output-size bound.  Public `CLIQUE`
-  now denotes the honest serialized general graph-plus-`k` language.  It has
-  exact certificate semantics, a concrete polynomial-time verifier and NP
-  membership, plus a concrete polynomial-time 3-CNF-SAT reduction.  A
-  concrete TM2 for the direct general-circuit-to-SAT map is still needed for
-  the full universal NP-hardness chain; Section 34.5 remains open.
+  map preserves membership with a cubic output-size bound.  A fixed
+  polynomial-time TM2 computes that map, yielding the concrete reduction
+  `GeneralCircuitSAT ≤p SAT` and transporting NP-hardness through the existing
+  SAT-to-3-CNF machine.  Public `CLIQUE` denotes the honest serialized general
+  graph-plus-`k` language.  It has exact certificate semantics, a concrete
+  polynomial-time verifier and NP membership, plus a concrete polynomial-time
+  3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 remains open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5874,18 +5875,13 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `cookLevinMap_polyTimeComputable`; `cookLevin_theorem` upgrades the package
   to the standard reduction interface, and `generalCircuitSAT_npHard` plus
   `generalCircuitSAT_npComplete` close the Cook--Levin main theorem.
-- Current gaps: the newly added direct `GeneralCircuitSAT`-to-`SAT` raw map has
-  exact semantics and polynomial output size but no concrete TM2 runtime proof.
-  This concrete compiler is required to compose the already proved
-  `GeneralCircuitSAT` NP-hardness through SAT and 3-CNF-SAT to public CLIQUE.
-  SAT also lacks a standalone concrete NP verifier in the current encoding,
-  but that verifier is not required for the reduction chain.  General CLIQUE
-  itself is now represented through NP membership and the concrete 3-CNF-SAT
-  reduction.  `SatTo3CNFMachine` and the general-CLIQUE occurrence-reduction
-  machine expose their assembled reductions, and the scan/copy, bounded-loop,
-  and nested-loop macro layer is complete.
-- Remaining chapter scope: the concrete general-circuit-to-SAT compiler needed
-  for `NPComplete CLIQUE`, and Section 34.5 (NP-complete problems).
+- Current gaps: SAT lacks a standalone concrete NP verifier in the current
+  encoding, but that optional direct refinement is not required for the
+  completed hardness chain.  The fixed general-circuit-to-SAT TM2,
+  `SatTo3CNFMachine`, and the general-CLIQUE occurrence-reduction machine expose
+  the assembled reductions; the honest public `CLIQUE` language is
+  NP-complete.
+- Remaining chapter scope: Section 34.5 (NP-complete problems).
 
 ## Deferred And Blocked Items
 

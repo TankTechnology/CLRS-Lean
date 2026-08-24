@@ -56,8 +56,11 @@ the standard Cook--Levin result.
 The honest general-circuit language now also has the direct textbook bridge to
 SAT.  `generalCircuitToFormula` is semantically exact on well-formed circuits;
 the total raw map `generalCircuitToSATMap` preserves membership on every input
-string and has an explicit cubic output-length bound.  This closes the semantic
-and representation-size layer.  A concrete TM2 implementation of that direct
-map and a concrete SAT NP verifier remain explicit refinements.  Section 34.5
-is now the principal remaining textbook-coverage gap.
+string and has an explicit cubic output-length bound.  A concrete fixed TM2
+computes this total map in polynomial time, yielding
+`generalCircuitSAT_reducible_to_SAT` and `SAT_npHard`.  Together with the
+concrete SAT-to-3-CNF and 3-CNF-to-general-CLIQUE machines, this closes the
+full hardness chain and proves `CLIQUE_npComplete` for the honest serialized
+graph-plus-`k` language.  A standalone SAT NP verifier remains an optional
+direct refinement; Section 34.5 is now the principal textbook-coverage gap.
 -/

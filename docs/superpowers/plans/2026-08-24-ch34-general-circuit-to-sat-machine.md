@@ -27,7 +27,7 @@
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`
 - Modify: `Tests/Chapter_34_GeneralClique_Interface.lean`
 
-- [ ] Add the final API checks:
+- [x] Add the final API checks:
 
 ```lean
 import CLRSLean.Chapter_34
@@ -49,9 +49,9 @@ namespace CLRS.Chapter34
 end CLRS.Chapter34
 ```
 
-- [ ] Run `lake env lean Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`; expect the first unknown identifier to be `generalCircuitToSATMapComputableInPolyTime`.
-- [ ] Add the last three `#check`s to `Tests/Chapter_34_GeneralClique_Interface.lean`.
-- [ ] Commit:
+- [x] Run `lake env lean Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`; expect the first unknown identifier to be `generalCircuitToSATMapComputableInPolyTime`.
+- [x] Add the last three `#check`s to `Tests/Chapter_34_GeneralClique_Interface.lean`.
+- [x] Commit:
 
 ```bash
 git add Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean Tests/Chapter_34_GeneralClique_Interface.lean
@@ -69,8 +69,8 @@ git commit -m "test(ch34): specify circuit-to-SAT machine interface"
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/InternalEncoding.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_InternalEncoding.lean`
 
-- [ ] Write failing checks for `NormalizedCircuitSym`, both codecs, both round-trip theorems, and `normalizeGeneralCircuit`.
-- [ ] Define the finite work alphabet:
+- [x] Write failing checks for `NormalizedCircuitSym`, both codecs, both round-trip theorems, and `normalizeGeneralCircuit`.
+- [x] Define the finite work alphabet:
 
 ```lean
 inductive NormalizedCircuitSym
@@ -82,8 +82,8 @@ inductive NormalizedCircuitSym
   deriving DecidableEq, Repr, Fintype, Inhabited
 ```
 
-- [ ] Encode a valid record as input count, output index, gate count, and chronological gate rows whose first unary field is the gate index. Implement a complete-consumption decoder that verifies the declared gate count and row indices.
-- [ ] Prove:
+- [x] Encode a valid record as input count, output index, gate count, and chronological gate rows whose first unary field is the gate index. Implement a complete-consumption decoder that verifies the declared gate count and row indices.
+- [x] Prove:
 
 ```lean
 theorem decode_encodeNormalizedCircuit (c : Circuit) :
@@ -100,7 +100,7 @@ theorem normalizeGeneralCircuit_eq_valid_iff (input) :
       ∃ c, decodeCircuit input = some c ∧ c.WellFormed
 ```
 
-- [ ] Prove coarse size bounds:
+- [x] Prove coarse size bounds:
 
 ```lean
 theorem encodeNormalizedCircuit_length_le (c : Circuit) :
@@ -114,7 +114,7 @@ theorem normalizeGeneralCircuit_length_le (input : List CircuitSym) :
 The quadratic factor is necessary: each gate row carries its chronological
 index in unary, so all row-index fields together can have quadratic length.
 
-- [ ] Run the focused test and facade build; commit `feat(ch34): define guarded circuit work encoding`.
+- [x] Run the focused test and facade build; commit `feat(ch34): define guarded circuit work encoding`.
 
 ## Task 3: Verify normalizer unary phases
 
@@ -127,9 +127,9 @@ index in unary, so all row-index fields together can have quadratic length.
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Normalizer/Cleanup.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_NormalizerUnary.lean`
 
-- [ ] Add red checks for `program`, `inputCount_phase`, `operand_phase`, and `clearAndEmitInvalid_phase`.
-- [ ] Define finite `Stack`, `Label`, and `State` types. Unbounded input count, gate count, gate index, operand, and saved values must live on unary `Unit` stacks; finite control stores only tags and optional symbol buffers.
-- [ ] Prove local configuration equalities and the standard composition lemma:
+- [x] Add red checks for `program`, `inputCount_phase`, `operand_phase`, and `clearAndEmitInvalid_phase`.
+- [x] Define finite `Stack`, `Label`, and `State` types. Unbounded input count, gate count, gate index, operand, and saved values must live on unary `Unit` stacks; finite control stores only tags and optional symbol buffers.
+- [x] Prove local configuration equalities and the standard composition lemma:
 
 ```lean
 theorem step_comp {A B C : Option machine.Cfg} (n₁ n₂ : Nat)
@@ -137,9 +137,9 @@ theorem step_comp {A B C : Option machine.Cfg} (n₁ n₂ : Nat)
     transition^[n₁ + n₂] A = C
 ```
 
-- [ ] Prove exact parsing, copying, comparison, and restoration phases for unary fields, stating every touched stack in the postcondition.
-- [ ] Route all failures through one cleanup theorem ending with output `[NormalizedCircuitSym.invalidMark]` and empty non-output stacks.
-- [ ] Run the focused test and `Normalizer.UnaryField` build; commit `feat(ch34): verify circuit normalizer unary phases`.
+- [x] Prove exact parsing, copying, comparison, and restoration phases for unary fields, stating every touched stack in the postcondition.
+- [x] Route all failures through one cleanup theorem ending with output `[NormalizedCircuitSym.invalidMark]` and empty non-output stacks.
+- [x] Run the focused test and `Normalizer.UnaryField` build; commit `feat(ch34): verify circuit normalizer unary phases`.
 
 ## Task 4: Verify gate-row normalization
 
@@ -152,12 +152,12 @@ theorem step_comp {A B C : Option machine.Cfg} (n₁ n₂ : Nat)
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Normalizer/GateFamily.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_NormalizerGates.lean`
 
-- [ ] Add one failing phase check for each gate constructor and the complete family.
-- [ ] Prove `.input i` succeeds exactly under `i < inputCount`; constants always append their fixed row and advance the gate counter.
-- [ ] Prove `.not source`, `.and left right`, and `.or left right` succeed exactly when dependencies are below the current gate index.
-- [ ] Prove each successful phase appends exactly `encodeNormalizedGateRow`, restores counters, and starts the next row. Prove the first-invalid-row rejection theorem separately.
-- [ ] Lift the row theorem by induction to the whole gate list under `Circuit.WellFormed`'s gate-validity field.
-- [ ] Run the focused test and `Normalizer.GateFamily` build; commit `proof(ch34): normalize well-formed circuit gate rows`.
+- [x] Add one failing phase check for each gate constructor and the complete family.
+- [x] Prove `.input i` succeeds exactly under `i < inputCount`; constants always append their fixed row and advance the gate counter.
+- [x] Prove `.not source`, `.and left right`, and `.or left right` succeed exactly when dependencies are below the current gate index.
+- [x] Prove each successful phase appends exactly `encodeNormalizedGateRow`, restores counters, and starts the next row. Prove the first-invalid-row rejection theorem separately.
+- [x] Lift the row theorem by induction to the whole gate list under `Circuit.WellFormed`'s gate-validity field.
+- [x] Run the focused test and `Normalizer.GateFamily` build; commit `proof(ch34): normalize well-formed circuit gate rows`.
 
 ## Task 5: Close all-input normalizer semantics
 
@@ -169,10 +169,10 @@ theorem step_comp {A B C : Option machine.Cfg} (n₁ n₂ : Nat)
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Normalizer.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_NormalizerRun.lean`
 
-- [ ] Add red checks for `canonical_run`, `malformed_run`, and `outputs`.
-- [ ] Prove a well-formed `encodeCircuit c` outputs `encodeNormalizedCircuit c` and an ill-formed canonical circuit outputs the invalid sentinel.
-- [ ] For `decodeCircuit input = none`, follow the grammar to the first malformed phase and prove bounded cleanup; do not rely on executable fuel tests.
-- [ ] Use `encodeCircuit_of_decodeCircuit_eq_some` to publish:
+- [x] Add red checks for `canonical_run`, `malformed_run`, and `outputs`.
+- [x] Prove a well-formed `encodeCircuit c` outputs `encodeNormalizedCircuit c` and an ill-formed canonical circuit outputs the invalid sentinel.
+- [x] For `decodeCircuit input = none`, follow the grammar to the first malformed phase and prove bounded cleanup; do not rely on executable fuel tests.
+- [x] Use `encodeCircuit_of_decodeCircuit_eq_some` to publish:
 
 ```lean
 theorem outputs (input : List CircuitSym) :
@@ -180,7 +180,7 @@ theorem outputs (input : List CircuitSym) :
       (some (normalizeGeneralCircuit input)) steps
 ```
 
-- [ ] Run the focused test and normalizer facade build; commit `proof(ch34): close guarded circuit normalizer semantics`.
+- [x] Run the focused test and normalizer facade build; commit `proof(ch34): close guarded circuit normalizer semantics`.
 
 ## Task 6: Prove the normalizer polynomial bound
 
@@ -191,10 +191,10 @@ theorem outputs (input : List CircuitSym) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Normalizer/PolynomialRuntime.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_NormalizerRuntime.lean`
 
-- [ ] Add red checks for `runtimePolynomial` and `computableInPolyTime`.
-- [ ] Sum exact phase costs and dominate successful runs by the explicit sextic polynomial below in raw input length.
-- [ ] Bound every malformed and ill-formed cleanup route by the same polynomial, including truncated fields, wrong tags, trailing garbage, invalid dependencies, and bad output indices.
-- [ ] Package:
+- [x] Add red checks for `runtimePolynomial` and `computableInPolyTime`.
+- [x] Sum exact phase costs and dominate successful runs by the explicit sextic polynomial below in raw input length.
+- [x] Bound every malformed and ill-formed cleanup route by the same polynomial, including truncated fields, wrong tags, trailing garbage, invalid dependencies, and bad output indices.
+- [x] Package:
 
 ```lean
 noncomputable def runtimePolynomial : Polynomial Nat :=
@@ -209,7 +209,7 @@ noncomputable def computableInPolyTime :
     outputsFun := allInputsWithinPolynomial }
 ```
 
-- [ ] Run the focused runtime test and build; commit `proof(ch34): bound guarded circuit normalization`.
+- [x] Run the focused runtime test and build; commit `proof(ch34): bound guarded circuit normalization`.
 
 ## Task 7: Expose the exact list-level formula stream
 
@@ -219,8 +219,8 @@ noncomputable def computableInPolyTime :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Emitter/Semantics.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_EmitterEncoding.lean`
 
-- [ ] Add red checks for the gate expression, gate formula, gate family, whole formula, and total emitter functions.
-- [ ] Define `generalCircuitGateExprList`, `generalCircuitGateFormulaList`, and:
+- [x] Add red checks for the gate expression, gate formula, gate family, whole formula, and total emitter functions.
+- [x] Define `generalCircuitGateExprList`, `generalCircuitGateFormulaList`, and:
 
 ```lean
 def generalCircuitGateFamilyList (c : Circuit) : List FormulaSym :=
@@ -233,14 +233,14 @@ def generalCircuitFormulaList (c : Circuit) : List FormulaSym :=
     generalCircuitGateFamilyList c)
 ```
 
-- [ ] Prove one expression lemma, one gate-formula lemma, and an indexed gate-list induction yielding:
+- [x] Prove one expression lemma, one gate-formula lemma, and an indexed gate-list induction yielding:
 
 ```lean
 theorem generalCircuitFormulaList_eq_enc (c : Circuit) :
     generalCircuitFormulaList c = enc (generalCircuitToFormula c)
 ```
 
-- [ ] Define the total function and prove its bridge:
+- [x] Define the total function and prove its bridge:
 
 ```lean
 def emitNormalizedCircuitFormula (input : List NormalizedCircuitSym) :
@@ -254,7 +254,7 @@ theorem emit_normalize_eq (input : List CircuitSym) :
       generalCircuitToSATMap input
 ```
 
-- [ ] Run the focused test and semantics build; commit `proof(ch34): expose exact general-circuit formula stream`.
+- [x] Run the focused test and semantics build; commit `proof(ch34): expose exact general-circuit formula stream`.
 
 ## Task 8: Verify variable and gate emission
 
@@ -269,11 +269,11 @@ theorem emit_normalize_eq (input : List CircuitSym) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Emitter/GateBinary.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_EmitterGate.lean`
 
-- [ ] Add red checks for `variable_phase` and all six gate phases.
-- [ ] Define a controller with separate unary stacks for input count, current gate index, and current operand, plus a staged reverse-output stack.
-- [ ] Prove a restoring copy phase emits `varEnc (a + b)` while preserving both unary sources. Prove `varEnc i` separately for input gates, which do not use the input-count offset.
-- [ ] Prove every gate phase emits exactly `generalCircuitGateFormulaList c i gate` and positions the parser at the next row. Reuse `variable_phase` instead of duplicating counter proofs.
-- [ ] Run the focused test and `Emitter.GateBinary` build; commit `proof(ch34): verify circuit-to-formula gate emission`.
+- [x] Add red checks for `variable_phase` and all six gate phases.
+- [x] Define a controller with separate unary stacks for input count, current gate index, and current operand, plus a staged reverse-output stack.
+- [x] Prove a restoring copy phase emits `varEnc (a + b)` while preserving both unary sources. Prove `varEnc i` separately for input gates, which do not use the input-count offset.
+- [x] Prove every gate phase emits exactly `generalCircuitGateFormulaList c i gate` and positions the parser at the next row. Reuse `variable_phase` instead of duplicating counter proofs.
+- [x] Run the focused test and `Emitter.GateBinary` build; commit `proof(ch34): verify circuit-to-formula gate emission`.
 
 ## Task 9: Close all-input formula emission
 
@@ -286,9 +286,9 @@ theorem emit_normalize_eq (input : List CircuitSym) :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Emitter.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_EmitterRun.lean`
 
-- [ ] Add red checks for the family phase, invalid run, canonical run, and total output theorem.
-- [ ] Induct over annotated gate rows, append `FormulaSym.lit true`, and invoke the existing verified reversal only at the final boundary.
-- [ ] Prove canonical and invalid contracts:
+- [x] Add red checks for the family phase, invalid run, canonical run, and total output theorem.
+- [x] Induct over annotated gate rows, append `FormulaSym.lit true`, and invoke the existing verified reversal only at the final boundary.
+- [x] Prove canonical and invalid contracts:
 
 ```lean
 theorem canonical_run (c : Circuit) :
@@ -300,8 +300,8 @@ theorem invalid_run :
       (some (enc (.const false))) steps
 ```
 
-- [ ] Prove malformed internal records also produce `enc (.const false)` and publish total `outputs` for `emitNormalizedCircuitFormula`.
-- [ ] Run the focused test and emitter facade build; commit `proof(ch34): close total circuit formula emission`.
+- [x] Prove malformed internal records also produce `enc (.const false)` and publish total `outputs` for `emitNormalizedCircuitFormula`.
+- [x] Run the focused test and emitter facade build; commit `proof(ch34): close total circuit formula emission`.
 
 ## Task 10: Prove the emitter polynomial bound
 
@@ -312,10 +312,10 @@ theorem invalid_run :
 - Create: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT/Machine/Emitter/PolynomialRuntime.lean`
 - Create: `Tests/Chapter_34_GeneralCircuit_ToSAT_EmitterRuntime.lean`
 
-- [ ] Add red checks for `Emitter.runtimePolynomial` and `Emitter.computableInPolyTime`.
-- [ ] Bound every restoring unary copy by internal input length, every row by a quadratic polynomial, and the complete family plus cleanup by `1048576 * (Polynomial.X + 1) ^ 6 + 1048576`.
-- [ ] Package `TM2ComputableInPolyTime id id emitNormalizedCircuitFormula` exactly as in Task 6, using that fixed emitter runtime polynomial.
-- [ ] Run the focused test and runtime build; commit `proof(ch34): bound circuit formula emission`.
+- [x] Add red checks for `Emitter.runtimePolynomial` and `Emitter.computableInPolyTime`.
+- [x] Bound every restoring unary copy by internal input length, every row by a quadratic polynomial, and the complete family plus cleanup by `1048576 * (Polynomial.X + 1) ^ 6 + 1048576`.
+- [x] Package `TM2ComputableInPolyTime id id emitNormalizedCircuitFormula` exactly as in Task 6, using that fixed emitter runtime polynomial.
+- [x] Run the focused test and runtime build; commit `proof(ch34): bound circuit formula emission`.
 
 ## Task 11: Compose the exact reduction machine
 
@@ -326,8 +326,8 @@ theorem invalid_run :
 - Modify: `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT.lean`
 - Modify: `Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`
 
-- [ ] Restate `emit_normalize_eq` at the composition namespace.
-- [ ] Compose the concrete witnesses:
+- [x] Restate `emit_normalize_eq` at the composition namespace.
+- [x] Compose the concrete witnesses:
 
 ```lean
 noncomputable def generalCircuitToSATMapComputableInPolyTime :
@@ -339,7 +339,7 @@ noncomputable def generalCircuitToSATMapComputableInPolyTime :
   simpa only [Function.comp_apply, emit_normalize_eq] using machine
 ```
 
-- [ ] Publish the named polynomial, fixed machine, and exact output theorem:
+- [x] Publish the named polynomial, fixed machine, and exact output theorem:
 
 ```lean
 noncomputable def generalCircuitToSATRuntimePolynomial : Polynomial Nat :=
@@ -349,7 +349,7 @@ noncomputable def generalCircuitToSATMachine : _root_.Turing.FinTM2 :=
   generalCircuitToSATMapComputableInPolyTime.tm
 ```
 
-- [ ] Make the machine portion of the public contract green; commit `feat(ch34): compute general circuit reduction in polynomial time`.
+- [x] Make the machine portion of the public contract green; commit `feat(ch34): compute general circuit reduction in polynomial time`.
 
 ## Task 12: Close the reduction and `NPComplete CLIQUE`
 
@@ -365,7 +365,7 @@ noncomputable def generalCircuitToSATMachine : _root_.Turing.FinTM2 :=
 - Modify: `Tests/Chapter_34_GeneralClique_Interface.lean`
 - Modify: `Tests/Chapter_34_Interface.lean`
 
-- [ ] Assemble the direct reduction:
+- [x] Assemble the direct reduction:
 
 ```lean
 theorem generalCircuitSAT_reducible_to_SAT :
@@ -377,7 +377,7 @@ theorem generalCircuitSAT_reducible_to_SAT :
   exact (generalCircuitToSATMap_mem_SAT_iff input).symm
 ```
 
-- [ ] Compose the chain and hardness:
+- [x] Compose the chain and hardness:
 
 ```lean
 theorem generalCircuitSAT_reducible_to_CLIQUE :
@@ -394,8 +394,8 @@ theorem clique_npComplete : NPComplete CLIQUE :=
   ⟨generalCLIQUE_polyTimeVerifiable, clique_npHard⟩
 ```
 
-- [ ] Run `Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`, `Tests/Chapter_34_GeneralClique_Interface.lean`, and `Tests/Chapter_34_Interface.lean`; confirm the axiom audit contains no `sorryAx`.
-- [ ] Commit `proof(ch34): prove general CLIQUE NP-complete`.
+- [x] Run `Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean`, `Tests/Chapter_34_GeneralClique_Interface.lean`, and `Tests/Chapter_34_Interface.lean`; confirm the axiom audit contains no `sorryAx`.
+- [x] Commit `proof(ch34): prove general CLIQUE NP-complete`.
 
 ## Task 13: Documentation, navigation, and final audit
 
@@ -414,9 +414,9 @@ theorem clique_npComplete : NPComplete CLIQUE :=
 - Modify: `docs/index.md`
 - Modify: `docs/superpowers/plans/2026-08-24-ch34-general-circuit-to-sat-machine.md`
 
-- [ ] Record exactly that Section 34.4 has a concrete reduction chain and `NPComplete CLIQUE`; keep Section 34.5 problems explicitly open.
-- [ ] Register every small module in Chapter 34 imports and `literate.toml`, then regenerate repository summaries with the checked-in scripts.
-- [ ] Run the final gate:
+- [x] Record exactly that Section 34.4 has a concrete reduction chain and `NPComplete CLIQUE`; keep Section 34.5 problems explicitly open.
+- [x] Register every small module in Chapter 34 imports and `literate.toml`, then regenerate repository summaries with the checked-in scripts.
+- [x] Run the final gate:
 
 ```bash
 lake env lean Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean
@@ -431,6 +431,6 @@ git diff --check
 rg -n '\b(sorry|admit|axiom)\b' CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralCircuit/ToSAT Tests/Chapter_34_GeneralCircuit_ToSAT_Machine.lean
 ```
 
-- [ ] Review `git status --short --branch`, `git diff --stat origin/main...HEAD`, and `git diff --check origin/main...HEAD`.
-- [ ] Commit `docs(ch34): record Section 34.4 reduction closure`.
-- [ ] Stop before push, merge, or remote history mutation; report exact commands and remaining Section 34.5 gaps to the user.
+- [x] Review `git status --short --branch`, `git diff --stat origin/main...HEAD`, and `git diff --check origin/main...HEAD`.
+- [x] Commit `docs(ch34): record Section 34.4 reduction closure`.
+- [x] Stop before push, merge, or remote history mutation; report exact commands and remaining Section 34.5 gaps to the user.

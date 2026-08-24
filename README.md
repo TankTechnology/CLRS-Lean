@@ -88,7 +88,7 @@ selected.  Edition-level gaps determine the status and **Edition gaps** column.
 | 31 | Number-Theoretic Algorithms | 🟢 complete | 18 / 18 | — |
 | 32 | String Matching | 🟢 complete | 61 / 61 | — |
 | 33 | Machine-Learning Algorithms | 🟢 complete | 15 / 15 | — |
-| 34 | NP-Completeness | 🟠 partial coverage | 37 / 37 | The concrete GeneralCircuitSAT-to-SAT compiler needed to… |
+| 34 | NP-Completeness | 🟠 partial coverage | 37 / 37 | Section 34.5 remains; a standalone SAT NP verifier is an… |
 | 35 | Approximation Algorithms | 🟢 complete | 10 / 10 | — |
 
 **Total: 1597 of 1597 selected theorem entries have kernel-checked proofs across 35 represented fourth-edition chapters** (no `sorry`/`admit`/project axiom on `main`). This does not by itself claim complete fourth-edition coverage.
