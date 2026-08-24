@@ -26,4 +26,10 @@ theorem encodeTSPCertificate_injective :
   have := congrArg decodeTSPCertificate h
   simpa using this
 
+theorem encodeTSPFields_injective : Function.Injective encodeTSPFields := by
+  intro left right h
+  have decoded := congrArg
+    (fun fields => decodeTSPFields (fields ++ [.recordEnd])) h
+  simpa using decoded
+
 end CLRS.Chapter34

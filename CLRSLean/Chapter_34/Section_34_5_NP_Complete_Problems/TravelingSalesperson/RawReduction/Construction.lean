@@ -28,10 +28,49 @@ def hamiltonianTSPData (G : HamiltonianCycleInstance) : TSPData where
   budget := G.vertexCount
   weights := hamiltonianWeights G
 
+private theorem orientationPairsEqual_orientations
+    (pairs : List (Nat × Nat)) (weight : Nat × Nat → Nat)
+    (hsymmetric : ∀ pair ∈ pairs,
+      weight pair = weight (pair.2, pair.1)) :
+    TSPData.OrientationPairsEqual
+      ((pairs.flatMap tspPairOrientations).map weight) := by
+  induction pairs with
+  | nil => trivial
+  | cons pair pairs ih =>
+      rw [List.flatMap_cons, List.map_append]
+      rcases pair with ⟨u, v⟩
+      simp only [tspPairOrientations, List.map_cons, List.map_nil]
+      exact ⟨hsymmetric (u, v) (by simp), ih (by
+        intro pair hpair
+        exact hsymmetric pair (by simp [hpair]))⟩
+
+private theorem hamiltonianWeights_symmetric
+    (G : HamiltonianCycleInstance) :
+    TSPData.OrientationPairsEqual
+      ((hamiltonianWeights G).drop G.vertexCount) := by
+  let weight : Nat × Nat → Nat := fun pair =>
+    (hamiltonianToTSP G).edgeWeight pair.1 pair.2
+  have hsymmetric : ∀ pair ∈ tspNormalizedPairs G.vertexCount,
+      weight pair = weight (pair.2, pair.1) := by
+    rintro ⟨u, v⟩ hpair
+    have hpairs := mem_tspNormalizedPairs_iff.mp hpair
+    have hu : u < G.vertexCount := hpairs.1.trans hpairs.2
+    have hv : v < G.vertexCount := hpairs.2
+    dsimp only [weight]
+    rw [hamiltonianToTSP_edgeWeight_of_lt G hu hv,
+      hamiltonianToTSP_edgeWeight_of_lt G hv hu]
+    apply if_congr
+    · exact G.adj_comm u v
+    · rfl
+    · rfl
+  have horientations := orientationPairsEqual_orientations
+    (tspNormalizedPairs G.vertexCount) weight hsymmetric
+  simpa [hamiltonianWeights, tspPairOrder, weight] using horientations
+
 @[simp] theorem hamiltonianTSPData_wellFormed
     (G : HamiltonianCycleInstance) :
     (hamiltonianTSPData G).WellFormed := by
-  simp [TSPData.WellFormed, hamiltonianTSPData]
+  exact ⟨by simp [hamiltonianTSPData], hamiltonianWeights_symmetric G⟩
 
 /-- Complete-pair interpretation recovers the existing typed textbook
 construction exactly. -/

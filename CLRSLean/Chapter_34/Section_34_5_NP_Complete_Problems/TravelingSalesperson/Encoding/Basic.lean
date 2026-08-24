@@ -27,9 +27,50 @@ deriving DecidableEq, Repr
 
 namespace TSPData
 
-/-- The matrix contains exactly one weight for every ordered vertex pair. -/
+/-- Successive off-diagonal orientation fields carry the same undirected
+weight.  A dangling final field is rejected. -/
+def OrientationPairsEqual : List Nat → Prop
+  | [] => True
+  | [_] => False
+  | forward :: reverse :: rest =>
+      forward = reverse ∧ OrientationPairsEqual rest
+
+/-- First orientation from every consecutive off-diagonal pair.  A dangling
+field is retained so equality with `secondOrientations` rejects it. -/
+def firstOrientations : List Nat → List Nat
+  | [] => []
+  | [value] => [value]
+  | forward :: _ :: rest => forward :: firstOrientations rest
+
+/-- Second orientation from every consecutive off-diagonal pair. -/
+def secondOrientations : List Nat → List Nat
+  | [] | [_] => []
+  | _ :: reverse :: rest => reverse :: secondOrientations rest
+
+theorem orientationPairsEqual_iff (weights : List Nat) :
+    OrientationPairsEqual weights ↔
+      firstOrientations weights = secondOrientations weights := by
+  induction weights using List.twoStepInduction with
+  | nil => simp [OrientationPairsEqual, firstOrientations, secondOrientations]
+  | singleton value =>
+      simp [OrientationPairsEqual, firstOrientations, secondOrientations]
+  | cons_cons forward reverse rest ih _ =>
+      simp [OrientationPairsEqual, firstOrientations, secondOrientations, ih]
+
+instance (weights : List Nat) : Decidable (OrientationPairsEqual weights) := by
+  induction weights using List.twoStepInduction with
+  | nil => exact isTrue trivial
+  | singleton value => exact isFalse id
+  | cons_cons forward reverse rest _ ih =>
+      simp only [OrientationPairsEqual]
+      infer_instance
+
+/-- The matrix contains exactly one weight for every ordered vertex pair and
+the two orientations of every off-diagonal pair agree.  This is the standard
+symmetric decision-TSP input model used by CLRS. -/
 def WellFormed (data : TSPData) : Prop :=
-  data.weights.length = data.vertexCount * data.vertexCount
+  data.weights.length = data.vertexCount * data.vertexCount ∧
+    OrientationPairsEqual (data.weights.drop data.vertexCount)
 
 instance (data : TSPData) : Decidable data.WellFormed := by
   unfold WellFormed

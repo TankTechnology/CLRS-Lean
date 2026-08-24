@@ -31,6 +31,13 @@ def filterInput (input : RawInput) :
 def selectedFields (input : RawInput) : List (Option Bool) :=
   SelectDelimitedFields.selectFields (filterInput input).1 (filterInput input).2
 
+/-- Generic form used by the symmetry branches: select weight fields with any
+fixed polynomial-time flag stream over the shared raw input. -/
+def selectedFieldsWith (flags : RawInput → List Bool)
+    (input : RawInput) : List (Option Bool) :=
+  SelectDelimitedFields.selectFields (flags input)
+    (WeightBitFields.fields input.2)
+
 private def leftPart (input : RawInput) :
     List (Option SelectDelimitedFields.InputSym) :=
   (SelectionFlags.selectionFlags input).map fun flag =>
@@ -170,6 +177,42 @@ noncomputable def selectedFieldsComputableInPolyTime :
     (fun input => SelectDelimitedFields.selectFields
       (filterInput input).1 (filterInput input).2)
   simpa only [selectedFields, Function.comp_def] using Classical.choice composed
+
+/-- Reusable machine composition underlying `selectedFields`: any independently
+computed flag stream can drive the same fixed delimited-field selector. -/
+noncomputable def selectedFieldsWithComputableInPolyTime
+    {flags : RawInput → List Bool}
+    (flagsMachine : TM2ComputableInPolyTime rawEncoding id flags) :
+    TM2ComputableInPolyTime rawEncoding id
+      (selectedFieldsWith flags) := by
+  let mapped := listMap_computableInPolyTime
+    (fun flag : Bool => some (SelectDelimitedFields.InputSym.flag flag))
+  let leftExists := TM2Comp.TM2ComputableInPolyTime.comp_scratch
+    flagsMachine mapped
+  let leftMachine : TM2ComputableInPolyTime rawEncoding id
+      (fun input => (flags input).map fun flag =>
+        some (SelectDelimitedFields.InputSym.flag flag)) := by
+    simpa only [Function.comp_def] using Classical.choice leftExists
+  let joined := fixedPairSameInputConcat_computableInPolyTime
+    encodeInputSymbol decodeInputSymbol decode_encodeInputSymbol
+    leftMachine rightPartComputableInPolyTime
+  let filterMachine : TM2ComputableInPolyTime rawEncoding
+      SelectDelimitedFields.inputEncoding
+      (fun input => (flags input, WeightBitFields.fields input.2)) :=
+    { tm := joined.tm
+      inputAlphabet := joined.inputAlphabet
+      outputAlphabet := joined.outputAlphabet
+      time := joined.time
+      outputsFun := fun input => by
+        have output := joined.outputsFun input
+        simpa [SelectDelimitedFields.inputEncoding, rightPart,
+          Function.comp_def] using output }
+  let composed := TM2Comp.TM2ComputableInPolyTime.comp_scratch
+    filterMachine SelectDelimitedFields.computableInPolyTime
+  change TM2ComputableInPolyTime rawEncoding id
+    (fun input => SelectDelimitedFields.selectFields (flags input)
+      (WeightBitFields.fields input.2))
+  simpa only [Function.comp_def] using Classical.choice composed
 
 @[simp] theorem selectedFields_encode (vertices : List Nat) (data : TSPData) :
     selectedFields

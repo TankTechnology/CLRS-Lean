@@ -91,16 +91,20 @@ private theorem tspNormalizedPairs_length_recurrence (n : Nat) :
       (tspNormalizedPairs n).length + n := by
   simp [tspNormalizedPairs]
 
+/-- Diagonal cells plus two orientations of every normalized pair account for
+the whole square matrix. -/
+theorem tspNormalizedPairs_length_identity (n : Nat) :
+    n + 2 * (tspNormalizedPairs n).length = n * n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+      rw [tspNormalizedPairs_length_recurrence]
+      nlinarith
+
 /-- The canonical pair family contains exactly one entry for every matrix
 cell. -/
 @[simp] theorem tspPairOrder_length (n : Nat) :
     (tspPairOrder n).length = n * n := by
-  have invariant : n + 2 * (tspNormalizedPairs n).length = n * n := by
-    induction n with
-    | zero => rfl
-    | succ n ih =>
-        rw [tspNormalizedPairs_length_recurrence]
-        nlinarith
   simp only [tspPairOrder, List.length_append, List.length_map,
     List.length_range, List.length_flatMap]
   have horientations :
@@ -109,7 +113,7 @@ cell. -/
         2 * (tspNormalizedPairs n).length := by
     simp [tspPairOrientations, Nat.mul_comm]
   rw [horientations]
-  exact invariant
+  exact tspNormalizedPairs_length_identity n
 
 /-- Lookup in two aligned pair/weight streams, with zero fallback. -/
 def lookupTSPWeight :

@@ -63,8 +63,8 @@ theorem tsp_vertexCount_le_input_length {input : List TSPSym} {data : TSPData}
     (data.vertexCount :: data.budget :: data.weights)
   rw [← hcanonical]
   rw [encodeTSPData_length]
-  change data.weights.length =
-    data.vertexCount * data.vertexCount at hwellFormed
+  have hmatrix : data.weights.length =
+      data.vertexCount * data.vertexCount := hwellFormed.1
   simp only [List.length_cons, List.length_nil] at hcount
   nlinarith
 
