@@ -44,53 +44,59 @@ def iterationsSteps : List (Nat × Nat) → CliqueInstance → Nat
 /-- Execute every query currently present on the query stack. -/
 def iterations_run (aggregate : Bool) (queries : List (Nat × Nat))
     (I : CliqueInstance) (buffer₁ buffer₂ : Option (Option CliqueSym))
-    (test : Bool) :
+    (test : Bool) (output : List Bool) :
     EvalsToInTime (step program)
       (cfg (.nextQuery aggregate) buffer₁ buffer₂ test
-        ((encodeCliqueInstance I).map some) []
+        ((encodeCliqueInstance I).map some) output
         (encodeQueryWork queries) [] [] [] [])
       (some (haltCfg program
-        [aggregate && queriesInEdgesBool I queries]))
+        ((aggregate && queriesInEdgesBool I queries) ::
+          (queryMembershipBits I queries).reverse ++ output)))
       (iterationsSteps queries I) := by
-  induction queries generalizing aggregate buffer₁ buffer₂ test with
+  induction queries generalizing aggregate buffer₁ buffer₂ test output with
   | nil =>
-      simpa [encodeQueryWork, iterationsSteps, queriesInEdgesBool] using
-        final_run aggregate ((encodeCliqueInstance I).map some)
+      simpa [encodeQueryWork, iterationsSteps, queriesInEdgesBool,
+        queryMembershipBits] using
+        final_run aggregate ((encodeCliqueInstance I).map some) output
           buffer₁ buffer₂ test
   | cons query queries ih =>
       have first := iteration_run aggregate query (encodeQueryWork queries) I
-        buffer₁ buffer₂ test
+        output buffer₁ buffer₂ test
       have rest := ih
         (aggregate := aggregate && decide (query ∈ I.edges))
         (buffer₁ := some (some CliqueSym.edgeMark))
         (buffer₂ := none) (test := false)
+        (output := decide (query ∈ I.edges) :: output)
       let full := EvalsToInTime.trans (step program)
         (iterationSteps query I) (iterationsSteps queries I)
         _ _ _ first rest
       simpa [encodeQueryWork, iterationsSteps, queriesInEdgesBool,
+        queryMembershipBits,
         Bool.and_assoc, Nat.add_assoc, Nat.add_comm] using full
 
 /-- Exact cost of the full fixed batch edge lookup. -/
 def batchSteps (queries : List (Nat × Nat)) (I : CliqueInstance) : Nat :=
   loadSteps queries + iterationsSteps queries.reverse I
 
-/-- The fixed machine decides whether every supplied canonical query occurs in
-the serialized edge table. -/
+/-- The fixed machine emits both the aggregate conjunction and every pointwise
+membership answer. -/
 def batch_run (queries : List (Nat × Nat)) (I : CliqueInstance) :
     EvalsToInTime (step program)
       (initialCfg program
         (pairEncoding (queries.flatMap encodeCliqueEdge)
           (encodeCliqueInstance I)))
-      (some (haltCfg program [queriesInEdgesBool I queries]))
+      (some (haltCfg program (batchResultStream I queries)))
       (batchSteps queries I) := by
   have loaded := load_run queries I
   have repeated := iterations_run true queries.reverse I
-    (some none) none false
+    (some none) none false []
   rw [encodeQueryWork_reverse] at repeated
   let full := EvalsToInTime.trans (step program)
     (loadSteps queries) (iterationsSteps queries.reverse I)
     _ _ _ loaded repeated
-  simpa [batchSteps, queriesInEdgesBool, Bool.and_assoc,
+  simpa [batchSteps, batchResultStream, queriesInEdgesBool,
+    queryMembershipBits,
+    Bool.and_assoc,
     Nat.add_comm] using full
 
 end CLRS.Chapter34.Turing.GeneralCliqueVerifier.BatchEdgeLookup
