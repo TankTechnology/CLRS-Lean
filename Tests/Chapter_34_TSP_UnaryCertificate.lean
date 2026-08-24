@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryCertificate
+
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryCertificate.toCliqueCertificate_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryCertificate.decode_toCliqueCertificate_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryCertificate.encode_length
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryCertificate.toCliqueCertificateComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.UnaryCertificate.toCliqueCertificateComputableInPolyTime
