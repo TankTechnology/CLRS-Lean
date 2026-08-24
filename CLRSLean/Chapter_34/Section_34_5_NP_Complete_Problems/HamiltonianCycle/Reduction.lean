@@ -1,12 +1,13 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.EncodingBounds
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness
 
 /-!
 # The typed VERTEX-COVER to HAM-CYCLE reduction
 
-This facade exports the total well-formed construction and its bidirectional
-typed semantic correctness theorem.
+This facade exports the total well-formed construction, its bidirectional
+typed semantic correctness theorem, and its cubic encoded-size bound.
 -/
 
 namespace CLRS.Chapter34.HamiltonianCycleReduction
