@@ -37,7 +37,7 @@ inductive Mode
   | invalid
 deriving DecidableEq, Fintype
 
-private def returned : FieldReturn → Mode
+def returned : FieldReturn → Mode
   | .instanceOne => .instanceOne
   | .instanceMany => .instanceMany
   | .certificate => .certificateBetween
