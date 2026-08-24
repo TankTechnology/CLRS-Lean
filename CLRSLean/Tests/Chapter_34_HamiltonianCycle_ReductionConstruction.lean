@@ -1,0 +1,40 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction
+
+namespace CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
+
+open Chapter34
+open Chapter34.HamiltonianCycleReduction
+
+def oneEdgeOneSelector : VertexCoverInstance where
+  vertexCount := 2
+  targetSize := 1
+  edges := [(0, 1)]
+
+def oneEdgeTwoSelectors : VertexCoverInstance where
+  vertexCount := 2
+  targetSize := 2
+  edges := [(0, 1)]
+
+example : oneEdgeOneSelector.WellFormed := by decide
+
+example : (clrsHamiltonianInstance oneEdgeOneSelector).vertexCount = 13 := by
+  decide
+
+example : (clrsHamiltonianInstance oneEdgeOneSelector).edges.length = 18 := by
+  decide
+
+example : (clrsHamiltonianInstance oneEdgeOneSelector).ListRepresentsHamiltonianCycle
+      [12, 0, 1, 2, 6, 7, 8, 9, 10, 11, 3, 4, 5] := by
+  decide
+
+/-- The second selector is a genuine unused slot, joined through the selector
+clique rather than by padding the source cover. -/
+example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
+      [12, 0, 1, 2, 6, 7, 8, 9, 10, 11, 3, 4, 5, 13] := by
+  decide
+
+#print axioms canonicalHamiltonianYesInstance_hasHamiltonianCycle
+#print axioms not_canonicalHamiltonianNoInstance_hasHamiltonianCycle
+#print axioms incidenceChainEdges_length_le
+
+end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
