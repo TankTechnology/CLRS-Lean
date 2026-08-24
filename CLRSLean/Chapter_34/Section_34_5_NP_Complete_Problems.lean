@@ -11,19 +11,20 @@ CLIQUE-to-VERTEX-COVER complement equivalence and lifts it through the shared
 encoding to exact total raw-string semantic reductions in both directions.
 Both maps have explicit cubic output-length bounds.  VERTEX-COVER also
 has exact finite-certificate semantics and a quadratic certificate-length
-bound.  A fixed linear-time TM2 now preserves valid graph syntax and maps
-parser failures to a deliberately ill-formed sentinel.  The target/order/
-endpoint passes are also composed as a fixed polynomial-time well-formedness
-guard, and a verified formatter joins both stages from the original raw input.
-Complement-edge generation, the complete reduction and verifier machines,
-and VERTEX-COVER NP-completeness remain open at the raw-machine layer.  At the
-typed textbook layer, the total VERTEX-COVER-to-HAM-CYCLE construction is now
+bound.  Its normalization, graph guard, complement emitter, total reduction,
+and complement-clique verifier are implemented by fixed polynomial-time TM2
+machines on the complete raw encoding.  Consequently
+`generalCLIQUE_reducible_to_VERTEXCOVER`,
+`VERTEXCOVER_mem_ClassNP`, and `VERTEXCOVER_npComplete` close the
+strict serialized VERTEX-COVER layer.  At the typed textbook layer, the total
+VERTEX-COVER-to-HAM-CYCLE construction is now
 proved correct in both directions, including the selector-budget argument in
 the soundness proof.  The typed HAM-CYCLE-to-decision-TSP construction is also
 proved correct in both directions using the exact tour-cost identity.  The
 typed 3-CNF-SAT-to-SUBSET-SUM construction is proved correct in both
 directions as well: its indexed natural-number items, carry-free packing,
 assignment certificate, and inverse assignment extraction are all explicit.
-Raw-string reduction machines and their polynomial runtime bounds remain
-separate closure layers for HAM-CYCLE, TSP, and SUBSET-SUM.
+HAM-CYCLE still needs its raw reduction and verifier machines plus NP wrappers;
+TSP and SUBSET-SUM additionally need honest raw languages and certificate
+interfaces before their fixed-machine and NP-completeness layers can close.
 -/

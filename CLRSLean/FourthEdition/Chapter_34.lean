@@ -106,13 +106,16 @@ machine phase is also closed: a fixed linear-time TM2 normalizes raw graph
 syntax while preserving parser rejection through an ill-formed sentinel.  The
 existing CLIQUE target/order/endpoint machines are also combined into an exact
 fixed polynomial-time graph well-formedness guard.  A verified graph-pair
-formatter composes both phases into an all-input raw well-formedness TM2.  The
-selected typed textbook chain is now closed by the total
+formatter composes both phases into an all-input raw well-formedness TM2.
+Fixed complement-generation, guarded selection, and complement-clique
+verification machines close the total reduction and NP-verification layers;
+`VERTEXCOVER_npComplete` packages the result.  The selected typed textbook
+chain is now closed by the total
 VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact
 HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural
-3-CNF-SAT-to-SUBSET-SUM equivalence.  Complement-generation/verifier machines,
-runtime bounds, and NP membership/completeness packaging remain open at the
-stricter serialized layer; this guide therefore remains partial.
+3-CNF-SAT-to-SUBSET-SUM equivalence.  HAM-CYCLE, TSP, and SUBSET-SUM still
+need their remaining raw-language, fixed-machine, runtime, and NP-completeness
+layers; this guide therefore remains partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
