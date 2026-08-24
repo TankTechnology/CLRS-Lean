@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldStream
+
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldStream.extract_encodeTSPData
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldStream.extract_encodeTSPCertificate
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldStream.computableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.FieldStream.computableInPolyTime
