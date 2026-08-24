@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CycleMembership
+
+#check CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.candidatePairsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.normalizedCyclePairsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.batchInputComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.membershipBitsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.membershipBits_encode
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.CycleMembership.membershipBitsComputableInPolyTime
