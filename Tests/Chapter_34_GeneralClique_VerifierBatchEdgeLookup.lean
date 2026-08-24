@@ -23,4 +23,3 @@ example : queriesInEdgesBool sampleInstance [(0, 1), (1, 3)] = false := by
 canonical simple-graph edge table. -/
 example : queriesInEdgesBool sampleInstance [(2, 2)] = false := by
   decide
-
