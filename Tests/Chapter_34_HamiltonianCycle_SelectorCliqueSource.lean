@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Source
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.familyComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.rowsComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.formatInputComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.family_encode
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.formatInput_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.formatInput_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.formatInputComputableInPolyTime
