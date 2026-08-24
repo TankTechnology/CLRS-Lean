@@ -885,6 +885,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.PairBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.EncodingBounds
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics
@@ -898,6 +900,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certifi
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1028,7 +1031,8 @@ deterministic graph-complement construction,
 {lit}`cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  The reverse equivalence
 {lit}`hasVertexCover_iff_complement_hasClique` and total raw theorem
 {lit}`vertexCoverToCliqueMap_mem_CLIQUE_iff` make the semantic bridge
-bidirectional.  Its Boolean certificate
+bidirectional.  Both total maps have explicit cubic output-length bounds.  Its
+Boolean certificate
 checker has exact all-input semantics and the quadratic accepted-certificate
 bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  This is a
 function-level checkpoint: the fixed polynomial-time reduction and verifier

@@ -5582,7 +5582,8 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Remaining chapter scope: Section 34.5 now has typed and raw VERTEX-COVER
   semantics, a deterministic graph complement, exact CLIQUE/cover equivalences
   in both directions, all-input total raw semantic maps in both directions,
-  and exact bounded Boolean-certificate semantics.  Polynomial-time
+  cubic output-length bounds for both maps, and exact bounded Boolean-
+  certificate semantics.  Polynomial-time
   reduction/verifier machines,
   VERTEX-COVER NP membership/completeness, HAM-CYCLE, TSP, and SUBSET-SUM
   remain open.
@@ -5694,7 +5695,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  The reverse typed theorem
   `hasVertexCover_iff_complement_hasClique` and raw theorem
   `vertexCoverToCliqueMap_mem_CLIQUE_iff` make the semantic bridge
-  bidirectional.  Its Boolean checker is
+  bidirectional.  `cliqueToVertexCoverMap_length_le` and
+  `vertexCoverToCliqueMap_length_le` give uniform cubic output bounds.  Its
+  Boolean checker is
   characterized by `mem_generalVERTEXCOVER_iff_exists_certificate`, including
   a quadratic certificate bound; machine-level closure remains open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
@@ -5897,8 +5900,8 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   NP-complete.
 - Remaining chapter scope: Section 34.5 has typed and raw VERTEX-COVER
   complement semantics, total membership-preserving raw maps in both
-  directions, and exact bounded Boolean-certificate semantics; machine-level
-  VERTEX-COVER NP
+  directions, cubic output-length bounds, and exact bounded Boolean-certificate
+  semantics; machine-level VERTEX-COVER NP
   membership/completeness and the HAM-CYCLE, TSP, and SUBSET-SUM reductions
   remain open.
 
