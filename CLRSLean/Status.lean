@@ -83,6 +83,9 @@ repository row whose status remains
   parser failures to a canonical but deliberately ill-formed sentinel, so the
   remaining well-formedness guard cannot confuse malformed input with an empty
   valid graph.
+  The existing CLIQUE target-bound, edge-order, and endpoint-bound machines
+  are also composed into a fixed polynomial-time guard whose canonical
+  semantics are exactly {lit}`CliqueInstance.WellFormed`.
   Its executable Boolean certificate checker has exact all-input semantics,
   and accepted certificates have a quadratic length bound.  Concrete
   reduction and verifier machines, VERTEX-COVER NP membership/completeness,

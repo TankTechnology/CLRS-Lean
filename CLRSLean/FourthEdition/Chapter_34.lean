@@ -104,7 +104,9 @@ cubic output-length bounds.  Its Boolean certificate checker is semantically
 exact and has a quadratic accepted-certificate bound.  Its first concrete
 machine phase is also closed: a fixed linear-time TM2 normalizes raw graph
 syntax while preserving parser rejection through an ill-formed sentinel.  The
-remaining complement/verifier machines, NP membership/completeness closure,
+existing CLIQUE target/order/endpoint machines are also combined into an exact
+fixed polynomial-time graph well-formedness guard.  The remaining complement
+generation/verifier machines, NP membership/completeness closure,
 and the HAM-CYCLE, TSP, and SUBSET-SUM chains remain open; this guide therefore
 remains partial.
 

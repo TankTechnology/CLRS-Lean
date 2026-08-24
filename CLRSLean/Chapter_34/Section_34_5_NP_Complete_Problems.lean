@@ -10,6 +10,8 @@ Both maps have explicit cubic output-length bounds.  VERTEX-COVER also
 has exact finite-certificate semantics and a quadratic certificate-length
 bound.  A fixed linear-time TM2 now preserves valid graph syntax and maps
 parser failures to a deliberately ill-formed sentinel.  The remaining
-complement and verifier machines, VERTEX-COVER NP-completeness, and the
-HAM-CYCLE, TSP, and SUBSET-SUM chains remain open.
+target/order/endpoint passes are also composed as a fixed polynomial-time
+well-formedness guard.  Complement-edge generation, the complete reduction
+and verifier machines, VERTEX-COVER NP-completeness, and the HAM-CYCLE, TSP,
+and SUBSET-SUM chains remain open.
 -/
