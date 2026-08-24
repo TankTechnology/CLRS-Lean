@@ -6,5 +6,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.LocalCoverage
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.IncidenceCoverage
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.WidgetCoverage
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateCoverage
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.Correctness
 
 /-! # Completeness direction of VERTEX-COVER to HAM-CYCLE -/
