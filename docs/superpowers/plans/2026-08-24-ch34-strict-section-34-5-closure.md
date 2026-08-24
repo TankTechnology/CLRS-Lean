@@ -138,6 +138,9 @@ extracts `12 * edgeCount` and `targetSize`, generates shifted triangular rows,
 loads the runtime base once, and reuses the verified pair-row formatter.  Each
 public boundary has exact canonical semantics and a polynomial-time TM2
 witness.  The two source-incidence-dependent families remain the active core.
+Their common canonical vertex-query/graph pair stream is now produced by a
+fixed polynomial-time machine, so the remaining operational proof begins at
+one shared repeated incidence scanner rather than two independent parsers.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
