@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CertificateNodup.nodupCheck
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CertificateNodup.nodupCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CertificateNodup.nodupCheck_eq_true_iff
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CertificateNodup.nodupCheckComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CertificateNodup.nodupCheck_eq_true_iff
