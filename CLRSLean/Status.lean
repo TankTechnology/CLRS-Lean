@@ -46,10 +46,10 @@ The edition map records one partially represented coverage unit in Chapter 34:
 semantics, cubic output-length bounds, and exact bounded certificate semantics.
 Its selected typed textbook chain is now closed through the proved
 VERTEX-COVER-to-HAM-CYCLE, HAM-CYCLE-to-decision-TSP, and
-3-CNF-SAT-to-SUBSET-SUM equivalences.  VERTEX-COVER additionally has a total
-fixed polynomial-time reduction machine, a fixed polynomial-time verifier,
-membership in NP, and a proved NP-completeness theorem.  The remaining strict
-machine layer belongs to HAM-CYCLE, TSP, and SUBSET-SUM.  Chapter 34 is the sole
+3-CNF-SAT-to-SUBSET-SUM equivalences.  VERTEX-COVER and HAM-CYCLE additionally
+have total fixed polynomial-time reduction machines, fixed polynomial-time
+verifiers, membership in NP, and proved NP-completeness theorems.  The remaining
+strict machine layer belongs to TSP and SUBSET-SUM.  Chapter 34 is the sole
 repository row whose status remains
 {lit}`partial`.
 
@@ -98,17 +98,19 @@ repository row whose status remains
   fixed polynomial-time verifier computes the certificate checker.  Hence
   {lit}`generalCLIQUE_reducible_to_VERTEXCOVER`,
   {lit}`VERTEXCOVER_mem_ClassNP`, and
-  {lit}`VERTEXCOVER_npComplete` close VERTEX-COVER completely.  At the
-  typed textbook layer, the total CLRS VERTEX-COVER-to-HAM-CYCLE construction is
-  proved correct in both directions, including the selector-budget soundness
-  argument.  The HAM-CYCLE-to-decision-TSP construction has an exact tour-cost
+  {lit}`VERTEXCOVER_npComplete` close VERTEX-COVER completely.  The total CLRS
+  VERTEX-COVER-to-HAM-CYCLE construction is proved correct in both directions,
+  including the selector-budget soundness argument.  Its honest raw language,
+  bounded certificate semantics, fixed verifier, and guarded fixed reduction
+  machine now yield {lit}`HAMCYCLE_mem_ClassNP`,
+  {lit}`VERTEXCOVER_reducible_to_HAMCYCLE`, and
+  {lit}`HAMCYCLE_npComplete`.  The HAM-CYCLE-to-decision-TSP construction has an exact tour-cost
   identity and a proved equivalence.  The indexed natural-number
   3-CNF-SAT-to-SUBSET-SUM construction has explicit carry-free column packing,
   a satisfying-assignment certificate, inverse assignment extraction, and a
   proved equivalence that supports duplicate literal occurrences.  Concrete
   serialized reduction and verifier machines, their polynomial runtime bounds,
-  and NP membership/completeness packaging for HAM-CYCLE, TSP, and SUBSET-SUM
-  remain open.
+  and NP membership/completeness packaging for TSP and SUBSET-SUM remain open.
   A standalone concrete SAT NP
   verifier is an optional refinement, not a dependency of the completed
   hardness chain.

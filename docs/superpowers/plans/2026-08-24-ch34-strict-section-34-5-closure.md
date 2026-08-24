@@ -165,13 +165,20 @@ and the resulting typed target is well formed, has target size equal to vertex
 count, and preserves the textbook reduction semantics.  The remaining boundary
 is the raw syntax guard and the raw hardness packaging.
 
+Closure checkpoint (2026-08-25): the raw syntax guard and hardness packaging
+are complete.  The existing syntax normalizer and graph well-formedness machine
+feed the total typed target and a guard tag into the verified stream selector.
+The resulting fixed polynomial-time TM2 has exact language semantics on every
+raw word, yielding `VERTEXCOVER_reducible_to_HAMCYCLE`, `HAMCYCLE_npHard`, and
+`HAMCYCLE_npComplete`.
+
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
 - Create: focused modules under `HamiltonianCycle/ReductionMachine/`
 - Create: `HamiltonianCycle/ReductionMachine.lean`
 - Create: `HamiltonianCycle/NPCompleteness.lean`
 
-- [ ] **Step 1: Freeze final HAM-CYCLE checks in RED**
+- [x] **Step 1: Freeze final HAM-CYCLE checks in RED**
 
 ```lean
 #check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.computableInPolyTime
@@ -180,15 +187,15 @@ is the raw syntax guard and the raw hardness packaging.
 #check CLRS.Chapter34.HAMCYCLE_npComplete
 ```
 
-- [ ] **Step 2: Generate the typed gadget stream with fixed controllers**
+- [x] **Step 2: Generate the typed gadget stream with fixed controllers**
 
 Reuse the normalized source instance and well-formedness flag.  Implement separately bounded controllers for the transformed header, the fourteen-edge widget template per source edge occurrence, incidence-chain links, selector endpoint links, selector-clique pairs, and the guarded fallback selector.
 
-- [ ] **Step 3: Prove exact computation and polynomial runtime**
+- [x] **Step 3: Prove exact computation and polynomial runtime**
 
 Compose the controllers into one `TM2ComputableInPolyTime id id vertexCoverToHamiltonianMap` witness.  The semantic equality must hold on malformed, ill-formed, degenerate, and ordinary inputs.
 
-- [ ] **Step 4: Package hardness/completeness and commit**
+- [x] **Step 4: Package hardness/completeness and commit**
 
 Use `VERTEXCOVER_npHard`, the new reduction, and Task 3 membership.  Verify focused tests and the HAM facade, then commit as `feat(ch34): prove HAM-CYCLE NP-complete`.
 
