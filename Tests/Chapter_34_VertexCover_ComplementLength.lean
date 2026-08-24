@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength
 
 /-!
 # Regression test: polynomial size of the VERTEX-COVER complement maps
