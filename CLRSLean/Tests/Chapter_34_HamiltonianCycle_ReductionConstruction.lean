@@ -73,6 +73,29 @@ example : (clrsHamiltonianInstance twoEdgesOneSelector).PathAdjacent
       (selectedSourceVertexPath twoEdgesOneSelector {0} 0) := by
   exact selectedSourceVertexPath_pathAdjacent (by decide)
 
+example : (clrsHamiltonianInstance twoEdgesOneSelector).Adj 24 0 := by
+  simpa [twoEdgesOneSelector, selectorVertex, selectorBase, incidentVertex, globalWidgetVertex,
+    widgetVertex, widgetVertexCount] using
+    (adj_selector_incident_first
+      (I := twoEdgesOneSelector) (u := 0) (selector := 0)
+      (first := { occurrence := 0, rightSide := false })
+      (rest := [{ occurrence := 1, rightSide := false }])
+      (by decide) (by decide) (by decide))
+
+example : (clrsHamiltonianInstance twoEdgesOneSelector).Adj 17 24 := by
+  simpa [twoEdgesOneSelector, selectorVertex, selectorBase, incidentVertex, globalWidgetVertex,
+    widgetVertex, widgetVertexCount] using
+    (adj_incident_last_selector
+      (I := twoEdgesOneSelector) (u := 0) (selector := 0)
+      (first := { occurrence := 0, rightSide := false })
+      (rest := [{ occurrence := 1, rightSide := false }])
+      (by decide) (by decide) (by decide))
+
+example : (clrsHamiltonianInstance oneEdgeTwoSelectors).Adj 12 13 := by
+  simpa [oneEdgeTwoSelectors, selectorVertex, selectorBase, widgetVertexCount] using
+    (adj_selector_selector (I := oneEdgeTwoSelectors)
+      (first := 0) (second := 1) (by decide) (by decide) (by decide))
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -89,5 +112,8 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms selectedGlobalWidgetPath_pathAdjacent
 #print axioms selectedIncidenceChainPath_pathAdjacent_of_suffix
 #print axioms selectedSourceVertexPath_pathAdjacent
+#print axioms adj_selector_incident_first
+#print axioms adj_incident_last_selector
+#print axioms adj_selector_selector
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
