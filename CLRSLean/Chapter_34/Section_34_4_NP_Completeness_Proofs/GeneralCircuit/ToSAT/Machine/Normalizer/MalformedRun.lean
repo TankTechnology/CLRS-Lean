@@ -193,7 +193,7 @@ theorem malformedOperand_run (state : State) (ret : Return)
           exact operand_bad_step state ret .outputMark (by decide) (by decide) input
             output rows inputCount gateCount operand saved outputIndex
 
-private theorem gatePrefix_phase (state : State) (kind : GateKind)
+theorem gatePrefix_phase (state : State) (kind : GateKind)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
     (inputCount gateCount : Nat) :
     ∃ finalState,
