@@ -6,6 +6,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Semantics
 
 /-!
 # Fixed VERTEX-COVER to HAM-CYCLE reduction machinery
@@ -19,5 +21,7 @@ canonical per-vertex occurrence rows and formats those rows into every
 successive incidence-chain edge.  A second fixed pipeline extracts the two
 gadget ports at the ends of every nonempty incidence row, repeats them for
 every selector, and formats the complete selector-endpoint edge multiset.
-Only guarded total composition of the verified families remains.
+These four edge families are assembled into one exact serialized ordinary
+target; its fixed machine, well-formedness, and semantic equivalence with the
+textbook edge ordering are proved.  Only guarded total composition remains.
 -/

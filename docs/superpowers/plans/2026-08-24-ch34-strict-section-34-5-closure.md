@@ -155,8 +155,12 @@ selector-endpoint pipeline is now complete as well: a zero-step affine copier
 repeats the extracted ports once per selector, and the offset-aware pair-row
 controller was generalized to arbitrary marked rows with a quadratic input
 bound.  Its output is proved permutation-equivalent to the textbook edge
-family, preserving duplicates.  The active boundary is therefore reduced to
-final guarded composition and the raw hardness packaging.
+family, preserving duplicates.  All four families are now concatenated into
+the exact serialized ordinary target by one fixed polynomial-time TM2.  A
+pair-level permutation bridge proves equality of adjacency, cycle semantics,
+and well-formedness with the textbook construction.  The active boundary is
+therefore reduced to final degenerate/raw guarded composition and the raw
+hardness packaging.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`

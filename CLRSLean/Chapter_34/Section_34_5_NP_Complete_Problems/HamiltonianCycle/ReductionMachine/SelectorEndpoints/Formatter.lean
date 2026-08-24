@@ -17,6 +17,12 @@ open HamiltonianCycleReduction
 def selectorEndpointStream (I : VertexCoverInstance) : List CliqueSym :=
   offsetRowsEdgeStream (offsetFamily I)
 
+/-- Pair-level edge list in the selector-outer order used by the machine. -/
+def selectorEndpointEdges (I : VertexCoverInstance) : List (Nat × Nat) :=
+  (List.range I.targetSize).flatMap fun selector =>
+    (endpointCells I).map fun endpoint =>
+      (endpoint, selectorVertex I.edges.length selector)
+
 /-- A fixed polynomial-time TM2 computes all selector-to-chain endpoint edges
 from the original typed VERTEX-COVER encoding. -/
 noncomputable def computableInPolyTime :
@@ -59,6 +65,12 @@ theorem selectorEndpointStream_eq_selectorOuter
     offsetRowsEdgeStreamFrom_replicate]
   simp [selectorVertex, List.range_eq_range']
 
+theorem selectorEndpointStream_encode (I : VertexCoverInstance) :
+    selectorEndpointStream I =
+      (selectorEndpointEdges I).flatMap encodeCliqueEdge := by
+  rw [selectorEndpointStream_eq_selectorOuter]
+  simp [selectorEndpointEdges, List.flatMap_assoc, List.flatMap_map]
+
 private theorem flatMap_swap_perm (xs : List α) (ys : List β)
     (emit : α → β → List γ) :
     List.Perm
@@ -72,15 +84,14 @@ private theorem flatMap_swap_perm (xs : List α) (ys : List β)
         (List.flatMap_append_perm ys (emit x)
           (fun y => xs.flatMap fun x => emit x y))
 
-private theorem selectorEndpointEdgesFor_stream
+private theorem selectorEndpointEdgesFor_pairs
     (I : VertexCoverInstance) (u : Nat) :
-    (selectorEndpointEdgesFor I.edges.length I.targetSize
-        (incidentOccurrences I u)).flatMap encodeCliqueEdge =
+    selectorEndpointEdgesFor I.edges.length I.targetSize
+        (incidentOccurrences I u) =
       (List.range I.targetSize).flatMap fun selector =>
         (Incidence.Endpoints.endpointValues
-          (incidentOccurrences I u)).flatMap fun endpoint =>
-            encodeCliqueEdge
-              (endpoint, selectorVertex I.edges.length selector) := by
+          (incidentOccurrences I u)).map fun endpoint =>
+            (endpoint, selectorVertex I.edges.length selector) := by
   cases hrefs : incidentOccurrences I u with
   | nil => simp [selectorEndpointEdgesFor,
       Incidence.Endpoints.endpointValues]
@@ -97,7 +108,6 @@ private theorem selectorEndpointEdgesFor_stream
       have hlast := incidentVertex_lt_selectorBase
         (position := 5) hlastMem (by omega)
       simp only [selectorEndpointEdgesFor, Incidence.Endpoints.endpointValues]
-      rw [List.flatMap_assoc]
       apply congrArg (fun emit => (List.range I.targetSize).flatMap emit)
       funext selector
       have hfirstSelector : incidentVertex first 0 <
@@ -111,19 +121,37 @@ private theorem selectorEndpointEdgesFor_stream
         omega
       simp [normalizeUndirectedEdge, hfirstSelector, hlastSelector]
 
-private theorem canonicalSelectorEndpointStream_eq_vertexOuter
+private theorem canonicalSelectorEndpointEdges_eq_vertexOuter
     (I : VertexCoverInstance) :
-    (allSelectorEndpointEdges I).flatMap encodeCliqueEdge =
+    allSelectorEndpointEdges I =
       (List.range I.vertexCount).flatMap fun u =>
         (List.range I.targetSize).flatMap fun selector =>
           (Incidence.Endpoints.endpointValues
-            (incidentOccurrences I u)).flatMap fun endpoint =>
-              encodeCliqueEdge
-                (endpoint, selectorVertex I.edges.length selector) := by
-  rw [allSelectorEndpointEdges, List.flatMap_assoc]
+            (incidentOccurrences I u)).map fun endpoint =>
+              (endpoint, selectorVertex I.edges.length selector) := by
+  rw [allSelectorEndpointEdges]
   apply congrArg (fun emit => (List.range I.vertexCount).flatMap emit)
   funext u
-  exact selectorEndpointEdgesFor_stream I u
+  exact selectorEndpointEdgesFor_pairs I u
+
+theorem selectorEndpointEdges_perm (I : VertexCoverInstance) :
+    List.Perm (selectorEndpointEdges I) (allSelectorEndpointEdges I) := by
+  have hswap := flatMap_swap_perm
+    (List.range I.targetSize) (List.range I.vertexCount)
+    (fun selector u =>
+      (Incidence.Endpoints.endpointValues
+        (incidentOccurrences I u)).map fun endpoint =>
+          (endpoint, selectorVertex I.edges.length selector))
+  have hselector : selectorEndpointEdges I =
+      (List.range I.targetSize).flatMap fun selector =>
+        (List.range I.vertexCount).flatMap fun u =>
+          (Incidence.Endpoints.endpointValues
+            (incidentOccurrences I u)).map fun endpoint =>
+              (endpoint, selectorVertex I.edges.length selector) := by
+    simp [selectorEndpointEdges, endpointCells, List.map_flatMap]
+  rw [hselector]
+  exact hswap.trans (List.Perm.of_eq
+    (canonicalSelectorEndpointEdges_eq_vertexOuter I).symm)
 
 /-- The generated stream is the textbook selector-endpoint edge family up to
 record order.  `List.Perm` deliberately records preservation of duplicates,
@@ -131,28 +159,7 @@ not merely set membership. -/
 theorem selectorEndpointStream_edges (I : VertexCoverInstance) :
     List.Perm (selectorEndpointStream I)
       ((allSelectorEndpointEdges I).flatMap encodeCliqueEdge) := by
-  rw [selectorEndpointStream_eq_selectorOuter]
-  have hswap := flatMap_swap_perm
-    (List.range I.targetSize) (List.range I.vertexCount)
-    (fun selector u =>
-      (Incidence.Endpoints.endpointValues
-        (incidentOccurrences I u)).flatMap fun endpoint =>
-          encodeCliqueEdge
-            (endpoint, selectorVertex I.edges.length selector))
-  have hselector :
-      (List.range I.targetSize).flatMap (fun selector =>
-        (endpointCells I).flatMap fun endpoint =>
-          encodeCliqueEdge
-            (endpoint, selectorVertex I.edges.length selector)) =
-      (List.range I.targetSize).flatMap fun selector =>
-        (List.range I.vertexCount).flatMap fun u =>
-          (Incidence.Endpoints.endpointValues
-            (incidentOccurrences I u)).flatMap fun endpoint =>
-              encodeCliqueEdge
-                (endpoint, selectorVertex I.edges.length selector) := by
-    simp [endpointCells, List.flatMap_assoc]
-  rw [hselector]
-  exact hswap.trans (List.Perm.of_eq
-    (canonicalSelectorEndpointStream_eq_vertexOuter I).symm)
+  rw [selectorEndpointStream_encode]
+  exact (selectorEndpointEdges_perm I).flatMap_right encodeCliqueEdge
 
 end CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorEndpoints
