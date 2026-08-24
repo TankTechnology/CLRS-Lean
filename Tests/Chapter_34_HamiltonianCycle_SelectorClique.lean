@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Formatter
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.offsetPairRowsFormatComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.stream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.stream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorClique.computableInPolyTime
