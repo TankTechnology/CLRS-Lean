@@ -915,7 +915,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
@@ -3802,6 +3808,18 @@ title = "34.5. CLIQUE-to-VERTEX-COVER Semantic Equivalence"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language"]
 title = "34.5. Raw VERTEX-COVER Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate"]
+title = "34.5. VERTEX-COVER Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic"]
+title = "34.5. VERTEX-COVER Boolean Certificate Checker"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics"]
+title = "34.5. Exact VERTEX-COVER Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length"]
+title = "34.5. VERTEX-COVER Certificate-Length Bound"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction"]
 title = "34.5. Total CLIQUE-to-VERTEX-COVER Semantic Map"
