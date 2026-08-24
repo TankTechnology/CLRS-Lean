@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.HeaderBits
+
+#check CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.vertexCountBits_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.budgetBits_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.vertexCountBitsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.budgetBitsComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.vertexCountBitsComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.HeaderBits.budgetBitsComputableInPolyTime
