@@ -5,7 +5,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperso
 namespace CLRS.Chapter34
 
 /-- A word belongs to decision-TSP exactly when it canonically decodes to a
-well-formed row-major weight matrix admitting a tour within its budget. -/
+well-formed complete weight matrix admitting a tour within its budget. -/
 def GeneralTSP : Language TSPSym :=
   { input | ∃ data, decodeTSPData input = some data ∧ data.HasTour }
 

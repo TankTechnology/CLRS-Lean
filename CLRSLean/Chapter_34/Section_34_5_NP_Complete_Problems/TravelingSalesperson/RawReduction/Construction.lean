@@ -6,23 +6,23 @@ import Mathlib.Tactic
 /-!
 # Serialized HAM-CYCLE to decision-TSP construction
 
-This file materializes the typed textbook weight function as a proof-free,
-row-major list suitable for the honest TSP encoder.
+This file materializes the typed textbook weight function as a proof-free
+complete-matrix list suitable for the honest TSP encoder.
 -/
 
 namespace CLRS.Chapter34.TSPReduction
 
-/-- The textbook complete weight matrix, listed in row-major order. -/
+/-- The textbook complete weight matrix, listed in canonical complete-pair
+order. -/
 def hamiltonianWeights (G : HamiltonianCycleInstance) : List Nat :=
-  List.ofFn fun index : Fin (G.vertexCount * G.vertexCount) =>
-    (hamiltonianToTSP G).edgeWeight
-      (index.val / G.vertexCount) (index.val % G.vertexCount)
+  (tspPairOrder G.vertexCount).map fun pair =>
+    (hamiltonianToTSP G).edgeWeight pair.1 pair.2
 
 @[simp] theorem hamiltonianWeights_length (G : HamiltonianCycleInstance) :
     (hamiltonianWeights G).length = G.vertexCount * G.vertexCount := by
   simp [hamiltonianWeights]
 
-/-- Proof-free row-major data emitted by the serialized reduction. -/
+/-- Proof-free complete-matrix data emitted by the serialized reduction. -/
 def hamiltonianTSPData (G : HamiltonianCycleInstance) : TSPData where
   vertexCount := G.vertexCount
   budget := G.vertexCount
@@ -33,13 +33,7 @@ def hamiltonianTSPData (G : HamiltonianCycleInstance) : TSPData where
     (hamiltonianTSPData G).WellFormed := by
   simp [TSPData.WellFormed, hamiltonianTSPData]
 
-private theorem rowMajor_index_lt (G : HamiltonianCycleInstance)
-    (u v : Fin G.vertexCount) :
-    u.val * G.vertexCount + v.val <
-      G.vertexCount * G.vertexCount := by
-  nlinarith [u.isLt, v.isLt]
-
-/-- Row-major interpretation recovers the existing typed textbook
+/-- Complete-pair interpretation recovers the existing typed textbook
 construction exactly. -/
 theorem hamiltonianTSPData_toInstance
     (G : HamiltonianCycleInstance) :
@@ -48,34 +42,18 @@ theorem hamiltonianTSPData_toInstance
   refine ⟨rfl, rfl, heq_of_eq ?_⟩
   change
     (fun (u v : Fin G.vertexCount) =>
-      (hamiltonianWeights G).getD
-        (u.val * G.vertexCount + v.val) 0) =
+      lookupTSPWeight (tspPairOrder G.vertexCount)
+        (hamiltonianWeights G) u.val v.val) =
       (hamiltonianToTSP G).weight
   funext u v
-  ·
-    have hindex := rowMajor_index_lt G u v
-    have hindex' : u.val * G.vertexCount + v.val <
-        (hamiltonianWeights G).length := by
-      simpa using hindex
-    have hlookup :
-        (hamiltonianWeights G).getD
-            (u.val * G.vertexCount + v.val) 0 =
-          (hamiltonianToTSP G).edgeWeight
-            ((u.val * G.vertexCount + v.val) / G.vertexCount)
-            ((u.val * G.vertexCount + v.val) % G.vertexCount) := by
-      simp [hamiltonianWeights, hindex]
-    rw [hlookup]
-    have hpositive : 0 < G.vertexCount := Nat.zero_lt_of_lt u.isLt
-    have hdiv :
-        (u.val * G.vertexCount + v.val) / G.vertexCount = u.val := by
-      rw [Nat.mul_comm u.val G.vertexCount,
-        Nat.mul_add_div hpositive u.val v.val]
-      simp [Nat.div_eq_of_lt v.isLt]
-    have hmod :
-        (u.val * G.vertexCount + v.val) % G.vertexCount = v.val := by
-      rw [Nat.add_mod]
-      simp [Nat.mod_eq_of_lt v.isLt]
-    simp [hdiv, hmod, TSPInstance.edgeWeight, u.isLt, v.isLt]
+  change lookupTSPWeight (tspPairOrder G.vertexCount)
+      ((tspPairOrder G.vertexCount).map fun pair =>
+        (hamiltonianToTSP G).edgeWeight pair.1 pair.2)
+      u.val v.val = _
+  rw [lookupTSPWeight_map_of_mem _ _
+    (mem_tspPairOrder_iff.mpr ⟨u.isLt, v.isLt⟩)]
+  rw [TSPInstance.edgeWeight_of_lt _ u.isLt v.isLt]
+  congr 1
 
 /-- The proof-free record has precisely the typed reduction semantics. -/
 theorem hamiltonianTSPData_hasTour_iff

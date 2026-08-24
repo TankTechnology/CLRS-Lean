@@ -6,7 +6,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperso
 
 namespace CLRS.Chapter34
 
-/-- Canonical finite encoding of one row-major TSP record. -/
+/-- Canonical finite encoding of one complete-matrix TSP record. -/
 def encodeTSPData (data : TSPData) : List TSPSym :=
   .instanceMark ::
     (encodeTSPFields (data.vertexCount :: data.budget :: data.weights) ++
