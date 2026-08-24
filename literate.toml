@@ -914,6 +914,8 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
@@ -3797,6 +3799,12 @@ title = "34.5. CLIQUE-to-VERTEX-COVER Completeness"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics"]
 title = "34.5. CLIQUE-to-VERTEX-COVER Semantic Equivalence"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language"]
+title = "34.5. Raw VERTEX-COVER Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction"]
+title = "34.5. Total CLIQUE-to-VERTEX-COVER Semantic Map"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
 title = "34.4. CIRCUIT-SAT poly-reduces to SAT"

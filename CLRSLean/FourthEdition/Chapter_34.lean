@@ -98,9 +98,10 @@ fixed polynomial-time TM2, and the universal NP-hardness chain reaches SAT,
 3-CNF-SAT, and public CLIQUE; general CLIQUE is proved NP-complete.  A
 standalone SAT NP verifier remains an optional direct refinement.  Section
 34.5 is now partially represented by the typed CLIQUE-to-VERTEX-COVER
-complement theorem.  Its raw language and machine-level NP-completeness closure,
-and the HAM-CYCLE, TSP, and SUBSET-SUM chains, remain open; this guide therefore
-remains partial.
+complement theorem, the raw VERTEX-COVER language, and an exact total
+raw-string semantic map.  Its machine-level NP-completeness closure and the
+HAM-CYCLE, TSP, and SUBSET-SUM chains remain open; this guide therefore remains
+partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

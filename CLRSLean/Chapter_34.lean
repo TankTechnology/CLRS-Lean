@@ -888,6 +888,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1012,10 +1014,11 @@ computes the exact map directly from the original input.  Consequently
 every NP language, and {lit}`generalCircuitSAT_npHard` together with
 {lit}`generalCircuitSAT_npComplete` closes the textbook Cook--Levin result.
 The public general graph-plus-{lit}`k` CLIQUE target is also NP-complete.
-Section 34.5 now begins with typed VERTEX-COVER semantics, a deterministic
-graph-complement construction, and
-{lit}`hasClique_iff_complement_hasVertexCover`.  This is a semantic checkpoint:
-the raw language, polynomial-time reduction machine, NP membership, and
+Section 34.5 now begins with typed and raw VERTEX-COVER semantics, a
+deterministic graph-complement construction,
+{lit}`hasClique_iff_complement_hasVertexCover`, and the all-input raw theorem
+{lit}`cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  This is a semantic
+checkpoint: the fixed polynomial-time reduction machine, NP membership, and
 NP-completeness remain open.
 
 Theorem layer:
@@ -1041,7 +1044,7 @@ Theorem layer:
   is bounded by `generalCircuitToSATMap_length_le`.
 
 Open problems such as whether `P = NP` are intentionally out of scope.
-Section 34.5 still requires raw and machine-level VERTEX-COVER closure plus the
+Section 34.5 still requires machine-level VERTEX-COVER closure plus the
 HAM-CYCLE, TSP, and SUBSET-SUM chains.
 -/
 
