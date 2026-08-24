@@ -42,9 +42,9 @@ live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
 The edition map records one partially represented coverage unit in Chapter 34:
-§34.5 has typed VERTEX-COVER complement semantics but not yet the serialized
-language, polynomial-time machines, or later reductions.  Chapter 34 is the
-sole repository row whose status remains {lit}`partial`.
+§34.5 has typed and raw VERTEX-COVER complement semantics but not yet the fixed
+polynomial-time machines or later reductions.  Chapter 34 is the sole
+repository row whose status remains {lit}`partial`.
 
 * **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
   framework, `P ⊆ NP`, and polynomial-reduction infrastructure.  Section 34.4
@@ -70,10 +70,12 @@ sole repository row whose status remains {lit}`partial`.
   concrete polynomial-time 3-CNF-SAT reduction; {lit}`CLIQUE` is therefore
   NP-complete.  Section 34.5 now proves the typed equivalence between a
   size-{lit}`k` clique and a size-at-most-{lit}`|V|-k` vertex cover of the
-  deterministic complement.  Raw language semantics, concrete reduction and
-  verifier machines, VERTEX-COVER NP-completeness, and the remaining §34.5
-  problems are open.  A standalone concrete SAT NP verifier is an optional
-  refinement, not a dependency of the completed hardness chain.
+  deterministic complement, defines the raw VERTEX-COVER language, and proves
+  exact membership preservation for a total raw CLIQUE-to-VERTEX-COVER map.
+  Concrete reduction and verifier machines, VERTEX-COVER NP-completeness, and
+  the remaining §34.5 problems are open.  A standalone concrete SAT NP
+  verifier is an optional refinement, not a dependency of the completed
+  hardness chain.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the
@@ -92,11 +94,11 @@ represented section or an expository guide.
 
 ## Online And Supplementary Material
 
-The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 464 tracked theorem
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
-33, plus 43 from moved section-level developments such as maximum subarray,
+33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 43 groups are disjoint from the 1,523 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,599 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.
