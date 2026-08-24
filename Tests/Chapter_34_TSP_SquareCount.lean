@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SquareCount
+
+#check CLRS.Chapter34.Turing.TSPVerifier.SquareCount.squareCountBits_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.SquareCount.squareTicksComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SquareCount.squareCountBitsComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.SquareCount.squareCountBitsComputableInPolyTime
