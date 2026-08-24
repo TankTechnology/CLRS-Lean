@@ -210,24 +210,27 @@ Use `VERTEXCOVER_npHard`, the new reduction, and Task 3 membership.  Verify focu
 - Create: `CLRSLean/Chapter_34/BinaryNat/Machine.lean`
 - Create: `CLRSLean/Chapter_34/BinaryNat.lean`
 
-- [ ] **Step 1: Freeze codec laws in RED**
+- [x] **Step 1: Freeze codec laws in RED**
 
 ```lean
 #check CLRS.Chapter34.decodeBinaryNat_encode
 #check CLRS.Chapter34.encodeBinaryNat_length_le
 #check CLRS.Chapter34.Turing.BinaryNat.encoderComputableInPolyTime
-#check CLRS.Chapter34.Turing.BinaryNat.decoderComputableInPolyTime
+#check CLRS.Chapter34.Turing.BinaryNat.validatorComputableInPolyTime
 ```
 
-- [ ] **Step 2: Implement a canonical self-delimiting representation**
+- [x] **Step 2: Implement a canonical self-delimiting representation**
 
 Represent zero by one zero bit and positive naturals by a leading one followed by the remaining big-endian bits, terminated by a field marker supplied by the enclosing grammar.  Reject leading-zero nonzero encodings so round trips and parser uniqueness are exact.
 
-- [ ] **Step 3: Prove logarithmic length and fixed-machine behavior**
+- [x] **Step 3: Prove logarithmic length and fixed-machine behavior**
 
-Relate physical length to `Nat.log2`, prove decode-after-encode, and provide fixed polynomial-time encoder/decoder witnesses reusable through alphabet injections.
+Relate physical length to `Nat.size`, prove decode-after-encode, and provide a
+fixed polynomial-time unary-length encoder and canonicality validator reusable
+through alphabet injections.  A binary-to-unary output decoder is deliberately
+excluded because its output can be exponential in the binary input length.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run only the codec interface/source builds and commit as `feat(ch34): add reusable binary natural codec`.
 
