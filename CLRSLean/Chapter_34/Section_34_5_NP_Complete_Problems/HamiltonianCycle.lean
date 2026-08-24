@@ -24,7 +24,9 @@ language is now proved to belong to NP.  The fixed reduction layer now
 generates the nondegenerate header, the full internal widget-edge family, and
 the complete selector clique.  It also computes the canonical per-vertex
 incidence rows with a fixed polynomial-time scanner and formats their
-successive references into the complete incidence-chain edge stream.
-Selector-endpoint formatting and guarded total composition remain before the
-raw NP-hardness theorem can be packaged.
+successive references into the complete incidence-chain edge stream.  It also
+extracts the first and last gadget ports of every nonempty incidence row with
+a fixed polynomial-time controller.  Selector-index repetition, endpoint-edge
+formatting, and guarded total composition remain before the raw NP-hardness
+theorem can be packaged.
 -/

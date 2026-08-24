@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.endpointCellStream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.endpointCellStream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.computableInPolyTime

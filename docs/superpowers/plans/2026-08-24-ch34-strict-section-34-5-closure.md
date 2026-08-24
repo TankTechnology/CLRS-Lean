@@ -148,8 +148,11 @@ cubic runtime bound.  The incidence-chain formatter is also complete: one
 fixed controller parses each `(occurrence, side)` pair, retains consecutive
 references across a row, emits the exact normalized gadget links, and has a
 linear runtime bound in the scanner-stream length.  The active boundary is
-therefore reduced to the selector-endpoint formatter and final guarded
-composition.
+further narrowed by a fixed endpoint extractor: it retains the first and last
+occurrence of every nonempty incidence row, emits their two canonical gadget
+ports, and has a linear runtime bound in the scanner-stream length.  The
+active boundary is therefore reduced to selector-index repetition, endpoint
+edge formatting, and final guarded composition.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`
