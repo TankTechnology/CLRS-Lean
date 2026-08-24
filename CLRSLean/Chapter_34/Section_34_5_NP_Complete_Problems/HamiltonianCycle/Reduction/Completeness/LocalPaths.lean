@@ -123,6 +123,20 @@ theorem selectedWidgetPath_getLast
           simp [selectedWidgetPath, hcover, widgetSidePath, widgetFullPath,
             widgetRightPath, widgetRightFullPath, widgetVertex]
 
+theorem selectedGlobalWidgetPath_head
+    (I : CliqueInstance) (cover : Finset Nat) (ref : IncidentOccurrence) :
+    (selectedGlobalWidgetPath I cover ref).head? =
+      some (incidentVertex ref 0) := by
+  simp [selectedGlobalWidgetPath, mapWidgetPath, incidentVertex,
+    selectedWidgetPath_head]
+
+theorem selectedGlobalWidgetPath_getLast
+    (I : CliqueInstance) (cover : Finset Nat) (ref : IncidentOccurrence) :
+    (selectedGlobalWidgetPath I cover ref).getLast? =
+      some (incidentVertex ref 5) := by
+  simp [selectedGlobalWidgetPath, mapWidgetPath, incidentVertex,
+    selectedWidgetPath_getLast]
+
 theorem mem_allGlobalWidgetEdges_of_mem
     {I : CliqueInstance} {occurrence : Nat}
     (hoccurrence : occurrence < I.edges.length)

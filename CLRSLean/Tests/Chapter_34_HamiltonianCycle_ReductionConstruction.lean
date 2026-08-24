@@ -15,6 +15,11 @@ def oneEdgeTwoSelectors : VertexCoverInstance where
   targetSize := 2
   edges := [(0, 1)]
 
+def twoEdgesOneSelector : VertexCoverInstance where
+  vertexCount := 3
+  targetSize := 1
+  edges := [(0, 1), (0, 2)]
+
 example : oneEdgeOneSelector.WellFormed := by decide
 
 example : incidentOccurrences oneEdgeOneSelector 0 =
@@ -59,6 +64,15 @@ example : (clrsHamiltonianInstance oneEdgeOneSelector).PathAdjacent
     incidentOccurrences oneEdgeOneSelector 0
   decide
 
+example : selectedSourceVertexPath twoEdgesOneSelector {0} 0 =
+    [0, 1, 2, 6, 7, 8, 9, 10, 11, 3, 4, 5,
+      12, 13, 14, 18, 19, 20, 21, 22, 23, 15, 16, 17] := by
+  decide
+
+example : (clrsHamiltonianInstance twoEdgesOneSelector).PathAdjacent
+      (selectedSourceVertexPath twoEdgesOneSelector {0} 0) := by
+  exact selectedSourceVertexPath_pathAdjacent (by decide)
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -73,5 +87,7 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms endpoints_of_mem_incidentOccurrences
 #print axioms selectedWidgetPath_isWidgetPath
 #print axioms selectedGlobalWidgetPath_pathAdjacent
+#print axioms selectedIncidenceChainPath_pathAdjacent_of_suffix
+#print axioms selectedSourceVertexPath_pathAdjacent
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
