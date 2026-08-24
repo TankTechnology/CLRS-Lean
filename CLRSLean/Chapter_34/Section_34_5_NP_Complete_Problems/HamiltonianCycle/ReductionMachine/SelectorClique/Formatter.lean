@@ -88,7 +88,7 @@ def offsetPairRowsFormatRevProgram : Program UnaryFrameSym CliqueSym where
     | .core label => relabelOp .core
         (TMClique.pairRowsFormatRevProgram.op label)
 
-private def relabelCfg (c : BuilderCfg TMClique.pairRowsFormatRevProgram) :
+def relabelCfg (c : BuilderCfg TMClique.pairRowsFormatRevProgram) :
     BuilderCfg offsetPairRowsFormatRevProgram where
   label := c.label.map .core
   buffer₁ := c.buffer₁
@@ -102,7 +102,7 @@ private def relabelCfg (c : BuilderCfg TMClique.pairRowsFormatRevProgram) :
   counter₂ := c.counter₂
   counter₃ := c.counter₃
 
-private def offsetCfg (label : OffsetPairRowsLabel)
+def offsetCfg (label : OffsetPairRowsLabel)
     (buffer : Option UnaryFrameSym) (test : Bool)
     (input : List UnaryFrameSym) (output : List CliqueSym)
     (upper saved : Nat) : BuilderCfg offsetPairRowsFormatRevProgram where
@@ -183,7 +183,7 @@ private theorem lift_iterations (n : Nat)
           simp only [Option.map_some]
           exact ih next
 
-private def lift_run {a b : BuilderCfg TMClique.pairRowsFormatRevProgram}
+def lift_run {a b : BuilderCfg TMClique.pairRowsFormatRevProgram}
     {bound : Nat}
     (run : EvalsToInTime (step TMClique.pairRowsFormatRevProgram)
       a (some b) bound) :
@@ -198,7 +198,7 @@ private def lift_run {a b : BuilderCfg TMClique.pairRowsFormatRevProgram}
   rw [sourceRun] at lifted
   exact lifted
 
-private theorem loadBase_eval (remaining loaded : Nat)
+theorem loadBase_eval (remaining loaded : Nat)
     (buffer : Option UnaryFrameSym) (test : Bool)
     (tail : List UnaryFrameSym) (output : List CliqueSym) :
     (flip Option.bind (step offsetPairRowsFormatRevProgram))^[
@@ -246,7 +246,7 @@ def offsetRowsSteps (base row : Nat) : Nat → Nat
   | count + 1 =>
       offsetRowSteps base row + offsetRowsSteps base (row + 1) count
 
-private def valuesRun (values : List Nat) (upper : Nat)
+def valuesRun (values : List Nat) (upper : Nat)
     (buffer : Option UnaryFrameSym) (test : Bool)
     (tail : List UnaryFrameSym) (output : List CliqueSym) :
     Σ finalBuffer, Σ finalTest,
@@ -370,7 +370,7 @@ theorem offsetEdgesFrom_zero (base count : Nat) :
   unfold offsetCompletePairEdgeStream
   rw [List.range_eq_range']
 
-private theorem clearUpper_eval (upper : Nat)
+theorem clearUpper_eval (upper : Nat)
     (buffer : Option UnaryFrameSym) (test : Bool)
     (output : List CliqueSym) :
     (flip Option.bind (step TMClique.pairRowsFormatRevProgram))^[upper + 1]

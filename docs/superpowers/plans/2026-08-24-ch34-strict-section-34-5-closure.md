@@ -151,8 +151,12 @@ linear runtime bound in the scanner-stream length.  The active boundary is
 further narrowed by a fixed endpoint extractor: it retains the first and last
 occurrence of every nonempty incidence row, emits their two canonical gadget
 ports, and has a linear runtime bound in the scanner-stream length.  The
-active boundary is therefore reduced to selector-index repetition, endpoint
-edge formatting, and final guarded composition.
+selector-endpoint pipeline is now complete as well: a zero-step affine copier
+repeats the extracted ports once per selector, and the offset-aware pair-row
+controller was generalized to arbitrary marked rows with a quadratic input
+bound.  Its output is proved permutation-equivalent to the textbook edge
+family, preserving duplicates.  The active boundary is therefore reduced to
+final guarded composition and the raw hardness packaging.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`

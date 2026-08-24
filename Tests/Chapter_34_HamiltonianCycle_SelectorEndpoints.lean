@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorEndpoints.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorEndpoints.selectorEndpointStream_edges
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorEndpoints.selectorEndpointStream_edges
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.SelectorEndpoints.computableInPolyTime
