@@ -889,6 +889,10 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundne
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
 
 /-! # Chapter 34 — NP-Completeness
@@ -1017,9 +1021,11 @@ The public general graph-plus-{lit}`k` CLIQUE target is also NP-complete.
 Section 34.5 now begins with typed and raw VERTEX-COVER semantics, a
 deterministic graph-complement construction,
 {lit}`hasClique_iff_complement_hasVertexCover`, and the all-input raw theorem
-{lit}`cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  This is a semantic
-checkpoint: the fixed polynomial-time reduction machine, NP membership, and
-NP-completeness remain open.
+{lit}`cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  Its Boolean certificate
+checker has exact all-input semantics and the quadratic accepted-certificate
+bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  This is a
+function-level checkpoint: the fixed polynomial-time reduction and verifier
+machines, NP membership, and NP-completeness remain open.
 
 Theorem layer:
 
