@@ -8,6 +8,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Ra
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NPCompleteness
 
 /-!
 # HAM-CYCLE
@@ -32,5 +33,6 @@ families are now assembled by one fixed polynomial-time machine into an exact
 ordinary target, with a permutation bridge proving that edge-record ordering
 does not change Hamiltonian-cycle semantics.  A fixed classifier and stream
 selector also totalize this target over the two degenerate typed branches.
-The raw syntax guard remains before the NP-hardness theorem can be packaged.
+The reused raw syntax/well-formedness guard closes the all-input machine, so
+the honest serialized HAM-CYCLE language is now proved NP-complete.
 -/

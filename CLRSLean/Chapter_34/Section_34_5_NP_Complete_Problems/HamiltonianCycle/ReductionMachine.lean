@@ -12,6 +12,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Runtime
 
 /-!
 # Fixed VERTEX-COVER to HAM-CYCLE reduction machinery
@@ -30,5 +32,7 @@ target.  A fixed branch classifier and selector now totalize that construction
 over all typed instances, including the two degenerate textbook branches.  The
 selected target has exact encoding semantics, is well formed, has target size
 equal to its vertex count, and is equivalent to the textbook construction.
-Only the raw syntax guard and final hardness packaging remain.
+Finally, the reused raw parser/well-formedness guard selects either this target
+or a fixed no-instance.  The resulting all-input map has exact language
+semantics and is computed by one fixed polynomial-time TM2.
 -/

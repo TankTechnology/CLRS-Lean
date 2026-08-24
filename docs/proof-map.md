@@ -5582,12 +5582,11 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Remaining chapter scope: Section 34.5 now closes the selected typed textbook
   semantic chain through CLIQUE / VERTEX-COVER, VERTEX-COVER / HAM-CYCLE,
   HAM-CYCLE / decision-TSP, and 3-CNF-SAT / SUBSET-SUM equivalences.  The
-  VERTEX-COVER layer additionally has all-input raw complement semantics,
-  cubic output bounds, exact bounded Boolean certificates, fixed reduction and
-  verifier machines, NP membership, and a proved NP-completeness wrapper.  The
-  remaining strict-completion boundary is HAM-CYCLE's raw reduction/verifier
-  and the raw languages, certificate interfaces, fixed machines, runtime
-  bounds, and NP packaging for TSP and SUBSET-SUM.
+  VERTEX-COVER and HAM-CYCLE layers additionally have honest all-input raw
+  semantics, bounded certificates, fixed reduction and verifier machines, NP
+  membership, and proved NP-completeness wrappers.  The remaining strict-
+  completion boundary is the raw languages, certificate interfaces, fixed
+  machines, runtime bounds, and NP packaging for TSP and SUBSET-SUM.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
   Open problems (P vs NP) are intentionally out of scope.
 
@@ -5918,10 +5917,11 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   semantics, total raw maps, cubic output bounds, exact bounded Boolean
   certificates, fixed polynomial-time reduction and verifier machines,
   membership in NP, and the proved theorem `VERTEXCOVER_npComplete`.  The
-  remaining strict-completion boundary is HAM-CYCLE's serialized
-  reduction/verifier machinery and the raw-language, certificate, fixed
-  machine, bit/runtime-bound, and NP-completeness layers for TSP and
-  SUBSET-SUM.
+  HAM-CYCLE layer now additionally has honest raw language and certificate
+  semantics, a fixed verifier, a total guarded fixed reduction machine, and the
+  proved theorem `HAMCYCLE_npComplete`.  The remaining strict-completion
+  boundary is the raw-language, certificate, fixed-machine, bit/runtime-bound,
+  and NP-completeness layers for TSP and SUBSET-SUM.
 
 ## Deferred And Blocked Items
 
