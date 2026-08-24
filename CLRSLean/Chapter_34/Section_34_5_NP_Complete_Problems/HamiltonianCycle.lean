@@ -3,6 +3,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Cy
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction
 
 /-!
 # HAM-CYCLE
@@ -10,6 +11,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 Exports the honest shared graph encoding, ordered Hamiltonian-cycle semantics,
 the total raw certificate checker, exact checker semantics, quadratic
 certificate bound, and the total typed VERTEX-COVER reduction with a proved
-semantic equivalence.  Raw-string reduction and fixed-machine complexity
+semantic equivalence.  The typed construction is also lifted to a total raw
+map with exact all-input language semantics.  Fixed-machine and output-size
 bounds remain separate closure layers.
 -/

@@ -1,0 +1,6 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
+
+#check CLRS.Chapter34.vertexCoverToHamiltonianMap
+#check CLRS.Chapter34.vertexCoverToHamiltonianMap_mem_HAMCYCLE_iff
+
+#print axioms CLRS.Chapter34.vertexCoverToHamiltonianMap_mem_HAMCYCLE_iff
