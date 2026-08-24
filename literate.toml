@@ -1949,6 +1949,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.TargetIncrement",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness" = [
@@ -6739,6 +6740,9 @@ title = "34.5. Polynomial output length of the raw HAM-CYCLE reduction"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine"]
 title = "34.5. HAM-CYCLE fixed verifier machinery"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup"]
+title = "34.5. HAM-CYCLE verifier certificate distinctness"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.TargetIncrement"]
 title = "34.5. HAM-CYCLE verifier target-field increment"
