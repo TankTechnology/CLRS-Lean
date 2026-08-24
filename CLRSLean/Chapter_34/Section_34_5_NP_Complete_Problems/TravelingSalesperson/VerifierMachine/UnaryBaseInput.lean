@@ -35,6 +35,12 @@ def ticksToClique (ticks : List Bool) : List CliqueSym :=
 def emptyInstance (count : Nat) : CliqueInstance :=
   { vertexCount := count, targetSize := count, edges := [] }
 
+def certificateCount (input : RawInput) : Nat :=
+  (FieldCount.certificateTicks input.1).length
+
+def dummyInstance (input : RawInput) : CliqueInstance :=
+  emptyInstance (certificateCount input)
+
 def cliqueCertificate (certificate : List TSPSym) : List CliqueSym :=
   UnaryCertificate.toCliqueCertificate certificate
 
@@ -80,6 +86,10 @@ private theorem ticksToClique_replicate (count : Nat) :
       List.replicate count CliqueSym.tick := by
   simp [ticksToClique]
 
+private theorem ticksToClique_eq_replicate (ticks : List Bool) :
+    ticksToClique ticks = List.replicate ticks.length CliqueSym.tick := by
+  simp [ticksToClique]
+
 private theorem replicate_ticks_append (count : Nat)
     (suffix : List CliqueSym) :
     List.replicate count CliqueSym.tick ++ suffix =
@@ -100,6 +110,21 @@ private theorem replicate_ticks_append (count : Nat)
   rw [← replicate_ticks_append vertices.length
       (.fieldSep :: prependCliqueTicks vertices.length [.fieldSep])]
   rw [← replicate_ticks_append vertices.length [.fieldSep]]
+  simp [List.append_assoc]
+
+theorem dummyGraph_eq_encode (input : RawInput) :
+    dummyGraph input.1 = encodeCliqueInstance (dummyInstance input) := by
+  rw [dummyGraph, ticksToClique_eq_replicate,
+    _root_.CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Header.headerFromCount_eq]
+  simp only [dummyInstance, certificateCount, emptyInstance,
+    encodeCliqueInstance, List.flatMap_nil]
+  refine congrArg (List.cons CliqueSym.instanceMark) ?_
+  rw [← replicate_ticks_append
+      (FieldCount.certificateTicks input.1).length
+      (.fieldSep :: prependCliqueTicks
+        (FieldCount.certificateTicks input.1).length [.fieldSep])]
+  rw [← replicate_ticks_append
+      (FieldCount.certificateTicks input.1).length [.fieldSep]]
   simp [List.append_assoc]
 
 @[simp] theorem baseInput_encode (vertices : List Nat) (data : TSPData) :
@@ -154,12 +179,27 @@ private noncomputable def dummyGraphComputableFromCertificateInPolyTime :
         (ticksToClique (FieldCount.certificateTicks certificate)))
   simpa only [Function.comp_def] using Classical.choice headerExists
 
-private noncomputable def dummyGraphComputableInPolyTime :
+noncomputable def dummyGraphComputableInPolyTime :
     TM2ComputableInPolyTime rawEncoding id
       (fun input => dummyGraph input.1) := by
   let composed := TM2Comp.TM2ComputableInPolyTime.comp_scratch
     certificateProjection dummyGraphComputableFromCertificateInPolyTime
   simpa [Function.comp_def] using Classical.choice composed
+
+/-- Typed view of the same physical dummy-graph generator. -/
+noncomputable def dummyInstanceComputableInPolyTime :
+    TM2ComputableInPolyTime rawEncoding encodeCliqueInstance
+      dummyInstance := by
+  let machine := dummyGraphComputableInPolyTime
+  exact
+    { tm := machine.tm
+      inputAlphabet := machine.inputAlphabet
+      outputAlphabet := machine.outputAlphabet
+      time := machine.time
+      outputsFun := fun input => by
+        have output := machine.outputsFun input
+        rw [dummyGraph_eq_encode input] at output
+        exact output }
 
 private noncomputable def graphRightComputableInPolyTime :
     TM2ComputableInPolyTime rawEncoding id
