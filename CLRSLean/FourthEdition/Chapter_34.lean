@@ -105,8 +105,9 @@ exact and has a quadratic accepted-certificate bound.  Its first concrete
 machine phase is also closed: a fixed linear-time TM2 normalizes raw graph
 syntax while preserving parser rejection through an ill-formed sentinel.  The
 existing CLIQUE target/order/endpoint machines are also combined into an exact
-fixed polynomial-time graph well-formedness guard.  The remaining complement
-generation/verifier machines, NP membership/completeness closure,
+fixed polynomial-time graph well-formedness guard.  A verified graph-pair
+formatter composes both phases into an all-input raw well-formedness TM2.  The
+remaining complement-generation/verifier machines, NP membership/completeness closure,
 and the HAM-CYCLE, TSP, and SUBSET-SUM chains remain open; this guide therefore
 remains partial.
 

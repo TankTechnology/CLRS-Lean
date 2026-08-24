@@ -86,6 +86,9 @@ repository row whose status remains
   The existing CLIQUE target-bound, edge-order, and endpoint-bound machines
   are also composed into a fixed polynomial-time guard whose canonical
   semantics are exactly {lit}`CliqueInstance.WellFormed`.
+  A reverse/option-pair/reverse formatter connects these stages, yielding the
+  all-input fixed polynomial-time
+  {lit}`RawWellFormed.computableInPolyTime` machine.
   Its executable Boolean certificate checker has exact all-input semantics,
   and accepted certificates have a quadratic length bound.  Concrete
   reduction and verifier machines, VERTEX-COVER NP membership/completeness,

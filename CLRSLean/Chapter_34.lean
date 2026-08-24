@@ -913,6 +913,10 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Basic
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Semantics
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.WellFormedGuard.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.GraphPairFormatter.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.RawWellFormed
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1054,6 +1058,8 @@ NP-completeness remain open.  The independent graph-invariant stage is already
 closed by {lit}`WellFormedGuard.graphComputableInPolyTime`, which composes the
 existing CLIQUE target/order/endpoint machines and proves exact equivalence
 with {lit}`CliqueInstance.WellFormed` on canonical encodings.
+{lit}`RawWellFormed.computableInPolyTime` joins normalization, graph-pair
+formatting, and the guard into one fixed machine over the original raw string.
 
 Theorem layer:
 
