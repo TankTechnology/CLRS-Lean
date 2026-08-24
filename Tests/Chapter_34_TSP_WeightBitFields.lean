@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.WeightBitFields
+
+#check CLRS.Chapter34.Turing.TSPVerifier.WeightBitFields.fields_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.WeightBitFields.fieldsComputableFromInstanceInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.WeightBitFields.fieldsComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.WeightBitFields.fieldsComputableInPolyTime
