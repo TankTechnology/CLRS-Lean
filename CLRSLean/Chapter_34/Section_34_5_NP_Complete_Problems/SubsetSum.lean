@@ -4,6 +4,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction
 
 /-!
 # SUBSET-SUM
