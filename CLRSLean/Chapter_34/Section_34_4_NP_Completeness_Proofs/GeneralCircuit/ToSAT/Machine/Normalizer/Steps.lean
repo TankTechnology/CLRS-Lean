@@ -40,21 +40,49 @@ def afterRowPrefixGateCount (kind : GateKind) (gateCount : Nat) : Nat :=
   | .constFalse | .constTrue => gateCount + 1
   | _ => gateCount
 
+def rawGateTag : GateKind → CircuitSym
+  | .input => .inputMark
+  | .constFalse => .constFalseMark
+  | .constTrue => .constTrueMark
+  | .not => .notMark
+  | .and => .andMark
+  | .or => .orMark
+
+def afterBoundLabel : Return → Label
+  | .andLeft => .parseOperand .andRight
+  | .orLeft => .parseOperand .orRight
+  | .outputGate => .rowsToOutput
+  | _ => .gates
+
+def afterBoundRows (ret : Return)
+    (rows : List NormalizedCircuitSym) : List NormalizedCircuitSym :=
+  match ret with
+  | .inputGate | .notGate | .andRight | .orRight => .rowEnd :: rows
+  | .andLeft | .orLeft | .outputGate => rows
+
+def afterBoundGateCount (ret : Return) (gateCount : Nat) : Nat :=
+  match ret with
+  | .inputGate | .notGate | .andRight | .orRight => gateCount + 1
+  | .andLeft | .orLeft | .outputGate => gateCount
+
 macro "normalize_step" : tactic => `(tactic|
   (apply congrArg some
    apply _root_.Turing.TM2Comp.Cfg_ext
    · simp [step, cfg, machine, program, stackContents, withBound,
        afterRowPrefixLabel, afterRowPrefixRows, afterRowPrefixGateCount,
+       rawGateTag, afterBoundLabel, afterBoundRows, afterBoundGateCount,
        List.replicate_succ,
        Function.update]
    · simp [step, cfg, machine, program, stackContents, withBound,
        afterRowPrefixLabel, afterRowPrefixRows, afterRowPrefixGateCount,
+       rawGateTag, afterBoundLabel, afterBoundRows, afterBoundGateCount,
        List.replicate_succ,
        Function.update]
    · funext stack
      cases stack <;>
        simp [step, cfg, machine, program, stackContents, withBound,
          afterRowPrefixLabel, afterRowPrefixRows, afterRowPrefixGateCount,
+         rawGateTag, afterBoundLabel, afterBoundRows, afterBoundGateCount,
          List.replicate_succ,
          Function.update]))
 
@@ -77,6 +105,17 @@ theorem input_count_end_step (state : State) (input : List CircuitSym)
         { state with inputBuffer := some .endMark }
         input output rows inputCount gateCount operand saved outputIndex) := by
   normalize_step
+
+theorem gates_tag_step (state : State) (kind : GateKind)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .gates) state (rawGateTag kind :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some (.rowIndexCopy kind))
+        { state with inputBuffer := some (rawGateTag kind) }
+        input output (.gateRowMark :: rows) inputCount gateCount operand saved
+        outputIndex) := by
+  cases kind <;> normalize_step
 
 theorem row_index_copy_tick_step (state : State) (kind : GateKind)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
@@ -180,6 +219,35 @@ theorem compare_operand_done_step (state : State) (ret : Return)
         0 (saved + 1) outputIndex) := by
   cases ret <;> normalize_step
 
+theorem compare_operand_zero_bound_zero_step (state : State) (ret : Return)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount saved outputIndex : Nat) :
+    step (cfg (some (.compareOperand ret)) state input output rows
+      (withBound ret 0 inputCount gateCount).1
+      (withBound ret 0 inputCount gateCount).2
+      0 saved outputIndex) =
+      some (cfg (some .clearInput) { state with counterPresent := false }
+        input output rows
+        (withBound ret 0 inputCount gateCount).1
+        (withBound ret 0 inputCount gateCount).2
+        0 saved outputIndex) := by
+  cases ret <;> normalize_step
+
+theorem compare_operand_positive_bound_zero_step (state : State) (ret : Return)
+    (remaining : Nat) (input : List CircuitSym)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount saved outputIndex : Nat) :
+    step (cfg (some (.compareOperand ret)) state input output rows
+      (withBound ret 0 inputCount gateCount).1
+      (withBound ret 0 inputCount gateCount).2
+      (remaining + 1) saved outputIndex) =
+      some (cfg (some .clearInput) { state with counterPresent := false }
+        input output rows
+        (withBound ret 0 inputCount gateCount).1
+        (withBound ret 0 inputCount gateCount).2
+        remaining saved outputIndex) := by
+  cases ret <;> normalize_step
+
 theorem restore_bound_tick_step (state : State) (ret : Return)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
     (bound inputCount gateCount operand saved outputIndex : Nat) :
@@ -193,6 +261,17 @@ theorem restore_bound_tick_step (state : State) (ret : Return)
         (withBound ret (bound + 1) inputCount gateCount).1
         (withBound ret (bound + 1) inputCount gateCount).2
         operand saved outputIndex) := by
+  cases ret <;> normalize_step
+
+theorem restore_bound_done_step (state : State) (ret : Return)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand outputIndex : Nat) :
+    step (cfg (some (.restoreBound ret)) state input output rows
+      inputCount gateCount operand 0 outputIndex) =
+      some (cfg (some (afterBoundLabel ret))
+        { state with counterPresent := false }
+        input output (afterBoundRows ret rows) inputCount
+        (afterBoundGateCount ret gateCount) operand 0 outputIndex) := by
   cases ret <;> normalize_step
 
 theorem clear_input_step (state : State) (head : CircuitSym)
