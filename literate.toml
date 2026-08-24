@@ -1931,6 +1931,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.CycleInterface",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate" = [
@@ -6723,6 +6724,9 @@ title = "34.5. Finite undirected Hamiltonian-cycle instances"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language"]
 title = "34.5. Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction"]
+title = "34.5. Total raw VERTEX-COVER to HAM-CYCLE reduction"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction"]
 title = "34.5. The typed VERTEX-COVER to HAM-CYCLE reduction"
