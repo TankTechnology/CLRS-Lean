@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = ROOT / ".codex" / "skills" / "complexity-reduction-closure"
 SKILL_FILE = SKILL_DIR / "SKILL.md"
 EVAL_FILE = SKILL_DIR / "evals" / "evals.json"
+CHAPTER_SKILL_FILE = ROOT / ".codex" / "skills" / "clrs-chapter-formalization" / "SKILL.md"
 
 REFERENCE_NAMES = {
     "reduction-contract.md",
@@ -96,6 +97,11 @@ class ComplexityReductionClosureSkillTest(unittest.TestCase):
                 "## Narrow verification",
             ):
                 self.assertIn(heading, text, f"{name} omits {heading}")
+
+    def test_chapter_skill_routes_complexity_reductions(self) -> None:
+        text = self.read_required(CHAPTER_SKILL_FILE)
+        self.assertIn("complexity-reduction-closure", text)
+        self.assertRegex(text, r"polynomial-time reductions.*NP-completeness")
 
 
 if __name__ == "__main__":
