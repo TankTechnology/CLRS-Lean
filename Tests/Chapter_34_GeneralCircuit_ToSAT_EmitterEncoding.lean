@@ -1,0 +1,16 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Machine.Emitter.Semantics
+
+namespace CLRS.Chapter34.Turing.GeneralCircuitToSAT.Emitter
+
+#check generalCircuitGateExprList
+#check generalCircuitGateFormulaList
+#check generalCircuitGateFamilyListFrom
+#check generalCircuitFormulaList
+#check generalCircuitFormulaList_eq_enc
+#check emitNormalizedCircuitFormula
+#check emit_normalize_eq
+
+#print axioms generalCircuitFormulaList_eq_enc
+#print axioms emit_normalize_eq
+
+end CLRS.Chapter34.Turing.GeneralCircuitToSAT.Emitter
