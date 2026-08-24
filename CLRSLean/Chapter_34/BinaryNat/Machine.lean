@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Runtime
 import CLRSLean.Chapter_34.BinaryNat.Machine.Validator
 import CLRSLean.Chapter_34.BinaryNat.Machine.Adder
+import CLRSLean.Chapter_34.BinaryNat.Machine.Comparator
 
 /-!
 # Fixed-machine interface for compact natural-number fields
