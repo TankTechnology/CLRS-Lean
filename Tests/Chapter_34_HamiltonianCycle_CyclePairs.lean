@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CyclePairs
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.cyclePairs
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.revRun
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.revSteps_le_input
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.pairsComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.revRun
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.computableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CyclePairs.pairsComputableInPolyTime
