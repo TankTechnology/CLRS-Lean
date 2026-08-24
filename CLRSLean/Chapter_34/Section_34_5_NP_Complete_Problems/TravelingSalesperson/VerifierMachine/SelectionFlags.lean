@@ -43,7 +43,7 @@ private noncomputable def certificateProjection :
         simpa [rawEncoding, UnaryBaseInput.rawEncoding,
           StructuralChecks.rawEncoding] using machine.outputsFun input }
 
-private noncomputable def diagonalFlagsComputableInPolyTime :
+noncomputable def diagonalFlagsComputableInPolyTime :
     TM2ComputableInPolyTime rawEncoding id diagonalFlags := by
   let countedExists := TM2Comp.TM2ComputableInPolyTime.comp_scratch
     certificateProjection FieldCount.certificateTicksComputableInPolyTime

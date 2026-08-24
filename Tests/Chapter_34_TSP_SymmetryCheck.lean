@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryCheck
+
+#check CLRS.Chapter34.TSPData.orientationPairsEqual_iff
+#check CLRS.Chapter34.Turing.TSPVerifier.SymmetryFlags.firstFlagsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SymmetryFlags.secondFlagsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SymmetryCheck.symmetryCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SymmetryCheck.symmetryCheck_encode_iff
+
+#print axioms CLRS.Chapter34.TSPData.orientationPairsEqual_iff
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.SymmetryCheck.symmetryCheckComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.SymmetryCheck.symmetryCheck_encode_iff
