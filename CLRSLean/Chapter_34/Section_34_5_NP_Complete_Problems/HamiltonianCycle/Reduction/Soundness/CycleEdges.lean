@@ -92,6 +92,21 @@ theorem not_cycleLinked_of_two
       · exact hthirdFirst (hprevThird.symm.trans hprevFirst)
     · exact (hfirstSecond (hprevFirst.symm.trans hprevSecond)).elim
 
+theorem eq_or_eq_of_cycleLinked_two
+    {vertices : List Nat} {u first second third : Nat}
+    (hu : u ∈ vertices)
+    (hfirst : CycleLinked vertices u first)
+    (hsecond : CycleLinked vertices u second)
+    (hfirstSecond : first ≠ second)
+    (hthird : CycleLinked vertices u third) :
+    third = first ∨ third = second := by
+  by_cases hthirdFirst : third = first
+  · exact Or.inl hthirdFirst
+  by_cases hthirdSecond : third = second
+  · exact Or.inr hthirdSecond
+  exact (not_cycleLinked_of_two hu hfirst hsecond hfirstSecond
+    hthirdFirst hthirdSecond hthird).elim
+
 /-- At a three-neighbor graph vertex, once the cycle is known to use the
 first neighbor, it must use at least one of the other two. -/
 theorem cycleLinked_other_of_adj_iff_three
