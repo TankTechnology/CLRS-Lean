@@ -1,0 +1,17 @@
+import CLRSLean.Chapter_34
+
+namespace CLRS.Chapter34
+
+#check Turing.GeneralCircuitToSAT.generalCircuitToSATMapComputableInPolyTime
+#check Turing.GeneralCircuitToSAT.generalCircuitToSATRuntimePolynomial
+#check Turing.GeneralCircuitToSAT.generalCircuitToSATMachine
+#check Turing.GeneralCircuitToSAT.generalCircuitToSATMachine_outputs
+#check generalCircuitSAT_reducible_to_SAT
+#check clique_npHard
+#check clique_npComplete
+
+#print axioms Turing.GeneralCircuitToSAT.generalCircuitToSATMapComputableInPolyTime
+#print axioms generalCircuitSAT_reducible_to_SAT
+#print axioms clique_npComplete
+
+end CLRS.Chapter34
