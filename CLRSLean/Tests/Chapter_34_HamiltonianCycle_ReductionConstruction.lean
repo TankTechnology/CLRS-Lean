@@ -120,6 +120,18 @@ example : coverHamiltonianCertificate oneEdgeTwoSelectors {0} =
     widgetFullPath, widgetSidePath, widgetLeftFullPath, widgetLeftPath,
     selectorVertex, selectorBase, globalWidgetVertex, widgetVertexCount]
 
+example : (clrsHamiltonianInstance oneEdgeOneSelector).CycleAdjacent
+      (coverHamiltonianCertificate oneEdgeOneSelector {0}) := by
+  exact coverHamiltonianCertificate_cycleAdjacent
+    (by norm_num [CliqueInstance.IsVertexCover, oneEdgeOneSelector])
+    (by decide) (by decide)
+
+example : (clrsHamiltonianInstance oneEdgeTwoSelectors).CycleAdjacent
+      (coverHamiltonianCertificate oneEdgeTwoSelectors {0}) := by
+  exact coverHamiltonianCertificate_cycleAdjacent
+    (by norm_num [CliqueInstance.IsVertexCover, oneEdgeTwoSelectors])
+    (by decide) (by decide)
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -141,5 +153,7 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms adj_selector_selector
 #print axioms activeCoverVertices_ne_nil_of_edge
 #print axioms activeCoverVertices_length_le_target
+#print axioms coverHamiltonianCertificate_pathAdjacent
+#print axioms coverHamiltonianCertificate_cycleAdjacent
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
