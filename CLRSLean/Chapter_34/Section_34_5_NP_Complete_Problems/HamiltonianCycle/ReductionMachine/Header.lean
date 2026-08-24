@@ -251,6 +251,14 @@ noncomputable def targetHeaderComputableInPolyTime :
 def headerFromCount (ticks : List CliqueSym) : List CliqueSym :=
   vertexHeader ticks ++ targetHeader ticks
 
+/-- The reusable header formatter writes the same unary count into the
+vertex-count and target-size fields of a CLIQUE instance. -/
+theorem headerFromCount_eq (ticks : List CliqueSym) :
+    headerFromCount ticks =
+      .instanceMark :: ticks ++ [.fieldSep] ++ ticks ++ [.fieldSep] := by
+  rw [headerFromCount, vertexHeader_eq, targetHeader_eq]
+  simp [List.append_assoc]
+
 /-- Same-input composition duplicates and formats the extracted count. -/
 noncomputable def headerFromCountComputableInPolyTime :
     TM2ComputableInPolyTime id id headerFromCount := by

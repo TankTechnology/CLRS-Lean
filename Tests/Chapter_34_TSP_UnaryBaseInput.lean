@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryBaseInput
+
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.baseInputComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.baseCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.baseCheck_encode_iff
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.nodupCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.nodupCheck_encode_iff
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.baseCheckComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.UnaryBaseInput.nodupCheckComputableInPolyTime
