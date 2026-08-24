@@ -1931,6 +1931,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.CycleInterface",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReductionLength",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction",
@@ -1950,8 +1951,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.ComponentChecks",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CycleAdjacency",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CyclePairs",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.Final",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.MinimumVertexCount",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.TargetIncrement",
 ]
@@ -6746,6 +6749,9 @@ title = "34.5. Finite undirected Hamiltonian-cycle instances"
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language"]
 title = "34.5. Language"
 
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP"]
+title = "34.5. General HAM-CYCLE is in NP"
+
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction"]
 title = "34.5. Total raw VERTEX-COVER to HAM-CYCLE reduction"
 
@@ -6757,6 +6763,9 @@ title = "34.5. HAM-CYCLE fixed verifier machinery"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup"]
 title = "34.5. HAM-CYCLE verifier certificate distinctness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.ComponentChecks"]
+title = "34.5. HAM-CYCLE verifier composed scalar checks"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CycleAdjacency"]
 title = "34.5. HAM-CYCLE cycle-adjacency verifier"
@@ -6784,6 +6793,9 @@ title = "34.5. HAM-CYCLE consecutive-pair complete run"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CyclePairs.Runtime"]
 title = "34.5. HAM-CYCLE consecutive-pair polynomial runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.Final"]
+title = "34.5. HAM-CYCLE final fixed verifier"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.MinimumVertexCount"]
 title = "34.5. HAM-CYCLE verifier minimum vertex count"

@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.computableInPolyTime
+#check CLRS.Chapter34.generalHAMCYCLE_polyTimeVerifiable
+#check CLRS.Chapter34.HAMCYCLE_mem_ClassNP
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.computableInPolyTime
+#print axioms CLRS.Chapter34.generalHAMCYCLE_polyTimeVerifiable
+#print axioms CLRS.Chapter34.HAMCYCLE_mem_ClassNP
