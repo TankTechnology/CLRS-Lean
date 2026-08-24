@@ -104,11 +104,15 @@ theorem normalizeGeneralCircuit_eq_valid_iff (input) :
 
 ```lean
 theorem encodeNormalizedCircuit_length_le (c : Circuit) :
-    (encodeNormalizedCircuit c).length ≤ 8 * (encodeCircuit c).length + 8
+    (encodeNormalizedCircuit c).length ≤
+      8 * ((encodeCircuit c).length + 1) ^ 2
 
 theorem normalizeGeneralCircuit_length_le (input : List CircuitSym) :
-    (normalizeGeneralCircuit input).length ≤ 8 * input.length + 8
+    (normalizeGeneralCircuit input).length ≤ 8 * (input.length + 1) ^ 2
 ```
+
+The quadratic factor is necessary: each gate row carries its chronological
+index in unary, so all row-index fields together can have quadratic length.
 
 - [ ] Run the focused test and facade build; commit `feat(ch34): define guarded circuit work encoding`.
 
