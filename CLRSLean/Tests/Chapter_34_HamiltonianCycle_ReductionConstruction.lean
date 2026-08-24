@@ -96,6 +96,30 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).Adj 12 13 := by
     (adj_selector_selector (I := oneEdgeTwoSelectors)
       (first := 0) (second := 1) (by decide) (by decide) (by decide))
 
+example : activeCoverVertices oneEdgeTwoSelectors {0} = [0] := by
+  norm_num [activeCoverVertices, oneEdgeTwoSelectors, incidentOccurrences,
+    incidentOccurrencesFrom]
+
+example : coverHamiltonianCertificate oneEdgeOneSelector {0} =
+    [12, 0, 1, 2, 6, 7, 8, 9, 10, 11, 3, 4, 5] := by
+  norm_num [coverHamiltonianCertificate, activeCoverVertices,
+    selectedCoverPathFrom, unusedSelectorPath, oneEdgeOneSelector,
+    incidentOccurrences, incidentOccurrencesFrom, selectedSourceVertexPath,
+    selectedIncidenceChainPath, selectedGlobalWidgetPath, mapWidgetPath,
+    selectedWidgetPath, otherEndpoint, sourceEdgeForOccurrence,
+    widgetFullPath, widgetSidePath, widgetLeftFullPath, widgetLeftPath,
+    selectorVertex, selectorBase, globalWidgetVertex, widgetVertexCount]
+
+example : coverHamiltonianCertificate oneEdgeTwoSelectors {0} =
+    [12, 0, 1, 2, 6, 7, 8, 9, 10, 11, 3, 4, 5, 13] := by
+  norm_num [coverHamiltonianCertificate, activeCoverVertices,
+    selectedCoverPathFrom, unusedSelectorPath, oneEdgeTwoSelectors,
+    incidentOccurrences, incidentOccurrencesFrom, selectedSourceVertexPath,
+    selectedIncidenceChainPath, selectedGlobalWidgetPath, mapWidgetPath,
+    selectedWidgetPath, otherEndpoint, sourceEdgeForOccurrence,
+    widgetFullPath, widgetSidePath, widgetLeftFullPath, widgetLeftPath,
+    selectorVertex, selectorBase, globalWidgetVertex, widgetVertexCount]
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -115,5 +139,7 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms adj_selector_incident_first
 #print axioms adj_incident_last_selector
 #print axioms adj_selector_selector
+#print axioms activeCoverVertices_ne_nil_of_edge
+#print axioms activeCoverVertices_length_le_target
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
