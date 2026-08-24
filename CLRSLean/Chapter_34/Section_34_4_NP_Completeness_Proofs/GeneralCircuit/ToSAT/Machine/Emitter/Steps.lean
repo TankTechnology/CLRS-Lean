@@ -143,4 +143,164 @@ theorem parse_offset_end_step (state : State) (ret : OffsetReturn)
         input (afterOffsetOutput ret output) inputCount saved) := by
   cases ret <;> simp [afterOffsetLabel, afterOffsetOutput] <;> emitter_step
 
+theorem expect_gate_count_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .expectGateCount) state (.gateCountMark :: input) output
+      inputCount saved) =
+      some (cfg (some .gateCount)
+        { state with inputBuffer := some .gateCountMark }
+        input output inputCount saved) := by
+  emitter_step
+
+theorem gate_count_tick_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateCount) state (.tick :: input) output
+      inputCount saved) =
+      some (cfg (some .gateCount) { state with inputBuffer := some .tick }
+        input output inputCount saved) := by
+  emitter_step
+
+theorem gate_count_end_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateCount) state (.fieldEnd :: input) output
+      inputCount saved) =
+      some (cfg (some .rows) { state with inputBuffer := some .fieldEnd }
+        input output inputCount saved) := by
+  emitter_step
+
+theorem rows_gate_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .rows) state (.gateRowMark :: input) output
+      inputCount saved) =
+      some (cfg (some (.copyPrefix .row))
+        { state with inputBuffer := some .gateRowMark }
+        input (.varMark :: .iffMark :: .andMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem rows_empty_step (state : State) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .rows) state [] output inputCount saved) =
+      some (cfg (some .clearInputCount) { state with inputBuffer := none }
+        [] (.lit true :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_input_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.inputGateMark :: input) output
+      inputCount saved) =
+      some (cfg (some .parseInputOperand)
+        { state with inputBuffer := some .inputGateMark }
+        input (.varMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_const_false_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.constFalseMark :: input) output
+      inputCount saved) =
+      some (cfg (some .expectRowEnd)
+        { state with inputBuffer := some .constFalseMark }
+        input (.lit false :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_const_true_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.constTrueMark :: input) output
+      inputCount saved) =
+      some (cfg (some .expectRowEnd)
+        { state with inputBuffer := some .constTrueMark }
+        input (.lit true :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_not_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.notGateMark :: input) output
+      inputCount saved) =
+      some (cfg (some (.copyPrefix .notSource))
+        { state with inputBuffer := some .notGateMark }
+        input (.varMark :: .notMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_and_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.andGateMark :: input) output
+      inputCount saved) =
+      some (cfg (some (.copyPrefix .andLeft))
+        { state with inputBuffer := some .andGateMark }
+        input (.varMark :: .andMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem gate_tag_or_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .gateTag) state (.orGateMark :: input) output
+      inputCount saved) =
+      some (cfg (some (.copyPrefix .orLeft))
+        { state with inputBuffer := some .orGateMark }
+        input (.varMark :: .orMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem input_operand_tick_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .parseInputOperand) state (.tick :: input) output
+      inputCount saved) =
+      some (cfg (some .parseInputOperand)
+        { state with inputBuffer := some .tick }
+        input (.endMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem input_operand_end_step (state : State)
+    (input : List NormalizedCircuitSym) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .parseInputOperand) state (.fieldEnd :: input) output
+      inputCount saved) =
+      some (cfg (some .expectRowEnd)
+        { state with inputBuffer := some .fieldEnd }
+        input (.endMark :: output) inputCount saved) := by
+  emitter_step
+
+theorem row_end_step (state : State) (input : List NormalizedCircuitSym)
+    (output : List FormulaSym) (inputCount saved : Nat) :
+    step (cfg (some .expectRowEnd) state (.rowEnd :: input) output
+      inputCount saved) =
+      some (cfg (some .rows) { state with inputBuffer := some .rowEnd }
+        input output inputCount saved) := by
+  emitter_step
+
+theorem clear_input_count_tick_step (state : State) (output : List FormulaSym)
+    (inputCount saved : Nat) :
+    step (cfg (some .clearInputCount) state [] output (inputCount + 1) saved) =
+      some (cfg (some .clearInputCount)
+        { state with counterPresent := true }
+        [] output inputCount saved) := by
+  emitter_step
+
+theorem clear_input_count_empty_step (state : State)
+    (output : List FormulaSym) :
+    step (cfg (some .clearInputCount) state [] output 0 0) =
+      some (cfg (some .done) { state with counterPresent := false }
+        [] output 0 0) := by
+  emitter_step
+
+theorem done_step (state : State) (output : List FormulaSym) :
+    step (cfg (some .done) state [] output 0 0) =
+      some (_root_.Turing.haltList reverseMachine output) := by
+  apply congrArg some
+  apply _root_.Turing.TM2Comp.Cfg_ext
+  · rfl
+  · rfl
+  · funext stack
+    cases stack <;>
+      simp [step, cfg, reverseMachine, program, stackContents, initialState,
+        _root_.Turing.haltList, Function.update]
+
 end CLRS.Chapter34.Turing.GeneralCircuitToSAT.Emitter
