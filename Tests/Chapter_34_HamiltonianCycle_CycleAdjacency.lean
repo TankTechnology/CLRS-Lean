@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CycleAdjacency
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.rawQueries
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.generatedCycleQueries_eq_cycleAdjacent
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.rawCycleAdjacencyCheck_eq_cycleAdjacent
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.computableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.CycleAdjacency.rawCycleAdjacencyCheck_eq_cycleAdjacent
