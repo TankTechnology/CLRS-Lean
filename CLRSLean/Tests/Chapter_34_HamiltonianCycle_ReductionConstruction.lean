@@ -17,6 +17,12 @@ def oneEdgeTwoSelectors : VertexCoverInstance where
 
 example : oneEdgeOneSelector.WellFormed := by decide
 
+example : (clrsHamiltonianInstance oneEdgeOneSelector).WellFormed :=
+  clrsHamiltonianInstance_wellFormed oneEdgeOneSelector
+
+example : (vertexCoverToHamiltonianInstance oneEdgeTwoSelectors).WellFormed :=
+  vertexCoverToHamiltonianInstance_wellFormed oneEdgeTwoSelectors
+
 example : (clrsHamiltonianInstance oneEdgeOneSelector).vertexCount = 13 := by
   decide
 
@@ -36,5 +42,7 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms canonicalHamiltonianYesInstance_hasHamiltonianCycle
 #print axioms not_canonicalHamiltonianNoInstance_hasHamiltonianCycle
 #print axioms incidenceChainEdges_length_le
+#print axioms clrsHamiltonianInstance_wellFormed
+#print axioms vertexCoverToHamiltonianInstance_wellFormed
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction

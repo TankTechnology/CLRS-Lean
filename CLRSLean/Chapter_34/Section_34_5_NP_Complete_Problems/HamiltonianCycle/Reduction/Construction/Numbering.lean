@@ -78,12 +78,62 @@ theorem occurrence_lt_of_mem_incidentOccurrencesFrom
           simp only [List.length_cons]
           omega
 
+theorem start_le_occurrence_of_mem_incidentOccurrencesFrom
+    {u start : Nat} {edges : List (Nat × Nat)} {ref : IncidentOccurrence}
+    (href : ref ∈ incidentOccurrencesFrom u start edges) :
+    start ≤ ref.occurrence := by
+  induction edges generalizing start with
+  | nil => simp [incidentOccurrencesFrom] at href
+  | cons e edges ih =>
+      simp only [incidentOccurrencesFrom] at href
+      split at href
+      · simp only [List.mem_cons] at href
+        rcases href with heq | href
+        · simpa [heq]
+        · exact Nat.le_trans (Nat.le_add_right start 1) (ih href)
+      · split at href
+        · simp only [List.mem_cons] at href
+          rcases href with heq | href
+          · simpa [heq]
+          · exact Nat.le_trans (Nat.le_add_right start 1) (ih href)
+        · exact Nat.le_trans (Nat.le_add_right start 1) (ih href)
+
+/-- Incident occurrences retain strict source-list order. -/
+theorem incidentOccurrencesFrom_pairwise
+    (u start : Nat) (edges : List (Nat × Nat)) :
+    (incidentOccurrencesFrom u start edges).Pairwise
+      (fun first second => first.occurrence < second.occurrence) := by
+  induction edges generalizing start with
+  | nil => simp [incidentOccurrencesFrom]
+  | cons e edges ih =>
+      simp only [incidentOccurrencesFrom]
+      split
+      · simp only [List.pairwise_cons]
+        constructor
+        · intro ref href
+          have hstart := start_le_occurrence_of_mem_incidentOccurrencesFrom href
+          omega
+        · exact ih (start + 1)
+      · split
+        · simp only [List.pairwise_cons]
+          constructor
+          · intro ref href
+            have hstart := start_le_occurrence_of_mem_incidentOccurrencesFrom href
+            omega
+          · exact ih (start + 1)
+        · exact ih (start + 1)
+
 theorem occurrence_lt_of_mem_incidentOccurrences
     {I : CliqueInstance} {u : Nat} {ref : IncidentOccurrence}
     (href : ref ∈ incidentOccurrences I u) :
     ref.occurrence < I.edges.length := by
   simpa [incidentOccurrences] using
     occurrence_lt_of_mem_incidentOccurrencesFrom href
+
+theorem incidentOccurrences_pairwise (I : CliqueInstance) (u : Nat) :
+    (incidentOccurrences I u).Pairwise
+      (fun first second => first.occurrence < second.occurrence) := by
+  exact incidentOccurrencesFrom_pairwise u 0 I.edges
 
 theorem widgetVertex_lt (rightSide : Bool) {position : Nat}
     (hposition : position < 6) :
@@ -107,6 +157,23 @@ theorem incidentVertex_lt_selectorBase
   apply globalWidgetVertex_lt_selectorBase
   · exact occurrence_lt_of_mem_incidentOccurrences href
   · exact widgetVertex_lt ref.rightSide hposition
+
+theorem incidentVertex_lt_of_occurrence_lt
+    {first second : IncidentOccurrence}
+    (hoccurrence : first.occurrence < second.occurrence)
+    {firstPosition secondPosition : Nat}
+    (hfirstPosition : firstPosition < 6)
+    (hsecondPosition : secondPosition < 6) :
+    incidentVertex first firstPosition <
+      incidentVertex second secondPosition := by
+  cases first with
+  | mk firstOccurrence firstSide =>
+      cases second with
+      | mk secondOccurrence secondSide =>
+          change firstOccurrence < secondOccurrence at hoccurrence
+          cases firstSide <;> cases secondSide <;>
+            simp [incidentVertex, globalWidgetVertex, widgetVertex,
+              widgetVertexCount] <;> omega
 
 theorem selectorVertex_lt
     {edgeCount selector selectorCount : Nat}
