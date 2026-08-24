@@ -256,7 +256,7 @@ Run only the codec interface/source builds and commit as `feat(ch34): add reusab
 
 - [ ] **Step 2: Implement the honest finite raw grammar**
 
-Encode `vertexCount`, `budget`, and exactly `vertexCount ^ 2` binary weights in row-major order, with separate instance/certificate markers.  Decode the matrix to the existing typed `TSPInstance`; reject incomplete, overlong, or noncanonical fields.
+Encode `vertexCount`, `budget`, and exactly `vertexCount ^ 2` binary weights in canonical complete-pair order, with separate instance/certificate markers.  Decode the matrix to the existing typed `TSPInstance`; reject incomplete, overlong, or noncanonical fields.
 
 - [ ] **Step 3: Prove certificate semantics and NP membership**
 

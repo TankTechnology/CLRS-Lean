@@ -5,7 +5,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperso
 namespace CLRS.Chapter34.TSPReduction
 
 /-- Total raw reduction.  A canonical, well-formed graph-only HAM instance is
-mapped to its row-major 1/2-weight matrix; every malformed source is sent to a
+mapped to its canonical 1/2-weight matrix; every malformed source is sent to a
 fixed rejected TSP word. -/
 def rawHamiltonianToTSP
     (input : List HamiltonianCycleSym) : List TSPSym :=

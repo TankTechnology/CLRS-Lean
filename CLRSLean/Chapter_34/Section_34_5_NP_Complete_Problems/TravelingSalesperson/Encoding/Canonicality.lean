@@ -98,7 +98,7 @@ theorem eq_encodeTSPFields_append_recordEnd_of_decode_eq_some
   exact hall values hdecode
 
 /-- Every successfully decoded raw instance is already its canonical
-row-major encoding. -/
+complete-matrix encoding. -/
 theorem encodeTSPData_eq_of_decode_eq_some
     (input : List TSPSym) (data : TSPData)
     (hdecode : decodeTSPData input = some data) :

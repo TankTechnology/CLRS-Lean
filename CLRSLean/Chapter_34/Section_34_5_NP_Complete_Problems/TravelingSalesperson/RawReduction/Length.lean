@@ -9,8 +9,8 @@ namespace CLRS.Chapter34.TSPReduction
 theorem hamiltonianWeights_lt_three (G : HamiltonianCycleInstance) :
     ∀ weight ∈ hamiltonianWeights G, weight < 3 := by
   intro weight hweight
-  simp only [hamiltonianWeights, List.mem_ofFn] at hweight
-  rcases hweight with ⟨index, rfl⟩
+  simp only [hamiltonianWeights, List.mem_map] at hweight
+  rcases hweight with ⟨pair, _hpair, rfl⟩
   simp only [TSPInstance.edgeWeight, hamiltonianToTSP,
     hamiltonianEdgeWeight]
   split <;> try omega

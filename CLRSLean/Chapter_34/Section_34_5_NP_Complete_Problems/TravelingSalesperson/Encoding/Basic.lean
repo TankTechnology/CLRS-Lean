@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.BinaryNat
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrder
 
 /-!
 # Raw finite syntax for decision-TSP
@@ -17,7 +18,7 @@ inductive TSPSym
   | recordEnd
 deriving DecidableEq, Fintype, Repr
 
-/-- Proof-free row-major representation decoded from a finite word. -/
+/-- Proof-free complete-matrix representation decoded from a finite word. -/
 structure TSPData where
   vertexCount : Nat
   budget : Nat
@@ -34,13 +35,15 @@ instance (data : TSPData) : Decidable data.WellFormed := by
   unfold WellFormed
   infer_instance
 
-/-- Interpret a row-major record as the existing typed decision-TSP model.
-Malformed short matrices use a zero fallback, but the raw language separately
-requires `WellFormed`, so accepted instances never observe it. -/
+/-- Interpret the canonical complete-pair order as the existing typed
+decision-TSP model.  Malformed short matrices use a zero fallback, but the raw
+language separately requires `WellFormed`, so accepted instances never
+observe it. -/
 def toInstance (data : TSPData) : TSPInstance where
   vertexCount := data.vertexCount
   budget := data.budget
-  weight u v := data.weights.getD (u.val * data.vertexCount + v.val) 0
+  weight u v := lookupTSPWeight (tspPairOrder data.vertexCount)
+    data.weights u.val v.val
 
 /-- Honest raw decision semantics. -/
 def HasTour (data : TSPData) : Prop :=

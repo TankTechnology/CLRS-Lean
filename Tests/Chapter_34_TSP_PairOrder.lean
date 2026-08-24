@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction
+
+open CLRS.Chapter34
+
+#check tspPairOrder_length
+#check mem_tspPairOrder_iff
+#check lookupTSPWeight_map_of_mem
+#check CLRS.Chapter34.TSPReduction.hamiltonianTSPData_toInstance
+#check CLRS.Chapter34.TSPReduction.hamiltonianTSPData_hasTour_iff
+#check CLRS.Chapter34.TSPReduction.rawHamiltonianToTSP_length_le
