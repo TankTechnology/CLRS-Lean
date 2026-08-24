@@ -162,11 +162,13 @@ def restoreGraph_run (aggregate answer : Bool)
       (cfg (.restoreGraph aggregate answer) buffer₁ buffer₂ test input output
         work₁ work₂ [] [] [])
       (some (cfg (.nextQuery (aggregate && answer)) buffer₁ none test
-        (work₂.reverse ++ input) output work₁ [] [] [] []))
-      (work₂.length + 1) := by
+        (work₂.reverse ++ input) (answer :: output) work₁ [] [] [] []))
+      (work₂.length + 2) := by
   induction work₂ generalizing input buffer₂ with
   | nil =>
-      exact ⟨⟨1, by simp [flip, step, program, cfg, stepOp]⟩, le_rfl⟩
+      exact ⟨⟨2, by
+        simp [Function.iterate_succ_apply, flip, step, program, cfg,
+          stepOp]⟩, le_rfl⟩
   | cons symbol work₂ ih =>
       let after := cfg (.restoreGraph aggregate answer) buffer₁ (some symbol)
         test (symbol :: input) output work₁ work₂ [] [] []
@@ -177,7 +179,7 @@ def restoreGraph_run (aggregate answer : Bool)
         ⟨⟨1, by simp [flip, after, step, program, cfg, stepOp]⟩, le_rfl⟩
       have rest := ih (input := symbol :: input) (buffer₂ := some symbol)
       let full := EvalsToInTime.trans (step program)
-        1 (work₂.length + 1) _ after _ first rest
+        1 (work₂.length + 2) _ after _ first rest
       simpa [List.reverse_cons, List.append_assoc, Nat.add_assoc,
         Nat.add_comm, Nat.add_left_comm] using full
 

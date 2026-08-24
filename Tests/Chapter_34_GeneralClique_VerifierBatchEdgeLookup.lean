@@ -5,8 +5,12 @@ open CLRS.Chapter34.Turing.GeneralCliqueVerifier.BatchEdgeLookup
 
 #check batch_run
 #check batchSteps_le
-#check batch_outputs_in_time
+#check batchResults_outputs_in_time
+#check batchResultsComputableInPolyTime
 #check batchComputableInPolyTime
+
+#print axioms batchResultsComputableInPolyTime
+#print axioms batchComputableInPolyTime
 
 private def sampleInstance : CliqueInstance where
   vertexCount := 4
@@ -17,6 +21,14 @@ example : queriesInEdgesBool sampleInstance [(0, 1), (1, 2)] = true := by
   decide
 
 example : queriesInEdgesBool sampleInstance [(0, 1), (1, 3)] = false := by
+  decide
+
+example : queryMembershipBits sampleInstance [(0, 1), (1, 3)] =
+    [true, false] := by
+  decide
+
+example : batchResultStream sampleInstance [(0, 1), (1, 3)] =
+    [false, true, false] := by
   decide
 
 /-- A repeated certificate value becomes a loop query and is rejected by a

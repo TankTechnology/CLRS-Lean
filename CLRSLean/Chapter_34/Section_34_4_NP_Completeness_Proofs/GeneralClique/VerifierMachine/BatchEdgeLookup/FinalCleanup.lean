@@ -14,10 +14,11 @@ open PolyBuilder
 
 /-- Discard the restored graph and traverse the empty cleanup stacks. -/
 def discardGraph_run (answer : Bool) (input : List (Option CliqueSym))
+    (output : List Bool)
     (buffer₁ buffer₂ : Option (Option CliqueSym)) (test : Bool) :
     EvalsToInTime (step program)
-      (cfg (.discardGraph answer) buffer₁ buffer₂ test input [] [] [] [] [] [])
-      (some (haltCfg program [answer]))
+      (cfg (.discardGraph answer) buffer₁ buffer₂ test input output [] [] [] [] [])
+      (some (haltCfg program (answer :: output)))
       (input.length + 8) := by
   induction input generalizing buffer₁ with
   | nil =>
@@ -26,10 +27,10 @@ def discardGraph_run (answer : Bool) (input : List (Option CliqueSym))
           haltCfg]⟩, le_rfl⟩
   | cons symbol input ih =>
       let after := cfg (.discardGraph answer) (some symbol) buffer₂ test input
-        [] [] [] [] [] []
+        output [] [] [] [] []
       have first : EvalsToInTime (step program)
           (cfg (.discardGraph answer) buffer₁ buffer₂ test (symbol :: input)
-            [] [] [] [] [] [])
+            output [] [] [] [] [])
           (some after) 1 :=
         ⟨⟨1, by simp [flip, after, step, program, cfg, stepOp]⟩, le_rfl⟩
       have rest := ih (buffer₁ := some symbol)
@@ -39,17 +40,18 @@ def discardGraph_run (answer : Bool) (input : List (Option CliqueSym))
 
 /-- Empty query work means the aggregate is final. -/
 def final_run (answer : Bool) (input : List (Option CliqueSym))
+    (output : List Bool)
     (buffer₁ buffer₂ : Option (Option CliqueSym)) (test : Bool) :
     EvalsToInTime (step program)
-      (cfg (.nextQuery answer) buffer₁ buffer₂ test input [] [] [] [] [] [])
-      (some (haltCfg program [answer]))
+      (cfg (.nextQuery answer) buffer₁ buffer₂ test input output [] [] [] [] [])
+      (some (haltCfg program (answer :: output)))
       (input.length + 9) := by
-  let after := cfg (.discardGraph answer) none buffer₂ test input [] [] [] [] [] []
+  let after := cfg (.discardGraph answer) none buffer₂ test input output [] [] [] [] []
   have first : EvalsToInTime (step program)
-      (cfg (.nextQuery answer) buffer₁ buffer₂ test input [] [] [] [] [] [])
+      (cfg (.nextQuery answer) buffer₁ buffer₂ test input output [] [] [] [] [])
       (some after) 1 :=
     ⟨⟨1, by simp [flip, after, step, program, cfg, stepOp]⟩, le_rfl⟩
-  have rest := discardGraph_run answer input none buffer₂ test
+  have rest := discardGraph_run answer input output none buffer₂ test
   let full := EvalsToInTime.trans (step program)
     1 (input.length + 8) _ after _ first rest
   simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using full
