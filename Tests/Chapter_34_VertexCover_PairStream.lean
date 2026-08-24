@@ -6,6 +6,11 @@ open CLRS.Chapter34.Turing.VertexCover.ComplementMachine.PairStream
 
 #check certificateRangeRawPairs_eq_normalizedPairs
 #check certificateRangeRawPairs_eq_vertexCoverNormalizedPairs
+#check RangeCertificate.run
+#check RangeCertificate.computableInPolyTime
+#check computableInPolyTime
 
 #print axioms certificateRangeRawPairs_eq_normalizedPairs
 #print axioms certificateRangeRawPairs_eq_vertexCoverNormalizedPairs
+#print axioms RangeCertificate.computableInPolyTime
+#print axioms computableInPolyTime
