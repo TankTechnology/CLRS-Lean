@@ -58,6 +58,23 @@ theorem cycleLinked_prev
     CycleLinked vertices u (vertices.prev u hu) :=
   ⟨hu, Or.inr rfl⟩
 
+theorem exists_cycleLinked_ne_of_cycleLinked
+    {vertices : List Nat} (hnodup : vertices.Nodup)
+    (hlength : 3 ≤ vertices.length)
+    {u first : Nat} (hu : u ∈ vertices)
+    (hfirst : CycleLinked vertices u first) :
+    ∃ second, CycleLinked vertices u second ∧ second ≠ first := by
+  have hne := CliqueInstance.next_ne_prev_of_three_le_length
+    hnodup hlength hu
+  rw [cycleLinked_iff hu] at hfirst
+  rcases hfirst with hnext | hprev
+  · refine ⟨vertices.prev u hu, cycleLinked_prev hu, ?_⟩
+    intro heq
+    exact hne (hnext.trans heq.symm)
+  · refine ⟨vertices.next u hu, cycleLinked_next hu, ?_⟩
+    intro heq
+    exact hne (heq.trans hprev.symm)
+
 theorem cycleLinked_pair_of_neighbors
     {vertices : List Nat} {u first second : Nat} (hu : u ∈ vertices)
     (hneighbors :
