@@ -919,9 +919,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.BidirectionalSemantics",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement.PairBounds",
@@ -931,6 +933,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Simulation",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
@@ -3848,11 +3860,35 @@ title = "34.5. VERTEX-COVER Certificate-Length Bound"
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction"]
 title = "34.5. Total CLIQUE-to-VERTEX-COVER Semantic Map"
 
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap"]
+title = "34.5. Shared Guarded Graph-Complement Map"
+
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction"]
 title = "34.5. Total VERTEX-COVER-to-CLIQUE Semantic Map"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength"]
 title = "34.5. Cubic Complement-Map Output Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine"]
+title = "34.5. Complement-Machine Components"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer"]
+title = "34.5. Graph Syntax-Normalizer Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Basic"]
+title = "34.5. Syntax Normalizer Controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Simulation"]
+title = "34.5. Syntax Normalizer Local Simulations"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run"]
+title = "34.5. Syntax Normalizer Complete Run"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics"]
+title = "34.5. Syntax Normalizer Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime"]
+title = "34.5. Syntax Normalizer Polynomial Runtime"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
 title = "34.4. CIRCUIT-SAT poly-reduces to SAT"

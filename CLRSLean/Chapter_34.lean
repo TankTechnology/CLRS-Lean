@@ -898,9 +898,17 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certifi
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Basic
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Semantics
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certificate.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Simulation
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Run
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.SyntaxNormalizer.Runtime
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1034,9 +1042,11 @@ deterministic graph-complement construction,
 bidirectional.  Both total maps have explicit cubic output-length bounds.  Its
 Boolean certificate
 checker has exact all-input semantics and the quadratic accepted-certificate
-bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  This is a
-function-level checkpoint: the fixed polynomial-time reduction and verifier
-machines, NP membership, and NP-completeness remain open.
+bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  The fixed
+linear-time {lit}`SyntaxNormalizer.computableInPolyTime` machine preserves
+valid graph syntax and maps parser failure to a canonical ill-formed sentinel.
+The remaining complement and verifier machines, NP membership, and
+NP-completeness remain open.
 
 Theorem layer:
 

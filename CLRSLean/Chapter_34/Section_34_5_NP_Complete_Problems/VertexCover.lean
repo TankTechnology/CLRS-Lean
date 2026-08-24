@@ -2,6 +2,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Certifi
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ReverseRawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMapLength
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine
 
 /-!
 # VERTEX-COVER
@@ -15,6 +16,7 @@ function and have explicit cubic output-length bounds.
 It also exports an executable Boolean certificate checker, its exact semantics,
 and a quadratic accepted-certificate bound.
 
-The fixed polynomial-time complement and verifier machines, VERTEX-COVER NP
-membership, and the NP-completeness theorem are not claimed by this facade yet.
+The raw syntax-normalization phase already has a fixed linear-time TM2.  The
+complete complement and verifier machines, VERTEX-COVER NP membership, and the
+NP-completeness theorem are not claimed by this facade yet.
 -/
