@@ -132,6 +132,14 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).CycleAdjacent
     (by norm_num [CliqueInstance.IsVertexCover, oneEdgeTwoSelectors])
     (by decide) (by decide)
 
+example : selectedOccurrenceVertices oneEdgeOneSelector {0} 0 =
+    widgetLeftFullPath := by
+  decide
+
+example : selectedOccurrenceVertices oneEdgeOneSelector {0, 1} 0 =
+    widgetLeftPath ++ widgetRightPath := by
+  decide
+
 /-- The second selector is a genuine unused slot, joined through the selector
 clique rather than by padding the source cover. -/
 example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonianCycle
@@ -155,5 +163,8 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms activeCoverVertices_length_le_target
 #print axioms coverHamiltonianCertificate_pathAdjacent
 #print axioms coverHamiltonianCertificate_cycleAdjacent
+#print axioms selectedOccurrenceVertices_nodup
+#print axioms selectedOccurrenceVertices_length
+#print axioms mem_selectedOccurrenceVertices_iff
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
