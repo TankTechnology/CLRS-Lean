@@ -14,26 +14,26 @@ does not yet claim polynomial-time computability of the complement map.
 
 ## Task 1: Typed forward direction
 
-- [ ] Add a focused public test for the typed reverse equivalence and raw map.
-- [ ] Prove that a cover of size at most `k` leaves at least `|V|-k` vertices,
+- [x] Add a focused public test for the typed reverse equivalence and raw map.
+- [x] Prove that a cover of size at most `k` leaves at least `|V|-k` vertices,
   from which an exact-size clique can be chosen in the complement graph.
 
 ## Task 2: Typed reverse direction
 
-- [ ] Prove that the complement of an exact `|V|-k` clique covers every source
+- [x] Prove that the complement of an exact `|V|-k` clique covers every source
   edge and has size at most `k`.
-- [ ] Package the exact well-formed equivalence
+- [x] Package the exact well-formed equivalence
   `HasVertexCover ↔ complementForVertexCover.HasClique`.
 
 ## Task 3: Total raw map
 
-- [ ] Reuse the existing well-formed `noCliqueInstance` as the malformed and
+- [x] Reuse the existing well-formed `noCliqueInstance` as the malformed and
   ill-formed fallback.
-- [ ] Define `vertexCoverToCliqueMap` and prove exact membership preservation
+- [x] Define `vertexCoverToCliqueMap` and prove exact membership preservation
   for every raw input.
 
 ## Task 4: Verification and checkpoint
 
-- [ ] Run the focused test and headline axiom audit.
-- [ ] Scan for proof placeholders and run `git diff --check`.
-- [ ] Commit the typed/raw reverse bridge separately from later machine work.
+- [x] Run the focused test and headline axiom audit.
+- [x] Scan for proof placeholders and run `git diff --check`.
+- [x] Commit the typed/raw reverse bridge separately from later machine work.

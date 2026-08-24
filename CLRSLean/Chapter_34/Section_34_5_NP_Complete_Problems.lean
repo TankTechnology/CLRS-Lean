@@ -5,7 +5,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
 
 The represented part of this section proves the typed textbook
 CLIQUE-to-VERTEX-COVER complement equivalence and lifts it through the shared
-encoding to an exact total raw-string semantic reduction.  VERTEX-COVER also
+encoding to exact total raw-string semantic reductions in both directions.
+VERTEX-COVER also
 has exact finite-certificate semantics and a quadratic certificate-length
 bound.  Fixed polynomial-time reduction and verifier machines, VERTEX-COVER
 NP-completeness, and the HAM-CYCLE, TSP, and SUBSET-SUM chains remain open.

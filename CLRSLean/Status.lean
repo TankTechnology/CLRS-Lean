@@ -42,9 +42,10 @@ live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
 The edition map records one partially represented coverage unit in Chapter 34:
-§34.5 has typed and raw VERTEX-COVER complement semantics plus exact bounded
-certificate semantics, but not yet the fixed polynomial-time machines or later
-reductions.  Chapter 34 is the sole repository row whose status remains
+§34.5 has bidirectional typed and raw CLIQUE / VERTEX-COVER complement
+semantics plus exact bounded certificate semantics, but not yet the fixed
+polynomial-time machines or later reductions.  Chapter 34 is the sole
+repository row whose status remains
 {lit}`partial`.
 
 * **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
@@ -73,6 +74,8 @@ reductions.  Chapter 34 is the sole repository row whose status remains
   size-{lit}`k` clique and a size-at-most-{lit}`|V|-k` vertex cover of the
   deterministic complement, defines the raw VERTEX-COVER language, and proves
   exact membership preservation for a total raw CLIQUE-to-VERTEX-COVER map.
+  The reverse typed equivalence and total raw VERTEX-COVER-to-CLIQUE map make
+  this semantic bridge bidirectional.
   Its executable Boolean certificate checker has exact all-input semantics,
   and accepted certificates have a quadratic length bound.  Concrete
   reduction and verifier machines, VERTEX-COVER NP membership/completeness,
@@ -101,7 +104,7 @@ The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 44 groups are disjoint from the 1,600 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,601 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.
