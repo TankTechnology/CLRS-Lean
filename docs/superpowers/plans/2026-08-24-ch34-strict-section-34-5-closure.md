@@ -141,6 +141,11 @@ witness.  The two source-incidence-dependent families remain the active core.
 Their common canonical vertex-query/graph pair stream is now produced by a
 fixed polynomial-time machine, so the remaining operational proof begins at
 one shared repeated incidence scanner rather than two independent parsers.
+That scanner is now complete: it scans the raw graph once per descending
+vertex query, preserves occurrence indices across rows, reverses the result
+into canonical vertex order, and has an exact semantic theorem plus a uniform
+cubic runtime bound.  The active boundary is therefore reduced to the two
+formatters over this shared row stream and the final guarded composition.
 
 **Files:**
 - Create: `Tests/Chapter_34_HamiltonianCycle_NPComplete.lean`

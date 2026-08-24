@@ -22,7 +22,8 @@ transformations, certificate distinctness pass, and cycle-edge lookup into a
 single polynomial-time TM2.  Consequently the honest serialized HAM-CYCLE
 language is now proved to belong to NP.  The fixed reduction layer now
 generates the nondegenerate header, the full internal widget-edge family, and
-the complete selector clique.  Incidence-chain, selector-endpoint, and guarded
-total composition stages remain before the raw NP-hardness theorem can be
-packaged.
+the complete selector clique.  It also computes the canonical per-vertex
+incidence rows with a fixed polynomial-time scanner.  Incidence-chain and
+selector-endpoint formatting, followed by guarded total composition, remain
+before the raw NP-hardness theorem can be packaged.
 -/
