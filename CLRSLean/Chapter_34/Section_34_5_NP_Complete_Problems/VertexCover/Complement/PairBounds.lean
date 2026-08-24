@@ -3,8 +3,9 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complem
 /-!
 # Size bounds for deterministic complement-pair enumeration
 
-Each row contains at most `n` normalized pairs, the complete enumeration has
-at most `n²` pairs, and filtering source edges cannot increase that length.
+Each newly introduced upper endpoint contributes at most `n` pairs, the
+complete enumeration has at most `n²` pairs, and filtering source edges cannot
+increase that length.
 -/
 
 namespace CLRS
@@ -16,17 +17,15 @@ theorem vertexCoverNormalizedPairRow_length_le (n u : Nat) :
   simp [vertexCoverNormalizedPairRow]
   omega
 
-/-- The row-major enumeration contains at most one entry per ordered pair. -/
+/-- The canonical enumeration contains at most one entry per ordered pair. -/
 theorem vertexCoverNormalizedPairs_length_le (n : Nat) :
     (vertexCoverNormalizedPairs n).length ≤ n ^ 2 := by
-  rw [vertexCoverNormalizedPairs, List.length_flatMap]
-  have hrows :
-      ((List.range n).map fun u => (vertexCoverNormalizedPairRow n u).length).sum ≤
-        ((List.range n).map fun _ => n).sum := by
-    apply List.sum_le_sum
-    intro u _
-    exact vertexCoverNormalizedPairRow_length_le n u
-  simpa [Nat.pow_two] using hrows
+  induction n with
+  | zero => simp [vertexCoverNormalizedPairs]
+  | succ n ih =>
+      simp only [vertexCoverNormalizedPairs, List.length_append,
+        List.length_map, List.length_range]
+      nlinarith
 
 /-- Removing source edges from the normalized-pair enumeration preserves the
 quadratic length bound. -/
