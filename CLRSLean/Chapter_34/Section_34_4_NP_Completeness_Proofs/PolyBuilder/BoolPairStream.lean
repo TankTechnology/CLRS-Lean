@@ -92,9 +92,10 @@ noncomputable def computableInPolyTime
       inputEncoding id left)
     (rightMachine : _root_.Turing.TM2ComputableInPolyTime
       inputEncoding id right) :
-    _root_.Turing.TM2ComputableInPolyTime inputEncoding id
-      (fun input => CLRS.Chapter34.pairEncoding
-        (left input) (right input)) := by
+    _root_.Turing.TM2ComputableInPolyTime inputEncoding
+      (fun pair : List Bool × List Bool =>
+        CLRS.Chapter34.pairEncoding pair.1 pair.2)
+      (fun input => (left input, right input)) := by
   let leftExists :=
     _root_.Turing.TM2Comp.TM2ComputableInPolyTime.comp_scratch
       leftMachine leftPartComputableInPolyTime

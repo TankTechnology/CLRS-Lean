@@ -1,0 +1,11 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.StructuralChecks
+
+#check CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.cardinalityCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.matrixShapeCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.minimumVertexCountCheckComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.cardinalityCheck_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.matrixShapeCheck_encode
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.cardinalityCheckComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.matrixShapeCheckComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.StructuralChecks.minimumVertexCountCheckComputableInPolyTime
