@@ -5579,18 +5579,14 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `Bool` results with AND/OR).
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
-- Remaining chapter scope: Section 34.5 now has typed and raw VERTEX-COVER
-  semantics, a deterministic graph complement, exact CLIQUE/cover equivalences
-  in both directions, all-input total raw semantic maps in both directions,
-  cubic output-length bounds for both maps, and exact bounded Boolean-
-  certificate semantics.  Its fixed linear-time syntax-normalizer preserves
-  valid graph encodings and turns parser failures into an ill-formed sentinel.
-  The target/order/endpoint passes are also combined into an exact fixed
-  polynomial-time well-formedness guard.  A verified graph-pair formatter
-  composes both phases into one all-input raw well-formedness TM2.  The
-  remaining reduction/verifier machines,
-  VERTEX-COVER NP membership/completeness, HAM-CYCLE, TSP, and SUBSET-SUM
-  remain open.
+- Remaining chapter scope: Section 34.5 now closes the selected typed textbook
+  semantic chain through CLIQUE / VERTEX-COVER, VERTEX-COVER / HAM-CYCLE,
+  HAM-CYCLE / decision-TSP, and 3-CNF-SAT / SUBSET-SUM equivalences.  The
+  VERTEX-COVER layer additionally has all-input raw complement semantics,
+  cubic output bounds, exact bounded Boolean certificates, and a fixed
+  polynomial-time raw well-formedness TM2.  The remaining strict-completion
+  boundary is the full serialized reduction/verifier machine layer, runtime
+  bounds, and NP membership/completeness packaging for every §34.5 target.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
   Open problems (P vs NP) are intentionally out of scope.
 
@@ -5908,13 +5904,21 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `SatTo3CNFMachine`, and the general-CLIQUE occurrence-reduction machine expose
   the assembled reductions; the honest public `CLIQUE` language is
   NP-complete.
-- Remaining chapter scope: Section 34.5 has typed and raw VERTEX-COVER
-  complement semantics, total membership-preserving raw maps in both
-  directions, cubic output-length bounds, and exact bounded Boolean-certificate
-  semantics.  Raw syntax normalization already has a fixed linear-time TM2;
-  full machine-level VERTEX-COVER NP
-  membership/completeness and the HAM-CYCLE, TSP, and SUBSET-SUM reductions
-  remain open.
+- Remaining chapter scope: Section 34.5 is complete at the selected typed
+  textbook semantic layer.  `vertexCoverToHamiltonianInstance_correct` proves
+  the total CLRS edge-gadget construction in both directions, including the
+  selector-budget argument; `hamiltonianToTSP_correct` proves the exact
+  decision-TSP bridge through its tour-cost identity; and
+  `cnfToSubsetSum_correct` proves the indexed natural-number 3-CNF-SAT
+  construction through explicit carry-free columns, assignment certificates,
+  and inverse assignment extraction.  Duplicate literal occurrences are
+  handled by occurrence counts rather than an unstated distinctness premise.
+  The existing VERTEX-COVER layer also has bidirectional typed/raw complement
+  semantics, total raw maps, cubic output bounds, exact bounded Boolean
+  certificates, and a fixed polynomial-time raw well-formedness pipeline.  The
+  remaining strict-completion boundary is serialized reduction/verifier
+  machinery, polynomial runtime bounds, and NP membership/NP-completeness
+  packaging for every §34.5 target.
 
 ## Deferred And Blocked Items
 

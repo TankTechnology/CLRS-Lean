@@ -7,7 +7,7 @@ from [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv); theorem-level
 evidence lives in [`proof-map.md`](proof-map.md). This page owns priorities,
 not a duplicate completion ledger.
 
-Last evidence reconciliation: 2026-08-22.
+Last evidence reconciliation: 2026-08-24.
 
 The six-phase maintenance cleanup is complete: the ledger audit is reconciled,
 branch hygiene is done, and the final Pages deployment (`Build and deploy Verso
@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The §34.4 chain reaches the NP-complete honest graph-plus-`k` `CLIQUE`. VERTEX-COVER has bidirectional typed/raw complement semantics, total membership-preserving raw maps in both directions, and cubic output-length bounds. Both directions factor through one guarded complement-map target parameterized only by the fixed fallback. Three concrete phases are closed and composed: a fixed linear-time TM2 preserves valid graph syntax and maps parser failures to an ill-formed sentinel, a fixed polynomial-time guard reuses the CLIQUE target/order/endpoint passes with exact `WellFormed` semantics, and a graph-pair formatter yields one all-input raw well-formedness machine. `mem_generalVERTEXCOVER_iff_exists_certificate` also gives exact Boolean-certificate semantics with a quadratic bound. Complement generation, NP membership, and NP-completeness are not yet closed. | Add the runtime pair/nonedge emitter on top of the completed raw validation pipeline, reuse the CLIQUE verifier where possible, then package VERTEX-COVER NP-completeness before HAM-CYCLE → TSP and SUBSET-SUM. |
+| P0 | Chapter 34, §34.5 | The selected typed textbook chain is closed: bidirectional CLIQUE / VERTEX-COVER complement semantics, the total CLRS VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural 3-CNF-SAT-to-SUBSET-SUM equivalence. VERTEX-COVER additionally has total bidirectional raw semantic maps, cubic output bounds, exact bounded Boolean-certificate semantics, and a fixed polynomial-time raw well-formedness pipeline. | Treat typed textbook coverage as complete. For the stricter complexity layer, finish the VERTEX-COVER complement emitter and verifier, package its NP-completeness theorem, then add serialized languages, fixed machines, runtime bounds, and NP wrappers for HAM-CYCLE, TSP, and SUBSET-SUM. |
 
 ## Stable Represented Scope
 

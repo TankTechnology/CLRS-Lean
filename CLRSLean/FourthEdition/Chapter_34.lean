@@ -107,9 +107,12 @@ syntax while preserving parser rejection through an ill-formed sentinel.  The
 existing CLIQUE target/order/endpoint machines are also combined into an exact
 fixed polynomial-time graph well-formedness guard.  A verified graph-pair
 formatter composes both phases into an all-input raw well-formedness TM2.  The
-remaining complement-generation/verifier machines, NP membership/completeness closure,
-and the HAM-CYCLE, TSP, and SUBSET-SUM chains remain open; this guide therefore
-remains partial.
+selected typed textbook chain is now closed by the total
+VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact
+HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural
+3-CNF-SAT-to-SUBSET-SUM equivalence.  Complement-generation/verifier machines,
+runtime bounds, and NP membership/completeness packaging remain open at the
+stricter serialized layer; this guide therefore remains partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

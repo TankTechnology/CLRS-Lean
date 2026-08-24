@@ -44,9 +44,11 @@ completed-prefix milestone.
 The edition map records one partially represented coverage unit in Chapter 34:
 §34.5 has bidirectional typed and raw CLIQUE / VERTEX-COVER complement
 semantics, cubic output-length bounds, and exact bounded certificate semantics.
-Its raw graph syntax-normalizer is a fixed linear-time TM2, but the full
-complement machine and later reductions are not yet closed.  Chapter
-34 is the sole
+Its selected typed textbook chain is now closed through the proved
+VERTEX-COVER-to-HAM-CYCLE, HAM-CYCLE-to-decision-TSP, and
+3-CNF-SAT-to-SUBSET-SUM equivalences.  Its raw graph well-formedness pipeline
+is a fixed polynomial-time TM2, but the complete serialized reduction and
+verifier layers are not yet closed for every target.  Chapter 34 is the sole
 repository row whose status remains
 {lit}`partial`.
 
@@ -90,9 +92,17 @@ repository row whose status remains
   all-input fixed polynomial-time
   {lit}`RawWellFormed.computableInPolyTime` machine.
   Its executable Boolean certificate checker has exact all-input semantics,
-  and accepted certificates have a quadratic length bound.  Concrete
-  reduction and verifier machines, VERTEX-COVER NP membership/completeness,
-  and the remaining §34.5 problems are open.  A standalone concrete SAT NP
+  and accepted certificates have a quadratic length bound.  At the typed
+  textbook layer, the total CLRS VERTEX-COVER-to-HAM-CYCLE construction is
+  proved correct in both directions, including the selector-budget soundness
+  argument.  The HAM-CYCLE-to-decision-TSP construction has an exact tour-cost
+  identity and a proved equivalence.  The indexed natural-number
+  3-CNF-SAT-to-SUBSET-SUM construction has explicit carry-free column packing,
+  a satisfying-assignment certificate, inverse assignment extraction, and a
+  proved equivalence that supports duplicate literal occurrences.  Concrete
+  serialized reduction and verifier machines, their polynomial runtime bounds,
+  and NP membership/completeness packaging for the §34.5 targets remain open.
+  A standalone concrete SAT NP
   verifier is an optional refinement, not a dependency of the completed
   hardness chain.
 
