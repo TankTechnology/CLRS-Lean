@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Input
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.vertexQueryStreamComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.inputStreamComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.inputStream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.inputStream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.Incidence.inputStreamComputableInPolyTime
