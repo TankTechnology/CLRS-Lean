@@ -1,0 +1,24 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter
+
+open CLRS.Chapter34
+open CLRS.Chapter34.Turing
+open CLRS.Chapter34.Turing.VertexCover.ComplementMachine.NonedgeFilter
+
+#check inputStream
+#check inputStreamComputableInPolyTime
+#check batchInputComputableInPolyTime
+#check lookupResultsComputableInPolyTime
+#check membershipBitsComputableInPolyTime
+#check filterInput
+#check filterInputComputableInPolyTime
+#check Selector.run
+#check Selector.selectorSteps_le
+#check selectedCandidateStream_eq_complement
+#check computableInPolyTime
+#check complementEdges_eq_filter
+
+#print axioms inputStreamComputableInPolyTime
+#print axioms membershipBitsComputableInPolyTime
+#print axioms filterInputComputableInPolyTime
+#print axioms computableInPolyTime
+#print axioms complementEdges_eq_filter

@@ -7,7 +7,7 @@ from [`clrs-fourth-edition-map.csv`](clrs-fourth-edition-map.csv); theorem-level
 evidence lives in [`proof-map.md`](proof-map.md). This page owns priorities,
 not a duplicate completion ledger.
 
-Last evidence reconciliation: 2026-08-22.
+Last evidence reconciliation: 2026-08-24.
 
 The six-phase maintenance cleanup is complete: the ledger audit is reconciled,
 branch hygiene is done, and the final Pages deployment (`Build and deploy Verso
@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The §34.4 chain has concrete polynomial-time reductions from arbitrary NP languages through `GeneralCircuitSAT`, SAT, and 3-CNF-SAT to the honest graph-plus-`k` `CLIQUE`; `CLIQUE` is NP-complete. The §34.5 NP-complete-problem reductions are not represented. | Formalize the selected §34.5 textbook chain, beginning with VERTEX-COVER and then HAM-CYCLE → TSP and SUBSET-SUM, without treating open complexity questions as proof obligations. |
+| P0 | Chapter 34, §34.5 | The selected typed textbook chain is closed: bidirectional CLIQUE / VERTEX-COVER complement semantics, the total CLRS VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural 3-CNF-SAT-to-SUBSET-SUM equivalence. VERTEX-COVER is also fully closed at the strict layer: total raw reduction, fixed polynomial-time reduction/verifier machines, NP membership, NP-hardness, and NP-completeness. | Keep issue #193 open only for HAM-CYCLE, TSP, and SUBSET-SUM. First close HAM-CYCLE's raw reduction/verifier and NP wrappers; then add honest raw languages, certificate interfaces, fixed machines, bit/runtime bounds, and NP-completeness wrappers for TSP and SUBSET-SUM. |
 
 ## Stable Represented Scope
 

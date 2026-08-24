@@ -22,6 +22,16 @@ def queriesInEdgesBool (I : CliqueInstance)
     (queries : List (Nat × Nat)) : Bool :=
   queries.all fun edge => decide (edge ∈ I.edges)
 
+/-- Pointwise membership answers, in the same order as the query stream. -/
+def queryMembershipBits (I : CliqueInstance)
+    (queries : List (Nat × Nat)) : List Bool :=
+  queries.map fun edge => decide (edge ∈ I.edges)
+
+/-- Public result stream: aggregate answer followed by pointwise answers. -/
+def batchResultStream (I : CliqueInstance)
+    (queries : List (Nat × Nat)) : List Bool :=
+  queriesInEdgesBool I queries :: queryMembershipBits I queries
+
 /-- Finite control for repeated edge-table scans. -/
 inductive Label
   | loadQueries | beginQueries | nextQuery (aggregate : Bool)
@@ -45,6 +55,7 @@ inductive Label
   | clearRight (aggregate answer : Bool)
   | clearScratch (aggregate answer : Bool)
   | restoreGraph (aggregate answer : Bool)
+  | emitDecision (aggregate answer : Bool)
   | discardGraph (answer : Bool) | clearWork₁ (answer : Bool)
   | clearWork₂ (answer : Bool) | clearFinalLeft (answer : Bool)
   | clearFinalRight (answer : Bool) | clearFinalScratch (answer : Bool)
@@ -136,8 +147,10 @@ def program : Program (Option CliqueSym) Bool where
     | .clearScratch aggregate answer =>
         .dec₃ (.restoreGraph aggregate answer) (.clearScratch aggregate answer)
     | .restoreGraph aggregate answer =>
-        .moveWork₂Input (.nextQuery (aggregate && answer)) fun _ =>
+        .moveWork₂Input (.emitDecision aggregate answer) fun _ =>
           .restoreGraph aggregate answer
+    | .emitDecision aggregate answer =>
+        .pushOutput answer (.nextQuery (aggregate && answer))
     | .discardGraph answer =>
         .popInput (.clearWork₁ answer) fun _ => .discardGraph answer
     | .clearWork₁ answer =>

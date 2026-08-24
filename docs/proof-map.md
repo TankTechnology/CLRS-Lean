@@ -5579,9 +5579,17 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `Bool` results with AND/OR).
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
-- Remaining chapter scope: Section 34.5 (NP-complete problems) is not
-  represented.  The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in
-  Section 34.4.  Open problems (P vs NP) are intentionally out of scope.
+- Remaining chapter scope: Section 34.5 now closes the selected typed textbook
+  semantic chain through CLIQUE / VERTEX-COVER, VERTEX-COVER / HAM-CYCLE,
+  HAM-CYCLE / decision-TSP, and 3-CNF-SAT / SUBSET-SUM equivalences.  The
+  VERTEX-COVER layer additionally has all-input raw complement semantics,
+  cubic output bounds, exact bounded Boolean certificates, fixed reduction and
+  verifier machines, NP membership, and a proved NP-completeness wrapper.  The
+  remaining strict-completion boundary is HAM-CYCLE's raw reduction/verifier
+  and the raw languages, certificate interfaces, fixed machines, runtime
+  bounds, and NP packaging for TSP and SUBSET-SUM.
+  The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
+  Open problems (P vs NP) are intentionally out of scope.
 
 ### Section 34.2 - Polynomial-Time Verification
 
@@ -5682,7 +5690,23 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   SAT-to-3-CNF machine.  Public `CLIQUE` denotes the honest serialized general
   graph-plus-`k` language.  It has exact certificate semantics, a concrete
   polynomial-time verifier and NP membership, plus a concrete polynomial-time
-  3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 remains open.
+  3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 now has the typed
+  deterministic-complement theorem `hasClique_iff_complement_hasVertexCover`,
+  the raw VERTEX-COVER language, and the exact all-input theorem
+  `cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  The reverse typed theorem
+  `hasVertexCover_iff_complement_hasClique` and raw theorem
+  `vertexCoverToCliqueMap_mem_CLIQUE_iff` make the semantic bridge
+  bidirectional.  `cliqueToVertexCoverMap_length_le` and
+  `vertexCoverToCliqueMap_length_le` give uniform cubic output bounds.  Its
+  Boolean checker is
+  characterized by `mem_generalVERTEXCOVER_iff_exists_certificate`, including
+  a quadratic certificate bound.  `SyntaxNormalizer.computableInPolyTime`
+  closes raw graph syntax normalization with a fixed linear-time TM2;
+  `WellFormedGuard.graphComputableInPolyTime` reuses the existing CLIQUE
+  passes for exact graph-invariant checking, and
+  `RawWellFormed.computableInPolyTime` joins the phases from the original raw
+  input.  Complement generation and the rest of machine-level closure remain
+  open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5881,7 +5905,23 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `SatTo3CNFMachine`, and the general-CLIQUE occurrence-reduction machine expose
   the assembled reductions; the honest public `CLIQUE` language is
   NP-complete.
-- Remaining chapter scope: Section 34.5 (NP-complete problems).
+- Remaining chapter scope: Section 34.5 is complete at the selected typed
+  textbook semantic layer.  `vertexCoverToHamiltonianInstance_correct` proves
+  the total CLRS edge-gadget construction in both directions, including the
+  selector-budget argument; `hamiltonianToTSP_correct` proves the exact
+  decision-TSP bridge through its tour-cost identity; and
+  `cnfToSubsetSum_correct` proves the indexed natural-number 3-CNF-SAT
+  construction through explicit carry-free columns, assignment certificates,
+  and inverse assignment extraction.  Duplicate literal occurrences are
+  handled by occurrence counts rather than an unstated distinctness premise.
+  The existing VERTEX-COVER layer also has bidirectional typed/raw complement
+  semantics, total raw maps, cubic output bounds, exact bounded Boolean
+  certificates, fixed polynomial-time reduction and verifier machines,
+  membership in NP, and the proved theorem `VERTEXCOVER_npComplete`.  The
+  remaining strict-completion boundary is HAM-CYCLE's serialized
+  reduction/verifier machinery and the raw-language, certificate, fixed
+  machine, bit/runtime-bound, and NP-completeness layers for TSP and
+  SUBSET-SUM.
 
 ## Deferred And Blocked Items
 

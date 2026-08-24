@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NPCompleteness
+
+#print axioms CLRS.Chapter34.Turing.VertexCover.VerifierMachine.computableInPolyTime
+#print axioms CLRS.Chapter34.vertexCoverCliqueVerifier_eq_true_iff
+#print axioms CLRS.Chapter34.generalVERTEXCOVER_polyTimeVerifiable
+#print axioms CLRS.Chapter34.VERTEXCOVER_npHard
+#print axioms CLRS.Chapter34.VERTEXCOVER_npComplete

@@ -199,6 +199,11 @@ end CLRS
 
 ## Chapter Patterns
 
+- **Complexity-reduction chapters:** route polynomial-time reductions and NP-completeness
+  proof work through `complexity-reduction-closure`.  Keep semantic equivalence,
+  serialized output size, exact fixed-machine computation, original-input
+  runtime, target NP membership, and hardness packaging as distinct closure
+  layers; do not promote an earlier layer to a later completion status.
 - **Functional stack/queue chapters:** use lists as the initial model.  Prove
   equations such as pop-after-push, FIFO behavior, and size preservation.
 - **Linked-list chapters without memory semantics:** model the list by `List`

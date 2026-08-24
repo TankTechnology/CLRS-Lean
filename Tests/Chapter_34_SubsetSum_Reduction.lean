@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum
+
+#print axioms CLRS.Chapter34.SubsetSumReduction.packColumns_injective_of_lt_base
+#print axioms CLRS.Chapter34.SubsetSumReduction.sum_assignmentItems_eq_target
+#print axioms CLRS.Chapter34.SubsetSumReduction.cnfToSubsetSum_complete
+#print axioms CLRS.Chapter34.SubsetSumReduction.cnfToSubsetSum_sound
+#print axioms CLRS.Chapter34.SubsetSumReduction.cnfToSubsetSum_correct
