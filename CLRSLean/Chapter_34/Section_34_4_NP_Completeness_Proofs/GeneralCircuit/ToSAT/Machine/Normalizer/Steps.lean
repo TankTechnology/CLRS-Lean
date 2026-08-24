@@ -106,6 +106,25 @@ theorem input_count_end_step (state : State) (input : List CircuitSym)
         input output rows inputCount gateCount operand saved outputIndex) := by
   normalize_step
 
+theorem input_count_empty_step (state : State)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .inputCount) state [] output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := none }
+        [] output rows inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem input_count_bad_step (state : State) (symbol : CircuitSym)
+    (harg : symbol ≠ .argMark) (hend : symbol ≠ .endMark)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .inputCount) state (symbol :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := some symbol }
+        input output rows inputCount gateCount operand saved outputIndex) := by
+  cases symbol <;> simp_all <;> normalize_step
+
 theorem gates_tag_step (state : State) (kind : GateKind)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
     (inputCount gateCount operand saved outputIndex : Nat) :
@@ -116,6 +135,54 @@ theorem gates_tag_step (state : State) (kind : GateKind)
         input output (.gateRowMark :: rows) inputCount gateCount operand saved
         outputIndex) := by
   cases kind <;> normalize_step
+
+theorem gates_output_step (state : State) (input : List CircuitSym)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .gates) state (.outputMark :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some (.parseOperand .outputGate))
+        { state with inputBuffer := some .outputMark }
+        input output rows inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem gates_empty_step (state : State)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .gates) state [] output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := none }
+        [] output rows inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem gates_bad_step (state : State) (symbol : CircuitSym)
+    (hbad : symbol = .argMark ∨ symbol = .endMark)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .gates) state (symbol :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := some symbol }
+        input output rows inputCount gateCount operand saved outputIndex) := by
+  rcases hbad with rfl | rfl <;> normalize_step
+
+theorem check_trailing_empty_step (state : State)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .checkTrailing) state [] output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some (.compareOperand .outputGate))
+        { state with inputBuffer := none }
+        [] output rows inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem check_trailing_nonempty_step (state : State) (head : CircuitSym)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .checkTrailing) state (head :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := some head }
+        input output rows inputCount gateCount operand saved outputIndex) := by
+  cases head <;> normalize_step
 
 theorem row_index_copy_tick_step (state : State) (kind : GateKind)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
@@ -186,6 +253,25 @@ theorem operand_end_step (state : State) (ret : Return)
         (match ret with | .outputGate => rows | _ => .fieldEnd :: rows)
         inputCount gateCount operand saved outputIndex) := by
   cases ret <;> normalize_step
+
+theorem operand_empty_step (state : State) (ret : Return)
+    (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some (.parseOperand ret)) state [] output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := none }
+        [] output rows inputCount gateCount operand saved outputIndex) := by
+  cases ret <;> normalize_step
+
+theorem operand_bad_step (state : State) (ret : Return) (symbol : CircuitSym)
+    (harg : symbol ≠ .argMark) (hend : symbol ≠ .endMark)
+    (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some (.parseOperand ret)) state (symbol :: input) output rows
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .clearInput) { state with inputBuffer := some symbol }
+        input output rows inputCount gateCount operand saved outputIndex) := by
+  cases ret <;> cases symbol <;> simp_all <;> normalize_step
 
 /-- One comparison tick consumes one operand unit and one selected bound unit. -/
 theorem compare_operand_tick_step (state : State) (ret : Return)
@@ -273,6 +359,80 @@ theorem restore_bound_done_step (state : State) (ret : Return)
         input output (afterBoundRows ret rows) inputCount
         (afterBoundGateCount ret gateCount) operand 0 outputIndex) := by
   cases ret <;> normalize_step
+
+theorem rows_to_output_step (state : State) (head : NormalizedCircuitSym)
+    (rows output : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .rowsToOutput) state [] output (head :: rows)
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .rowsToOutput)
+        { state with normalizedBuffer := some head }
+        [] (head :: output) rows inputCount gateCount operand saved outputIndex) := by
+  cases head <;> normalize_step
+
+theorem rows_to_output_done_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .rowsToOutput) state [] output []
+      inputCount gateCount operand saved outputIndex) =
+      some (cfg (some .emitGateCount)
+        { state with normalizedBuffer := none }
+        [] (.fieldEnd :: output) [] inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem emit_gate_count_tick_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount gateCount operand saved outputIndex : Nat) :
+    step (cfg (some .emitGateCount) state [] output []
+      inputCount (gateCount + 1) operand saved outputIndex) =
+      some (cfg (some .emitGateCount) { state with counterPresent := true }
+        [] (.tick :: output) [] inputCount gateCount operand saved outputIndex) := by
+  normalize_step
+
+theorem emit_gate_count_done_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount operand saved outputIndex : Nat) :
+    step (cfg (some .emitGateCount) state [] output []
+      inputCount 0 operand saved outputIndex) =
+      some (cfg (some .emitOutputIndex) { state with counterPresent := false }
+        [] (.fieldEnd :: .gateCountMark :: output) []
+        inputCount 0 operand saved outputIndex) := by
+  normalize_step
+
+theorem emit_output_index_tick_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount operand saved outputIndex : Nat) :
+    step (cfg (some .emitOutputIndex) state [] output []
+      inputCount 0 operand saved (outputIndex + 1)) =
+      some (cfg (some .emitOutputIndex) { state with counterPresent := true }
+        [] (.tick :: output) [] inputCount 0 operand saved outputIndex) := by
+  normalize_step
+
+theorem emit_output_index_done_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount operand saved : Nat) :
+    step (cfg (some .emitOutputIndex) state [] output []
+      inputCount 0 operand saved 0) =
+      some (cfg (some .emitInputCount) { state with counterPresent := false }
+        [] (.fieldEnd :: .outputIndexMark :: output) []
+        inputCount 0 operand saved 0) := by
+  normalize_step
+
+theorem emit_input_count_tick_step (state : State)
+    (output : List NormalizedCircuitSym)
+    (inputCount operand saved : Nat) :
+    step (cfg (some .emitInputCount) state [] output []
+      (inputCount + 1) 0 operand saved 0) =
+      some (cfg (some .emitInputCount) { state with counterPresent := true }
+        [] (.tick :: output) [] inputCount 0 operand saved 0) := by
+  normalize_step
+
+theorem emit_input_count_done_step (state : State)
+    (output : List NormalizedCircuitSym) (operand saved : Nat) :
+    step (cfg (some .emitInputCount) state [] output [] 0 0 operand saved 0) =
+      some (cfg (some .done) { state with counterPresent := false }
+        [] (.validMark :: .inputCountMark :: output) [] 0 0 operand saved 0) := by
+  normalize_step
 
 theorem clear_input_step (state : State) (head : CircuitSym)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym)
@@ -401,10 +561,9 @@ theorem emit_invalid_step (state : State) :
       some (cfg (some .done) state [] [.invalidMark] [] 0 0 0 0 0) := by
   normalize_step
 
-theorem done_invalid_step (state : State) :
-    step (cfg (some .done) state [] [.invalidMark] [] 0 0 0 0 0) =
-      some (_root_.Turing.haltList machine [.invalidMark]) := by
-  change step (cfg (some .done) state [] [.invalidMark] [] 0 0 0 0 0) = _
+theorem done_step (state : State) (result : List NormalizedCircuitSym) :
+    step (cfg (some .done) state [] result [] 0 0 0 0 0) =
+      some (_root_.Turing.haltList machine result) := by
   apply congrArg some
   apply _root_.Turing.TM2Comp.Cfg_ext
   · simp [step, cfg, machine, program, stackContents, initialState,
@@ -415,5 +574,10 @@ theorem done_invalid_step (state : State) :
     cases stack <;>
       simp [step, cfg, machine, program, stackContents, initialState,
         _root_.Turing.haltList, Function.update]
+
+theorem done_invalid_step (state : State) :
+    step (cfg (some .done) state [] [.invalidMark] [] 0 0 0 0 0) =
+      some (_root_.Turing.haltList machine [.invalidMark]) := by
+  exact done_step state [.invalidMark]
 
 end CLRS.Chapter34.Turing.GeneralCircuitToSAT.Normalizer
