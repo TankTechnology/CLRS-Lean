@@ -9,8 +9,8 @@ used by the textbook complement reduction.
 
 Main results:
 
-- `mem_normalizedPairs_iff`: exact pair-enumeration semantics.
-- `mem_complementEdges_iff`: exact complement-edge characterization.
+- `mem_vertexCoverNormalizedPairs_iff`: exact pair-enumeration semantics.
+- `mem_vertexCoverComplementEdges_iff`: exact complement-edge characterization.
 - `CliqueInstance.complementForVertexCover_wellFormed`: the reduction preserves
   graph-instance well-formedness.
 
@@ -25,14 +25,15 @@ namespace Chapter34
 /-! ## Deterministic normalized pair enumeration -/
 
 /-- The normalized pairs in row `u`, ordered by increasing second endpoint. -/
-def normalizedPairRow (n u : Nat) : List (Nat × Nat) :=
+def vertexCoverNormalizedPairRow (n u : Nat) : List (Nat × Nat) :=
   (List.range (n - u - 1)).map fun offset => (u, u + offset + 1)
 
 /-- Exact membership characterization for one row of normalized pairs. -/
-theorem mem_normalizedPairRow_iff {n u a b : Nat} :
-    (a, b) ∈ normalizedPairRow n u ↔
+theorem mem_vertexCoverNormalizedPairRow_iff {n u a b : Nat} :
+    (a, b) ∈ vertexCoverNormalizedPairRow n u ↔
       a = u ∧ u < b ∧ b < n := by
-  simp only [normalizedPairRow, List.mem_map, List.mem_range, Prod.mk.injEq]
+  simp only [vertexCoverNormalizedPairRow, List.mem_map, List.mem_range,
+    Prod.mk.injEq]
   constructor
   · rintro ⟨offset, hoffset, rfl, rfl⟩
     omega
@@ -42,34 +43,36 @@ theorem mem_normalizedPairRow_iff {n u a b : Nat} :
 
 /-- Every normalized pair `(u,v)` with `u < v < n` appears exactly in the
 row-major enumeration. -/
-def normalizedPairs (n : Nat) : List (Nat × Nat) :=
-  (List.range n).flatMap (normalizedPairRow n)
+def vertexCoverNormalizedPairs (n : Nat) : List (Nat × Nat) :=
+  (List.range n).flatMap (vertexCoverNormalizedPairRow n)
 
 /-- Exact membership characterization for the complete normalized pair list. -/
-theorem mem_normalizedPairs_iff {n u v : Nat} :
-    (u, v) ∈ normalizedPairs n ↔ u < v ∧ v < n := by
-  simp only [normalizedPairs, List.mem_flatMap, List.mem_range]
+theorem mem_vertexCoverNormalizedPairs_iff {n u v : Nat} :
+    (u, v) ∈ vertexCoverNormalizedPairs n ↔ u < v ∧ v < n := by
+  simp only [vertexCoverNormalizedPairs, List.mem_flatMap, List.mem_range]
   constructor
   · rintro ⟨row, hrow, hmem⟩
-    rcases mem_normalizedPairRow_iff.mp hmem with ⟨hu, hrowv, hvn⟩
+    rcases mem_vertexCoverNormalizedPairRow_iff.mp hmem with
+      ⟨hu, hrowv, hvn⟩
     subst row
     exact ⟨hrowv, hvn⟩
   · rintro ⟨huv, hvn⟩
     exact ⟨u, Nat.lt_trans huv hvn,
-      mem_normalizedPairRow_iff.mpr ⟨rfl, huv, hvn⟩⟩
+      mem_vertexCoverNormalizedPairRow_iff.mpr ⟨rfl, huv, hvn⟩⟩
 
 /-! ## Complement construction -/
 
 /-- The normalized nonedges of `I`, in deterministic row-major order. -/
-def complementEdges (I : CliqueInstance) : List (Nat × Nat) :=
-  (normalizedPairs I.vertexCount).filter fun edge => edge ∉ I.edges
+def vertexCoverComplementEdges (I : CliqueInstance) : List (Nat × Nat) :=
+  (vertexCoverNormalizedPairs I.vertexCount).filter fun edge => edge ∉ I.edges
 
 /-- A pair is emitted as a complement edge exactly when it is normalized,
 in range, and absent from the source edge list. -/
-theorem mem_complementEdges_iff {I : CliqueInstance} {u v : Nat} :
-    (u, v) ∈ complementEdges I ↔
+theorem mem_vertexCoverComplementEdges_iff {I : CliqueInstance} {u v : Nat} :
+    (u, v) ∈ vertexCoverComplementEdges I ↔
       u < v ∧ v < I.vertexCount ∧ (u, v) ∉ I.edges := by
-  simp [complementEdges, mem_normalizedPairs_iff, and_assoc]
+  simp [vertexCoverComplementEdges, mem_vertexCoverNormalizedPairs_iff,
+    and_assoc]
 
 namespace CliqueInstance
 
@@ -78,7 +81,7 @@ CLIQUE-to-VERTEX-COVER reduction. -/
 def complementForVertexCover (I : CliqueInstance) : CliqueInstance where
   vertexCount := I.vertexCount
   targetSize := I.vertexCount - I.targetSize
-  edges := complementEdges I
+  edges := vertexCoverComplementEdges I
 
 /-- The deterministic complement construction produces a well-formed
 graph-plus-target instance from every well-formed source instance. -/
@@ -87,8 +90,8 @@ theorem complementForVertexCover_wellFormed {I : CliqueInstance}
   refine ⟨Nat.sub_le _ _, ?_⟩
   intro edge hedge
   rcases edge with ⟨u, v⟩
-  exact ⟨(mem_complementEdges_iff.mp hedge).1,
-    (mem_complementEdges_iff.mp hedge).2.1⟩
+  exact ⟨(mem_vertexCoverComplementEdges_iff.mp hedge).1,
+    (mem_vertexCoverComplementEdges_iff.mp hedge).2.1⟩
 
 end CliqueInstance
 

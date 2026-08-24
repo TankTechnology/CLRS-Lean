@@ -5579,9 +5579,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `Bool` results with AND/OR).
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
-- Remaining chapter scope: Section 34.5 (NP-complete problems) is not
-  represented.  The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in
-  Section 34.4.  Open problems (P vs NP) are intentionally out of scope.
+- Remaining chapter scope: Section 34.5 now has typed VERTEX-COVER semantics,
+  a deterministic graph complement, and the exact CLIQUE/cover equivalence.
+  The raw language, polynomial-time reduction/verifier machines,
+  VERTEX-COVER NP-completeness, HAM-CYCLE, TSP, and SUBSET-SUM remain open.
+  The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
+  Open problems (P vs NP) are intentionally out of scope.
 
 ### Section 34.2 - Polynomial-Time Verification
 
@@ -5682,7 +5685,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   SAT-to-3-CNF machine.  Public `CLIQUE` denotes the honest serialized general
   graph-plus-`k` language.  It has exact certificate semantics, a concrete
   polynomial-time verifier and NP membership, plus a concrete polynomial-time
-  3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 remains open.
+  3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 now has the typed
+  deterministic-complement theorem `hasClique_iff_complement_hasVertexCover`;
+  raw and machine-level closure remains open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5881,7 +5886,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `SatTo3CNFMachine`, and the general-CLIQUE occurrence-reduction machine expose
   the assembled reductions; the honest public `CLIQUE` language is
   NP-complete.
-- Remaining chapter scope: Section 34.5 (NP-complete problems).
+- Remaining chapter scope: Section 34.5 has typed VERTEX-COVER complement
+  semantics; raw VERTEX-COVER NP-completeness and the HAM-CYCLE, TSP, and
+  SUBSET-SUM reductions remain open.
 
 ## Deferred And Blocked Items
 

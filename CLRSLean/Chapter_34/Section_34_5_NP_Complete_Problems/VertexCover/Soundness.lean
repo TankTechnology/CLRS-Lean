@@ -37,7 +37,7 @@ theorem complement_hasVertexCover_of_hasClique {I : CliqueInstance}
       exact Finset.mem_range.mp (Finset.mem_sdiff.mp hv).1
     · intro edge hedge
       rcases edge with ⟨u, v⟩
-      have hcomplement := mem_complementEdges_iff.mp hedge
+      have hcomplement := mem_vertexCoverComplementEdges_iff.mp hedge
       by_cases hucover : u ∈ cover
       · exact Or.inl hucover
       · right
