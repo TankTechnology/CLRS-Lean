@@ -1,6 +1,7 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum
 
 /-!
 # Section 34.5 — NP-complete problems
@@ -20,5 +21,9 @@ typed textbook layer, the total VERTEX-COVER-to-HAM-CYCLE construction is now
 proved correct in both directions, including the selector-budget argument in
 the soundness proof.  The typed HAM-CYCLE-to-decision-TSP construction is also
 proved correct in both directions using the exact tour-cost identity.  The
-3-CNF-SAT-to-SUBSET-SUM chain remains open.
+typed 3-CNF-SAT-to-SUBSET-SUM construction is proved correct in both
+directions as well: its indexed natural-number items, carry-free packing,
+assignment certificate, and inverse assignment extraction are all explicit.
+Raw-string reduction machines and their polynomial runtime bounds remain
+separate closure layers for HAM-CYCLE, TSP, and SUBSET-SUM.
 -/
