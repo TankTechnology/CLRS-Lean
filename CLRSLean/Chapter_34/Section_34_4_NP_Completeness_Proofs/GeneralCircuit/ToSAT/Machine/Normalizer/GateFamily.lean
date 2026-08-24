@@ -100,7 +100,7 @@ theorem gateFamily_phase (state : State) (gates : List CircuitGate)
         List.reverse_append, List.append_assoc, Nat.add_assoc,
         Nat.add_left_comm, Nat.add_comm] using hfull
 
-private theorem compareBoundPrefix_phase (state : State) (ret : Return)
+theorem compareBoundPrefix_phase (state : State) (ret : Return)
     (bound extra saved inputCount gateCount outputIndex : Nat)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym) :
     ∃ finalState,
@@ -136,7 +136,7 @@ private theorem compareBoundPrefix_phase (state : State) (ret : Return)
       have hfull := step_then bound hfirst' hrun
       simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hfull
 
-private theorem boundZero_reject_step (state : State) (ret : Return)
+theorem boundZero_reject_step (state : State) (ret : Return)
     (extra inputCount gateCount saved outputIndex : Nat)
     (input : List CircuitSym) (output rows : List NormalizedCircuitSym) :
     step (cfg (some (.compareOperand ret)) state input output rows

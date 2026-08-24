@@ -255,12 +255,18 @@ theorem validFinish_phase (state : State) (rowStream : List NormalizedCircuitSym
   have hfull := step_comp _ _ h₁₄ h₅
   simpa [validFinishSteps, Nat.add_assoc] using hfull
 
-/-- Exact successful run on a canonical well-formed circuit encoding. -/
-theorem canonical_run (c : Circuit) (hwellFormed : c.WellFormed) :
-    ∃ steps,
-      transition^[steps]
-        (some (_root_.Turing.initList machine (encodeCircuit c))) =
-      some (_root_.Turing.haltList machine (encodeNormalizedCircuit c)) := by
+/-- Exact successful cost on a canonical well-formed circuit encoding. -/
+def successfulSteps (c : Circuit) : Nat :=
+  (c.inputCount + 1) + gateFamilyStepsFrom 0 c.gates + 1 +
+    (3 * c.output + 5) +
+    validFinishSteps (encodeNormalizedGateRowsFrom 0 c.gates)
+      c.inputCount c.output c.gates.length
+
+/-- Canonical well-formed inputs halt after the named exact cost. -/
+theorem canonical_run_exact (c : Circuit) (hwellFormed : c.WellFormed) :
+    transition^[successfulSteps c]
+      (some (_root_.Turing.initList machine (encodeCircuit c))) =
+    some (_root_.Turing.haltList machine (encodeNormalizedCircuit c)) := by
   rcases inputCount_phase initialState c.inputCount 0
       (c.gates.flatMap encodeCircuitGate ++ .outputMark :: encNat c.output)
       [] [] 0 0 0 0 with ⟨s₁, h₁⟩
@@ -327,12 +333,17 @@ theorem canonical_run (c : Circuit) (hwellFormed : c.WellFormed) :
   have h₁₃ := step_comp _ _ h₁₂ h₃
   have h₁₄ := step_comp _ _ h₁₃ h₄'
   have hfull := step_comp _ _ h₁₄ h₅
-  refine ⟨(c.inputCount + 1) + gateFamilyStepsFrom 0 c.gates + 1 +
-    (3 * c.output + 5) +
-    validFinishSteps (encodeNormalizedGateRowsFrom 0 c.gates)
-      c.inputCount c.output c.gates.length, ?_⟩
   rw [hinit]
-  simpa [encodeCircuit, encodeNormalizedCircuit, normalizedRecordFromParts,
+  simpa [successfulSteps, encodeCircuit, encodeNormalizedCircuit,
+    normalizedRecordFromParts,
     Nat.add_assoc, List.append_assoc] using hfull
+
+/-- Existential wrapper used by total semantic composition. -/
+theorem canonical_run (c : Circuit) (hwellFormed : c.WellFormed) :
+    ∃ steps,
+      transition^[steps]
+        (some (_root_.Turing.initList machine (encodeCircuit c))) =
+      some (_root_.Turing.haltList machine (encodeNormalizedCircuit c)) :=
+  ⟨successfulSteps c, canonical_run_exact c hwellFormed⟩
 
 end CLRS.Chapter34.Turing.GeneralCircuitToSAT.Normalizer
