@@ -32,7 +32,7 @@ theorem cliqueToVertexCoverMap_length_le (input : List CliqueSym) :
   | none =>
       rw [show cliqueToVertexCoverMap input =
           encodeVertexCoverInstance canonicalVertexCoverNoInstance by
-        simp [cliqueToVertexCoverMap, hdecode]]
+        exact guardedGraphComplementMap_of_decode_none hdecode]
       rw [canonicalVertexCoverNoInstance_encoding_length]
       have hcube : 1 ≤ (input.length + 1) ^ 3 := Nat.one_le_pow' 3 input.length
       nlinarith
@@ -40,7 +40,7 @@ theorem cliqueToVertexCoverMap_length_le (input : List CliqueSym) :
       by_cases hI : I.WellFormed
       · rw [show cliqueToVertexCoverMap input =
             encodeVertexCoverInstance I.complementForVertexCover by
-          simp [cliqueToVertexCoverMap, hdecode, hI]]
+          exact guardedGraphComplementMap_of_decode_wellFormed hdecode hI]
         have hout := encode_complementForVertexCover_length_le I
         have hfields := decodeCliqueInstance_fields_le_length hdecode
         have hvertex : I.vertexCount + 1 ≤ input.length + 1 := by omega
@@ -48,7 +48,7 @@ theorem cliqueToVertexCoverMap_length_le (input : List CliqueSym) :
         exact Nat.le_trans hout (by nlinarith)
       · rw [show cliqueToVertexCoverMap input =
             encodeVertexCoverInstance canonicalVertexCoverNoInstance by
-          simp [cliqueToVertexCoverMap, hdecode, hI]]
+          exact guardedGraphComplementMap_of_decode_not_wellFormed hdecode hI]
         rw [canonicalVertexCoverNoInstance_encoding_length]
         have hcube : 1 ≤ (input.length + 1) ^ 3 := Nat.one_le_pow' 3 input.length
         nlinarith
@@ -62,7 +62,7 @@ theorem vertexCoverToCliqueMap_length_le (input : List VertexCoverSym) :
   | none =>
       rw [show vertexCoverToCliqueMap input =
           encodeCliqueInstance noCliqueInstance by
-        simp [vertexCoverToCliqueMap, hdecode]]
+        exact guardedGraphComplementMap_of_decode_none hdecode]
       rw [noCliqueInstance_encoding_length]
       have hcube : 1 ≤ (input.length + 1) ^ 3 := Nat.one_le_pow' 3 input.length
       nlinarith
@@ -70,7 +70,7 @@ theorem vertexCoverToCliqueMap_length_le (input : List VertexCoverSym) :
       by_cases hI : I.WellFormed
       · rw [show vertexCoverToCliqueMap input =
             encodeCliqueInstance I.complementForVertexCover by
-          simp [vertexCoverToCliqueMap, hdecode, hI]]
+          exact guardedGraphComplementMap_of_decode_wellFormed hdecode hI]
         have hout := encode_complementForVertexCover_length_le I
         have hfields := decodeCliqueInstance_fields_le_length hdecode
         have hvertex : I.vertexCount + 1 ≤ input.length + 1 := by omega
@@ -78,7 +78,7 @@ theorem vertexCoverToCliqueMap_length_le (input : List VertexCoverSym) :
         exact Nat.le_trans hout (by nlinarith)
       · rw [show vertexCoverToCliqueMap input =
             encodeCliqueInstance noCliqueInstance by
-          simp [vertexCoverToCliqueMap, hdecode, hI]]
+          exact guardedGraphComplementMap_of_decode_not_wellFormed hdecode hI]
         rw [noCliqueInstance_encoding_length]
         have hcube : 1 ≤ (input.length + 1) ^ 3 := Nat.one_le_pow' 3 input.length
         nlinarith

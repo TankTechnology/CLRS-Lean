@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.SharedComplementMap
 
 /-!
 # Total raw CLIQUE-to-VERTEX-COVER semantic reduction
@@ -44,13 +45,15 @@ theorem canonicalVertexCoverNoInstance_not_mem :
 /-- Decode the shared graph grammar, complement a well-formed instance, and
 send every other input to the canonical VERTEX-COVER no-instance. -/
 def cliqueToVertexCoverMap (input : List CliqueSym) : List VertexCoverSym :=
-  match decodeCliqueInstance input with
-  | some I =>
-      if I.WellFormed then
-        encodeVertexCoverInstance I.complementForVertexCover
-      else
-        encodeVertexCoverInstance canonicalVertexCoverNoInstance
-  | none => encodeVertexCoverInstance canonicalVertexCoverNoInstance
+  guardedGraphComplementMap canonicalVertexCoverNoInstance input
+
+/-- The forward raw map is the shared complement compiler specialized by the
+canonical VERTEX-COVER no-instance. -/
+theorem cliqueToVertexCoverMap_eq_guardedGraphComplementMap
+    (input : List CliqueSym) :
+    cliqueToVertexCoverMap input =
+      guardedGraphComplementMap canonicalVertexCoverNoInstance input := by
+  rfl
 
 /-- The total raw map preserves membership on every input string.  The source
 language is `GeneralCLIQUE`, the language denoted by the public `CLIQUE`
@@ -63,14 +66,14 @@ theorem cliqueToVertexCoverMap_mem_VERTEXCOVER_iff (input : List CliqueSym) :
         not_mem_generalCLIQUE_of_decode_none hdecode
       have hmap : cliqueToVertexCoverMap input =
           encodeVertexCoverInstance canonicalVertexCoverNoInstance := by
-        simp [cliqueToVertexCoverMap, hdecode]
+        exact guardedGraphComplementMap_of_decode_none hdecode
       rw [hmap]
       exact iff_of_false canonicalVertexCoverNoInstance_not_mem hsource
   | some I =>
       by_cases hI : I.WellFormed
       · have hmap : cliqueToVertexCoverMap input =
             encodeVertexCoverInstance I.complementForVertexCover := by
-          simp [cliqueToVertexCoverMap, hdecode, hI]
+          exact guardedGraphComplementMap_of_decode_wellFormed hdecode hI
         rw [hmap, encodeVertexCoverInstance_mem_generalVERTEXCOVER_iff]
         have hcomplementWellFormed := I.complementForVertexCover_wellFormed hI
         rw [and_iff_right hcomplementWellFormed]
@@ -80,7 +83,7 @@ theorem cliqueToVertexCoverMap_mem_VERTEXCOVER_iff (input : List CliqueSym) :
           simp [GeneralCLIQUE, hdecode, hI]
         have hmap : cliqueToVertexCoverMap input =
             encodeVertexCoverInstance canonicalVertexCoverNoInstance := by
-          simp [cliqueToVertexCoverMap, hdecode, hI]
+          exact guardedGraphComplementMap_of_decode_not_wellFormed hdecode hI
         rw [hmap]
         exact iff_of_false canonicalVertexCoverNoInstance_not_mem hsource
 
