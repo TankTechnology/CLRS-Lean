@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
+
+#check CLRS.Chapter34.HamiltonianCycleReduction.clrsReductionEdges_length_le
+#check CLRS.Chapter34.vertexCoverToHamiltonianMap_length_le
+
+#print axioms CLRS.Chapter34.HamiltonianCycleReduction.clrsReductionEdges_length_le
+#print axioms CLRS.Chapter34.vertexCoverToHamiltonianMap_length_le

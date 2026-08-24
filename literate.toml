@@ -1932,6 +1932,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReductionLength",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate" = [
@@ -1942,6 +1943,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.EncodingBounds",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness",
 ]
@@ -6728,6 +6730,9 @@ title = "34.5. Language"
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction"]
 title = "34.5. Total raw VERTEX-COVER to HAM-CYCLE reduction"
 
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReductionLength"]
+title = "34.5. Polynomial output length of the raw HAM-CYCLE reduction"
+
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction"]
 title = "34.5. The typed VERTEX-COVER to HAM-CYCLE reduction"
 
@@ -6781,6 +6786,9 @@ title = "34.5. Vertex numbering for the CLRS VERTEX-COVER to HAM-CYCLE reduction
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Construction.WellFormed"]
 title = "34.5. Well-formedness of the constructed Hamiltonian graph"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.EncodingBounds"]
+title = "34.5. Polynomial size of the VERTEX-COVER to HAM-CYCLE gadget"
 
 [modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Gadget"]
 title = "34.5. CLRS Hamiltonian-cycle reduction gadget facade"
