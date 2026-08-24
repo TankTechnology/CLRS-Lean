@@ -27,6 +27,16 @@ example :
   · decide
   · decide
 
+example :
+    UsesWidgetSplitTraversal oneEdgeCycle 0 ∨
+      UsesWidgetLeftFullTraversal oneEdgeCycle 0 ∨
+      UsesWidgetRightFullTraversal oneEdgeCycle 0 := by
+  apply cycle_uses_allowed_widget_traversal
+    (I := oneEdgeOneSelector) (vertices := oneEdgeCycle) (occurrence := 0)
+  · decide
+  · decide
+  · decide
+
 #print axioms adj_globalWidgetInternalVertex_iff
 #print axioms adj_globalWidgetVertex_two_iff
 #print axioms cycle_neighbors_globalWidgetVertex_one
@@ -36,5 +46,8 @@ example :
 #print axioms cycleLinked_globalWidgetVertex_three_choice
 #print axioms cycleLinked_globalWidgetVertex_eight_choice
 #print axioms cycleLinked_globalWidgetVertex_nine_choice
+#print axioms exists_cycleLinked_boundary
+#print axioms not_closed_widget_crossing_pattern
+#print axioms cycle_uses_allowed_widget_traversal
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionSoundness
