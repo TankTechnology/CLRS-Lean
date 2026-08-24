@@ -5580,9 +5580,10 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
 - Current gap: the empty/universal languages (concrete machine constructions
   for `∅` and `Σ*`).
 - Remaining chapter scope: Section 34.5 now has typed and raw VERTEX-COVER
-  semantics, a deterministic graph complement, the exact CLIQUE/cover
-  equivalence, an all-input total raw semantic map, and exact bounded Boolean-
-  certificate semantics.  Polynomial-time reduction/verifier machines,
+  semantics, a deterministic graph complement, exact CLIQUE/cover equivalences
+  in both directions, all-input total raw semantic maps in both directions,
+  and exact bounded Boolean-certificate semantics.  Polynomial-time
+  reduction/verifier machines,
   VERTEX-COVER NP membership/completeness, HAM-CYCLE, TSP, and SUBSET-SUM
   remain open.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
@@ -5690,7 +5691,10 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   3-CNF-SAT reduction; `CLIQUE` is NP-complete.  Section 34.5 now has the typed
   deterministic-complement theorem `hasClique_iff_complement_hasVertexCover`,
   the raw VERTEX-COVER language, and the exact all-input theorem
-  `cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  Its Boolean checker is
+  `cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  The reverse typed theorem
+  `hasVertexCover_iff_complement_hasClique` and raw theorem
+  `vertexCoverToCliqueMap_mem_CLIQUE_iff` make the semantic bridge
+  bidirectional.  Its Boolean checker is
   characterized by `mem_generalVERTEXCOVER_iff_exists_certificate`, including
   a quadratic certificate bound; machine-level closure remains open.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
@@ -5892,8 +5896,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   the assembled reductions; the honest public `CLIQUE` language is
   NP-complete.
 - Remaining chapter scope: Section 34.5 has typed and raw VERTEX-COVER
-  complement semantics, a total membership-preserving raw map, and exact
-  bounded Boolean-certificate semantics; machine-level VERTEX-COVER NP
+  complement semantics, total membership-preserving raw maps in both
+  directions, and exact bounded Boolean-certificate semantics; machine-level
+  VERTEX-COVER NP
   membership/completeness and the HAM-CYCLE, TSP, and SUBSET-SUM reductions
   remain open.
 
