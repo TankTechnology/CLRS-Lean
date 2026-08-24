@@ -20,6 +20,8 @@ map with exact all-input language semantics and a cubic output-length bound.
 The fixed verifier layer composes the reusable graph checks, target-field
 transformations, certificate distinctness pass, and cycle-edge lookup into a
 single polynomial-time TM2.  Consequently the honest serialized HAM-CYCLE
-language is now proved to belong to NP.  The fixed reduction machine remains
-the next closure layer.
+language is now proved to belong to NP.  The fixed reduction layer now
+generates the nondegenerate header and the full internal widget-edge family.
+Incidence-chain, selector-endpoint, selector-clique, and guarded total
+composition stages remain before the raw NP-hardness theorem can be packaged.
 -/

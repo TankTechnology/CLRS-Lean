@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.Source.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.occurrenceSeedsComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.endpointStreamComputableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.widgetEdgeStream_encode
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.widgetEdgeStream_encode
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.ReductionMachine.WidgetEdges.computableInPolyTime
