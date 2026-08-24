@@ -17,19 +17,19 @@ reverse machines.
 
 ## Task 1: Graph-pair formatter
 
-- [ ] Define the empty-certificate graph-pair format and prove the reverse /
+- [x] Define the empty-certificate graph-pair format and prove the reverse /
   `OptionPairLeft` identity.
-- [ ] Compose the three existing fixed polynomial-time machines.
+- [x] Compose the three existing fixed polynomial-time machines.
 
 ## Task 2: Raw well-formedness pipeline
 
-- [ ] Repackage the formatter over canonical typed graph encodings.
-- [ ] Compose syntax normalization, graph-pair formatting, and the completed
+- [x] Repackage the formatter over canonical typed graph encodings.
+- [x] Compose syntax normalization, graph-pair formatting, and the completed
   Boolean guard.
-- [ ] Prove the resulting Boolean equals `decide
+- [x] Prove the resulting Boolean equals `decide
   (normalizedInstanceValue input).WellFormed` on every raw input.
 
 ## Task 3: Verification and checkpoint
 
-- [ ] Add focused interface/axiom tests, build Chapter 34, run repository
+- [x] Add focused interface/axiom tests, build Chapter 34, run repository
   checks, and commit proof/documentation checkpoints separately.

@@ -18,7 +18,8 @@ and a quadratic accepted-certificate bound.
 
 The raw syntax-normalization phase already has a fixed linear-time TM2, and
 the three graph-invariant passes are combined into a fixed polynomial-time
-well-formedness guard.  Stream-format composition, complement-edge emission,
-the complete reduction/verifier machines, VERTEX-COVER NP membership, and the
+well-formedness guard.  A verified formatter composes these phases into one
+raw-input well-formedness TM2.  Complement-edge emission, the complete
+reduction/verifier machines, VERTEX-COVER NP membership, and the
 NP-completeness theorem are not claimed by this facade yet.
 -/
