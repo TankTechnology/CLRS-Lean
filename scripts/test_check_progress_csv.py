@@ -45,10 +45,10 @@ class FourthEditionContractTest(unittest.TestCase):
             ),
         )
 
-    def test_contract_counts_chapter_34_partial_and_unrepresented_sections(self) -> None:
+    def test_contract_counts_chapter_34_unrepresented_section(self) -> None:
         contracts = check_progress_csv.chapter_contracts()
 
-        self.assertEqual(contracts[34]["required_edition_gap_units"], 2)
+        self.assertEqual(contracts[34]["required_edition_gap_units"], 1)
 
     def test_contract_rejects_unknown_or_padded_migration_state(self) -> None:
         for invalid_state in ("parital", " facade "):

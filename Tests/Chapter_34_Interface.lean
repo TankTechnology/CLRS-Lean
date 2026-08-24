@@ -34,6 +34,10 @@ example (x : List CNFSym) (hx : x ∈ ThreeCNFSat) :
 #check CLIQUE
 #check generalCLIQUE_mem_ClassNP
 #check Turing.TMClique.threeCNFSat_reducible_to_CLIQUE
+#check generalCircuitSAT_reducible_to_SAT
+#check SAT_npHard
+#check threeCNFSat_npHard
+#check CLIQUE_npComplete
 
 -- basic sanity checks
 example (Γ : Type) : ClassP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp

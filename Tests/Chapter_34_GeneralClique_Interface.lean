@@ -27,7 +27,10 @@ namespace CLRS.Chapter34
 #check CLIQUE
 #check Turing.TMClique.threeCNFSat_reducible_to_CLIQUE
 #check generalCircuitSAT_reducible_to_SAT
-#check clique_npHard
-#check clique_npComplete
+#check SAT_npHard
+#check threeCNFSat_npHard
+#check generalCLIQUE_npHard
+#check generalCLIQUE_npComplete
+#check CLIQUE_npComplete
 
 end CLRS.Chapter34

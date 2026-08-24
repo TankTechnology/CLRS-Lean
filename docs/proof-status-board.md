@@ -28,8 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, NP-Completeness | Cook--Levin has a complete concrete polynomial-time map compiler, the universal reduction theorem, and `GeneralCircuitSAT` NP-hardness/NP-completeness. Public `CLIQUE` is now the honest serialized graph-plus-`k` language, with exact certificate semantics, a concrete polynomial-time verifier, NP membership, and a concrete 3-CNF-SAT reduction. | Build the concrete `GeneralCircuitSAT → SAT` TM2 needed to compose the full universal NP-hardness chain and publish `NPComplete CLIQUE`. |
-| P1 | Chapter 34, §34.5 | The general CLIQUE layer is represented; the §34.5 NP-complete-problem reductions are not. | Formalize the selected §34.5 textbook chain, beginning with VERTEX-COVER and then HAM-CYCLE → TSP and SUBSET-SUM, without treating open complexity questions as proof obligations. |
+| P0 | Chapter 34, §34.5 | The §34.4 chain has concrete polynomial-time reductions from arbitrary NP languages through `GeneralCircuitSAT`, SAT, and 3-CNF-SAT to the honest graph-plus-`k` `CLIQUE`; `CLIQUE` is NP-complete. The §34.5 NP-complete-problem reductions are not represented. | Formalize the selected §34.5 textbook chain, beginning with VERTEX-COVER and then HAM-CYCLE → TSP and SUBSET-SUM, without treating open complexity questions as proof obligations. |
 
 ## Stable Represented Scope
 

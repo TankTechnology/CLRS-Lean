@@ -69,12 +69,14 @@ The honest general-circuit language additionally has a direct consistency-
 formula translation to SAT.  `generalCircuitToSATMap_mem_SAT_iff` proves exact
 membership preservation on every raw input string, including malformed and
 ill-formed inputs, and `generalCircuitToSATMap_length_le` gives a cubic output-
-length bound.
+length bound.  A fixed polynomial-time TM2 computes this exact total map, so
+`generalCircuitSAT_reducible_to_SAT` and `SAT_npHard` are now proved.
 The public `CLIQUE` language now has a unique raw graph-plus-`k` encoding,
 exact certificate semantics, a concrete polynomial-time verifier TM2, and the
 resulting `GeneralCLIQUE ∈ NP` theorem.  A second concrete polynomial-time TM2
 computes the 3-CNF-SAT reduction and proves exact membership preservation on
-all raw inputs.
+all raw inputs.  The transported hardness chain now closes
+`CLIQUE_npComplete` for this honest language.
 
 ## Coverage boundary
 
@@ -91,11 +93,11 @@ finite-certificate semantics are also complete.  The concrete polynomial-time
 generator closes the universal reduction, NP-hardness, and
 {lit}`NPComplete GeneralCircuitSAT`.  General CLIQUE has exact certificate
 semantics, a concrete polynomial-time verifier, membership in NP, and the
-concrete 3-CNF-SAT reduction.  The direct general-circuit-to-SAT bridge is
-closed at semantic and serialized polynomial-size level, but its concrete TM2
-is still required to transport the universal NP-hardness chain all the way to
-the public CLIQUE language.  Section 34.5 is not yet represented.  This guide
-remains partial because those two textbook-closure boundaries remain open.
+concrete 3-CNF-SAT reduction.  The direct general-circuit-to-SAT bridge has a
+fixed polynomial-time TM2, and the universal NP-hardness chain reaches SAT,
+3-CNF-SAT, and public CLIQUE; general CLIQUE is proved NP-complete.  A
+standalone SAT NP verifier remains an optional direct refinement.  Section
+34.5 is not yet represented, so this guide remains partial.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
