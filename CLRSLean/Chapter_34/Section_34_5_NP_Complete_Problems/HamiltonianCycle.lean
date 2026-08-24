@@ -26,7 +26,7 @@ the complete selector clique.  It also computes the canonical per-vertex
 incidence rows with a fixed polynomial-time scanner and formats their
 successive references into the complete incidence-chain edge stream.  It also
 extracts the first and last gadget ports of every nonempty incidence row with
-a fixed polynomial-time controller.  Selector-index repetition, endpoint-edge
-formatting, and guarded total composition remain before the raw NP-hardness
-theorem can be packaged.
+a fixed polynomial-time controller, repeats those endpoints for every
+selector, and formats the complete selector-endpoint edge multiset.  Guarded
+total composition remains before the raw NP-hardness theorem can be packaged.
 -/
