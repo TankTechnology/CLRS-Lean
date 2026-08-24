@@ -133,4 +133,20 @@ theorem selectedSourceVertexPath_pathAdjacent
       (selectedSourceVertexPath I cover u) := by
   exact selectedIncidenceChainPath_pathAdjacent_of_suffix hu (by simp)
 
+theorem selectedSourceVertexPath_head
+    {I : CliqueInstance} {cover : Finset Nat} {u : Nat}
+    {first : IncidentOccurrence} {rest : List IncidentOccurrence}
+    (hrefs : incidentOccurrences I u = first :: rest) :
+    (selectedSourceVertexPath I cover u).head? =
+      some (incidentVertex first 0) := by
+  simp [selectedSourceVertexPath, hrefs, selectedIncidenceChainPath_head]
+
+theorem selectedSourceVertexPath_getLast
+    {I : CliqueInstance} {cover : Finset Nat} {u : Nat}
+    {first : IncidentOccurrence} {rest : List IncidentOccurrence}
+    (hrefs : incidentOccurrences I u = first :: rest) :
+    (selectedSourceVertexPath I cover u).getLast? =
+      some (incidentVertex ((first :: rest).getLast (by simp)) 5) := by
+  simp [selectedSourceVertexPath, hrefs, selectedIncidenceChainPath_getLast]
+
 end CLRS.Chapter34.HamiltonianCycleReduction
