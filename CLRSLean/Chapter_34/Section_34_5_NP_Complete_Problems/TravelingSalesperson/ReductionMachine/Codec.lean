@@ -34,4 +34,32 @@ def decodeTSPSymPair : UnaryFrameSym → UnaryFrameSym → TSPSym
   | bit value => cases value <;> rfl
   | _ => rfl
 
+/-- Extend the fixed code to option-separated TSP streams.  The eighth code
+word is used for the physical pair separator. -/
+def encodeOptionTSPSymPair : Option TSPSym → UnaryFrameSym × UnaryFrameSym
+  | some symbol => encodeTSPSymPair symbol
+  | none => (.frameEnd, .separator)
+
+def decodeOptionTSPSymPair :
+    UnaryFrameSym → UnaryFrameSym → Option TSPSym
+  | .tick, .tick => some .instanceMark
+  | .tick, .separator => some .certificateMark
+  | .tick, .frameEnd => some .numberMark
+  | .separator, .tick => some (.bit false)
+  | .separator, .separator => some (.bit true)
+  | .separator, .frameEnd => some .fieldEnd
+  | .frameEnd, .tick => some .recordEnd
+  | .frameEnd, .separator => none
+  | .frameEnd, .frameEnd => none
+
+@[simp] theorem decode_encodeOptionTSPSymPair (symbol : Option TSPSym) :
+    decodeOptionTSPSymPair (encodeOptionTSPSymPair symbol).1
+      (encodeOptionTSPSymPair symbol).2 = symbol := by
+  cases symbol with
+  | none => rfl
+  | some symbol =>
+      cases symbol with
+      | bit value => cases value <;> rfl
+      | _ => rfl
+
 end CLRS.Chapter34.Turing.TSPReduction
