@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The §34.4 chain has concrete polynomial-time reductions from arbitrary NP languages through `GeneralCircuitSAT`, SAT, and 3-CNF-SAT to the honest graph-plus-`k` `CLIQUE`; `CLIQUE` is NP-complete. The §34.5 NP-complete-problem reductions are not represented. | Formalize the selected §34.5 textbook chain, beginning with VERTEX-COVER and then HAM-CYCLE → TSP and SUBSET-SUM, without treating open complexity questions as proof obligations. |
+| P0 | Chapter 34, §34.5 | The §34.4 chain reaches the NP-complete honest graph-plus-`k` `CLIQUE`. The first §34.5 layer now defines typed VERTEX-COVER semantics and proves `HasClique ↔ HasVertexCover` for the deterministic graph complement. Raw-string reduction, polynomial-time machines, NP membership, and NP-completeness are not yet closed. | Lift VERTEX-COVER through the shared encoding to an exact total raw reduction, then close its verifier/NP theorem before HAM-CYCLE → TSP and SUBSET-SUM. |
 
 ## Stable Represented Scope
 

@@ -41,9 +41,10 @@ in Lean; no chapter remains {lit}`not-started`.  The generated dashboard owns
 live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
-The edition map records one remaining coverage unit in Chapter 34: §34.5 is
-{lit}`not-started`.  Chapter 34 is the sole repository row whose status remains
-{lit}`partial`.
+The edition map records one partially represented coverage unit in Chapter 34:
+§34.5 has typed VERTEX-COVER complement semantics but not yet the serialized
+language, polynomial-time machines, or later reductions.  Chapter 34 is the
+sole repository row whose status remains {lit}`partial`.
 
 * **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
   framework, `P ⊆ NP`, and polynomial-reduction infrastructure.  Section 34.4
@@ -67,9 +68,12 @@ The edition map records one remaining coverage unit in Chapter 34: §34.5 is
   graph-plus-{lit}`k` CLIQUE has an honest raw encoding, exact certificate
   semantics, a concrete polynomial-time verifier, membership in NP, and a
   concrete polynomial-time 3-CNF-SAT reduction; {lit}`CLIQUE` is therefore
-  NP-complete.  Section 34.5 remains open.  A standalone concrete SAT NP
-  verifier is an optional refinement, not a dependency of the completed
-  hardness chain.
+  NP-complete.  Section 34.5 now proves the typed equivalence between a
+  size-{lit}`k` clique and a size-at-most-{lit}`|V|-k` vertex cover of the
+  deterministic complement.  Raw language semantics, concrete reduction and
+  verifier machines, VERTEX-COVER NP-completeness, and the remaining §34.5
+  problems are open.  A standalone concrete SAT NP verifier is an optional
+  refinement, not a dependency of the completed hardness chain.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the

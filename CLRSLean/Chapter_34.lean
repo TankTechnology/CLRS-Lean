@@ -881,6 +881,13 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Circuitization.GeneratorValidityRowInputCompiler
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Textbook
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.MainTheorem
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics
 
 /-! # Chapter 34 — NP-Completeness
 
@@ -1003,8 +1010,13 @@ polynomial output-length theorem are packaged for every NP language by
 computes the exact map directly from the original input.  Consequently
 {lit}`cookLevin_theorem` proves the standard polynomial-time reduction for
 every NP language, and {lit}`generalCircuitSAT_npHard` together with
-{lit}`generalCircuitSAT_npComplete` closes the textbook Cook--Levin result.  A general
-graph-plus-{lit}`k` CLIQUE target and Section 34.5 remain unrepresented.
+{lit}`generalCircuitSAT_npComplete` closes the textbook Cook--Levin result.
+The public general graph-plus-{lit}`k` CLIQUE target is also NP-complete.
+Section 34.5 now begins with typed VERTEX-COVER semantics, a deterministic
+graph-complement construction, and
+{lit}`hasClique_iff_complement_hasVertexCover`.  This is a semantic checkpoint:
+the raw language, polynomial-time reduction machine, NP membership, and
+NP-completeness remain open.
 
 Theorem layer:
 
@@ -1028,8 +1040,9 @@ Theorem layer:
   `GeneralCircuitSAT` to `SAT` preserves membership exactly; its output length
   is bounded by `generalCircuitToSATMap_length_le`.
 
-Open problems (whether `P = NP`) and the Section 34.5 reductions such as
-VERTEX-COVER, HAM-CYCLE, and SUBSET-SUM are intentionally out of scope for now.
+Open problems such as whether `P = NP` are intentionally out of scope.
+Section 34.5 still requires raw and machine-level VERTEX-COVER closure plus the
+HAM-CYCLE, TSP, and SUBSET-SUM chains.
 -/
 
 namespace CLRS

@@ -42,8 +42,8 @@ theorem hasClique_of_complement_hasVertexCover {I : CliqueInstance}
     rcases Nat.lt_or_gt_of_ne huv with huvlt | hvult
     · apply (I.adj_iff_of_lt huvlt).2
       by_contra hnonedge
-      have hcomplementEdge : (u, v) ∈ complementEdges I :=
-        mem_complementEdges_iff.mpr
+      have hcomplementEdge : (u, v) ∈ vertexCoverComplementEdges I :=
+        mem_vertexCoverComplementEdges_iff.mpr
           ⟨huvlt, Finset.mem_range.mp hvOutside.1, hnonedge⟩
       rcases hcoversEdges (u, v) hcomplementEdge with hucover | hvcover
       · exact huOutside.2 hucover
@@ -51,8 +51,8 @@ theorem hasClique_of_complement_hasVertexCover {I : CliqueInstance}
     · apply (I.adj_comm u v).2
       apply (I.adj_iff_of_lt hvult).2
       by_contra hnonedge
-      have hcomplementEdge : (v, u) ∈ complementEdges I :=
-        mem_complementEdges_iff.mpr
+      have hcomplementEdge : (v, u) ∈ vertexCoverComplementEdges I :=
+        mem_vertexCoverComplementEdges_iff.mpr
           ⟨hvult, Finset.mem_range.mp huOutside.1, hnonedge⟩
       rcases hcoversEdges (v, u) hcomplementEdge with hvcover | hucover
       · exact hvOutside.2 hvcover

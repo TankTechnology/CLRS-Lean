@@ -881,6 +881,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_2_Polynomial_Time_Verification",
   "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems",
 ]
 "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
@@ -903,6 +904,16 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic",
@@ -3765,6 +3776,27 @@ title = "34.3. NP-Hardness Transport"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
 title = "34.4. NP-Completeness Proofs"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems"]
+title = "34.5. NP-Complete Problems"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover"]
+title = "34.5. VERTEX-COVER"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance"]
+title = "34.5. VERTEX-COVER Typed Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Complement"]
+title = "34.5. Deterministic Graph Complement"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Soundness"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Soundness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Completeness"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Completeness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementSemantics"]
+title = "34.5. CLIQUE-to-VERTEX-COVER Semantic Equivalence"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT"]
 title = "34.4. CIRCUIT-SAT poly-reduces to SAT"
