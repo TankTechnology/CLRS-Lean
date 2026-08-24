@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectionFlags
+
+#check CLRS.Chapter34.Turing.TSPVerifier.SelectionFlags.duplicateFlagsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SelectionFlags.selectionFlagsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.SelectionFlags.selectionFlags_encode
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.SelectionFlags.selectionFlagsComputableInPolyTime
