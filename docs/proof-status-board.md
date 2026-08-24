@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The §34.4 chain reaches the NP-complete honest graph-plus-`k` `CLIQUE`. VERTEX-COVER has bidirectional typed/raw complement semantics, total membership-preserving raw maps in both directions, and cubic output-length bounds. `mem_generalVERTEXCOVER_iff_exists_certificate` also gives exact Boolean-certificate semantics with a quadratic bound. Polynomial-time machines, NP membership, and NP-completeness are not yet closed. | Implement one reusable fixed complement-map machine, reuse the CLIQUE verifier where possible, then package VERTEX-COVER NP-completeness before HAM-CYCLE → TSP and SUBSET-SUM. |
+| P0 | Chapter 34, §34.5 | The §34.4 chain reaches the NP-complete honest graph-plus-`k` `CLIQUE`. VERTEX-COVER has bidirectional typed/raw complement semantics, total membership-preserving raw maps in both directions, and cubic output-length bounds. Both directions factor through one guarded complement-map target parameterized only by the fixed fallback. `mem_generalVERTEXCOVER_iff_exists_certificate` also gives exact Boolean-certificate semantics with a quadratic bound. Polynomial-time machines, NP membership, and NP-completeness are not yet closed. | Implement one reusable fixed complement-map machine against the shared target, reuse the CLIQUE verifier where possible, then package VERTEX-COVER NP-completeness before HAM-CYCLE → TSP and SUBSET-SUM. |
 
 ## Stable Represented Scope
 

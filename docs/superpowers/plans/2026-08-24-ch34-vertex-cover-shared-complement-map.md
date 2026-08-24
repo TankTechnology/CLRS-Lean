@@ -14,24 +14,24 @@ maps.  It does not yet claim TM2 computability or polynomial-time reducibility.
 
 ## Task 1: Shared semantic target
 
-- [ ] Define `guardedGraphComplementMap fallback input` independently of either
+- [x] Define `guardedGraphComplementMap fallback input` independently of either
   target language.
-- [ ] Publish equations for successful well-formed decoding, ill-formed
+- [x] Publish equations for successful well-formed decoding, ill-formed
   decoding, and parser failure.
 
 ## Task 2: Directional factorization
 
-- [ ] Define both public raw maps as specializations of the shared function.
-- [ ] Preserve the existing all-input membership theorems unchanged.
+- [x] Define both public raw maps as specializations of the shared function.
+- [x] Preserve the existing all-input membership theorems unchanged.
 
 ## Task 3: Stable machine-facing contract
 
-- [ ] Add a focused interface test for the shared definition and both
+- [x] Add a focused interface test for the shared definition and both
   specialization equations.
-- [ ] Build the focused test and Chapter 34 root, then audit axioms and
+- [x] Build the focused test and Chapter 34 root, then audit axioms and
   placeholders.
 
 ## Task 4: Checkpoint
 
-- [ ] Commit the proof layer and its public wiring as independently buildable
+- [x] Commit the proof layer and its public wiring as independently buildable
   checkpoints.

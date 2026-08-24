@@ -10,7 +10,8 @@ This facade exports the first formalized layers of CLRS Section 34.5: the
 shared graph-plus-target representation, deterministic graph complement, the
 textbook equivalence between a size-`k` clique and a size-at-most `|V| - k`
 cover in the complemented graph, and its exact lift to total raw-string maps
-in both directions.  Both total maps have explicit cubic output-length bounds.
+in both directions.  Both maps factor through one shared guarded complement
+function and have explicit cubic output-length bounds.
 It also exports an executable Boolean certificate checker, its exact semantics,
 and a quadratic accepted-certificate bound.
 
