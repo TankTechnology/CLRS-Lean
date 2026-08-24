@@ -1,0 +1,7 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SyntaxSemantics
+
+#check CLRS.Chapter34.Turing.TSPVerifier.Syntax.instanceSyntax_eq_true_iff_exists_decode
+#check CLRS.Chapter34.Turing.TSPVerifier.Syntax.certificateSyntax_eq_true_iff_exists_decode
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.Syntax.instanceSyntax_eq_true_iff_exists_decode
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.Syntax.certificateSyntax_eq_true_iff_exists_decode
