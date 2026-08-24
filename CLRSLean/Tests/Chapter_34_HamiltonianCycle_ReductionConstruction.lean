@@ -17,6 +17,14 @@ def oneEdgeTwoSelectors : VertexCoverInstance where
 
 example : oneEdgeOneSelector.WellFormed := by decide
 
+example : incidentOccurrences oneEdgeOneSelector 0 =
+    [{ occurrence := 0, rightSide := false }] := by
+  decide
+
+example : incidentOccurrences oneEdgeOneSelector 1 =
+    [{ occurrence := 0, rightSide := true }] := by
+  decide
+
 example : (clrsHamiltonianInstance oneEdgeOneSelector).WellFormed :=
   clrsHamiltonianInstance_wellFormed oneEdgeOneSelector
 
@@ -44,5 +52,6 @@ example : (clrsHamiltonianInstance oneEdgeTwoSelectors).ListRepresentsHamiltonia
 #print axioms incidenceChainEdges_length_le
 #print axioms clrsHamiltonianInstance_wellFormed
 #print axioms vertexCoverToHamiltonianInstance_wellFormed
+#print axioms endpoints_of_mem_incidentOccurrences
 
 end CLRS.Tests.Chapter34HamiltonianCycleReductionConstruction
