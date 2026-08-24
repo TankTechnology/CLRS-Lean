@@ -5583,10 +5583,11 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   semantic chain through CLIQUE / VERTEX-COVER, VERTEX-COVER / HAM-CYCLE,
   HAM-CYCLE / decision-TSP, and 3-CNF-SAT / SUBSET-SUM equivalences.  The
   VERTEX-COVER layer additionally has all-input raw complement semantics,
-  cubic output bounds, exact bounded Boolean certificates, and a fixed
-  polynomial-time raw well-formedness TM2.  The remaining strict-completion
-  boundary is the full serialized reduction/verifier machine layer, runtime
-  bounds, and NP membership/completeness packaging for every §34.5 target.
+  cubic output bounds, exact bounded Boolean certificates, fixed reduction and
+  verifier machines, NP membership, and a proved NP-completeness wrapper.  The
+  remaining strict-completion boundary is HAM-CYCLE's raw reduction/verifier
+  and the raw languages, certificate interfaces, fixed machines, runtime
+  bounds, and NP packaging for TSP and SUBSET-SUM.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
   Open problems (P vs NP) are intentionally out of scope.
 
@@ -5915,10 +5916,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   handled by occurrence counts rather than an unstated distinctness premise.
   The existing VERTEX-COVER layer also has bidirectional typed/raw complement
   semantics, total raw maps, cubic output bounds, exact bounded Boolean
-  certificates, and a fixed polynomial-time raw well-formedness pipeline.  The
-  remaining strict-completion boundary is serialized reduction/verifier
-  machinery, polynomial runtime bounds, and NP membership/NP-completeness
-  packaging for every §34.5 target.
+  certificates, fixed polynomial-time reduction and verifier machines,
+  membership in NP, and the proved theorem `VERTEXCOVER_npComplete`.  The
+  remaining strict-completion boundary is HAM-CYCLE's serialized
+  reduction/verifier machinery and the raw-language, certificate, fixed
+  machine, bit/runtime-bound, and NP-completeness layers for TSP and
+  SUBSET-SUM.
 
 ## Deferred And Blocked Items
 

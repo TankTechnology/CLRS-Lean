@@ -1158,13 +1158,17 @@ checker has exact all-input semantics and the quadratic accepted-certificate
 bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  The fixed
 linear-time {lit}`SyntaxNormalizer.computableInPolyTime` machine preserves
 valid graph syntax and maps parser failure to a canonical ill-formed sentinel.
-The remaining complement and verifier machines, NP membership, and
-NP-completeness remain open.  The independent graph-invariant stage is already
-closed by {lit}`WellFormedGuard.graphComputableInPolyTime`, which composes the
+The graph-invariant stage is closed by
+{lit}`WellFormedGuard.graphComputableInPolyTime`, which composes the
 existing CLIQUE target/order/endpoint machines and proves exact equivalence
 with {lit}`CliqueInstance.WellFormed` on canonical encodings.
 {lit}`RawWellFormed.computableInPolyTime` joins normalization, graph-pair
 formatting, and the guard into one fixed machine over the original raw string.
+The complement emitter and guarded selector compute the total raw reduction,
+and the complement-clique verifier has an all-route polynomial runtime bound.
+Thus {lit}`generalCLIQUE_reducible_to_VERTEXCOVER`,
+{lit}`VERTEXCOVER_mem_ClassNP`, and {lit}`VERTEXCOVER_npComplete`
+close VERTEX-COVER at the strict serialized level.
 
 Theorem layer:
 
@@ -1190,8 +1194,11 @@ Theorem layer:
 
 Open problems such as whether `P = NP` are intentionally out of scope.
 Section 34.5 closes its selected typed textbook chain through VERTEX-COVER,
-HAM-CYCLE, decision-TSP, and SUBSET-SUM.  Complete serialized machines,
-runtime bounds, and NP packaging for those targets remain a stricter layer.
+HAM-CYCLE, decision-TSP, and SUBSET-SUM, and VERTEX-COVER is fully
+NP-complete at the serialized fixed-machine level.  The remaining strict layer
+is HAM-CYCLE's raw reduction/verifier and the raw languages, certificate
+interfaces, fixed machines, runtime bounds, and NP packaging for TSP and
+SUBSET-SUM.
 -/
 
 namespace CLRS

@@ -28,7 +28,7 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The selected typed textbook chain is closed: bidirectional CLIQUE / VERTEX-COVER complement semantics, the total CLRS VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural 3-CNF-SAT-to-SUBSET-SUM equivalence. VERTEX-COVER additionally has total bidirectional raw semantic maps, cubic output bounds, exact bounded Boolean-certificate semantics, and a fixed polynomial-time raw well-formedness pipeline. | Treat typed textbook coverage as complete. For the stricter complexity layer, finish the VERTEX-COVER complement emitter and verifier, package its NP-completeness theorem, then add serialized languages, fixed machines, runtime bounds, and NP wrappers for HAM-CYCLE, TSP, and SUBSET-SUM. |
+| P0 | Chapter 34, §34.5 | The selected typed textbook chain is closed: bidirectional CLIQUE / VERTEX-COVER complement semantics, the total CLRS VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural 3-CNF-SAT-to-SUBSET-SUM equivalence. VERTEX-COVER is also fully closed at the strict layer: total raw reduction, fixed polynomial-time reduction/verifier machines, NP membership, NP-hardness, and NP-completeness. | Keep issue #193 open only for HAM-CYCLE, TSP, and SUBSET-SUM. First close HAM-CYCLE's raw reduction/verifier and NP wrappers; then add honest raw languages, certificate interfaces, fixed machines, bit/runtime bounds, and NP-completeness wrappers for TSP and SUBSET-SUM. |
 
 ## Stable Represented Scope
 
