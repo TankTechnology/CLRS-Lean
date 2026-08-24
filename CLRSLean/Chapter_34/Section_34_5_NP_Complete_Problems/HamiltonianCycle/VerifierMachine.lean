@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.MinimumVertexCount
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.TargetIncrement
 
 /-!
@@ -6,6 +7,7 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Ve
 
 Exports the small fixed-machine components used to realize the serialized
 HAM-CYCLE certificate checker.  They currently decide certificate
-distinctness and transform the target field so the existing CLIQUE
-target-bound machine can distinguish equality from strict inequality.
+distinctness, the three-vertex minimum, and transform the target field so the
+existing CLIQUE target-bound machine can distinguish equality from strict
+inequality.
 -/

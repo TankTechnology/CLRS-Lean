@@ -1,0 +1,8 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.MinimumVertexCount
+
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.MinimumVertexCount.replaceTargetWithThree
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.MinimumVertexCount.computableInPolyTime
+#check CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.MinimumVertexCount.targetBound_replaced_encode_iff
+
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.MinimumVertexCount.computableInPolyTime
+#print axioms CLRS.Chapter34.Turing.HamiltonianCycle.VerifierMachine.MinimumVertexCount.targetBound_replaced_encode_iff
