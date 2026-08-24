@@ -1,0 +1,6 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson
+
+#print axioms CLRS.Chapter34.TSPReduction.tourCost_hamiltonianToTSP
+#print axioms CLRS.Chapter34.TSPReduction.hamiltonianToTSP_complete
+#print axioms CLRS.Chapter34.TSPReduction.hamiltonianToTSP_sound
+#print axioms CLRS.Chapter34.TSPReduction.hamiltonianToTSP_correct

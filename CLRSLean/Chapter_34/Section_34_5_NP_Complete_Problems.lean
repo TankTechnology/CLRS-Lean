@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson
 
 /-!
 # Section 34.5 — NP-complete problems
@@ -17,6 +18,7 @@ Complement-edge generation, the complete reduction and verifier machines,
 and VERTEX-COVER NP-completeness remain open at the raw-machine layer.  At the
 typed textbook layer, the total VERTEX-COVER-to-HAM-CYCLE construction is now
 proved correct in both directions, including the selector-budget argument in
-the soundness proof.  The HAM-CYCLE-to-TSP and 3-CNF-SAT-to-SUBSET-SUM chains
-remain open.
+the soundness proof.  The typed HAM-CYCLE-to-decision-TSP construction is also
+proved correct in both directions using the exact tour-cost identity.  The
+3-CNF-SAT-to-SUBSET-SUM chain remains open.
 -/
