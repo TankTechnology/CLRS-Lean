@@ -1,0 +1,10 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.RawReduction
+
+#check CLRS.Chapter34.GeneralVERTEXCOVER
+#check CLRS.Chapter34.VERTEXCOVER
+#check CLRS.Chapter34.canonicalVertexCoverNoInstance
+#check CLRS.Chapter34.canonicalVertexCoverNoInstance_not_mem
+#check CLRS.Chapter34.cliqueToVertexCoverMap
+#check CLRS.Chapter34.cliqueToVertexCoverMap_mem_VERTEXCOVER_iff
+
+#print axioms CLRS.Chapter34.cliqueToVertexCoverMap_mem_VERTEXCOVER_iff
