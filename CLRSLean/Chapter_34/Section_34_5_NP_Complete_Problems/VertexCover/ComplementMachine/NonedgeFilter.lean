@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Input
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.ComplementMachine.NonedgeFilter.Answers
 
 /-!
 # VERTEX-COVER complement machine: repeated nonedge filter

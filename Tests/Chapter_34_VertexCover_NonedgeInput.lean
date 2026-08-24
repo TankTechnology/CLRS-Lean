@@ -6,7 +6,11 @@ open CLRS.Chapter34.Turing.VertexCover.ComplementMachine.NonedgeFilter
 
 #check inputStream
 #check inputStreamComputableInPolyTime
+#check batchInputComputableInPolyTime
+#check lookupResultsComputableInPolyTime
+#check membershipBitsComputableInPolyTime
 #check complementEdges_eq_filter
 
 #print axioms inputStreamComputableInPolyTime
+#print axioms membershipBitsComputableInPolyTime
 #print axioms complementEdges_eq_filter
