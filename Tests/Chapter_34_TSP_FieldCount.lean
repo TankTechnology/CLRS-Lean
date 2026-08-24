@@ -1,0 +1,9 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldCount
+
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldCount.certificateCountBits_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldCount.weightCountBits_encode
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldCount.certificateCountBitsComputableInPolyTime
+#check CLRS.Chapter34.Turing.TSPVerifier.FieldCount.weightCountBitsComputableInPolyTime
+
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.FieldCount.certificateCountBitsComputableInPolyTime
+#print axioms CLRS.Chapter34.Turing.TSPVerifier.FieldCount.weightCountBitsComputableInPolyTime
