@@ -46,3 +46,5 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.slackOneSlotFields_computableInPolyTime
 #check Turing.SubsetSumReduction.slackFields_eq_items
 #check Turing.SubsetSumReduction.slackFields_computableInPolyTime
+#check Turing.SubsetSumReduction.choiceBatches_eq
+#check Turing.SubsetSumReduction.choiceBatches_computableInPolyTime
