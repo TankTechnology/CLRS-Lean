@@ -123,7 +123,7 @@ Create and verify chapter files in these independently committable bands:
   elementary structures, hashing, and BST correctness.
 - [x] Chapters 13--18: red-black invariants, augmented trees, dynamic
   programming, greedy optimality, amortized analysis, and B-tree operations.
-- [ ] Chapters 19--24: disjoint sets, graph algorithms, MST, shortest paths,
+- [x] Chapters 19--24: disjoint sets, graph algorithms, MST, shortest paths,
   matching, and maximum flow.
 - [ ] Chapters 25--30: matching refinements, parallel algorithms, online
   algorithms, matrix computations, linear programming, and FFT.
