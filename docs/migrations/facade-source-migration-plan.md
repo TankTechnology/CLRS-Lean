@@ -19,12 +19,11 @@ declaration namespace.
 
 **Out of scope (explicit):**
 
-- **Chapter 34** (`NP-Completeness`).  Its facade rows `34.1`–`34.3` are
-  intentionally excluded.  `34.4` is `partial` and `34.5` is `not-started`,
-  so `CLRSLean.Chapter_34` is *not* pure source-location debt — a source move
-  here would confuse source location with theorem coverage (the first "known
-  failed route" in #229).  Chapter 34 remains a compatibility facade until its
-  own coverage work lands.
+- **Chapter 34** (`NP-Completeness`). Its advertised textbook proof boundary
+  became `main-proof-complete` on 2026-08-25. Its large theorem and machine
+  module tree remains excluded from this 47-row migration batch so that native
+  source relocation can be reviewed as a dedicated follow-up, independently of
+  the now-closed proof boundary.
 - **Online/supplementary material** (`migration_state = online-material`).
   Those rows are retained under `CLRSLean.OnlineMaterial` and are already
   handled by the online-material catalog; they are not facade rows.
@@ -206,8 +205,8 @@ have not all passed simply waits, while others proceed.
 - A chapter that is `facade` and `main-proof-complete` stays
   `main-proof-complete` after migration; a `facade` chapter that is `partial`
   stays `partial`.  This is what makes the migration debt *separable* from
-  coverage debt — and why Chapter 34 is excluded (its facade masks `partial` /
-  `not-started` coverage).
+  coverage debt. Chapter 34 is excluded only because its unusually large source
+  relocation is reserved for a dedicated follow-up.
 
 ## 9. Phasing and follow-up structure
 

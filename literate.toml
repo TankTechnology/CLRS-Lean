@@ -882,6 +882,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems",
+  "CLRSLean.Chapter_34.BinaryNat",
 ]
 "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time" = [
   "CLRSLean.Chapter_34.Section_34_1_Polynomial_Time.Composition",
@@ -1243,6 +1244,10 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DropHead",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairSecondProjection",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPairStream",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ExactlyOne.AffineTrace",
@@ -1941,67 +1946,18 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Branch",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Semantics",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Semantics",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Semantics",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Runtime",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Runtime",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Header",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Input",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Load",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Query",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Header",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CounterRestore",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateLeft",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateRight",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.OccurrenceEmit",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Edges",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Cleanup",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Iteration",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.FinalCleanup",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Run",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Emit",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Parse",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Rows",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Family",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Run",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Bounds",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Parse",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Emit",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Rows",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Family",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Run",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Bounds",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsCore",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRun",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsBounds",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRuntime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Source",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Runtime",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Semantics",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Core",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.NondegeneratePrefix",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Source",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Formatter",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints",
-  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Certificate.Basic",
@@ -2078,6 +2034,17 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.DigitPacking",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Instance",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Hardness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NPCompleteness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.CertificateBuilder",
@@ -2090,6 +2057,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.OccurrenceCount",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Soundness",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.VariableBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.RadixBounds",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Extraction.SlackColumns",
@@ -2098,6 +2066,15 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Hardness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Language",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NP",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NPCompleteness",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Construction",
@@ -2143,6 +2120,331 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Length",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Runtime",
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.VerifierMachine.Semantics",
+]
+"CLRSLean.Chapter_34.BinaryNat" = [
+  "CLRSLean.Chapter_34.BinaryNat.Basic",
+  "CLRSLean.Chapter_34.BinaryNat.Length",
+  "CLRSLean.Chapter_34.BinaryNat.Machine",
+  "CLRSLean.Chapter_34.BinaryNat.Parser",
+  "CLRSLean.Chapter_34.BinaryNat.RoundTrip",
+]
+"CLRSLean.Chapter_34.BinaryNat.Machine" = [
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Adder",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Comparator",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Encoder",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Validator",
+]
+"CLRSLean.Chapter_34.BinaryNat.Machine.Adder" = [
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Core",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Run",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Runtime",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Semantics",
+]
+"CLRSLean.Chapter_34.BinaryNat.Machine.Comparator" = [
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Core",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Run",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Runtime",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Semantics",
+]
+"CLRSLean.Chapter_34.BinaryNat.Machine.Encoder" = [
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Core",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Increment",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Run",
+  "CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Basic",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Run",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Runtime",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Core",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Run",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Basic",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Run",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Canonicality",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Parser",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.RoundTrip",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.FiniteSelection",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.BinaryBlocks",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.ItemList",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.NumericBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.SourceBounds",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.BinaryCanonicalizer",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBatchSource",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSource",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockStream",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCompiled",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergePrefix",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeRuntime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeSource",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldCore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldFamily",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldItem",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldRuntime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBatch",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceClause",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompare",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompiled",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceDispatch",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceFormula",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceLiteral",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceOutput",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceRuntime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ClauseCount",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.Dimensions",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedItemFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedRecord",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GuardedReduction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ItemFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackProgressionSource",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SmallDigitBlock",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SymbolCount",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBits",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockSource",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockStream",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetField",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.VariableBudget",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.MaskFlags",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedSum",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedValueFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SumCheck",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Syntax",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SyntaxSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.TargetBits",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.ValueBitFields",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Semantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.UnaryLength",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Canonicality",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Fields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrder",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrderProperties",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Parser",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.RoundTrip",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Symmetry",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Construction",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Length",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Codec",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.CompleteWeights",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalWeights",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Header",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.NormalizedWeights",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawValidity",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RecordEnd",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeights",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Typed",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexCountBits",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightSemantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.BudgetCheck",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CycleMembership",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CyclePairStream",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldCount",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldStream",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.HeaderBits",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightFields",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightSum",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectionFlags",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SquareCount",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.StructuralChecks",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryCheck",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryFlags",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Syntax",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SyntaxSemantics",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryBaseInput",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryCertificate",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.WeightBitFields",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Input",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Formatter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Source",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsBounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsCore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRun",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRuntime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Source",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Runtime",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.CyclePairs",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.Selection",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Basic",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Semantics",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Bounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Emit",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Family",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Parse",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Rows",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Bounds",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Emit",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Family",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Parse",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Rows",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime",
+]
+"CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner" = [
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateLeft",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateRight",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Cleanup",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Core",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CounterRestore",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Edges",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.FinalCleanup",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Header",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Iteration",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Load",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.OccurrenceEmit",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Query",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Run",
+  "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Runtime",
 ]
 [modules."CLRSLean.Chapter_02"]
 title = "Chapter 2. Getting Started"
@@ -7306,3 +7608,702 @@ title = "Extensions Beyond the Textbook"
 
 [modules."CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties"]
 title = "33.1. Line-Segment Properties"
+
+[modules."CLRSLean.Chapter_34.BinaryNat"]
+title = "Chapter 34 support. Compact natural-number fields for strict Chapter 34 languages"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Basic"]
+title = "Chapter 34 support. Canonical compact natural-number fields"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Length"]
+title = "Chapter 34 support. Physical-size bounds for compact natural-number fields"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine"]
+title = "Chapter 34 support. Fixed-machine interface for compact natural-number fields"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Adder"]
+title = "Chapter 34 support. Adder"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Core"]
+title = "Chapter 34 support. Fixed binary adder: controller and word semantics"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Run"]
+title = "Chapter 34 support. Run"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Runtime"]
+title = "Chapter 34 support. Runtime"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Adder.Semantics"]
+title = "Chapter 34 support. Semantics"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Comparator"]
+title = "Chapter 34 support. Comparator"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Core"]
+title = "Chapter 34 support. Fixed binary comparator: controller and word semantics"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Run"]
+title = "Chapter 34 support. Run"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Runtime"]
+title = "Chapter 34 support. Runtime"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Comparator.Semantics"]
+title = "Chapter 34 support. Semantics"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Encoder"]
+title = "Chapter 34 support. Compact binary natural-number encoder machine"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Core"]
+title = "Chapter 34 support. Unary-length to binary encoder: controller and pure counter semantics"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Increment"]
+title = "Chapter 34 support. Exact carry and restoration phases of the binary encoder"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Run"]
+title = "Chapter 34 support. Complete exact run of the unary-length to binary encoder"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Encoder.Runtime"]
+title = "Chapter 34 support. Polynomial runtime of the unary-length to binary encoder"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Machine.Validator"]
+title = "Chapter 34 support. Fixed validator for canonical binary naturals"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.Parser"]
+title = "Chapter 34 support. Parser for canonical compact naturals"
+
+[modules."CLRSLean.Chapter_34.BinaryNat.RoundTrip"]
+title = "Chapter 34 support. Exact laws for canonical compact naturals"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPairStream"]
+title = "34.4. Reusable same-input Boolean pair streams"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum"]
+title = "34.4. Fixed summation of delimited binary words"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Basic"]
+title = "34.4. Summing a stream of delimited binary words"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Run"]
+title = "34.4. Run"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Runtime"]
+title = "34.4. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Semantics"]
+title = "34.4. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq"]
+title = "34.4. List Pair Eq"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Core"]
+title = "34.4. Core"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Run"]
+title = "34.4. Run"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Runtime"]
+title = "34.4. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields"]
+title = "34.4. Fixed selection of delimited binary fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Basic"]
+title = "34.4. Boolean selection of delimited binary fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Run"]
+title = "34.4. Run"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Runtime"]
+title = "34.4. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NPCompleteness"]
+title = "34.5. NPCompleteness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Branch"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: total-construction branch tags"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE branch classifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Core"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: finite-state branch classifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Runtime"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE branch-classifier runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Semantics"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE branch-classifier semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE branch selector"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Core"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: three-way output selector"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE output-selector runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Semantics"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE output-selector semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE incidence rows"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain"]
+title = "34.5. HAM-CYCLE incidence-chain generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints"]
+title = "34.5. HAM-CYCLE incidence-endpoint generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner"]
+title = "34.5. HAM-CYCLE incidence scanner"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary"]
+title = "34.5. Ordinary VERTEX-COVER to HAM-CYCLE branch"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal"]
+title = "34.5. Total raw VERTEX-COVER to HAM-CYCLE reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Core"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: guarded raw target"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Runtime"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: guarded raw runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Semantics"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: guarded raw semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Runtime"]
+title = "34.5. Public fixed VERTEX-COVER to HAM-CYCLE reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique"]
+title = "34.5. HAM-CYCLE selector-clique generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints"]
+title = "34.5. HAM-CYCLE selector-endpoint generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal"]
+title = "34.5. Total typed VERTEX-COVER to HAM-CYCLE reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Core"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: exact total typed target"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: total typed runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics"]
+title = "34.5. VERTEX-COVER to HAM-CYCLE: total typed semantic bridge"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges"]
+title = "34.5. HAM-CYCLE widget-edge generation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge"]
+title = "34.5. Bridge"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Construction"]
+title = "34.5. Enumerating finite SUBSET-SUM instances"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate"]
+title = "34.5. Certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding"]
+title = "34.5. Encoding"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Basic"]
+title = "34.5. Raw finite syntax for SUBSET-SUM"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Canonicality"]
+title = "34.5. Canonicality"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Parser"]
+title = "34.5. Parser"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.RoundTrip"]
+title = "34.5. Round Trip"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Hardness"]
+title = "34.5. Hardness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language"]
+title = "34.5. Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate"]
+title = "34.5. Mask Certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Basic"]
+title = "34.5. Boolean-mask certificates for SUBSET-SUM"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.FiniteSelection"]
+title = "34.5. Finite-set semantics of Boolean selection"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP"]
+title = "34.5. NP"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NPCompleteness"]
+title = "34.5. NPCompleteness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction"]
+title = "34.5. Raw Reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.BinaryBlocks"]
+title = "34.5. Fixed-width binary blocks for the SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Construction"]
+title = "34.5. Construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.ItemList"]
+title = "34.5. Item List"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.NumericBounds"]
+title = "34.5. Numeric Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.SourceBounds"]
+title = "34.5. Source Bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.RadixBounds"]
+title = "34.5. Power-of-two radix bounds for the SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine"]
+title = "34.5. Reduction Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.BinaryCanonicalizer"]
+title = "34.5. Fixed binary canonicalizer for the SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBatchSource"]
+title = "34.5. Runtime batches for the SUBSET-SUM choice items"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSemantics"]
+title = "34.5. Choice blocks: textbook bit semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSource"]
+title = "34.5. Choice blocks: canonical nested-loop source"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockStream"]
+title = "34.5. Choice blocks: fixed nested-loop expansion"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeBounds"]
+title = "34.5. Choice digits: polynomial runtime bound"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCompiled"]
+title = "34.5. Choice digits: source-to-controller composition"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCore"]
+title = "34.5. Choice digits: variable-prefix and occurrence merge"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergePrefix"]
+title = "34.5. Choice digits: one-hot prefix simulation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeRuntime"]
+title = "34.5. Choice digits: canonical merger runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeSource"]
+title = "34.5. Choice digits: canonical merger source"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldCore"]
+title = "34.5. Choice fields: fixed segment formatter"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldFamily"]
+title = "34.5. Choice fields: family simulation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldItem"]
+title = "34.5. Choice fields: one-item simulation"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldRuntime"]
+title = "34.5. Choice fields: compiled polynomial-time formatter"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldSemantics"]
+title = "34.5. Choice fields: generated payload semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBatch"]
+title = "34.5. Choice occurrence counter: dimensions and batch family"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBounds"]
+title = "34.5. Choice occurrence counter: polynomial bounds"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceClause"]
+title = "34.5. Choice occurrence counter: one clause"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompare"]
+title = "34.5. Choice occurrence counter: reversible unary comparison"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompiled"]
+title = "34.5. Choice occurrence counter: source-to-controller composition"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCore"]
+title = "34.5. Choice-item occurrence counter: semantic target and core controller"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceDispatch"]
+title = "34.5. Choice occurrence counter: finite-digit dispatch"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceFormula"]
+title = "34.5. Choice occurrence counter: one formula batch"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceLiteral"]
+title = "34.5. Choice occurrence counter: one literal"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceOutput"]
+title = "34.5. Choice occurrence counter: forward-order output"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceRuntime"]
+title = "34.5. Choice occurrence counter: canonical runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceSemantics"]
+title = "34.5. Bit-block semantics of SUBSET-SUM choice items"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ClauseCount"]
+title = "34.5. Clause Count"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.Dimensions"]
+title = "34.5. Concrete unary dimensions of the SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedItemFields"]
+title = "34.5. Complete generated SUBSET-SUM item fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedRecord"]
+title = "34.5. Complete generated SUBSET-SUM record"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GuardedReduction"]
+title = "34.5. Total guarded SUBSET-SUM reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ItemFields"]
+title = "34.5. Exact item-field boundary for the SUBSET-SUM reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackFields"]
+title = "34.5. Fixed-machine generation of all SUBSET-SUM slack fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackProgressionSource"]
+title = "34.5. Runtime affine source for SUBSET-SUM slack items"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackSemantics"]
+title = "34.5. Closed binary form of SUBSET-SUM slack items"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SmallDigitBlock"]
+title = "34.5. Fixed-width blocks for the five reduction digits"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SymbolCount"]
+title = "34.5. Fixed symbol counters for the SUBSET-SUM reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBits"]
+title = "34.5. Canonical binary target generated from raw CNF input"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockSource"]
+title = "34.5. Runtime source for the SUBSET-SUM target block matrix"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockStream"]
+title = "34.5. Fixed nested-loop generation of the SUBSET-SUM target bits"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetField"]
+title = "34.5. Fixed-machine formatting of the SUBSET-SUM target field"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.VariableBudget"]
+title = "34.5. Variable Budget"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine"]
+title = "34.5. Verifier Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final"]
+title = "34.5. Final SUBSET-SUM verifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.MaskFlags"]
+title = "34.5. Mask Flags"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedSum"]
+title = "34.5. Selected Sum"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedValueFields"]
+title = "34.5. Selected Value Fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SumCheck"]
+title = "34.5. Sum Check"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Syntax"]
+title = "34.5. Fixed syntax checks for SUBSET-SUM instances and mask certificates"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SyntaxSemantics"]
+title = "34.5. Syntax Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.TargetBits"]
+title = "34.5. Target Bits"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.ValueBitFields"]
+title = "34.5. Delimited binary value fields for SUBSET-SUM"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate"]
+title = "34.5. Certificate"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.UnaryLength"]
+title = "34.5. Unary Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding"]
+title = "34.5. Encoding"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Basic"]
+title = "34.5. Raw finite syntax for decision-TSP"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Canonicality"]
+title = "34.5. Canonicality of successful decision-TSP decodes"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Fields"]
+title = "34.5. Delimited compact-natural fields for TSP records"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Length"]
+title = "34.5. Physical lengths of serialized TSP records"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrder"]
+title = "34.5. Canonical complete-matrix pair order for decision-TSP"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrderProperties"]
+title = "34.5. Pair Order Properties"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Parser"]
+title = "34.5. Complete TSP instance and certificate parsers"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.RoundTrip"]
+title = "34.5. Exact round trips for TSP records"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Symmetry"]
+title = "34.5. Symmetry"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Hardness"]
+title = "34.5. Hardness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Language"]
+title = "34.5. Language"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NP"]
+title = "34.5. NP"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NPCompleteness"]
+title = "34.5. NPCompleteness"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction"]
+title = "34.5. Raw Reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Construction"]
+title = "34.5. Serialized HAM-CYCLE to decision-TSP construction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Length"]
+title = "34.5. Length"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine"]
+title = "34.5. HAM-CYCLE to TSP reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Codec"]
+title = "34.5. Codec"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.CompleteWeights"]
+title = "34.5. Complete Weights"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields"]
+title = "34.5. Diagonal Fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalWeights"]
+title = "34.5. Diagonal Weights"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Header"]
+title = "34.5. Header"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields"]
+title = "34.5. Header Fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.NormalizedWeights"]
+title = "34.5. HAM-CYCLE to TSP machine: normalized-pair weights"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector"]
+title = "34.5. Raw Selector"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Core"]
+title = "34.5. Core"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal"]
+title = "34.5. Raw Total"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Core"]
+title = "34.5. Core"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawValidity"]
+title = "34.5. Raw HAM-CYCLE validity guard for the TSP reduction"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RecordEnd"]
+title = "34.5. Record End"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields"]
+title = "34.5. Symmetric Weight Fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeights"]
+title = "34.5. HAM-CYCLE to TSP machine: both orientations of normalized weights"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Typed"]
+title = "34.5. Typed"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexCountBits"]
+title = "34.5. Vertex Count Bits"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens"]
+title = "34.5. Vertex Tokens"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields"]
+title = "34.5. Weight Fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Basic"]
+title = "34.5. HAM-CYCLE to TSP machine: formatting adjacency answers"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Runtime"]
+title = "34.5. Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightSemantics"]
+title = "34.5. HAM-CYCLE to TSP machine: complete weight semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine"]
+title = "34.5. Verifier Machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.BudgetCheck"]
+title = "34.5. Budget Check"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics"]
+title = "34.5. TSP verifier cost semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.CyclePairs"]
+title = "34.5. Cycle Pairs"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.Selection"]
+title = "34.5. Selection"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CycleMembership"]
+title = "34.5. Decision-TSP verifier: normalized cycle membership"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CyclePairStream"]
+title = "34.5. Decision-TSP verifier: cyclic tour-pair stream"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldCount"]
+title = "34.5. Decision-TSP verifier: compact field counts"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldStream"]
+title = "34.5. Decision-TSP verifier: field-bit stream"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final"]
+title = "34.5. Final TSP verifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Basic"]
+title = "34.5. Basic"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Semantics"]
+title = "34.5. Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.HeaderBits"]
+title = "34.5. Decision-TSP verifier: compact header projections"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightFields"]
+title = "34.5. Decision-TSP verifier: selected weight fields"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightSum"]
+title = "34.5. Selected Weight Sum"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectionFlags"]
+title = "34.5. Decision-TSP verifier: matrix-aligned selection flags"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SquareCount"]
+title = "34.5. Decision-TSP verifier: square the certificate field count"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.StructuralChecks"]
+title = "34.5. Decision-TSP verifier: cardinality and matrix-shape checks"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryCheck"]
+title = "34.5. Symmetry Check"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryFlags"]
+title = "34.5. Decision-TSP verifier: orientation-selection flags"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Syntax"]
+title = "34.5. Decision-TSP verifier: fixed record-syntax checks"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SyntaxSemantics"]
+title = "34.5. Exact semantics of the decision-TSP syntax automata"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryBaseInput"]
+title = "34.5. Decision-TSP verifier: reusable unary-certificate checks"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryCertificate"]
+title = "34.5. Decision-TSP verifier: unary tour certificates"
+
+[modules."CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.WeightBitFields"]
+title = "34.5. Decision-TSP verifier: delimited binary weight fields"

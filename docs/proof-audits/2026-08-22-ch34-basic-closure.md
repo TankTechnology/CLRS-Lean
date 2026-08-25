@@ -1,5 +1,10 @@
 # Chapter 34 basic textbook closure — 2026-08-22
 
+> **Historical checkpoint.** Superseded on 2026-08-25: the general CLIQUE and
+> selected Section 34.5 chains are now closed, and Chapter 34 is
+> `main-proof-complete` at its advertised textbook boundary. The remaining-gap
+> discussion below is retained as dated audit evidence.
+
 ## Outcome
 
 The main Cook--Levin theorem was already closed before this checkpoint:

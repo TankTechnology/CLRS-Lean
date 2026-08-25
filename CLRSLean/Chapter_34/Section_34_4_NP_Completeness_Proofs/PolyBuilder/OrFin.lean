@@ -66,7 +66,7 @@ def affineAndFinGateStream (frames : List AffineAndFinPairFrame) :
   frames.flatMap fun frame => affineAndGateStream frame.right frame.left
 
 /-- Structural relabeling of a component instruction. -/
-private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
+private def orFinRelabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
     Op Γ Δ Λ → Op Γ Δ Μ
   | .pushOutput symbol next => .pushOutput symbol (tag next)
   | .pushWork₁ symbol next => .pushWork₁ symbol (tag next)
@@ -135,12 +135,12 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .clearMarker =>
         .popWork₁ (.loader unaryTripleLoaderProgram.main) (fun _ => .invalid)
     | .loader .ready => .popWork₁ .orSeed (fun _ => .invalid)
-    | .loader label => relabelOp .loader
+    | .loader label => orFinRelabelOp .loader
         (unaryTripleLoaderProgram.op label)
     | .orSeed =>
         .pushWork₁ .tick (.orCore (.kernel (.suffixOr .next)))
     | .orCore .finish => .popWork₁ .check (fun _ => .invalid)
-    | .orCore label => relabelOp .orCore
+    | .orCore label => orFinRelabelOp .orCore
         (affineExactlyOneFamilyRevProgram.op label)
     | .andCheck => .popInput .finish fun
         | .tick => .andClearMarker
@@ -152,10 +152,10 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .andLoader .ready =>
         .popWork₁ (.andCore (.kernel (.conjunction .push)))
           (fun _ => .invalid)
-    | .andLoader label => relabelOp .andLoader
+    | .andLoader label => orFinRelabelOp .andLoader
         (unaryTripleLoaderProgram.op label)
     | .andCore .finish => .popWork₁ .andCheck (fun _ => .invalid)
-    | .andCore label => relabelOp .andCore
+    | .andCore label => orFinRelabelOp .andCore
         (affineExactlyOneFamilyRevProgram.op label)
     | .andToFamilyClear => .popWork₁ .familyCheck (fun _ => .invalid)
     | .narrowSeed => .pushOutput .constFalseMark .narrowCheck
@@ -167,12 +167,12 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
         .popWork₁ (.narrowLoader unaryTripleLoaderProgram.main)
           (fun _ => .invalid)
     | .narrowLoader .ready => .popWork₁ .narrowOrSeed (fun _ => .invalid)
-    | .narrowLoader label => relabelOp .narrowLoader
+    | .narrowLoader label => orFinRelabelOp .narrowLoader
         (unaryTripleLoaderProgram.op label)
     | .narrowOrSeed =>
         .pushWork₁ .tick (.narrowOrCore (.kernel (.suffixOr .next)))
     | .narrowOrCore .finish => .popWork₁ .narrowCheck (fun _ => .invalid)
-    | .narrowOrCore label => relabelOp .narrowOrCore
+    | .narrowOrCore label => orFinRelabelOp .narrowOrCore
         (affineExactlyOneFamilyRevProgram.op label)
     | .narrowNotClearMarker =>
         .popWork₁ (.narrowNotLoader unaryTripleLoaderProgram.main)
@@ -180,10 +180,10 @@ def affineOrFinRevProgram : Program UnaryFrameSym CircuitSym where
     | .narrowNotLoader .ready =>
         .popWork₁ (.narrowNotCore (.kernel (.singleNot .push)))
           (fun _ => .invalid)
-    | .narrowNotLoader label => relabelOp .narrowNotLoader
+    | .narrowNotLoader label => orFinRelabelOp .narrowNotLoader
         (unaryTripleLoaderProgram.op label)
     | .narrowNotCore .finish => .popWork₁ .finish (fun _ => .invalid)
-    | .narrowNotCore label => relabelOp .narrowNotCore
+    | .narrowNotCore label => orFinRelabelOp .narrowNotCore
         (affineExactlyOneFamilyRevProgram.op label)
     | .familyCheck => .popInput .finish fun
         | .separator => .familyOpenClear
@@ -294,13 +294,13 @@ private def liftNarrowNotCfg
 private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineOrFinLabel)
     (op : Op UnaryFrameSym CircuitSym P.Label) (c : BuilderCfg P) :
-    stepOp (relabelOp tag op) (relabelCfg tag c) =
+    stepOp (orFinRelabelOp tag op) (relabelCfg tag c) =
       relabelCfg tag (stepOp op c) := by
   rcases c with
     ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
       counter₁, counter₂, counter₃⟩
   cases op <;>
-    simp only [relabelOp, relabelCfg, stepOp] <;>
+    simp only [orFinRelabelOp, relabelCfg, stepOp] <;>
     first
     | rfl
     | split <;> rfl
@@ -308,50 +308,50 @@ private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
 private theorem affineOrFin_op_loader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineOrFinRevProgram.op (.loader label) =
-      relabelOp .loader (unaryTripleLoaderProgram.op label) := by
+      orFinRelabelOp .loader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_andLoader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineOrFinRevProgram.op (.andLoader label) =
-      relabelOp .andLoader (unaryTripleLoaderProgram.op label) := by
+      orFinRelabelOp .andLoader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_narrowLoader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineOrFinRevProgram.op (.narrowLoader label) =
-      relabelOp .narrowLoader (unaryTripleLoaderProgram.op label) := by
+      orFinRelabelOp .narrowLoader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_narrowNotLoader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineOrFinRevProgram.op (.narrowNotLoader label) =
-      relabelOp .narrowNotLoader (unaryTripleLoaderProgram.op label) := by
+      orFinRelabelOp .narrowNotLoader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_orCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineOrFinRevProgram.op (.orCore label) =
-      relabelOp .orCore (affineExactlyOneFamilyRevProgram.op label) := by
+      orFinRelabelOp .orCore (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_andCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineOrFinRevProgram.op (.andCore label) =
-      relabelOp .andCore (affineExactlyOneFamilyRevProgram.op label) := by
+      orFinRelabelOp .andCore (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_narrowOrCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineOrFinRevProgram.op (.narrowOrCore label) =
-      relabelOp .narrowOrCore
+      orFinRelabelOp .narrowOrCore
         (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 
 private theorem affineOrFin_op_narrowNotCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineOrFinRevProgram.op (.narrowNotCore label) =
-      relabelOp .narrowNotCore
+      orFinRelabelOp .narrowNotCore
         (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineOrFinRevProgram] <;> rfl
 

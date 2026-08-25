@@ -45,10 +45,15 @@ class FourthEditionContractTest(unittest.TestCase):
             ),
         )
 
-    def test_contract_counts_chapter_34_unrepresented_section(self) -> None:
+    def test_contract_records_closed_chapter_34(self) -> None:
         contracts = check_progress_csv.chapter_contracts()
 
-        self.assertEqual(contracts[34]["required_edition_gap_units"], 1)
+        self.assertEqual(
+            contracts[34]["represented_sections"],
+            ("34.1", "34.2", "34.3", "34.4", "34.5"),
+        )
+        self.assertIsNone(contracts[34]["required_status"])
+        self.assertEqual(contracts[34]["required_edition_gap_units"], 0)
 
     def test_contract_rejects_unknown_or_padded_migration_state(self) -> None:
         for invalid_state in ("parital", " facade "):
@@ -76,10 +81,11 @@ class FourthEditionContractTest(unittest.TestCase):
         )
 
     def test_partial_chapter_must_have_positive_gap_units(self) -> None:
-        # Pick a chapter that is currently partial rather than a hardcoded row
-        # index, since chapters graduate to `main-proof-complete` over time.
+        # Exercise the defensive partial-row contract with a synthetic status;
+        # the live ledger currently has no partial chapters.
         rows = [row.copy() for row in load_rows()]
-        partial = next(row for row in rows if row["repo_status"] == "partial")
+        partial = rows[1]
+        partial["repo_status"] = "partial"
         partial["edition_gap_units"] = "0"
 
         with self.assertRaisesRegex(SystemExit, "positive edition_gap_units"):
@@ -115,8 +121,11 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertIn(total_tracked, dashboard)
         self.assertIn("selected proof inventory", normalized)
         self.assertIn("does not by itself mean that every fourth-edition section obligation is covered", normalized)
-        self.assertIn("partial (edition coverage)", dashboard)
+        self.assertIn("{lit}`main-proof-complete`: 34 chapters", dashboard)
+        self.assertNotIn("* {lit}`partial`:", dashboard)
         self.assertIn("Remaining edition-coverage units", dashboard)
+        self.assertIn("Remaining edition-coverage units: 0", dashboard)
+        self.assertIn("34  34. NP-Completeness", dashboard)
         self.assertIn(
             "one unresolved section in a represented chapter", normalized
         )

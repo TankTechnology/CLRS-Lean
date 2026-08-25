@@ -86,10 +86,12 @@ for boundary shifts, exchange certificates, fibers, and interval geometry.
 The canonical public chapter sequence is CLRS fourth edition, Chapters 1--35.
 {lit}`docs/clrs-fourth-edition-map.csv` owns the section-level bridge from that
 sequence to current theorem-bearing sources.  All 35 chapter guides now point
-to represented source; the generated dashboard and proof-status page preserve
-the exact remaining partial boundary for Chapter 34.  Third-edition-only
-Fibonacci heaps, van Emde Boas trees, computational geometry, and moved section
-material live under {lit}`CLRSLean.OnlineMaterial`.  Progress counts are
+to represented source.  Chapter 34 is main-proof-complete at its advertised
+textbook boundary: the checked chain reaches Cook--Levin, GeneralCircuitSAT,
+SAT, 3-CNF-SAT, general CLIQUE, VERTEX-COVER, HAM-CYCLE, decision-TSP, and
+SUBSET-SUM.  Third-edition-only Fibonacci heaps, van Emde Boas trees,
+computational geometry, and moved section material live under
+{lit}`CLRSLean.OnlineMaterial`.  Progress counts are
 selected theorem inventories rather than counts of every fourth-edition
 textbook obligation.
 
