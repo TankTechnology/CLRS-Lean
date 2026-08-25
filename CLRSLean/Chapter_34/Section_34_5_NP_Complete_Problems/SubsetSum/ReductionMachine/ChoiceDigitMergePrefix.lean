@@ -43,6 +43,13 @@ private def restoreTemplateSteps : Nat → Nat
   | 0 => 1
   | count + 1 => restoreTemplateSteps count + 1
 
+/-- Exact controller cost for producing one one-hot prefix and restoring the
+persistent variable template. -/
+def choiceDigitMergePrefixSteps (before after : Nat) : Nat :=
+  restoreTemplateSteps (before + 1 + after) +
+    (restoreIndexSteps before +
+      (prefixAfterSteps after + prefixBeforeSteps before))
+
 private def choiceDigitMerge_prefixBefore_run
     (first : ChoiceCountSym) (before after saved : Nat)
     (tail work₂ : List ChoiceDigitMergeSym)
@@ -224,9 +231,7 @@ def choiceDigitMerge_prefix_run
           List.replicate after zeroDigit).reverse ++ output)
         (List.replicate (before + 1 + after) .variableTick)
         [] (before + 1) 0))
-      (restoreTemplateSteps (before + 1 + after) +
-        (restoreIndexSteps before +
-          (prefixAfterSteps after + prefixBeforeSteps before))) := by
+      (choiceDigitMergePrefixSteps before after) := by
   have firstRun := choiceDigitMerge_prefixBefore_run first before after 0
     tail [] output buffer₁ buffer₂ test
   have afterRun := choiceDigitMerge_prefixAfter_run first after tail
@@ -257,7 +262,7 @@ def choiceDigitMerge_prefix_run
     (restoreTemplateSteps (before + (after + 1))) _ _ _ throughIndex
     (by simpa only [Nat.zero_add] using restoreTemplate)
   convert full using 1 <;>
-    simp [zeroDigit, List.reverse_append,
+    simp [choiceDigitMergePrefixSteps, zeroDigit, List.reverse_append,
       List.append_assoc, Nat.add_assoc, Nat.add_comm,
       Nat.add_left_comm]
 
