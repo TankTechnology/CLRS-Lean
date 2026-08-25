@@ -28,13 +28,13 @@ owns live totals and status counts.
 
 | Priority | Fourth-edition scope | Current boundary | Next acceptance target |
 | --- | --- | --- | --- |
-| P0 | Chapter 34, §34.5 | The selected typed textbook chain is closed: bidirectional CLIQUE / VERTEX-COVER complement semantics, the total CLRS VERTEX-COVER-to-HAM-CYCLE gadget equivalence, the exact HAM-CYCLE-to-decision-TSP equivalence, and the carry-free indexed-natural 3-CNF-SAT-to-SUBSET-SUM equivalence. VERTEX-COVER and HAM-CYCLE are also fully closed at the strict layer: total raw reductions, fixed polynomial-time reduction/verifier machines, NP membership, NP-hardness, and NP-completeness. | Keep issue #193 open only for TSP and SUBSET-SUM. Add their honest raw languages, certificate interfaces, fixed machines, bit/runtime bounds, and NP-completeness wrappers. |
+| — | Chapter 34 | The advertised Chapter 34 boundary is closed. Cook--Levin, GeneralCircuitSAT, SAT, 3-CNF-SAT, general CLIQUE, VERTEX-COVER, HAM-CYCLE, decision-TSP, and SUBSET-SUM are connected by the selected exact semantic bridges and fixed polynomial-time machines; the advertised decision problems have NP-completeness wrappers. | No Chapter 34 P0 remains. A standalone SAT verifier and direct concrete machines for the empty and universal languages are optional refinements. |
 
 ## Stable Represented Scope
 
 All 35 fourth-edition chapters now have represented theorem content. Chapter 34
-is the only row still marked `partial`; every other chapter retains the more
-precise `main-proof-complete`, `main-proof-complete-for-correctness`,
+is `main-proof-complete`; every chapter retains the precise
+`main-proof-complete`, `main-proof-complete-for-correctness`,
 `selected-section-complete`, or `expository` status recorded in the progress
 ledger. These labels seal only the advertised Lean model and represented
 sections. Optional pointer mutation, RAM/cache accounting, numerical error,
@@ -47,8 +47,7 @@ inventories are disjoint; compatibility imports do not duplicate their counts.
 
 ## Scheduling Rule
 
-Prefer closing the named Chapter 34 boundary over adding helper lemmas to an
-already sealed chapter. Every implementation task should state its textbook
+Chapter 34 no longer has a priority exception. Every implementation task should state its textbook
 section, abstraction level, public theorem boundary, and focused verification
 target before proof work begins. Update the map and progress ledger in the same
 commit that changes the advertised boundary.
