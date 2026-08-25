@@ -65,3 +65,5 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceOccurrenceBatchFamilyInput_eq_choiceBatches
 #check Turing.SubsetSumReduction.choiceOccurrence_cleanupRun
 #check Turing.SubsetSumReduction.choiceOccurrenceCanonical_run
+#check Turing.SubsetSumReduction.choiceOccurrenceCanonicalSteps_le
+#check Turing.SubsetSumReduction.choiceOccurrenceCountsRev_fromBatches_computableInPolyTime
