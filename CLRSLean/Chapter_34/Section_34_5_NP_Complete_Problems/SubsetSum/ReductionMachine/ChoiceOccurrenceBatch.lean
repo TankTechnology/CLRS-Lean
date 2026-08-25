@@ -138,11 +138,11 @@ def choiceOccurrenceBatchFamilySteps (truth : Bool)
   (List.range' start count).map (fun index =>
     choiceOccurrenceBatchSteps truth index width variableCount formula) |>.sum
 
-private def choiceOccurrenceFamilyBuffer (count : Nat)
+def choiceOccurrenceFamilyBuffer (count : Nat)
     (initial : Option ChoiceBatchSym) : Option ChoiceBatchSym :=
   if count = 0 then initial else some .batchEnd
 
-private def choiceOccurrenceFamilyTest (formula : CNF) (count : Nat)
+def choiceOccurrenceFamilyTest (formula : CNF) (count : Nat)
     (initial : Bool) : Bool :=
   if count = 0 then initial else if formula.isEmpty then initial else false
 

@@ -61,3 +61,7 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceOccurrence_formulaRun
 #check Turing.SubsetSumReduction.choiceOccurrence_batchRun
 #check Turing.SubsetSumReduction.choiceOccurrence_batchFamilyRun
+#check Turing.SubsetSumReduction.choiceOccurrenceBatchInput_eq_payload
+#check Turing.SubsetSumReduction.choiceOccurrenceBatchFamilyInput_eq_choiceBatches
+#check Turing.SubsetSumReduction.choiceOccurrence_cleanupRun
+#check Turing.SubsetSumReduction.choiceOccurrenceCanonical_run
