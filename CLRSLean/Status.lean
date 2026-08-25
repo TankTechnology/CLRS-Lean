@@ -41,17 +41,14 @@ in Lean; no chapter remains {lit}`not-started`.  The generated dashboard owns
 live theorem totals and status counts, so this prose does not freeze a
 completed-prefix milestone.
 
-The edition map records one partially represented coverage unit in Chapter 34:
-§34.5 has bidirectional typed and raw CLIQUE / VERTEX-COVER complement
-semantics, cubic output-length bounds, and exact bounded certificate semantics.
-Its selected typed textbook chain is now closed through the proved
-VERTEX-COVER-to-HAM-CYCLE, HAM-CYCLE-to-decision-TSP, and
-3-CNF-SAT-to-SUBSET-SUM equivalences.  VERTEX-COVER and HAM-CYCLE additionally
-have total fixed polynomial-time reduction machines, fixed polynomial-time
-verifiers, membership in NP, and proved NP-completeness theorems.  The remaining
-strict machine layer belongs to TSP and SUBSET-SUM.  Chapter 34 is the sole
-repository row whose status remains
-{lit}`partial`.
+Chapter 34 is now {lit}`main-proof-complete` at its advertised boundary.
+Section 34.5 closes the selected textbook chain through VERTEX-COVER,
+HAM-CYCLE, decision-TSP, and SUBSET-SUM.  Each public decision problem has its
+honest serialized language and certificate interface, fixed polynomial-time
+reduction and verifier machines, exact semantic bridge, and NP-completeness
+wrapper.  A standalone SAT verifier and direct concrete machines for the empty
+and universal languages remain optional refinements; they do not reopen the
+chapter boundary.
 
 * **Chapter 34, NP-Completeness:** Sections 34.1--34.3 provide the complexity
   framework, `P ⊆ NP`, and polynomial-reduction infrastructure.  Section 34.4
@@ -104,16 +101,15 @@ repository row whose status remains
   bounded certificate semantics, fixed verifier, and guarded fixed reduction
   machine now yield {lit}`HAMCYCLE_mem_ClassNP`,
   {lit}`VERTEXCOVER_reducible_to_HAMCYCLE`, and
-  {lit}`HAMCYCLE_npComplete`.  The HAM-CYCLE-to-decision-TSP construction has an exact tour-cost
-  identity and a proved equivalence.  The indexed natural-number
-  3-CNF-SAT-to-SUBSET-SUM construction has explicit carry-free column packing,
-  a satisfying-assignment certificate, inverse assignment extraction, and a
-  proved equivalence that supports duplicate literal occurrences.  Concrete
-  serialized reduction and verifier machines, their polynomial runtime bounds,
-  and NP membership/completeness packaging for TSP and SUBSET-SUM remain open.
-  A standalone concrete SAT NP
-  verifier is an optional refinement, not a dependency of the completed
-  hardness chain.
+  {lit}`HAMCYCLE_npComplete`.  The exact HAM-CYCLE-to-decision-TSP tour-cost
+  bridge is lifted to an honest raw language, bounded certificate semantics,
+  fixed reduction and verifier machines, and {lit}`TSP_npComplete`.  The
+  indexed natural-number 3-CNF-SAT-to-SUBSET-SUM construction has explicit
+  carry-free column packing, assignment and inverse-assignment semantics, a
+  total guarded bit-level generator with a polynomial runtime bound, a fixed
+  verifier, and {lit}`SUBSETSUM_npComplete`; duplicate literal occurrences are
+  supported.  A standalone concrete SAT NP verifier is an optional refinement,
+  not a dependency of the completed hardness chain.
 
 All other represented chapters retain their more specific complete,
 correctness-complete, selected-section-complete, or expository labels from the

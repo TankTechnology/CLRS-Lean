@@ -5562,7 +5562,7 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time.lean`
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/Composition.lean`
   - `CLRSLean/Chapter_34/Section_34_1_Polynomial_Time/AndOr.lean`
-- Status: `partial` — green-field NP-completeness formalization on Mathlib's
+- Status: `main-proof-complete` — green-field NP-completeness formalization on Mathlib's
   `Turing.TM2ComputableInPolyTime` (machine-level polynomial-time
   computability with `Polynomial ℕ` time bounds).
 - Proved results: the framework — `Language` (a set of strings over an
@@ -5577,16 +5577,14 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `Turing.TM2AndOr.andOrMachine` (a four-phase machine that duplicates the
   input onto both deciders' stacks, runs `M₁` then `M₂`, and combines the two
   `Bool` results with AND/OR).
-- Current gap: the empty/universal languages (concrete machine constructions
-  for `∅` and `Σ*`).
-- Remaining chapter scope: Section 34.5 now closes the selected typed textbook
-  semantic chain through CLIQUE / VERTEX-COVER, VERTEX-COVER / HAM-CYCLE,
-  HAM-CYCLE / decision-TSP, and 3-CNF-SAT / SUBSET-SUM equivalences.  The
-  VERTEX-COVER and HAM-CYCLE layers additionally have honest all-input raw
-  semantics, bounded certificates, fixed reduction and verifier machines, NP
-  membership, and proved NP-completeness wrappers.  The remaining strict-
-  completion boundary is the raw languages, certificate interfaces, fixed
-  machines, runtime bounds, and NP packaging for TSP and SUBSET-SUM.
+- Optional refinements: direct concrete machines for the empty and universal
+  languages (`∅` and `Σ*`) are not part of the advertised chapter boundary.
+- Remaining chapter scope: none at the advertised boundary.  Section 34.5
+  closes the selected typed and strict serialized chain through CLIQUE /
+  VERTEX-COVER, VERTEX-COVER / HAM-CYCLE, HAM-CYCLE / decision-TSP, and
+  3-CNF-SAT / SUBSET-SUM.  Each target has honest all-input raw semantics,
+  bounded certificates, fixed reduction and verifier machines, NP membership,
+  and a proved NP-completeness wrapper.
   The assembled SAT ≤_P 3-CNF-SAT machine reduction is proved in Section 34.4.
   Open problems (P vs NP) are intentionally out of scope.
 
@@ -5676,7 +5674,7 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/NP.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction.lean`
   - `CLRSLean/Chapter_34/Section_34_4_NP_Completeness_Proofs/GeneralClique/OccurrenceReduction/Machine.lean`
-- Status: `partial` — general-circuit semantics, its honest canonical wire
+- Status: `main-proof-complete` — general-circuit semantics, its honest canonical wire
   format, and exact finite-certificate semantics are available.  A concrete
   polynomial-time certificate checker proves `GeneralCircuitSAT ∈ NP`.
   Cook--Levin has both its semantic-and-size package and a fixed polynomial-
@@ -5704,8 +5702,11 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `WellFormedGuard.graphComputableInPolyTime` reuses the existing CLIQUE
   passes for exact graph-invariant checking, and
   `RawWellFormed.computableInPolyTime` joins the phases from the original raw
-  input.  Complement generation and the rest of machine-level closure remain
-  open.
+  input.  Complement generation, guarded selection, and complement-clique
+  verification close the total reduction and NP-verification layers.  The
+  subsequent HAM-CYCLE, decision-TSP, and SUBSET-SUM modules likewise close
+  their honest raw languages, bounded certificates, fixed polynomial-time
+  machines, and NP-completeness wrappers.
 - Proved results: the general acyclic circuit layer defines ordered Boolean
   gates with fan-out, well-formedness, evaluation, and local gate equations;
   `Circuit.evalValues_getElem_eq_gateEquation` connects execution to those
@@ -5904,8 +5905,9 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   `SatTo3CNFMachine`, and the general-CLIQUE occurrence-reduction machine expose
   the assembled reductions; the honest public `CLIQUE` language is
   NP-complete.
-- Remaining chapter scope: Section 34.5 is complete at the selected typed
-  textbook semantic layer.  `vertexCoverToHamiltonianInstance_correct` proves
+- Remaining chapter scope: none at the advertised boundary.  Section 34.5 is
+  complete at both the selected textbook semantic and strict serialized
+  layers.  `vertexCoverToHamiltonianInstance_correct` proves
   the total CLRS edge-gadget construction in both directions, including the
   selector-budget argument; `hamiltonianToTSP_correct` proves the exact
   decision-TSP bridge through its tour-cost identity; and
@@ -5917,11 +5919,12 @@ The sources below are the canonical fourth-edition Sections 32.1–32.5; the leg
   semantics, total raw maps, cubic output bounds, exact bounded Boolean
   certificates, fixed polynomial-time reduction and verifier machines,
   membership in NP, and the proved theorem `VERTEXCOVER_npComplete`.  The
-  HAM-CYCLE layer now additionally has honest raw language and certificate
-  semantics, a fixed verifier, a total guarded fixed reduction machine, and the
-  proved theorem `HAMCYCLE_npComplete`.  The remaining strict-completion
-  boundary is the raw-language, certificate, fixed-machine, bit/runtime-bound,
-  and NP-completeness layers for TSP and SUBSET-SUM.
+  HAM-CYCLE layer has an honest raw language and certificate semantics, a fixed
+  verifier, a total guarded fixed reduction machine, and the proved theorem
+  `HAMCYCLE_npComplete`.  TSP has the corresponding exact raw bridge, verifier,
+  reduction machine, runtime bounds, and `TSP_npComplete`.  SUBSET-SUM has an
+  honest raw language, bounded certificates, a fixed verifier, a total guarded
+  bit/radix generator with polynomial runtime, and `SUBSETSUM_npComplete`.
 
 ## Deferred And Blocked Items
 
