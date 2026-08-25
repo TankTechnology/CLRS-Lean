@@ -32,3 +32,9 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.targetPackedBitsLE_computableInPolyTime
 #check Turing.SubsetSumReduction.targetBits_eq
 #check Turing.SubsetSumReduction.targetBits_computableInPolyTime
+#check Turing.SubsetSumReduction.itemBitPayloads_eq_families
+#check Turing.SubsetSumReduction.itemBitPayloads_eq_values
+#check Turing.SubsetSumReduction.itemFields_eq
+#check Turing.SubsetSumReduction.typedRecord_eq
+#check Turing.SubsetSumReduction.targetField_eq
+#check Turing.SubsetSumReduction.targetField_computableInPolyTime
