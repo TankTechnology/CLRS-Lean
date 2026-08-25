@@ -119,7 +119,7 @@ elaboration and `#guard_msgs`, Python's standard library, Lake, GitHub Actions.
 
 Create and verify chapter files in these independently committable bands:
 
-- [ ] Chapters 7--12: randomized quicksort, sorting lower bounds, selection,
+- [x] Chapters 7--12: randomized quicksort, sorting lower bounds, selection,
   elementary structures, hashing, and BST correctness.
 - [ ] Chapters 13--18: red-black invariants, augmented trees, dynamic
   programming, greedy optimality, amortized analysis, and B-tree operations.
