@@ -4,8 +4,8 @@
 This page gives a concise reader-facing interpretation of CLRS-Lean's canonical
 fourth-edition proof state.  The generated **Progress Dashboard** owns chapter
 counts and status rows; {lit}`docs/clrs-fourth-edition-map.csv` owns the bridge
-to current theorem-bearing sources; section modules own formal truth; and
-{lit}`docs/proof-map.md` records theorem-level legacy-source detail.
+to current theorem-bearing sources; section modules and interface tests own
+formal truth; and {lit}`docs/scope.md` records the project-wide claim boundary.
 
 ## Edition And Compatibility Contract
 
@@ -132,7 +132,7 @@ The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 44 groups are disjoint from the 1,603 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,609 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.

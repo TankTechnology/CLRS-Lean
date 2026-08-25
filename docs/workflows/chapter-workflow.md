@@ -75,11 +75,11 @@ publishing, release, or website task.
 
 Update:
 
-- `docs/proof-map.md`;
 - the relevant `CLRSLean/Chapter_XX.lean` page;
 - `docs/clrs-proof-progress.csv` and the generated dashboard when chapter
   coverage changes;
-- `docs/proof-status-board.md` only when planning priorities change;
+- a focused interface test when the public declaration surface changes;
+- a GitHub issue when deferred work or priorities change;
 - **`literate.toml` (REQUIRED for new or renamed sections)**:
   add the module to `[order_children]` and add a `[modules."..."]` title
   entry.  If you skip this, the section will still build but the configured

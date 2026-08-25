@@ -117,8 +117,9 @@ current declaration namespaces, and the cleanup policy.
 The machine-readable source for chapter rows is
 {lit}`docs/clrs-proof-progress.csv`, interpreted through
 {lit}`docs/clrs-fourth-edition-map.csv`.  The public **Progress Dashboard** is
-generated from the progress CSV.  The longer maintainer theorem ledger is
-{lit}`docs/proof-map.md`.
+generated from the progress CSV.  Exact theorem names and boundaries live in
+the section modules and their focused interface tests; {lit}`docs/scope.md`
+states the project-wide claim boundary.
 
 ## Library Shape
 

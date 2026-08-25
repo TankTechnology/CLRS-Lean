@@ -128,8 +128,9 @@ Notable results across the library:
 - **Ch29** — reusable linear-programming formulations and duality results;
   detailed SIMPLEX material is retained in the online-material catalog.
 
-See the [proof status board](docs/proof-status-board.md) for the scheduling
-view and the [proof map](docs/proof-map.md) for theorem-level detail.
+See the generated progress dashboard for chapter-level coverage, the
+[scope statement](docs/scope.md) for the advertised boundary, and
+[GitHub issues](https://github.com/TankTechnology/CLRS-Lean/issues) for future work.
 
 
 ## Repository Architecture
@@ -147,7 +148,7 @@ CLRSLean/Progress.lean            generated public progress dashboard
 CLRSLean/Status.lean              concise reader-facing status page
 CLRSLean/Workflow.lean            public contribution workflow
 Tests/                            stable interface and closure checks
-docs/                             maintainer ledgers, design notes, and audits
+docs/                             scope, coverage ledgers, proof patterns, and audits
 scripts/                          metadata, site, and repository checks
 literate.toml                    Verso navigation and page titles
 ```
@@ -163,9 +164,8 @@ The detailed dependency and ownership rules are in
 | What does a chapter number mean? | `docs/clrs-fourth-edition-map.csv` |
 | What is the public theorem interface? | Section `.lean` files and `Tests/` |
 | What is the chapter-level progress snapshot? | `docs/clrs-proof-progress.csv` |
-| What theorem names and proof boundaries exist? | `docs/proof-map.md` |
-| What should be worked on next? | `docs/proof-status-board.md` |
-| What is blocked or deliberately deferred? | `docs/status/blocked-and-deferred.md` |
+| What boundary does the project advertise? | `docs/scope.md` |
+| What should be worked on next? | GitHub issues |
 | What appears on the website? | `CLRSLean.lean`, chapter guides, and `literate.toml` |
 
 `CLRSLean/Progress.lean` is generated from the CSV.  It should never be edited
@@ -259,8 +259,8 @@ A theorem-producing change should update code and status together:
 2. Consult `docs/clrs-fourth-edition-map.csv` and update the canonical
    `CLRSLean/FourthEdition/Chapter_NN.lean` guide when the advertised boundary
    changes.
-3. Update `docs/clrs-proof-progress.csv` and `docs/proof-map.md` when coverage
-   changes.
+3. Update `docs/clrs-proof-progress.csv`, the chapter guide, and the relevant
+   interface test when the advertised coverage changes.
 4. Regenerate the public dashboard and README progress table:
 
    ```bash

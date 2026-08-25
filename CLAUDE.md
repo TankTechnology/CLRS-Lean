@@ -42,8 +42,9 @@ CLAUDE.md                     ← this file
 docs/
   clrs-fourth-edition-map.csv ← canonical edition/section/source bridge
   clrs-proof-progress.csv     ← chapter-level status source
+  scope.md                    ← advertised project boundary
   migrations/clrs4.md         ← import and deprecation policy
-  proof-map.md                ← detailed theorem ledger
+  proof-patterns/             ← reusable proof-engineering lessons
 Tests/                        ← interface and closure tests
 scripts/check_repository.py  ← fast repository-wide checks
 ```
@@ -233,8 +234,8 @@ end CLRS
    navigation will show the parent chapter title instead of the section title,
    and the section will be missing from the left sidebar order.  This is
    considered a source navigation configuration bug.
-6. Add the section path to `docs/index.md` and update
-   `docs/clrs-proof-progress.csv`, the chapter guide, and `docs/proof-map.md`.
+6. Update `docs/clrs-proof-progress.csv`, the chapter guide, and a focused
+   interface test when the advertised coverage changes.
 7. Regenerate the dashboard and run `scripts/check_repository.py`.
 
 ## Fourth-edition compatibility policy

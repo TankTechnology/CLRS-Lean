@@ -92,9 +92,9 @@ Every user-facing section change should update the book structure:
 * the relevant {lit}`CLRSLean/FourthEdition/Chapter_XX.lean` canonical guide;
 * the current theorem-bearing source guide named by the edition map;
 * {lit}`literate.toml` if a new module should appear in the navigation;
-* {lit}`docs/proof-map.md` for the longer maintainer ledger;
 * {lit}`docs/clrs-proof-progress.csv` when chapter coverage changes;
-* {lit}`docs/proof-status-board.md` only when planning priorities change.
+* a focused interface test for a new public declaration;
+* a GitHub issue when optional or deferred work needs continued tracking.
 
 ## 8. Progress CSV Update
 
