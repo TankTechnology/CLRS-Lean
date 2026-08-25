@@ -74,3 +74,5 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceDigitMergeInput_computableInPolyTime
 #check Turing.SubsetSumReduction.choiceDigitMerge_prefix_run
 #check Turing.SubsetSumReduction.choiceDigitMergeCanonical_run
+#check Turing.SubsetSumReduction.choiceDigitMergeCanonicalSteps_le
+#check Turing.SubsetSumReduction.choiceDigitStream_computableInPolyTime
