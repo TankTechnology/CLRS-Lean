@@ -55,3 +55,5 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceOccurrenceProgram
 #check Turing.SubsetSumReduction.choiceOccurrence_literalComparisonRun
 #check Turing.SubsetSumReduction.choiceOccurrence_dispatchRun
+#check Turing.SubsetSumReduction.choiceOccurrence_literalRun
+#check Turing.SubsetSumReduction.choiceOccurrence_clauseRun

@@ -170,7 +170,8 @@ private def choiceOccurrence_finishComparisonRun (truth matched : Bool)
         choiceOccurrenceProgram, choiceOccurrenceCfg, stepOp,
         List.replicate_succ]⟩, le_rfl⟩
 
-private def choiceOccurrenceComparisonSteps
+/-- Uniform linear budget for one reversible unary literal comparison. -/
+def choiceOccurrenceComparisonSteps
     (indexCode literalCode : Nat) : Nat :=
   8 * (indexCode + literalCode + 1)
 
