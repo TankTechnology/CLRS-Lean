@@ -103,13 +103,13 @@ elaboration and `#guard_msgs`, Python's standard library, Lake, GitHub Actions.
 - Create `scripts/check_v1_trust_gate.py`.
 - Modify `.github/workflows/lean_action_ci.yml`.
 
-- [ ] Write runner unit tests for missing chapter files, an unexpected chapter
+- [x] Write runner unit tests for missing chapter files, an unexpected chapter
   filename, deterministic chapter order, and propagation of Lean failures.
-- [ ] Run `uv run python scripts/test_check_v1_trust_gate.py`; confirm RED
+- [x] Run `uv run python scripts/test_check_v1_trust_gate.py`; confirm RED
   because the runner does not yet exist.
-- [ ] Implement the runner with `--chapters LOW-HIGH` for staged local checks
+- [x] Implement the runner with `--chapters LOW-HIGH` for staged local checks
   and a default exact `1-35` completeness gate.
-- [ ] Run the runner tests and the `1-6` pilot; expect both to pass.
+- [x] Run the runner tests and the `1-6` pilot; expect both to pass.
 - [ ] Add `uv run python scripts/check_v1_trust_gate.py` after
   `leanprover/lean-action` in the Lean CI workflow, but only after all 35 trust
   files exist.
