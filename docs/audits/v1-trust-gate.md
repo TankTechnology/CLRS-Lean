@@ -82,18 +82,18 @@ elaboration and `#guard_msgs`, Python's standard library, Lake, GitHub Actions.
 - Create `Tests/Trust/Chapter_01.lean` through
   `Tests/Trust/Chapter_06.lean`.
 
-- [ ] Add the six files first with canonical imports and intended flagship
+- [x] Add the six files first with canonical imports and intended flagship
   names; run them and confirm any incorrect names or namespaces fail.
-- [ ] Pin Chapter 2 sorting correctness and all-input merge-sort asymptotics;
+- [x] Pin Chapter 2 sorting correctness and all-input merge-sort asymptotics;
   Chapter 3 the shared-threshold Θ interface and standard-function hierarchy;
   Chapter 4 Strassen/continuous-master/Akra--Bazzi results; Chapter 5 uniform
   randomization and probabilistic-analysis results; and Chapter 6 in-place
   heapsort correctness plus logarithmic/linear/n-log-n cost results.
-- [ ] Add small executable examples for insertion sort, merge sort, hiring, and
+- [x] Add small executable examples for insertion sort, merge sort, hiring, and
   heapsort without using `native_decide`.
-- [ ] Run each file independently with `lake env lean` and then run
+- [x] Run each file independently with `lake env lean` and then run
   `uv run python scripts/check_repository.py`.
-- [ ] Commit as `test(audit): register chapter 1 through 6 flagships`.
+- [x] Commit as `test(audit): register chapter 1 through 6 flagships`.
 
 ## Task 3: Trust runner and CI contract
 
