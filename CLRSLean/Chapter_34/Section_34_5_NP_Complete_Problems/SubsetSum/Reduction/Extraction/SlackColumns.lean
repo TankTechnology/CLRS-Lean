@@ -28,8 +28,8 @@ theorem clauseColumnSum_eq_slack_of_choice_zero
     (hsubset : chosen ⊆ reductionItems formula) (clause : Nat)
     (hchoiceZero : ∀ index truth, .choice index truth ∈ chosen →
       itemDigit formula (.choice index truth)
-        (cnfVarCount formula + clause) = 0) :
-    columnSum formula chosen (cnfVarCount formula + clause) =
+        (reductionVariableCount formula + clause) = 0) :
+    columnSum formula chosen (reductionVariableCount formula + clause) =
       clauseSlackContribution chosen clause := by
   induction chosen using Finset.induction_on with
   | empty => simp [columnSum, clauseSlackContribution]
@@ -41,7 +41,7 @@ theorem clauseColumnSum_eq_slack_of_choice_zero
         exact hsubset (Finset.mem_insert_of_mem hcurrent)
       have hchoiceRest : ∀ index truth, .choice index truth ∈ chosen →
           itemDigit formula (.choice index truth)
-            (cnfVarCount formula + clause) = 0 := by
+            (reductionVariableCount formula + clause) = 0 := by
         intro index truth hmem
         exact hchoiceZero index truth (Finset.mem_insert_of_mem hmem)
       rw [columnSum, Finset.sum_insert hnot, ← columnSum,

@@ -18,7 +18,8 @@ def slackItemList (clauseCount : Nat) : List SubsetSumItem :=
 
 /-- Complete computable item enumeration for the textbook construction. -/
 def reductionItemList (formula : CNF) : List SubsetSumItem :=
-  variableItemList (cnfVarCount formula) ++ slackItemList formula.length
+  variableItemList (reductionVariableCount formula) ++
+    slackItemList formula.length
 
 @[simp] theorem choice_mem_variableItemList_iff
     (variableCount index : Nat) (truth : Bool) :

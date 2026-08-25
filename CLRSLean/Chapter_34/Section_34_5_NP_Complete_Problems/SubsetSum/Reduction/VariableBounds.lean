@@ -21,6 +21,13 @@ def cnfVarCount : CNF → Nat
   | [] => 0
   | clause :: rest => max (clauseVarCount clause) (cnfVarCount rest)
 
+/-- Machine-facing variable budget: the number of unary index cells in the
+canonical CNF encoding.  It bounds the largest variable code but, unlike a
+maximum, is obtained by a single finite-state counting pass.  Extra unused
+variable slots do not affect satisfiability. -/
+@[irreducible] def reductionVariableCount (formula : CNF) : Nat :=
+  (encCNF formula).count .endMark
+
 theorem literalIndex_lt_clauseVarCount
     {literal : Literal} {clause : Clause} (hmem : literal ∈ clause) :
     literalIndex literal < clauseVarCount clause := by
@@ -51,5 +58,44 @@ theorem literalIndex_lt_cnfVarCount
     literalIndex literal < cnfVarCount formula :=
   lt_of_lt_of_le (literalIndex_lt_clauseVarCount hliteral)
     (clauseVarCount_le_cnfVarCount hclause)
+
+@[simp] theorem encLit_count_endMark (literal : Literal) :
+    (encLit literal).count CNFSym.endMark = literalIndex literal + 1 := by
+  cases literal <;> simp [encLit, litSym, litIndex, literalIndex]
+
+theorem clauseVarCount_le_encClause_count (clause : Clause) :
+    clauseVarCount clause ≤ (encClause clause).count CNFSym.endMark := by
+  induction clause with
+  | nil => simp [clauseVarCount, encClause]
+  | cons literal clause ih =>
+      have ih' : clauseVarCount clause ≤
+          (clause.flatMap encLit).count CNFSym.endMark := by
+        simpa [encClause] using ih
+      simp only [clauseVarCount, encClause, List.flatMap_cons,
+        List.count_cons, List.count_append, encLit_count_endMark]
+      omega
+
+theorem cnfVarCount_le_reductionVariableCount (formula : CNF) :
+    cnfVarCount formula ≤ reductionVariableCount formula := by
+  induction formula with
+  | nil => simp [cnfVarCount, reductionVariableCount, encCNF]
+  | cons clause formula ih =>
+      have ih' : cnfVarCount formula ≤
+          (encCNF formula).count CNFSym.endMark := by
+        simpa [reductionVariableCount] using ih
+      have hrest : cnfVarCount formula ≤
+          (formula.flatMap encClause).count CNFSym.endMark := by
+        simpa [encCNF] using ih'
+      simp only [cnfVarCount, reductionVariableCount, encCNF,
+        List.flatMap_cons, List.count_append]
+      have hclause := clauseVarCount_le_encClause_count clause
+      omega
+
+theorem literalIndex_lt_reductionVariableCount
+    {literal : Literal} {clause : Clause} {formula : CNF}
+    (hclause : clause ∈ formula) (hliteral : literal ∈ clause) :
+    literalIndex literal < reductionVariableCount formula :=
+  lt_of_lt_of_le (literalIndex_lt_cnfVarCount hclause hliteral)
+    (cnfVarCount_le_reductionVariableCount formula)
 
 end CLRS.Chapter34.SubsetSumReduction

@@ -28,7 +28,7 @@ def slackItems (clauseCount : Nat) : Finset SubsetSumItem :=
 
 /-- All candidate items generated from a CNF formula. -/
 def reductionItems (formula : CNF) : Finset SubsetSumItem :=
-  variableItems (cnfVarCount formula) ∪ slackItems formula.length
+  variableItems (reductionVariableCount formula) ∪ slackItems formula.length
 
 @[simp] theorem variable_mem_variableItems_iff
     (variableCount index : Nat) (truth : Bool) :
@@ -54,7 +54,7 @@ def reductionItems (formula : CNF) : Finset SubsetSumItem :=
 theorem mem_reductionItems_iff {formula : CNF} {item : SubsetSumItem} :
     item ∈ reductionItems formula ↔
       (∃ index truth, item = .choice index truth ∧
-        index < cnfVarCount formula) ∨
+        index < reductionVariableCount formula) ∨
       (∃ clause slot, item = .slack clause slot ∧
         clause < formula.length ∧ slot < 3) := by
   cases item with
@@ -65,7 +65,7 @@ theorem mem_reductionItems_iff {formula : CNF} {item : SubsetSumItem} :
 
 /-- Number of decimal columns in the constructed instance. -/
 def reductionWidth (formula : CNF) : Nat :=
-  cnfVarCount formula + formula.length
+  reductionVariableCount formula + formula.length
 
 /-- Width of one binary column block.  The three spare bits make the
 power-of-two radix larger than every possible selected column sum. -/
@@ -83,18 +83,18 @@ def reductionBase (formula : CNF) : Nat :=
 def itemDigit (formula : CNF) (item : SubsetSumItem) (column : Nat) : Nat :=
   match item with
   | .choice index truth =>
-      if column < cnfVarCount formula then
+      if column < reductionVariableCount formula then
         if column = index then 1 else 0
       else
-        (formula.getD (column - cnfVarCount formula) []).count
+        (formula.getD (column - reductionVariableCount formula) []).count
           (itemLiteral index truth)
   | .slack clause _ =>
-      if column < cnfVarCount formula then 0
-      else if column - cnfVarCount formula = clause then 1 else 0
+      if column < reductionVariableCount formula then 0
+      else if column - reductionVariableCount formula = clause then 1 else 0
 
 /-- Target digit: one in every variable column and four in every clause column. -/
 def targetDigit (formula : CNF) (column : Nat) : Nat :=
-  if column < cnfVarCount formula then 1 else 4
+  if column < reductionVariableCount formula then 1 else 4
 
 /-- Natural-number value assigned to a generated item. -/
 def itemValue (formula : CNF) (item : SubsetSumItem) : Nat :=
@@ -114,39 +114,40 @@ def cnfToSubsetSum (formula : CNF) : SubsetSumInstance where
 
 @[simp] theorem itemDigit_variable_column
     (formula : CNF) {index column : Nat} (truth : Bool)
-    (hcolumn : column < cnfVarCount formula) :
+    (hcolumn : column < reductionVariableCount formula) :
     itemDigit formula (.choice index truth) column =
       if column = index then 1 else 0 := by
   simp [itemDigit, hcolumn]
 
 @[simp] theorem itemDigit_slack_variable_column
     (formula : CNF) {clause slot column : Nat}
-    (hcolumn : column < cnfVarCount formula) :
+    (hcolumn : column < reductionVariableCount formula) :
     itemDigit formula (.slack clause slot) column = 0 := by
   simp [itemDigit, hcolumn]
 
 @[simp] theorem itemDigit_variable_clause_column
     (formula : CNF) {index clause : Nat} (truth : Bool) :
     itemDigit formula (.choice index truth)
-        (cnfVarCount formula + clause) =
+        (reductionVariableCount formula + clause) =
       (formula.getD clause []).count (itemLiteral index truth) := by
   simp [itemDigit]
 
 @[simp] theorem itemDigit_slack_clause_column
     (formula : CNF) {sourceClause slot clause : Nat} :
     itemDigit formula (.slack sourceClause slot)
-        (cnfVarCount formula + clause) =
+        (reductionVariableCount formula + clause) =
       if clause = sourceClause then 1 else 0 := by
   simp [itemDigit]
 
 @[simp] theorem targetDigit_variable_column
-    (formula : CNF) {column : Nat} (hcolumn : column < cnfVarCount formula) :
+    (formula : CNF) {column : Nat}
+    (hcolumn : column < reductionVariableCount formula) :
     targetDigit formula column = 1 := by
   simp [targetDigit, hcolumn]
 
 @[simp] theorem targetDigit_clause_column
     (formula : CNF) (clause : Nat) :
-    targetDigit formula (cnfVarCount formula + clause) = 4 := by
+    targetDigit formula (reductionVariableCount formula + clause) = 4 := by
   simp [targetDigit]
 
 end CLRS.Chapter34.SubsetSumReduction

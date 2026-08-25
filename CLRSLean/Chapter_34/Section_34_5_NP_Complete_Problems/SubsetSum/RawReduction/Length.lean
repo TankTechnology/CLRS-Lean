@@ -63,8 +63,8 @@ theorem encodeCnfToSubsetSum_length_le_input
     (encodeCnfToSubsetSum (decodeCNF input)).length ≤
       subsetSumReductionLengthBound input.length := by
   let formula := decodeCNF input
-  have hvariables : cnfVarCount formula ≤ input.length :=
-    cnfVarCount_decodeCNF_le input
+  have hvariables : reductionVariableCount formula ≤ input.length :=
+    reductionVariableCount_decodeCNF_le input
   have hclauses : formula.length ≤ input.length :=
     decodeCNF_length_le input
   have hitems : (reductionItemList formula).length ≤

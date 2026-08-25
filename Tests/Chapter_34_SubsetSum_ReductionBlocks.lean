@@ -12,3 +12,14 @@ open CLRS.Chapter34
 #check SubsetSumReduction.reductionItemBits_eq
 #check Turing.SubsetSumReduction.binaryCanonicalizer_eq
 #check Turing.SubsetSumReduction.computableInPolyTime
+
+#check SubsetSumReduction.reductionVariableCount_decodeCNF_le
+#check Turing.SubsetSumReduction.symbolCountTicks_eq
+#check Turing.SubsetSumReduction.variableBudgetTicks_eq
+#check Turing.SubsetSumReduction.clauseCountTicks_eq
+#check Turing.SubsetSumReduction.reductionWidthTicks_eq
+#check Turing.SubsetSumReduction.reductionItemCountTicks_eq
+#check Turing.SubsetSumReduction.reductionBlockWidthTicks_eq
+#check Turing.SubsetSumReduction.reductionWidthTicks_computableInPolyTime
+#check Turing.SubsetSumReduction.reductionItemCountTicks_computableInPolyTime
+#check Turing.SubsetSumReduction.reductionBlockWidthTicks_computableInPolyTime
