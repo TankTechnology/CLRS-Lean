@@ -26,8 +26,10 @@ deriving DecidableEq, Fintype, Repr
 /-- One-hot variable digits for one choice item. -/
 def choiceVariableDigits (formula : CNF) (index : Nat) :
     List ChoiceCountSym :=
-  (List.range (reductionVariableCount formula)).map fun column =>
-    .digit (if column = index then .one else .zero)
+  List.replicate index (.digit .zero) ++
+    .digit .one ::
+      List.replicate
+        (reductionVariableCount formula - index - 1) (.digit .zero)
 
 /-- Complete digit stream before fixed-width block expansion. -/
 def choiceDigitStream (formula : CNF) (truth : Bool) :
