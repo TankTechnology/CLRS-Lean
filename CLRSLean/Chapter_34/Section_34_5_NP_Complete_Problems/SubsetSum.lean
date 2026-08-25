@@ -10,6 +10,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Hardness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NPCompleteness
 
 /-!
 # SUBSET-SUM
@@ -20,5 +22,6 @@ copies with equal numerical values, and the input-dependent radix makes the
 carry-free column argument explicit.  It also exports an honest serialized
 language whose certificates are lists of distinct, in-range value indices.
 It additionally exports an equivalent Boolean-mask certificate and a concrete
-fixed polynomial-time verifier proving membership in `NP`.
+fixed polynomial-time verifier proving membership in `NP`, together with a
+fixed polynomial-time textbook reduction and the final NP-completeness theorem.
 -/
