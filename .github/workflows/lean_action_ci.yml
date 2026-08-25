@@ -12,3 +12,5 @@ jobs:
       - name: Check repository metadata
         run: python3 scripts/check_repository.py
       - uses: leanprover/lean-action@v1
+      - name: Check v1 theorem trust gate
+        run: python3 scripts/check_v1_trust_gate.py
