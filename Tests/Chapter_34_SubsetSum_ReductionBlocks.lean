@@ -78,3 +78,4 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceDigitStream_computableInPolyTime
 #check Turing.SubsetSumReduction.choiceBlockStream_eq
 #check Turing.SubsetSumReduction.choiceBlockStream_computableInPolyTime
+#check Turing.SubsetSumReduction.choiceBlockStream_packed_eq
