@@ -61,19 +61,19 @@ elaboration and `#guard_msgs`, Python's standard library, Lake, GitHub Actions.
 - Create `Tests/Trust/AxiomAudit.lean`.
 - Create `CLRSLean/Audit/Axioms.lean`.
 
-- [ ] Add a positive test that imports `CLRSLean.Audit.Axioms` and accepts
+- [x] Add a positive test that imports `CLRSLean.Audit.Axioms` and accepts
   `Nat.add_comm`, `propext`, `Classical.choice`, and `Quot.sound`.
-- [ ] Run `lake env lean Tests/Trust/AxiomAudit.lean`; confirm RED because the
+- [x] Run `lake env lean Tests/Trust/AxiomAudit.lean`; confirm RED because the
   audit module or command does not yet exist.
-- [ ] Implement the minimal command shell so the positive assertions pass.
-- [ ] Add a `#guard_msgs` negative test for `Lean.ofReduceBool`; confirm RED
+- [x] Implement the minimal command shell so the positive assertions pass.
+- [x] Add a `#guard_msgs` negative test for `Lean.ofReduceBool`; confirm RED
   because the command shell fails to emit the expected error.
-- [ ] Use `Lean.collectAxioms`, filter the fixed allowed set, sort unexpected
+- [x] Use `Lean.collectAxioms`, filter the fixed allowed set, sort unexpected
   names for deterministic diagnostics, and throw a command elaboration error
   when the result is nonempty.
-- [ ] Run `lake env lean Tests/Trust/AxiomAudit.lean`; expect exit 0 with the
+- [x] Run `lake env lean Tests/Trust/AxiomAudit.lean`; expect exit 0 with the
   guarded negative error consumed by `#guard_msgs`.
-- [ ] Commit as `feat(audit): add native axiom trust gate`.
+- [x] Commit as `feat(audit): add native axiom trust gate`.
 
 ## Task 2: Chapter 1--6 pilot
 
