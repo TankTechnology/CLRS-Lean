@@ -144,9 +144,9 @@ surface needed by the accepted flagship theorem. Run the band through
   interface test before changing the proof or model.
 - [x] Repair the proof through the chapter main-content gate, or downgrade the
   progress row and public status before v1.
-- [ ] Run the full trust runner, repository checks, changed interface tests,
+- [x] Run the full trust runner, repository checks, changed interface tests,
   `lake build CLRSLean`, and `git diff --check`.
-- [ ] Freeze this audit record with the verified commit hash and zero
+- [x] Freeze this audit record with the verified commit hash and zero
   unexplained MAJOR findings.
 
 The third item required no new failing Lean test: the only live in-bound defect
@@ -174,6 +174,30 @@ canonical chapter guides.
 Result: all eight historical MAJOR findings are explained—one fixed and seven
 outside the advertised v1 boundary.  There is no still-real MAJOR inside that
 boundary.
+
+### Verification record
+
+Verified source commit: `14af3b885b7eb240c9903002812ff8e23ad2568f`
+(2026-08-26, Asia/Shanghai).
+
+The following commands completed successfully at that commit:
+
+```text
+python3 scripts/check_v1_trust_gate.py
+lake env lean Tests/Chapter_05_Interface.lean
+lake env lean Tests/Chapter_06_Interface.lean
+python3 scripts/check_repository.py
+lake build CLRSLean
+git diff --check
+```
+
+The full build completed all 10,580 jobs.  The native gate elaborated the
+command audit and every `Tests/Trust/Chapter_01.lean` through
+`Tests/Trust/Chapter_35.lean`; every selected declaration's transitive axiom
+set stayed within `propext`, `Classical.choice`, and `Quot.sound`.  The final
+semantic closure count is one fixed historical MAJOR, seven findings outside
+the explicit v1 boundary, and zero unexplained or still-real MAJOR findings
+inside that boundary.
 
 ## Failure policy
 
