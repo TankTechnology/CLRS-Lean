@@ -67,7 +67,7 @@ example :
 
 example (a : List Nat) (heapSize i : Nat) (hi : i < heapSize) :
     (CLRS.Chapter06.maxHeapifyFuelWithCost heapSize a heapSize i).2 ≤
-      CLRS.Chapter06.Nat.log 2 heapSize + 1 :=
+      Nat.log 2 heapSize + 1 :=
   CLRS.Chapter06.maxHeapifyFuelWithCost_cost_le_log heapSize a heapSize i hi
 
 example (xs : List Nat) :
