@@ -7,5 +7,8 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBits
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ItemFields
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetField
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackProgressionSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackFields
 
 /-! # Fixed-machine implementation of the 3-CNF to SUBSET-SUM reduction -/
