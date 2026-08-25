@@ -51,3 +51,6 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choicePackedBitsLE_eq
 #check Turing.SubsetSumReduction.choiceItemBits_eq
 #check Turing.SubsetSumReduction.occurrenceSmallDigit_clause_value
+#check Turing.SubsetSumReduction.choiceOccurrenceStream
+#check Turing.SubsetSumReduction.choiceOccurrenceProgram
+#check Turing.SubsetSumReduction.choiceOccurrence_literalComparisonRun
