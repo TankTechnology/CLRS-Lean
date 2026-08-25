@@ -38,3 +38,11 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.typedRecord_eq
 #check Turing.SubsetSumReduction.targetField_eq
 #check Turing.SubsetSumReduction.targetField_computableInPolyTime
+#check Turing.SubsetSumReduction.slackBaseProductTicks_eq
+#check Turing.SubsetSumReduction.slackProgressionSource_eq
+#check Turing.SubsetSumReduction.slackProgressionSource_computableInPolyTime
+#check Turing.SubsetSumReduction.reductionItemBits_slack_eq
+#check Turing.SubsetSumReduction.slackOneSlotFields_eq_items
+#check Turing.SubsetSumReduction.slackOneSlotFields_computableInPolyTime
+#check Turing.SubsetSumReduction.slackFields_eq_items
+#check Turing.SubsetSumReduction.slackFields_computableInPolyTime
