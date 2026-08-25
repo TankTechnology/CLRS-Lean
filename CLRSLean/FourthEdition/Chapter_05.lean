@@ -32,7 +32,7 @@ points of a uniform random permutation of {lit}`Fin n` equal {lit}`1`).
 
 Section 5.3 proves the central result of CLRS §5.3: the `RANDOMIZE-IN-PLACE`
 procedure (Fisher–Yates shuffle) yields a uniform random permutation of
-{lit}`Fin n` (Lemma 5.5), modelled by an explicit choice-vector sample space
+{lit}`Fin n` (Lemma 5.4), modelled by an explicit choice-vector sample space
 and a bijection onto {lit}`Equiv.Perm (Fin n)`.
 
 Section 5.4 applies indicators plus independence to two classic probabilistic
@@ -52,7 +52,7 @@ success probability for the threshold {lit}`⌊n/e⌋`.
 * Section 5.2: {lit}`proved` for the uniform-permutation model, including
   {lit}`CLRS.Chapter05.expectedFixedPoints_eq_one`.
 * Section 5.3: {lit}`proved` for the independent-swap-choice model, including
-  {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.5).
+  {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.4).
 * Section 5.4: {lit}`proved` for the product-uniform birthday and balls-and-bins
   models ({lit}`CLRS.Chapter05.expectedCollisions_eq`,
   {lit}`CLRS.Chapter05.expectedBallsInBin_eq`), the longest-streak

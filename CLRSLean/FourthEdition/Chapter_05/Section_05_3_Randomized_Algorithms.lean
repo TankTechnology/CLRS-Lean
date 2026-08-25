@@ -4,14 +4,14 @@ import Mathlib
 /-!
 # 5.3. Randomized algorithms — RANDOMIZE-IN-PLACE
 
-This file proves CLRS Lemma 5.5: the {lit}`RANDOMIZE-IN-PLACE` procedure
+This file proves CLRS Lemma 5.4: the {lit}`RANDOMIZE-IN-PLACE` procedure
 (Fisher–Yates shuffle) produces a uniform random permutation of its input.
 We model the algorithm's randomness as a tuple of independent uniform swap
 choices and prove the induced map onto `Equiv.Perm (Fin n)` is a bijection.
 
 Main results:
 
-- Theorem `randomizeInPlace_uniform` (Lemma 5.5): for every permutation `σ`,
+- Theorem `randomizeInPlace_uniform` (Lemma 5.4): for every permutation `σ`,
   the output distribution is uniform on `Equiv.Perm (Fin n)`.
 
 Status: proved for the explicit independent-swap-choice model.
@@ -78,7 +78,7 @@ noncomputable def randomizeInPlace {n : ℕ} (c : ChoiceVector n) : Equiv.Perm (
   randomizeInPlace_equiv n c
 
 /--
-**Lemma 5.5 (Uniform random permutation).**  Under the uniform distribution on
+**Lemma 5.4 (Uniform random permutation).**  Under the uniform distribution on
 `ChoiceVector n`, the permutation produced by RANDOMIZE-IN-PLACE is uniformly
 distributed over `Equiv.Perm (Fin n)`.  Equivalently, for every permutation
 `σ`, the probability that `randomizeInPlace(c) = σ` equals `1/n!`.
