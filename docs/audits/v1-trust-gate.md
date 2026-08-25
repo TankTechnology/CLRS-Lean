@@ -127,7 +127,7 @@ Create and verify chapter files in these independently committable bands:
   matching, and maximum flow.
 - [x] Chapters 25--30: matching refinements, parallel algorithms, online
   algorithms, matrix computations, linear programming, and FFT.
-- [ ] Chapters 31--35: number theory, string matching, machine learning,
+- [x] Chapters 31--35: number theory, string matching, machine learning,
   NP-completeness, and approximation algorithms.
 
 For each band, first add the files and observe failures for incorrect public
