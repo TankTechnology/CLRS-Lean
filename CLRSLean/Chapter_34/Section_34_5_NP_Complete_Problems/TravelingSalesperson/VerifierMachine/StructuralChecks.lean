@@ -40,7 +40,7 @@ def minimumVertexCountCheck (input : RawInput) : Bool :=
   Turing.BinaryNat.Comparator.leWords (encodeBinaryNat 3)
     (HeaderBits.vertexCountBits input.2)
 
-private noncomputable def certificateProjection :
+noncomputable def certificateProjection :
     _root_.Turing.TM2ComputableInPolyTime rawEncoding id Prod.fst := by
   let source := PairFirstProjection.computableInPolyTime TSPSym
   exact
@@ -51,7 +51,7 @@ private noncomputable def certificateProjection :
       outputsFun := fun input => by
         simpa [rawEncoding] using source.outputsFun input }
 
-private noncomputable def instanceProjection :
+noncomputable def instanceProjection :
     _root_.Turing.TM2ComputableInPolyTime rawEncoding id Prod.snd := by
   let source := PairSecondProjection.computableInPolyTime TSPSym
   exact
