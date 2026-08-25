@@ -15,7 +15,7 @@ not interpreted as a single cause or as exact effort.
 - **Span**: 2026-07-06 to 2026-07-08, about two and a half days and roughly twenty commits.
 - **Commit observations**: `6da958f` attempted to break down `splitChild` with `match`, and about seven minutes later
   `65a6d09` restored a clean state; the commit message called out the interface obstacles posed by `Sublist.subset` and
-  `List.get_mem`. This subsequently produced the attack notes in `docs/sorted-childbounded-notes.md`.
+  `List.get_mem`. The detailed scratch notes remain recoverable from Git history.
 - **Main obstacles at the time**: the commit messages together with the later rewrites show that the `let` bindings in `splitChild`
   interfered with `rw`, `dsimp`, and typeclass search; the old definitional shape of `SameDepth`
   was also awkward to destruct.
@@ -42,7 +42,7 @@ not interpreted as a single cause or as exact effort.
   isolated effect of any single trick.
 - **Module and results**:
   `Through`, `floydWarshall_le_walk`, and `floydWarshall_isShortestDist` in `CLRSLean/Chapter_25/Section_25_2_Floyd_Warshall.lean`; see
-  `docs/superpowers/lessons/ch25-proof-retrospective.md` for the detailed retrospective.
+  [`ch25-proof-retrospective.md`](ch25-proof-retrospective.md) for the detailed retrospective.
 
 ### Case 3: the cross-layer DFS invariants of Kosaraju SCC in Chapter 22
 
@@ -93,9 +93,9 @@ not interpreted as a single cause or as exact effort.
   `delete_correct` induct simultaneously on "invariant preservation" and the `Finset.erase` semantics. The later
   insert proof also exposed an implementation issue where repeated insertion loses the detached minimum.
 - **Module and materials**:
-  `delete_correct`, `delete_wellFormed`, and `delete_toFinset` in `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`; see
-  [vEB deletion correctness design](../superpowers/specs/2026-07-14-ch20-veb-delete-correctness-design.md) for the design, and
-  [vEB deletion correctness plan](../superpowers/plans/2026-07-14-ch20-veb-delete-correctness-plan.md) for the implementation plan.
+  `delete_correct`, `delete_wellFormed`, and `delete_toFinset` in
+  `CLRSLean/Chapter_20/Section_20_3_Recursive_VEB.lean`. The original design and
+  implementation-plan snapshots remain recoverable from Git history.
 
 ### Case 6: the discrete-to-continuous bridge for the Chapter 4 master theorem
 

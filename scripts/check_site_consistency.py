@@ -11,7 +11,6 @@ This script verifies:
 - literate.toml has a [modules] title entry for every chapter/section;
 - literate.toml does not list files that do not exist;
 - CLRSLean.lean imports every represented chapter guide.
-- docs/index.md lists every represented section source path.
 
 Run from the repository root:
     python3 scripts/check_site_consistency.py
@@ -30,7 +29,6 @@ from scripts.check_literate_config import validate_config
 CLRSLEAN = ROOT / "CLRSLean"
 LITERATE = ROOT / "literate.toml"
 LANDING = ROOT / "CLRSLean.lean"
-DOCS_INDEX = ROOT / "docs" / "index.md"
 
 
 def parse_literate(path: Path):
@@ -119,10 +117,8 @@ def legacy_chapter_navigation_errors(
 
 def main() -> int:
     errors = []
-    warnings = []
 
     order_children, modules = parse_literate(LITERATE)
-    docs_index_text = DOCS_INDEX.read_text(encoding="utf-8")
     fourth_edition_source = CLRSLEAN / "FourthEdition.lean"
     if fourth_edition_source.is_file():
         errors.extend(
@@ -177,7 +173,7 @@ def main() -> int:
 
         # Development scaffold (`Dev/` subdirectories) is not rendered as site
         # sections; it mirrors the FourthEdition tree where Dev files are not
-        # registered in literate.toml or docs/index.md.
+        # registered in literate.toml.
         section_files = sorted(
             f for f in ch_dir.rglob("*.lean")
             if "Dev" not in f.relative_to(ch_dir).parts
@@ -186,7 +182,6 @@ def main() -> int:
         for sec_file in section_files:
             sec_rel = sec_file.relative_to(ch_dir).with_suffix("")
             sec_module = f"CLRSLean.{ch_dir.name}." + ".".join(sec_rel.parts)
-            sec_path = sec_file.relative_to(ROOT).as_posix()
 
             if not module_doc_present(sec_file):
                 errors.append(f"Section file {sec_file} has no module doc")
@@ -200,8 +195,6 @@ def main() -> int:
                 errors.append(
                     f"literate.toml has no [modules.\"{sec_module}\"] title entry"
                 )
-            if sec_path not in docs_index_text:
-                errors.append(f"docs/index.md does not list section source: {sec_path}")
 
     # ---- check that every ordered module actually exists ----
     for parent, children in order_children.items():
@@ -222,25 +215,7 @@ def main() -> int:
             if mod != "CLRSLean":
                 errors.append(f"literate.toml [modules.\"{mod}\"] has no file")
 
-    # ---- docs/chapters markdown consistency (advisory) ----
-    # These are optional supplementary notes; Lean chapter guides are canonical.
-    docs_chapters = ROOT / "docs" / "chapters"
-    if docs_chapters.is_dir():
-        md_pages = {
-            p.stem for p in docs_chapters.iterdir()
-            if p.suffix == ".md" and p.name != "README.md"
-        }
-        expected_md = {f"chapter-{int(ch.name.split('_')[1]):02d}" for ch in chapter_dirs}
-        for page in sorted(md_pages - expected_md):
-            warnings.append(
-                f"docs/chapters/{page}.md has no matching represented chapter"
-            )
-
     # ---- report ----
-    if warnings:
-        print("Warnings:")
-        for w in warnings:
-            print(f"  - {w}")
     if errors:
         print("Errors:")
         for e in errors:

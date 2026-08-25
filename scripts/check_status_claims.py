@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
-"""Cross-validate duplicated chapter-status claims against the canonical ledgers.
+"""Cross-validate chapter metadata against the canonical ledgers.
 
 The single source of truth for chapter completion is the pair
 
   - ``docs/clrs-proof-progress.csv``   (chapter status, tracked/proved counts, gaps)
   - ``docs/clrs-fourth-edition-map.csv`` (section migration states and coverage)
 
-Several other documents restate those facts in prose.  When a chapter is
-completed or a gap is closed, only those two ledgers need to be edited; the
-generated views are refreshed by ``check_progress_csv.py --write-dashboard`` and
-``gen_readme_table.py``, and the hand-written views below are checked here so
-that a drifting claim fails CI instead of silently reporting stale status.
+When a chapter is completed or a gap is closed, these ledgers are updated and
+the generated views are refreshed by
+``check_progress_csv.py --write-dashboard`` and ``gen_readme_table.py``.
 
 Checks
   1. ``docs/migrations/clrs4.md`` chapter-mapping table: a chapter whose
      theorem-bearing source is listed as ``none`` must be exactly the set of
      chapters whose edition-map sections are all ``not-started``.
-  2. ``docs/proof-status-board.md`` frozen totals: the board's "only partial
-     row" and "all chapters represented" claims must match the progress CSV.
-  3. ``docs/status/blocked-and-deferred.md``: every ``Status:`` label must come
-     from the fixed vocabulary, and every referenced section must name a real
-     fourth-edition chapter.
-  4. Gap counts: per chapter, the number of ``partial``/``not-started`` edition
+  2. Gap counts: per chapter, the number of ``partial``/``not-started`` edition
      map sections must equal the CSV ``edition_gap_units`` field (defence in
      depth; also asserted by ``check_progress_csv.py``).
 
@@ -41,17 +34,6 @@ ROOT = Path(__file__).resolve().parents[1]
 MAP_PATH = ROOT / "docs" / "clrs-fourth-edition-map.csv"
 PROGRESS_PATH = ROOT / "docs" / "clrs-proof-progress.csv"
 MIGRATIONS_PATH = ROOT / "docs" / "migrations" / "clrs4.md"
-STATUS_BOARD_PATH = ROOT / "docs" / "proof-status-board.md"
-BLOCKED_PATH = ROOT / "docs" / "status" / "blocked-and-deferred.md"
-
-VALID_BLOCKED_STATUSES = {
-    "deferred-implementation",
-    "deferred-low-level-implementation",
-    "proved-abstract",
-    "future-work",
-    "partial-proof",
-    "proved",
-}
 
 STARTED_STATES = {"native", "facade", "partial"}
 
@@ -152,51 +134,6 @@ def check_migration_notes(errors: list[str], map_rows: list[dict[str, str]]) -> 
             )
 
 
-def check_status_board(errors: list[str], progress_rows: list[dict[str, str]]) -> None:
-    text = STATUS_BOARD_PATH.read_text(encoding="utf-8")
-    partial_count = sum(1 for r in progress_rows if r["repo_status"] == "partial")
-    if re.search(r"only row still marked `partial`", text):
-        if partial_count != 1:
-            errors.append(
-                "proof-status-board.md claims a single partial row, but the "
-                f"progress CSV has {partial_count} partial rows"
-            )
-    if re.search(r"All 35 fourth-edition chapters now have represented", text):
-        if len(progress_rows) != 35:
-            errors.append(
-                "proof-status-board.md claims 35 represented chapters, but the "
-                f"progress CSV has {len(progress_rows)} rows"
-            )
-        unrepresented = [
-            r["chapter_no"]
-            for r in progress_rows
-            if r["represented_sections"].strip().lower() in {"", "none"}
-        ]
-        if unrepresented:
-            errors.append(
-                "proof-status-board.md claims all chapters are represented, but "
-                "these chapters are not: " + ", ".join(unrepresented)
-            )
-
-
-def check_blocked_and_deferred(errors: list[str], map_rows: list[dict[str, str]]) -> None:
-    text = BLOCKED_PATH.read_text(encoding="utf-8")
-    for match in re.finditer(r"^\s*-\s*Status:\s*`([^`]+)`", text, re.MULTILINE):
-        label = match.group(1).strip()
-        if label not in VALID_BLOCKED_STATUSES:
-            errors.append(
-                f"docs/status/blocked-and-deferred.md has unknown Status label {label!r}"
-            )
-    valid_chapters = {int(r["chapter_no"]) for r in map_rows if int(r["chapter_no"]) > 0}
-    for match in re.finditer(r"Sections?\s+(\d+)\.\d+", text):
-        chapter = int(match.group(1))
-        if chapter not in valid_chapters:
-            errors.append(
-                f"docs/status/blocked-and-deferred.md references non-existent "
-                f"chapter {chapter}"
-            )
-
-
 def check_gap_counts(errors: list[str], map_rows: list[dict[str, str]], progress_rows: list[dict[str, str]]) -> None:
     by_chapter: dict[int, list[dict[str, str]]] = {}
     for row in map_rows:
@@ -230,8 +167,6 @@ def main() -> int:
     map_rows = load_map()
     progress_rows = load_progress()
     check_migration_notes(errors, map_rows)
-    check_status_board(errors, progress_rows)
-    check_blocked_and_deferred(errors, map_rows)
     check_gap_counts(errors, map_rows, progress_rows)
     if errors:
         print("Status-claim errors:", file=sys.stderr)

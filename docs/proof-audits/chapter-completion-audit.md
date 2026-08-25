@@ -78,8 +78,8 @@ Run this before any commit that changes a chapter status.
 
 - [ ] `literate.toml` lists the new section under `[order_children]` for its chapter.
 - [ ] `literate.toml` has a `[modules."CLRSLean.Chapter_XX.Section_XX_Y_Zzz"]` title entry.
-- [ ] `docs/proof-map.md` has an entry for the new section and its main theorems.
-- [ ] `CLRSLean/Status.lean` is updated if the public status board changes.
+- [ ] A focused interface test checks the new section's advertised declarations.
+- [ ] `CLRSLean/Status.lean` is updated if the public status summary changes.
 
 ### 3.4 Role and Header Discipline
 
@@ -110,18 +110,6 @@ Run this before any commit that changes a chapter status.
 
 ## 5. Sign-Off
 
-When all boxes are checked, record:
-
-```markdown
-| Chapter | Section | Auditor | Date | Commit |
-|---|---|---|---|---|
-| XX | XX.1-XX.M | Name | YYYY-MM-DD | abc1234 |
-```
-
-Add the row below the table in this file when the audit is complete.
-
-### Audit Log
-
-| Chapter | Section | Auditor | Date | Commit |
-|---|---|---|---|---|
-| 9 | 9.1-9.3 | Codex | 2026-07-15 | [`ad8b3a8`](https://github.com/TankTechnology/CLRS-Lean/commit/ad8b3a865ce843addf0d77b55548b4d9a8cebad4) ([#92](https://github.com/TankTechnology/CLRS-Lean/pull/92)) |
+When all boxes are checked, record the chapter, section, verification commands,
+date, and commit in the corresponding commit/PR description or GitHub issue.
+Do not append a second live audit ledger to this checklist.

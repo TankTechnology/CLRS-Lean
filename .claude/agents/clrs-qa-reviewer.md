@@ -15,7 +15,7 @@ Read `CLAUDE.md` and `docs/build-and-agents.md` first for conventions and the ve
 ## 2. Proof soundness (a clean build is NOT sorry-proof — `-Dwarn.sorry=false` is set)
 - `lake build CLRSLean` must be exit 0 with no `error:` lines.
 - `grep -rnE '\b(sorry|admit|native_decide)\b' CLRSLean/` — must be zero in code (ignore matches inside `/- ... -/` doc prose; report any real ones).
-- For each chapter's **headline theorem** (find them in `docs/proof-map.md`), run `#print axioms` via a scratch file: `lake env lean /tmp/ax.lean` where the file does `import <module>` + `#print axioms <FullyQualified.name>`. Each must depend ONLY on `propext, Classical.choice, Quot.sound` — **any `sorryAx` is a hard failure**. Sample at least the flagship theorem of every `partial`/`complete` chapter.
+- For each chapter's **headline theorem** (find it in the chapter guide or focused interface tests), run `#print axioms` via a scratch file: `lake env lean /tmp/ax.lean` where the file does `import <module>` + `#print axioms <FullyQualified.name>`. Each must depend ONLY on `propext, Classical.choice, Quot.sound` — **any `sorryAx` is a hard failure**. Sample at least the flagship theorem of every `partial`/`complete` chapter.
 - Sanity-check non-vacuousness on any suspicious result: a cost function defined as `0`, a hypothesis so strong only trivial inputs satisfy it, or a bound that is trivially true. Report anything that smells vacuous.
 
 ## 3. Source navigation configuration

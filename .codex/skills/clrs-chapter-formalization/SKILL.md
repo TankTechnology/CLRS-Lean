@@ -50,7 +50,8 @@ For each chapter, run this loop in order:
 
 1. **Read the local project contract**
    - Read `CLRSLean.lean`, `literate.toml`, `CLRSLean/Status.lean`,
-     `docs/proof-map.md`, and the relevant `CLRSLean/Chapter_NN.lean`.
+     `docs/scope.md`, the progress CSVs, and the relevant
+     `CLRSLean/Chapter_NN.lean`.
    - Inspect nearby chapter files for naming, namespace, and proof style.
 
 2. **Build a full section inventory**
@@ -115,9 +116,10 @@ For each chapter, run this loop in order:
 7. **Wire the book**
    - Import the chapter from `CLRSLean.lean`.
    - Add chapter and section ordering/titles to `literate.toml`.
-   - Update `CLRSLean/Status.lean`, `docs/proof-map.md`, and `docs/index.md`.
-   - If the chapter is partial, the exact gap must appear in both the Lean
-     status page and the proof map.
+   - Update the relevant chapter guide, focused interface tests, and progress
+     CSV when the advertised boundary changes.
+   - If the chapter is partial, name the exact gap in the CSV and track any
+     continued attack in a GitHub issue.
 
 8. **Verify**
    - Search for accidental unfinished proof markers in theorem-bearing Lean

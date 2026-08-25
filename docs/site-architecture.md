@@ -30,7 +30,7 @@ CLRSLean/Progress.lean                generated progress dashboard
 CLRSLean/Status.lean                  web-facing proof status ledger
 CLRSLean/Workflow.lean                contributor workflow
 CLRSLean/Chapter_xx/Section_xx_y.lean section-level literate proof
-docs/proof-map.md                     longer maintainer ledger
+docs/scope.md                         stable advertised-boundary statement
 docs/clrs-proof-progress.csv          chapter-level status source
 docs/clrs-online-material.csv         disjoint supplementary-count source
 docs/workflows/chapter-workflow.md    maintainer workflow notes
@@ -169,7 +169,7 @@ before the next page loads.
 Readers should be able to move in three ways:
 
 1. Project overview: homepage -> chapter guide -> section proof.
-2. Audit path: homepage -> Proof Status -> partial or blocked item.
+2. Audit path: homepage -> Proof Status -> source module or open issue.
 3. Contributor path: homepage -> Workflow -> chapter guide -> section file.
 
 ## Update Rule
@@ -180,4 +180,5 @@ When a new CLRS section is added, update these files together:
 - its chapter guide page;
 - `CLRSLean/Status.lean` if the proof status changes;
 - `literate.toml` if it should appear in navigation;
-- `docs/proof-map.md` for the longer maintainer record.
+- a focused interface test for any newly advertised declaration;
+- `docs/scope.md` only when the project-wide claim boundary changes.

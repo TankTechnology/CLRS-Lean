@@ -89,45 +89,6 @@ class MigrationNotesCheckTest(unittest.TestCase):
             self.assertEqual(errors, [])
 
 
-class StatusBoardCheckTest(unittest.TestCase):
-    def test_flags_wrong_partial_count(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            board = Path(tmp) / "board.md"
-            write(board, "Chapter 34 is the only row still marked `partial`.\n")
-            progress_rows = [
-                {"chapter_no": "1", "repo_status": "partial", "represented_sections": "1.1"},
-                {"chapter_no": "2", "repo_status": "partial", "represented_sections": "2.1"},
-            ]
-            with mock.patch.object(check_status_claims, "STATUS_BOARD_PATH", board):
-                errors: list[str] = []
-                check_status_claims.check_status_board(errors, progress_rows)
-            self.assertIn(
-                "proof-status-board.md claims a single partial row, but the progress CSV has 2 partial rows",
-                errors,
-            )
-
-
-class BlockedAndDeferredCheckTest(unittest.TestCase):
-    def test_flags_unknown_status(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            blocked = Path(tmp) / "blocked.md"
-            write(blocked, "- Status: `not-a-real-status`\n")
-            with mock.patch.object(check_status_claims, "BLOCKED_PATH", blocked):
-                errors: list[str] = []
-                check_status_claims.check_blocked_and_deferred(errors, [])
-            self.assertTrue(any("unknown Status label" in e for e in errors))
-
-    def test_flags_unknown_chapter_reference(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            blocked = Path(tmp) / "blocked.md"
-            write(blocked, "- Related section: Section 99.1 - nowhere\n")
-            map_rows = [{"chapter_no": str(i)} for i in range(1, 36)]
-            with mock.patch.object(check_status_claims, "BLOCKED_PATH", blocked):
-                errors: list[str] = []
-                check_status_claims.check_blocked_and_deferred(errors, map_rows)
-            self.assertTrue(any("references non-existent chapter 99" in e for e in errors))
-
-
 class GapCountsCheckTest(unittest.TestCase):
     def test_flags_mismatched_gap_units(self) -> None:
         map_rows = [
