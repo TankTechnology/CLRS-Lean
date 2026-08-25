@@ -1,5 +1,6 @@
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Construction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.NormalizedWeights
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrderProperties
 
 /-!
 # HAM-CYCLE to TSP machine: complete weight semantics
@@ -11,13 +12,6 @@ honest TSP encoding.
 -/
 
 namespace CLRS.Chapter34.Turing.TSPReduction
-
-theorem tspNormalizedPairs_eq_vertexCoverNormalizedPairs (n : Nat) :
-    tspNormalizedPairs n = vertexCoverNormalizedPairs n := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-      simp only [tspNormalizedPairs, vertexCoverNormalizedPairs, ih]
 
 /-- Complete symmetric matrix assembled from the reusable normalized-pair
 weight stream. -/
