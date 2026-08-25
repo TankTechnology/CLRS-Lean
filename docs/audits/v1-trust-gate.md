@@ -110,10 +110,10 @@ elaboration and `#guard_msgs`, Python's standard library, Lake, GitHub Actions.
 - [x] Implement the runner with `--chapters LOW-HIGH` for staged local checks
   and a default exact `1-35` completeness gate.
 - [x] Run the runner tests and the `1-6` pilot; expect both to pass.
-- [ ] Add `uv run python scripts/check_v1_trust_gate.py` after
+- [x] Add `python3 scripts/check_v1_trust_gate.py` after
   `leanprover/lean-action` in the Lean CI workflow, but only after all 35 trust
   files exist.
-- [ ] Commit as `ci(audit): enforce the v1 flagship trust gate`.
+- [x] Commit as `ci(audit): enforce the v1 flagship trust gate`.
 
 ## Task 4: Remaining chapter bands
 

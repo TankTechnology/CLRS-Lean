@@ -33,6 +33,12 @@ class GeneratedDocumentationCheckTest(unittest.TestCase):
             check_repository.CHECK_COMMANDS,
         )
 
+    def test_repository_runs_trust_gate_regressions(self) -> None:
+        self.assertIn(
+            ("scripts/test_check_v1_trust_gate.py",),
+            check_repository.CHECK_COMMANDS,
+        )
+
     def test_ignores_links_in_tilde_fences(self) -> None:
         text = """~~~text\n[example](missing.md)\n~~~~\n[real](real.md)\n"""
 
