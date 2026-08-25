@@ -26,5 +26,6 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCore
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeSource
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergePrefix
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeRuntime
 
 /-! # Fixed-machine implementation of the 3-CNF to SUBSET-SUM reduction -/
