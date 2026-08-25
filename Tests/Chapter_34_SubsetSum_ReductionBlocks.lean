@@ -76,3 +76,5 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceDigitMergeCanonical_run
 #check Turing.SubsetSumReduction.choiceDigitMergeCanonicalSteps_le
 #check Turing.SubsetSumReduction.choiceDigitStream_computableInPolyTime
+#check Turing.SubsetSumReduction.choiceBlockStream_eq
+#check Turing.SubsetSumReduction.choiceBlockStream_computableInPolyTime
