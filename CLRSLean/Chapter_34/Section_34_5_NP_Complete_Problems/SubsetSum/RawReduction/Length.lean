@@ -36,7 +36,7 @@ theorem encodeCnfToSubsetSum_length_le_formula {formula : CNF}
     (hthree : IsThreeCNF formula) :
     (encodeCnfToSubsetSum formula).length ≤
       ((reductionItemList formula).length + 1) *
-          (reductionBase formula * reductionWidth formula + 3) + 2 := by
+          (reductionBlockWidth formula * reductionWidth formula + 3) + 2 := by
   rw [encodeCnfToSubsetSum, encodeSubsetSumData_length]
   change (encodeTSPFields
       (reductionTarget formula ::
@@ -45,7 +45,7 @@ theorem encodeCnfToSubsetSum_length_le_formula {formula : CNF}
   have hfields := encodeTSPFields_length_le_of_size_le
     (reductionTarget formula ::
       (reductionItemList formula).map (itemValue formula))
-    (reductionBase formula * reductionWidth formula) (by
+    (reductionBlockWidth formula * reductionWidth formula) (by
       intro value hvalue
       simp only [List.mem_cons, List.mem_map] at hvalue
       rcases hvalue with rfl | ⟨item, _, rfl⟩
@@ -56,7 +56,7 @@ theorem encodeCnfToSubsetSum_length_le_formula {formula : CNF}
 /-- Explicit cubic bound used by the total raw reduction. -/
 def subsetSumReductionLengthBound (inputLength : Nat) : Nat :=
   (5 * inputLength + 1) *
-      ((15 * inputLength + 5) * (2 * inputLength) + 3) + 2
+      ((5 * inputLength + 3) * (2 * inputLength) + 3) + 2
 
 theorem encodeCnfToSubsetSum_length_le_input
     (input : List CNFSym) (hthree : IsThreeCNF (decodeCNF input)) :
@@ -71,22 +71,24 @@ theorem encodeCnfToSubsetSum_length_le_input
       5 * input.length := by
     rw [reductionItemList_length]
     omega
-  have hbase : reductionBase formula ≤ 15 * input.length + 5 :=
-    le_trans (reductionBase_le formula) (by omega)
+  have hblockWidth : reductionBlockWidth formula ≤
+      5 * input.length + 3 := by
+    rw [reductionBlockWidth_eq]
+    omega
   have hwidth : reductionWidth formula ≤ 2 * input.length := by
     rw [reductionWidth]
     omega
   calc
     (encodeCnfToSubsetSum formula).length ≤
         ((reductionItemList formula).length + 1) *
-            (reductionBase formula * reductionWidth formula + 3) + 2 :=
+            (reductionBlockWidth formula * reductionWidth formula + 3) + 2 :=
       encodeCnfToSubsetSum_length_le_formula hthree
     _ ≤ (5 * input.length + 1) *
-          ((15 * input.length + 5) * (2 * input.length) + 3) + 2 := by
+          ((5 * input.length + 3) * (2 * input.length) + 3) + 2 := by
       apply Nat.add_le_add_right
       exact Nat.mul_le_mul
         (Nat.add_le_add_right hitems 1)
-        (Nat.add_le_add_right (Nat.mul_le_mul hbase hwidth) 3)
+        (Nat.add_le_add_right (Nat.mul_le_mul hblockWidth hwidth) 3)
     _ = subsetSumReductionLengthBound input.length := rfl
 
 /-- Every raw input, including malformed or non-3-CNF strings, produces an
@@ -102,9 +104,9 @@ theorem rawThreeCNFToSubsetSum_length_le (input : List CNFSym) :
       rfl
     rw [hno]
     change 5 ≤ (5 * input.length + 1) *
-        ((15 * input.length + 5) * (2 * input.length) + 3) + 2
+        ((5 * input.length + 3) * (2 * input.length) + 3) + 2
     have hproduct : 1 * 3 ≤ (5 * input.length + 1) *
-        ((15 * input.length + 5) * (2 * input.length) + 3) :=
+        ((5 * input.length + 3) * (2 * input.length) + 3) :=
       Nat.mul_le_mul (by omega) (by omega)
     omega
 
