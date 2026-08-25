@@ -50,6 +50,46 @@ def choiceDigitMergePrefixSteps (before after : Nat) : Nat :=
     (restoreIndexSteps before +
       (prefixAfterSteps after + prefixBeforeSteps before))
 
+private theorem prefixBeforeSteps_eq (count : Nat) :
+    prefixBeforeSteps count = 4 * count + 3 := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp [prefixBeforeSteps, ih]
+      omega
+
+private theorem prefixAfterSteps_eq (count : Nat) :
+    prefixAfterSteps count = 2 * count + 1 := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp [prefixAfterSteps, ih]
+      omega
+
+private theorem restoreIndexSteps_eq (count : Nat) :
+    restoreIndexSteps count = 2 * count + 2 := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp [restoreIndexSteps, ih]
+      omega
+
+private theorem restoreTemplateSteps_eq (count : Nat) :
+    restoreTemplateSteps count = count + 1 := by
+  induction count with
+  | zero => rfl
+  | succ count ih =>
+      simp [restoreTemplateSteps, ih]
+
+/-- Closed form used by the polynomial runtime audit. -/
+theorem choiceDigitMergePrefixSteps_eq (before after : Nat) :
+    choiceDigitMergePrefixSteps before after =
+      7 * before + 3 * after + 8 := by
+  simp [choiceDigitMergePrefixSteps, prefixBeforeSteps_eq,
+    prefixAfterSteps_eq, restoreIndexSteps_eq,
+    restoreTemplateSteps_eq]
+  omega
+
 private def choiceDigitMerge_prefixBefore_run
     (first : ChoiceCountSym) (before after saved : Nat)
     (tail work₂ : List ChoiceDigitMergeSym)
