@@ -48,3 +48,6 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.slackFields_computableInPolyTime
 #check Turing.SubsetSumReduction.choiceBatches_eq
 #check Turing.SubsetSumReduction.choiceBatches_computableInPolyTime
+#check Turing.SubsetSumReduction.choicePackedBitsLE_eq
+#check Turing.SubsetSumReduction.choiceItemBits_eq
+#check Turing.SubsetSumReduction.occurrenceSmallDigit_clause_value
