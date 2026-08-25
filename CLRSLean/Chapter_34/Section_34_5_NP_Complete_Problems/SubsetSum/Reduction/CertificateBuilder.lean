@@ -9,7 +9,7 @@ namespace CLRS.Chapter34.SubsetSumReduction
 /-- Select exactly the item agreeing with the assignment for every variable. -/
 def assignmentChoiceItems (formula : CNF) (assignment : Nat → Bool) :
     Finset SubsetSumItem :=
-  (Finset.range (cnfVarCount formula)).image
+  (Finset.range (reductionVariableCount formula)).image
     (fun index => .choice index (assignment index))
 
 /-- Select enough of the three unit slack copies to raise each clause's true
@@ -18,7 +18,8 @@ def assignmentSlackItems (formula : CNF) (assignment : Nat → Bool) :
     Finset SubsetSumItem :=
   (((Finset.range formula.length).product (Finset.range 3)).filter
     (fun pair => pair.2 < 4 - assignmentClauseCount
-      (cnfVarCount formula) assignment (formula.getD pair.1 []))).image
+      (reductionVariableCount formula) assignment
+        (formula.getD pair.1 []))).image
     (fun pair => .slack pair.1 pair.2)
 
 /-- Full SUBSET-SUM certificate induced by an assignment. -/
@@ -30,7 +31,8 @@ def assignmentItems (formula : CNF) (assignment : Nat → Bool) :
 theorem choice_mem_assignmentChoiceItems_iff
     (formula : CNF) (assignment : Nat → Bool) (index : Nat) (truth : Bool) :
     .choice index truth ∈ assignmentChoiceItems formula assignment ↔
-      index < cnfVarCount formula ∧ truth = assignment index := by
+      index < reductionVariableCount formula ∧
+        truth = assignment index := by
   rw [assignmentChoiceItems, Finset.mem_image]
   constructor
   · rintro ⟨source, hsource, hitem⟩
@@ -49,7 +51,7 @@ theorem slack_mem_assignmentSlackItems_iff
     (formula : CNF) (assignment : Nat → Bool) (clause slot : Nat) :
     .slack clause slot ∈ assignmentSlackItems formula assignment ↔
       clause < formula.length ∧ slot < 3 ∧
-        slot < 4 - assignmentClauseCount (cnfVarCount formula)
+        slot < 4 - assignmentClauseCount (reductionVariableCount formula)
           assignment (formula.getD clause []) := by
   rw [assignmentSlackItems, Finset.mem_image]
   constructor
@@ -74,7 +76,7 @@ theorem slack_mem_assignmentSlackItems_iff
 theorem assignmentChoiceItems_subset (formula : CNF)
     (assignment : Nat → Bool) :
     assignmentChoiceItems formula assignment ⊆
-      variableItems (cnfVarCount formula) := by
+      variableItems (reductionVariableCount formula) := by
   intro item hitem
   cases item with
   | choice index truth =>

@@ -12,7 +12,7 @@ def assignmentFromItems (chosen : Finset SubsetSumItem) (index : Nat) : Bool :=
 
 theorem variableColumnSum_eq (formula : CNF)
     (chosen : Finset SubsetSumItem) {column : Nat}
-    (hcolumn : column < cnfVarCount formula) :
+    (hcolumn : column < reductionVariableCount formula) :
     columnSum formula chosen column =
       (if .choice column false ∈ chosen then 1 else 0) +
       (if .choice column true ∈ chosen then 1 else 0) := by
@@ -34,7 +34,7 @@ theorem variableColumnSum_eq (formula : CNF)
 extracted assignment. -/
 theorem choice_mem_iff_assignmentFromItems
     (formula : CNF) (chosen : Finset SubsetSumItem)
-    {index : Nat} (hindex : index < cnfVarCount formula)
+    {index : Nat} (hindex : index < reductionVariableCount formula)
     (hsum : columnSum formula chosen index = 1) (truth : Bool) :
     .choice index truth ∈ chosen ↔
       truth = assignmentFromItems chosen index := by

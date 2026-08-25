@@ -44,7 +44,7 @@ theorem size_packColumns_pow_two_le {blockWidth width : Nat}
 
 @[simp] theorem reductionItemList_length (formula : CNF) :
     (reductionItemList formula).length =
-      2 * cnfVarCount formula + 3 * formula.length := by
+      2 * reductionVariableCount formula + 3 * formula.length := by
   simp [reductionItemList]
 
 theorem reductionItems_card_eq (formula : CNF) :
@@ -59,13 +59,13 @@ theorem reductionItems_card_eq (formula : CNF) :
 
 theorem reductionBlockWidth_eq (formula : CNF) :
     reductionBlockWidth formula =
-      2 * cnfVarCount formula + 3 * formula.length + 3 := by
+      2 * reductionVariableCount formula + 3 * formula.length + 3 := by
   rw [reductionBlockWidth, reductionItems_card_eq,
     reductionItemList_length]
 
 theorem reductionWidth_le (formula : CNF) :
     reductionWidth formula ≤
-      cnfVarCount formula + formula.length := by
+      reductionVariableCount formula + formula.length := by
   rfl
 
 theorem reductionTarget_size_le (formula : CNF) :

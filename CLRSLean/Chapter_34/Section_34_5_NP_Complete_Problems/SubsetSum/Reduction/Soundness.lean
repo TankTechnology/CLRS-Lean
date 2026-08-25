@@ -18,11 +18,11 @@ theorem evalClause_getD_of_exact_columns
   by_contra hfalse
   have hchoiceZero : ∀ index truth, .choice index truth ∈ chosen →
       itemDigit formula (.choice index truth)
-        (cnfVarCount formula + clause) = 0 := by
+        (reductionVariableCount formula + clause) = 0 := by
     intro index truth hselected
     have hgenerated : .choice index truth ∈ reductionItems formula :=
       hsubset hselected
-    have hindex : index < cnfVarCount formula := by
+    have hindex : index < reductionVariableCount formula := by
       simpa [reductionItems] using hgenerated
     have hvariableColumn : columnSum formula chosen index = 1 := by
       have hexact := hcolumns index (by simp [reductionWidth]; omega)
@@ -42,8 +42,8 @@ theorem evalClause_getD_of_exact_columns
     formula chosen hsubset clause hchoiceZero
   have hslack := clauseSlackContribution_le_three chosen clause
   have hfour :
-      columnSum formula chosen (cnfVarCount formula + clause) = 4 := by
-    have hexact := hcolumns (cnfVarCount formula + clause)
+      columnSum formula chosen (reductionVariableCount formula + clause) = 4 := by
+    have hexact := hcolumns (reductionVariableCount formula + clause)
       (by simp [reductionWidth]; omega)
     simpa using hexact
   omega
