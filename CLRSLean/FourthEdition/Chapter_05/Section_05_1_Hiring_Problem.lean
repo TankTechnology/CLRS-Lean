@@ -34,7 +34,7 @@ executable HIRE-ASSISTANT pseudocode ({lit}`CLRS.Chapter05.hireAssistant`).
 Probability model: uses {lit}`CLRS.Probability.uniformAverage` from the shared
 finite-expectation toolkit ({lit}`CLRSLean/Probability/FiniteExpectation.lean`);
 uniform random-permutation sampling is supplied by Section 5.3
-({lit}`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.5).
+({lit}`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.4).
 
 The executable layer below formalizes the HIRE-ASSISTANT pseudocode: the
 first candidate is always hired, and each later candidate is hired exactly

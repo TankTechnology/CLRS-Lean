@@ -137,17 +137,43 @@ surface needed by the accepted flagship theorem. Run the band through
 
 ## Task 5: MAJOR semantic-fidelity closure
 
-- [ ] Re-run the Chapter 2, 5, and 6 audit claims against current source and
+- [x] Re-run the Chapter 2, 5, and 6 audit claims against current source and
   exact fourth-edition theorem statements.
-- [ ] Close findings already repaired, with theorem and test evidence.
-- [ ] For a real finding inside the advertised boundary, add a failing public
+- [x] Close findings already repaired, with theorem and test evidence.
+- [x] For a real finding inside the advertised boundary, add a failing public
   interface test before changing the proof or model.
-- [ ] Repair the proof through the chapter main-content gate, or downgrade the
+- [x] Repair the proof through the chapter main-content gate, or downgrade the
   progress row and public status before v1.
 - [ ] Run the full trust runner, repository checks, changed interface tests,
   `lake build CLRSLean`, and `git diff --check`.
 - [ ] Freeze this audit record with the verified commit hash and zero
   unexplained MAJOR findings.
+
+The third item required no new failing Lean test: the only live in-bound defect
+was a textbook-reference label in documentation, not a theorem statement,
+proof, or executable model.  It was reproduced by searching the live source
+for `Lemma 5.5`, then repaired as `Lemma 5.4` in the section guide, theorem
+documentation, and canonical progress row.  The theorem itself remains pinned
+by `Tests/Trust/Chapter_05.lean`.
+
+### Fresh MAJOR closure record (2026-08-26)
+
+The dated semantic-fidelity reports remain unchanged snapshots.  The following
+table is the fresh v1 classification against `docs/scope.md` and the current
+canonical chapter guides.
+
+| Historical finding | V1 classification | Current evidence |
+|---|---|---|
+| Chapter 2 M1/M3: line-cost table and exact instruction sum | Outside advertised boundary | `docs/scope.md` excludes line-by-line pseudocode and word-RAM behavior; Chapter 2 advertises comparison bounds, correctness, and recurrence results. |
+| Chapter 2 M2/M4: from-scratch MERGE and implementation-derived linear cost | Outside advertised boundary | The canonical §2.3 guide explicitly delegates to verified `List.mergeSort` and records local MERGE as a future strengthening; executable-performance matching is not claimed. |
+| Chapter 5 M1: RANDOMIZE-IN-PLACE mislabeled as Lemma 5.5 | Fixed | Every live reference now says Lemma 5.4; `randomizeInPlace_uniform` is axiom-audited in `Tests/Trust/Chapter_05.lean`. |
+| Chapter 6 M1: array-level MAX-HEAP-INSERT absent | Outside advertised boundary | The represented functional interface includes proved `heapInsert`; the §6.5 guide explicitly selects array-level maximum, increase-key, extract-max, and delete state theorems rather than every pseudocode operation. |
+| Chapter 6 M2: functional increase/delete rebuild the heap | Outside advertised boundary | The functions are documented as a compact mathematical scaffold, and `docs/scope.md` excludes executable-performance equivalence. The selected array-level increase/delete state theorems are now bundled into the native Chapter 6 trust audit. |
+| Chapter 6 M3: functional arrays rather than mutation | Outside advertised boundary | Mutation, allocation, and imperative RAM behavior are explicit project-wide exclusions; the §6.4 guide states the functional-array boundary. |
+
+Result: all eight historical MAJOR findings are explained—one fixed and seven
+outside the advertised v1 boundary.  There is no still-real MAJOR inside that
+boundary.
 
 ## Failure policy
 
