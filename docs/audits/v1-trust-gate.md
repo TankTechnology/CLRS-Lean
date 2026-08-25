@@ -125,7 +125,7 @@ Create and verify chapter files in these independently committable bands:
   programming, greedy optimality, amortized analysis, and B-tree operations.
 - [x] Chapters 19--24: disjoint sets, graph algorithms, MST, shortest paths,
   matching, and maximum flow.
-- [ ] Chapters 25--30: matching refinements, parallel algorithms, online
+- [x] Chapters 25--30: matching refinements, parallel algorithms, online
   algorithms, matrix computations, linear programming, and FFT.
 - [ ] Chapters 31--35: number theory, string matching, machine learning,
   NP-completeness, and approximation algorithms.
