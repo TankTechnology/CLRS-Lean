@@ -69,3 +69,6 @@ open CLRS.Chapter34
 #check Turing.SubsetSumReduction.choiceOccurrenceCountsRev_fromBatches_computableInPolyTime
 #check Turing.SubsetSumReduction.choiceOccurrenceCountsRev_computableInPolyTime
 #check Turing.SubsetSumReduction.choiceOccurrenceCounts_computableInPolyTime
+#check Turing.SubsetSumReduction.choiceDigitStream
+#check Turing.SubsetSumReduction.choiceDigitMergeProgram
+#check Turing.SubsetSumReduction.choiceDigitMergeInput_computableInPolyTime
