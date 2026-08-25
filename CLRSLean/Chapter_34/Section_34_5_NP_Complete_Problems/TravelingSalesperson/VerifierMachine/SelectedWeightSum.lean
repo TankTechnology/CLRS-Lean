@@ -39,7 +39,7 @@ noncomputable def selectedSumBitsComputableInPolyTime :
       (SelectedWeightFields.selectedFields input))
   simpa only [Function.comp_def] using Classical.choice composed
 
-private def fieldBits (values : List Nat) : List (Option Bool) :=
+def fieldBits (values : List Nat) : List (Option Bool) :=
   values.flatMap fun value => (encodeBinaryNat value).map some ++ [none]
 
 private theorem selectCurrent_field (flag : Bool) (flags : List Bool)

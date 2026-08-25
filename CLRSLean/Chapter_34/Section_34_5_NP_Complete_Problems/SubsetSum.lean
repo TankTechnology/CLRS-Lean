@@ -6,6 +6,9 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP
 
 /-!
 # SUBSET-SUM
@@ -15,4 +18,6 @@ typed textbook reduction from 3-CNF-SAT.  Stable item labels preserve distinct
 copies with equal numerical values, and the input-dependent radix makes the
 carry-free column argument explicit.  It also exports an honest serialized
 language whose certificates are lists of distinct, in-range value indices.
+It additionally exports an equivalent Boolean-mask certificate and a concrete
+fixed polynomial-time verifier proving membership in `NP`.
 -/
