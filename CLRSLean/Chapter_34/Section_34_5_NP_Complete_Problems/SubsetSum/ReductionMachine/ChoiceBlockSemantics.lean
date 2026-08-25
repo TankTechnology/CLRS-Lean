@@ -216,6 +216,21 @@ private theorem choiceItemExpand_eq {formula : CNF}
     hwidth, bitBlock,
     List.map_append, List.append_assoc]
 
+/-- Public per-item semantic interface: expanding the finite choice digits
+produces exactly the textbook little-endian payload, before its boundary. -/
+theorem choiceItemBlock_eq {formula : CNF}
+    (hthree : IsThreeCNF formula) (index : Nat)
+    (hindex : index < reductionVariableCount formula) (truth : Bool)
+    (width : List Unit) (hwidth : width.length = reductionBlockWidth formula) :
+    (choiceVariableDigits formula index ++
+      choiceOccurrenceDigits formula index truth).flatMap
+        (choiceBlockExpand (smallDigitPositions width)) =
+      (choicePackedBitsLE formula index truth).map ChoiceBlockSym.bit := by
+  have full := choiceItemExpand_eq hthree index hindex truth width hwidth
+  apply List.append_cancel_right (bs := [.itemEnd])
+  simpa [List.flatMap_append, choiceBlockExpand, bitBlock,
+    List.append_assoc] using full
+
 /-- All little-endian choice payloads, with one boundary after every item. -/
 def choicePackedBlockStream (formula : CNF) (truth : Bool) :
     List ChoiceBlockSym :=
