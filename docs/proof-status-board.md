@@ -9,9 +9,9 @@ not a duplicate completion ledger.
 
 Last evidence reconciliation: 2026-08-25.
 
-The six-phase maintenance cleanup is complete: the ledger audit is reconciled,
-branch hygiene is done, and the final Pages deployment (`Build and deploy Verso
-site` run #215) succeeded.
+The maintenance ledger is reconciled with the checked source. Website
+deployment remains a separately verified workflow and is not used as evidence
+for theorem completion.
 
 ## How To Read The Board
 

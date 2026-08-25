@@ -46,7 +46,7 @@ def affineValidityRowGateStream
     affineValidityTailGateStream frame.tailFrame
 
 /-- A structural relabeling of one builder operation. -/
-private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
+private def validityRowRelabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
     Op Γ Δ Λ → Op Γ Δ Μ
   | .pushOutput symbol next => .pushOutput symbol (tag next)
   | .pushWork₁ symbol next => .pushWork₁ symbol (tag next)
@@ -97,15 +97,15 @@ def affineValidityRowRevProgram : Program UnaryFrameSym CircuitSym where
     | .oneHot .finish =>
         .popWork₁ (.loader unaryTripleLoaderProgram.main) (fun _ => .invalid)
     | .oneHot label =>
-        relabelOp .oneHot (affineExactlyOneFamilyRevProgram.op label)
+        validityRowRelabelOp .oneHot (affineExactlyOneFamilyRevProgram.op label)
     | .loader .ready =>
         .popWork₁ (.boolEq (.kernel (.boolEq .notLeft))) (fun _ => .invalid)
-    | .loader label => relabelOp .loader (unaryTripleLoaderProgram.op label)
+    | .loader label => validityRowRelabelOp .loader (unaryTripleLoaderProgram.op label)
     | .boolEq .finish =>
         .popWork₁ (.tail affineValidityTailRevProgram.main) (fun _ => .invalid)
     | .boolEq label =>
-        relabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label)
-    | .tail label => relabelOp .tail (affineValidityTailRevProgram.op label)
+        validityRowRelabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label)
+    | .tail label => validityRowRelabelOp .tail (affineValidityTailRevProgram.op label)
     | .invalid => .halt
 
 /-- Fieldwise relabeling of a component configuration into the row program. -/
@@ -155,13 +155,13 @@ def affineValidityRowLoopCfg (input : List UnaryFrameSym)
 private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineValidityRowLabel)
     (op : Op UnaryFrameSym CircuitSym P.Label) (c : BuilderCfg P) :
-    stepOp (relabelOp tag op) (relabelCfg tag c) =
+    stepOp (validityRowRelabelOp tag op) (relabelCfg tag c) =
       relabelCfg tag (stepOp op c) := by
   rcases c with
     ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
       counter₁, counter₂, counter₃⟩
   cases op <;>
-    simp only [relabelOp, relabelCfg, stepOp] <;>
+    simp only [validityRowRelabelOp, relabelCfg, stepOp] <;>
     first
     | rfl
     | split <;> rfl
@@ -169,21 +169,21 @@ private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
 private theorem affineValidityRow_op_oneHot
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineValidityRowRevProgram.op (.oneHot label) =
-      relabelOp .oneHot (affineExactlyOneFamilyRevProgram.op label) := by
+      validityRowRelabelOp .oneHot (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineValidityRowRevProgram]
     <;> rfl
 
 private theorem affineValidityRow_op_loader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineValidityRowRevProgram.op (.loader label) =
-      relabelOp .loader (unaryTripleLoaderProgram.op label) := by
+      validityRowRelabelOp .loader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineValidityRowRevProgram]
     <;> rfl
 
 private theorem affineValidityRow_op_boolEq
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineValidityRowRevProgram.op (.boolEq label) =
-      relabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label) := by
+      validityRowRelabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineValidityRowRevProgram]
     <;> rfl
 
@@ -257,7 +257,7 @@ private theorem liftTail_step (c : BuilderCfg affineValidityTailRevProgram) :
   | some label =>
       simp only [Option.map_some]
       change some (stepOp
-          (relabelOp AffineValidityRowLabel.tail
+          (validityRowRelabelOp AffineValidityRowLabel.tail
             (affineValidityTailRevProgram.op label))
           (relabelCfg AffineValidityRowLabel.tail c)) =
         some (relabelCfg AffineValidityRowLabel.tail

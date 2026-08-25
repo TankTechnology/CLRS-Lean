@@ -141,7 +141,8 @@ class LiterateConfigTest(unittest.TestCase):
             ordered_sections = [
                 module
                 for module in _ordered_descendants(order_children, chapter_module)
-                if module not in COMPATIBILITY_MODULES
+                if module.startswith(f"{chapter_module}.Section_")
+                and module not in COMPATIBILITY_MODULES
             ]
             with self.subTest(chapter=chapter_module):
                 self.assertEqual(imported_sections, ordered_sections)

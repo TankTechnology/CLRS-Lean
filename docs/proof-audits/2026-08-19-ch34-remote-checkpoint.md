@@ -2,6 +2,10 @@
 
 Date: 2026-08-19
 
+> **Historical checkpoint.** Superseded on 2026-08-25: Chapter 34 is now
+> `main-proof-complete` at its advertised textbook boundary. The branch and
+> remaining-work statements below record repository state on the date above.
+
 ## Repository state
 
 - Working branch: `codex/ch34-textbook-closure`.

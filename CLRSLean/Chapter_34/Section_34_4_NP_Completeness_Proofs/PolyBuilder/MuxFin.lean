@@ -66,7 +66,7 @@ def affineMuxFinGateStream (selector : Nat)
       affineOrGateStream frame.trueArm frame.falseArm
 
 /-- Structural relabeling of a component instruction. -/
-private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
+private def muxFinRelabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
     Op Γ Δ Λ → Op Γ Δ Μ
   | .pushOutput symbol next => .pushOutput symbol (tag next)
   | .pushWork₁ symbol next => .pushWork₁ symbol (tag next)
@@ -137,7 +137,7 @@ def affineMuxFinRevProgram : Program UnaryFrameSym CircuitSym where
           (fun _ => .invalid)
     | .loader .combine .ready =>
         .popWork₁ .orSeed (fun _ => .invalid)
-    | .loader stage label => relabelOp (.loader stage)
+    | .loader stage label => muxFinRelabelOp (.loader stage)
         (unaryTripleLoaderProgram.op label)
     | .core .selectorNot .finish => .popWork₁ .check (fun _ => .invalid)
     | .core .trueArm .finish =>
@@ -147,7 +147,7 @@ def affineMuxFinRevProgram : Program UnaryFrameSym CircuitSym where
         .popWork₁ (.loader .combine unaryTripleLoaderProgram.main)
           (fun _ => .invalid)
     | .core .combine .finish => .popWork₁ .check (fun _ => .invalid)
-    | .core stage label => relabelOp (.core stage)
+    | .core stage label => muxFinRelabelOp (.core stage)
         (affineExactlyOneFamilyRevProgram.op label)
     | .orSeed =>
         .pushWork₁ .tick (.core .combine (.kernel (.suffixOr .next)))
@@ -215,13 +215,13 @@ private def liftCoreCfg (stage : AffineMuxFinStage)
 private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineMuxFinLabel)
     (op : Op UnaryFrameSym CircuitSym P.Label) (c : BuilderCfg P) :
-    stepOp (relabelOp tag op) (relabelCfg tag c) =
+    stepOp (muxFinRelabelOp tag op) (relabelCfg tag c) =
       relabelCfg tag (stepOp op c) := by
   rcases c with
     ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
       counter₁, counter₂, counter₃⟩
   cases op <;>
-    simp only [relabelOp, relabelCfg, stepOp] <;>
+    simp only [muxFinRelabelOp, relabelCfg, stepOp] <;>
     first
     | rfl
     | split <;> rfl
@@ -229,14 +229,14 @@ private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
 private theorem affineMuxFin_op_loader (stage : AffineMuxFinStage)
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineMuxFinRevProgram.op (.loader stage label) =
-      relabelOp (.loader stage) (unaryTripleLoaderProgram.op label) := by
+      muxFinRelabelOp (.loader stage) (unaryTripleLoaderProgram.op label) := by
   cases stage <;> cases label <;>
     simp_all [affineMuxFinRevProgram] <;> rfl
 
 private theorem affineMuxFin_op_core (stage : AffineMuxFinStage)
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineMuxFinRevProgram.op (.core stage label) =
-      relabelOp (.core stage)
+      muxFinRelabelOp (.core stage)
         (affineExactlyOneFamilyRevProgram.op label) := by
   cases stage <;> cases label <;>
     simp_all [affineMuxFinRevProgram] <;> rfl

@@ -2,6 +2,10 @@
 
 Date: 2026-08-21
 
+> **Historical checkpoint.** Cook--Levin remains closed, and the remaining
+> Chapter 34 work recorded below was completed by 2026-08-25. Chapter 34 is now
+> `main-proof-complete` at its advertised textbook boundary.
+
 ## Scope and result
 
 This checkpoint closes the textbook Cook--Levin theorem in the repository's

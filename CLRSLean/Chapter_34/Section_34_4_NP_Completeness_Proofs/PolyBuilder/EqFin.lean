@@ -55,7 +55,7 @@ def affineEqFinGateStream (frames : List AffineEqFinPairFrame) :
       affineAndGateStream frame.matched frame.previous
 
 /-- Structural relabeling of a component instruction. -/
-private def relabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
+private def eqFinRelabelOp {Γ Δ Λ Μ : Type} (tag : Λ → Μ) :
     Op Γ Δ Λ → Op Γ Δ Μ
   | .pushOutput symbol next => .pushOutput symbol (tag next)
   | .pushWork₁ symbol next => .pushWork₁ symbol (tag next)
@@ -114,18 +114,18 @@ def affineEqFinRevProgram : Program UnaryFrameSym CircuitSym where
         .popWork₁ (.boolLoader unaryTripleLoaderProgram.main) (fun _ => .invalid)
     | .boolLoader .ready =>
         .popWork₁ (.boolEq (.kernel (.boolEq .notLeft))) (fun _ => .invalid)
-    | .boolLoader label => relabelOp .boolLoader
+    | .boolLoader label => eqFinRelabelOp .boolLoader
         (unaryTripleLoaderProgram.op label)
     | .boolEq .finish =>
         .popWork₁ (.andLoader unaryTripleLoaderProgram.main) (fun _ => .invalid)
-    | .boolEq label => relabelOp .boolEq
+    | .boolEq label => eqFinRelabelOp .boolEq
         (affineExactlyOneFamilyRevProgram.op label)
     | .andLoader .ready =>
         .popWork₁ (.andCore (.kernel (.conjunction .push))) (fun _ => .invalid)
-    | .andLoader label => relabelOp .andLoader
+    | .andLoader label => eqFinRelabelOp .andLoader
         (unaryTripleLoaderProgram.op label)
     | .andCore .finish => .popWork₁ .check (fun _ => .invalid)
-    | .andCore label => relabelOp .andCore
+    | .andCore label => eqFinRelabelOp .andCore
         (affineExactlyOneFamilyRevProgram.op label)
     | .finish => .halt
     | .invalid => .halt
@@ -196,13 +196,13 @@ private def liftAndCfg
 private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
     (tag : P.Label → AffineEqFinLabel)
     (op : Op UnaryFrameSym CircuitSym P.Label) (c : BuilderCfg P) :
-    stepOp (relabelOp tag op) (relabelCfg tag c) =
+    stepOp (eqFinRelabelOp tag op) (relabelCfg tag c) =
       relabelCfg tag (stepOp op c) := by
   rcases c with
     ⟨label, buffer₁, buffer₂, test, input, output, work₁, work₂,
       counter₁, counter₂, counter₃⟩
   cases op <;>
-    simp only [relabelOp, relabelCfg, stepOp] <;>
+    simp only [eqFinRelabelOp, relabelCfg, stepOp] <;>
     first
     | rfl
     | split <;> rfl
@@ -210,25 +210,25 @@ private theorem relabel_stepOp {P : Program UnaryFrameSym CircuitSym}
 private theorem affineEqFin_op_boolLoader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineEqFinRevProgram.op (.boolLoader label) =
-      relabelOp .boolLoader (unaryTripleLoaderProgram.op label) := by
+      eqFinRelabelOp .boolLoader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineEqFinRevProgram] <;> rfl
 
 private theorem affineEqFin_op_boolEq
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineEqFinRevProgram.op (.boolEq label) =
-      relabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label) := by
+      eqFinRelabelOp .boolEq (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineEqFinRevProgram] <;> rfl
 
 private theorem affineEqFin_op_andLoader
     (label : UnaryTripleLoaderLabel) (hexit : label ≠ .ready) :
     affineEqFinRevProgram.op (.andLoader label) =
-      relabelOp .andLoader (unaryTripleLoaderProgram.op label) := by
+      eqFinRelabelOp .andLoader (unaryTripleLoaderProgram.op label) := by
   cases label <;> simp_all [affineEqFinRevProgram] <;> rfl
 
 private theorem affineEqFin_op_andCore
     (label : AffineExactlyOneFamilyLabel) (hexit : label ≠ .finish) :
     affineEqFinRevProgram.op (.andCore label) =
-      relabelOp .andCore (affineExactlyOneFamilyRevProgram.op label) := by
+      eqFinRelabelOp .andCore (affineExactlyOneFamilyRevProgram.op label) := by
   cases label <;> simp_all [affineEqFinRevProgram] <;> rfl
 
 private theorem liftBoolLoader_step

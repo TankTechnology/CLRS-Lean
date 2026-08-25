@@ -450,6 +450,20 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.Unary
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.UnaryTripleRowMark
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DropHead
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.PairSecondProjection
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.BoolPairStream
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Basic
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Run
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Runtime
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.DelimitedBinarySum.Semantics
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Core
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Run
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.ListPairEq.Runtime
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Basic
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Run
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder.SelectDelimitedFields.Runtime
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.ReachableAlphabet
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.Configuration
@@ -964,18 +978,10 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Ce
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.CycleInterface
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NPCompleteness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.RawReductionLength
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Header
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Runtime
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Completeness.CertificateAdjacency
@@ -1013,7 +1019,81 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Re
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectedPorts
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SelectorBudget
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Reduction.Soundness.SourceCover
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Branch
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Header
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.NondegeneratePrefix
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchClassifier.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.BranchSelector.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Bounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Emit
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Family
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Parse
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Rows
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Run
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Chain.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Bounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Emit
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Family
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Parse
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Rows
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Run
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Endpoints.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Input
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateLeft
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CandidateRight
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Cleanup
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.CounterRestore
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Edges
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.FinalCleanup
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Header
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Iteration
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Load
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.OccurrenceEmit
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Query
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Run
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Incidence.Scanner.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.Ordinary.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.RawTotal.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Formatter
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorClique.Source
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Formatter
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsCore
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRun
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.OffsetRowsRuntime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.SelectorEndpoints.Source
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.TypedTotal.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Endpoints
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Formatter
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.OccurrenceSeeds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.ReductionMachine.WidgetEdges.Source
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.CertificateNodup
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.VerifierMachine.ComponentChecks
@@ -1045,191 +1125,259 @@ import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.OccurrenceCount
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Soundness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.VariableBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.RadixBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Construction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Bridge.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Certificate.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Canonicality
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Parser
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.RoundTrip
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Hardness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.FiniteSelection
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.MaskCertificate.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NPCompleteness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.BinaryBlocks
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Construction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.ItemList
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.NumericBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.RawReduction.SourceBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.BinaryCanonicalizer
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBatchSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceBlockStream
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCompiled
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeCore
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergePrefix
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeRuntime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceDigitMergeSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldCore
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldFamily
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldItem
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldRuntime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceFieldSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBatch
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceBounds
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceClause
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompare
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCompiled
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceCore
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceDispatch
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceFormula
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceLiteral
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceOutput
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceOccurrenceRuntime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ChoiceSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ClauseCount
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.Dimensions
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedItemFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GeneratedRecord
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.GuardedReduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.ItemFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackProgressionSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SlackSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SmallDigitBlock
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.SymbolCount
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBits
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockSource
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetBlockStream
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.TargetField
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.ReductionMachine.VariableBudget
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Final.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.MaskFlags
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedSum
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SelectedValueFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SumCheck
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.Syntax
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.SyntaxSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.TargetBits
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.VerifierMachine.ValueBitFields
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Construction
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.Correctness
 import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Reduction.CostSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Certificate.UnaryLength
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Canonicality
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Fields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrder
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.PairOrderProperties
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Parser
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.RoundTrip
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Symmetry
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Hardness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Language
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NP
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NPCompleteness
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Construction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Length
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.RawReduction.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Codec
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.CompleteWeights
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalFields.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.DiagonalWeights
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Header
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.HeaderFields.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.NormalizedWeights
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawSelector.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Core
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawTotal.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RawValidity
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.RecordEnd
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeightFields.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.SymmetricWeights
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.Typed
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexCountBits
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.VertexTokens.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightFields.Runtime
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.ReductionMachine.WeightSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.BudgetCheck
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.CyclePairs
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CostSemantics.Selection
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CycleMembership
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.CyclePairStream
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldCount
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.FieldStream
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Basic
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Final.Semantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.HeaderBits
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightFields
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectedWeightSum
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SelectionFlags
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SquareCount
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.StructuralChecks
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryCheck
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SymmetryFlags
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.Syntax
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.SyntaxSemantics
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryBaseInput
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.UnaryCertificate
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.VerifierMachine.WeightBitFields
 
-/-! # Chapter 34 — NP-Completeness
+/-!
+# Chapter 34 — NP-Completeness
 
-Chapter 34 of CLRS covers NP-completeness: the complexity classes **P** and
-**NP**, polynomial-time reducibility, and NP-completeness.
+Chapter 34 formalizes the textbook complexity framework and the advertised
+NP-completeness chain through Sections 34.1--34.5.  Machine-level polynomial
+time is expressed with Mathlib's {lit}`Turing.TM2ComputableInPolyTime` and
+explicit {lit}`Polynomial ℕ` bounds.
 
-This chapter formalizes the polynomial-time framework and the represented
-NP-completeness reductions through Section 34.4.  It is built on Mathlib's
-`Turing.TM2ComputableInPolyTime` (machine-level polynomial-time computability
-with `Polynomial ℕ` time bounds).
+## Coverage status
 
-## Sections
+**Status: {lit}`main-proof-complete`.**  The selected textbook theorem boundary
+is kernel-checked end to end.  This status is about the public mathematical
+claims and their honest serialized decision problems; it does not claim that
+every exercise or every possible low-level implementation refinement has been
+formalized.
 
-### 34.1 Polynomial Time
+## 34.1 Polynomial time
 
-* `CLRS.Chapter34.Language` — a set of strings over an alphabet
-* `CLRS.Chapter34.PolyTimeComputable` — a function computed by a TM2 machine
-  in time bounded by a polynomial in the input length
-* `CLRS.Chapter34.PolyTimeDecidable` — a language decided by a
-  polynomial-time decision function
-* `CLRS.Chapter34.ClassP` — the class of polynomial-time decidable languages
+The chapter defines languages, polynomial-time computable functions and
+deciders, and {lit}`ClassP`.  It proves composition of polynomial-time TM2
+machines and closure of P under complement, union, and intersection.
 
-### 34.2 Polynomial-Time Verification
+## 34.2 Polynomial-time verification
 
-* `CLRS.Chapter34.pairEncoding` — encode a certificate/input pair as one string
-* `CLRS.Chapter34.PolyTimeVerifiable` — a language verifiable by a
-  polynomial-time verifier with polynomial-size certificates
-* `CLRS.Chapter34.ClassNP` — the class of polynomially verifiable languages
+Certificate/input pairing, polynomial-size certificates,
+{lit}`PolyTimeVerifiable`, and {lit}`ClassNP` provide the verifier model.  The
+formalized Theorem 34.2 is {lit}`ClassP_subset_ClassNP`.
 
-### 34.3 NP-Completeness and Reducibility
+## 34.3 NP-completeness and reducibility
 
-* `CLRS.Chapter34.PolyTimeReducible` — `L₁ ≤_P L₂`, polynomial-time
-  reducibility
-* `CLRS.Chapter34.NPHard` / `NPComplete` — the NP-hard / NP-complete classes
-* `CLRS.Chapter34.ClassNPC` — the class of NP-complete languages
+{lit}`PolyTimeReducible`, {lit}`NPHard`, and {lit}`NPComplete` supply the public
+reduction interface.  Polynomial-time reducibility is transitive, so hardness
+can be transported along the concrete reduction chain.
 
-**Status: `partial`** — the complete framework (languages, polytime,
-class `P`, class `NP`, reducibility, NP-hard/NP-complete) is defined, and the
-theorem layer is complete: composition, `P ⊆ NP`, transitivity of `≤_P`, and
-the closure of `ClassP` under complement, union, and intersection.  Section
-34.4 includes the concrete CIRCUIT-SAT → SAT and SAT → at-most-three-literal
-3-CNF-SAT reductions, plus a reduction from 3-CNF-SAT to its specialized
-occurrence-graph clique language.  The concrete
-{lit}`Turing.TM3CNF.sat_reducible_to_threeCNFSat` machine theorem is sealed by
-the Chapter 34 public interface.  The bounded-builder kernel now
-includes verified scan/copy, symbol-local bounded-loop, and row-major
-nested-loop macros, each with canonical exact independent and compiled runs;
-their costs are respectively `3n + 3`, `2n + L + 3`, and
-`2n² + 5n + L + 4`.  The Cook--Levin foundation now also extracts finite
-reachable alphabets for fixed bundled machines, encodes canonical bounded
-configurations without assuming the full work alphabets are finite, proves
-exact-horizon stuttering equivalence, and establishes a uniform stack-height
-bound that counts every push along a bundled statement path.  Canonical row
-validity is now circuitized with exact decoding semantics and an exact gate
-cost affine in the height bound.  Verified one-step workspace bridges now
-widen and narrow row bundles with exact gate costs, overflow-fit semantics,
-and successful-decoding preservation.  Widening now exposes its exact two-gate
-Boolean constant pool for downstream reuse.  The circuit kernel also provides
-finite-family mux and streaming equality with exact respective costs
-`3n + 1` and `6n + 1`; canonical row flattening lifts these operations to
-whole configuration bundles with exact costs `3w + 1` and `6w + 1`, where
-the row width w denotes {lit}`cfgBitCount tm H`; typed stack views meanwhile
-support zero-gate functional replacement.  Pure fixed-width stack push, peek,
-and pop on raw Boolean bundles now have exact coordinate laws, supported-head
-codec round trips, raw one-hot preservation under an explicit capacity
-premise, and a full-stack overflow theorem.  These primitives do not yet prove
-wire-level transition correctness by themselves.  Finite-family equality
-additionally has one fixed runtime controller that
-loads all wire indices from delimiter-bearing unary frames, emits the exact
-true-seeded XNOR/aggregate-AND trace, and satisfies a linear input-length
-runtime bound.  The corresponding runtime finite-family mux remains open.
-Canonical Boolean stack encodings now carry exact list semantics: push is cons under
-capacity, peek is head, pop is tail plus the old head, and every successful
-whole-row evaluation projects to the corresponding represented machine stack.
-Wire-level wrappers reuse a shared Boolean pool, keep push/peek zero-gate,
-give positive-width pop exact one-OR cost, and compute capacity with one NOT,
-while preserving complete-row frames.  The structural compiler
-{lit}`compileStmt` covers all seven {lit}`TM2.Stmt` constructors—halt, goto,
-load, push, peek, pop, and branch—using fixed finite truth tables.  Its
-complete-row evaluation theorem is exactly {lit}`TM2.stepAux` under explicit
-prefix capacity, and it publishes both an exact structural gate delta and a
-fixed-machine/statement affine emitted-gate bound.  Finite program-label
-dispatch now selects statements compiled against the same source row,
-preserves the reserved-none stuttering case, and publishes exact complete-row
-semantics and gate cost.  The local {lit}`transitionCircuit` widens into the
-one-step workspace, dispatches, narrows under its internally checked fit bit,
-compares the complete public target row, and accepts exactly
-{lit}`stutterStep tm c`; its result records the exact total gate delta and a
-fixed-machine affine emitted-gate bound.  Canonical row validity,
-finite-label dispatch, and local transition construction now publish
-height-independent coefficients, while finished validity and transition
-wrappers are proved well formed and evaluation preserving.  The fresh-layout
-layer now allocates consecutive nonaliasing rows at any external
-input offset.  {lit}`freshTransitionCircuitAt_complete_nat` preserves an
-arbitrary base assignment outside the two row intervals, while
-{lit}`freshTransitionCircuit_complete` constructs the finite assignment used
-by general-circuit satisfiability.  Exact boundary constraints now compare the
-complete first/last row against canonical {lit}`initList`/{lit}`haltList`
-targets, reject oversized or unsupported concrete targets with a real false
-wire, and expose a symbolic-input-stack initial form for certificate-linked
-assembly.  Whole-tableau circuitization now allocates every verifier row,
-checks canonical validity and all adjacent stuttering steps, enforces bounded
-certificate/input shape and exact endpoint rows, and closes a well-formed
-general circuit.  Its satisfiability is equivalent to language membership and
-its gate count, input count, and complete unary encoding length are controlled
-by explicit fixed-verifier polynomials.  The exported function-level
-`cookLevinMap` preserves language membership exactly and has a proved output-
-length bound.  `GeneralCircuitSAT` also has an executable finite Boolean-
-certificate checker whose bounded-certificate semantics is exact.  A concrete
-TM2 computes that checker Boolean on every input; every successful, rejecting,
-and malformed route is covered by one explicit quartic step polynomial.
-Consequently `GeneralCircuitSAT` is now proved polynomially verifiable and a
-member of `ClassNP`.  The direct textbook consistency-formula bridge to SAT is
-also closed at semantic and representation-size level:
-`generalCircuitToSATMap_mem_SAT_iff` is total on raw strings and
-`generalCircuitToSATMap_length_le` gives a cubic output bound.  The explicit
-Cook--Levin map, semantic equivalence, and
-polynomial output-length theorem are packaged for every NP language by
-{lit}`cookLevin_textbookCircuitization`.  A fixed polynomial-time TM2 now
-computes the exact map directly from the original input.  Consequently
-{lit}`cookLevin_theorem` proves the standard polynomial-time reduction for
-every NP language, and {lit}`generalCircuitSAT_npHard` together with
-{lit}`generalCircuitSAT_npComplete` closes the textbook Cook--Levin result.
-The public general graph-plus-{lit}`k` CLIQUE target is also NP-complete.
-Section 34.5 now begins with typed and raw VERTEX-COVER semantics, a
-deterministic graph-complement construction,
-{lit}`hasClique_iff_complement_hasVertexCover`, and the all-input raw theorem
-{lit}`cliqueToVertexCoverMap_mem_VERTEXCOVER_iff`.  The reverse equivalence
-{lit}`hasVertexCover_iff_complement_hasClique` and total raw theorem
-{lit}`vertexCoverToCliqueMap_mem_CLIQUE_iff` make the semantic bridge
-bidirectional.  Both total maps have explicit cubic output-length bounds.  Its
-Boolean certificate
-checker has exact all-input semantics and the quadratic accepted-certificate
-bound {lit}`mem_generalVERTEXCOVER_iff_exists_certificate`.  The fixed
-linear-time {lit}`SyntaxNormalizer.computableInPolyTime` machine preserves
-valid graph syntax and maps parser failure to a canonical ill-formed sentinel.
-The graph-invariant stage is closed by
-{lit}`WellFormedGuard.graphComputableInPolyTime`, which composes the
-existing CLIQUE target/order/endpoint machines and proves exact equivalence
-with {lit}`CliqueInstance.WellFormed` on canonical encodings.
-{lit}`RawWellFormed.computableInPolyTime` joins normalization, graph-pair
-formatting, and the guard into one fixed machine over the original raw string.
-The complement emitter and guarded selector compute the total raw reduction,
-and the complement-clique verifier has an all-route polynomial runtime bound.
-Thus {lit}`generalCLIQUE_reducible_to_VERTEXCOVER`,
-{lit}`VERTEXCOVER_mem_ClassNP`, and {lit}`VERTEXCOVER_npComplete`
-close VERTEX-COVER at the strict serialized level.
+## 34.4 Cook--Levin and the first NP-complete problems
 
-Theorem layer:
+The Cook--Levin development constructs the complete bounded computation
+tableau as a general circuit, proves its exact satisfiability semantics, and
+establishes polynomial bounds for gates, inputs, complete encoding length, and
+generator runtime.  A fixed TM2 computes the exact map from the original raw
+input.  The public results include:
 
-- `Turing.TM2ComputableInPolyTime.comp` (via `Turing.TM2Comp.comp_scratch`):
-  composition of polynomial-time machines is polynomial-time (Mathlib leaves
-  this as `proof_wanted`; closed here).  Unlocks `P ⊆ NP` and the transitivity
-  of `PolyTimeReducible`.
-- `PolyTimeDecidable.compl` / `ClassP_compl`: `P` is closed under complement.
-- `PolyTimeDecidable.union` / `ClassP_union` and `PolyTimeDecidable.inter` /
-  `ClassP_inter`: `P` is closed under union and intersection, via the AND/OR
-  machine `Turing.TM2AndOr.andOrMachine` (which duplicates the input, runs both
-  deciders, and combines with AND/OR).
-- `ClassP_subset_ClassNP`: `P ⊆ NP` (Theorem 34.2).
-- `Turing.CookLevin.cookLevin_theorem`: every language in `ClassNP`
-  polynomial-time reduces to `GeneralCircuitSAT` via the exact tableau-circuit
-  encoding computed by the concrete fixed TM2.
-- `Turing.CookLevin.generalCircuitSAT_npComplete`: `GeneralCircuitSAT` is
-  NP-complete, combining the universal Cook--Levin reduction with the concrete
-  certificate checker.
-- `generalCircuitToSATMap_mem_SAT_iff`: the total serialized direct bridge from
-  `GeneralCircuitSAT` to `SAT` preserves membership exactly; its output length
-  is bounded by `generalCircuitToSATMap_length_le`.
+* {lit}`Turing.CookLevin.cookLevin_theorem` for every language in NP;
+* {lit}`Turing.CookLevin.generalCircuitSAT_npComplete`;
+* the total direct bridge {lit}`generalCircuitSAT_reducible_to_SAT`;
+* the concrete SAT-to-3-CNF-SAT and 3-CNF-SAT-to-CLIQUE reductions; and
+* {lit}`CLIQUE_npComplete` for the honest serialized graph-plus-k language.
 
-Open problems such as whether `P = NP` are intentionally out of scope.
-Section 34.5 closes its selected typed textbook chain through VERTEX-COVER,
-HAM-CYCLE, decision-TSP, and SUBSET-SUM, and VERTEX-COVER is fully
-NP-complete at the serialized fixed-machine level.  The remaining strict layer
-is HAM-CYCLE's raw reduction/verifier and the raw languages, certificate
-interfaces, fixed machines, runtime bounds, and NP packaging for TSP and
-SUBSET-SUM.
+The supporting compiler modules are proof-level constructions: they turn a
+fixed verifier and raw input into the circuit encoding required by the
+reduction.  They are part of the concrete polynomial-time proof, not a compiler
+chapter or an external implementation detour.
+
+## 34.5 Selected NP-complete problems
+
+The selected textbook chain is closed at both typed semantic and strict raw
+serialization layers:
+
+* CLIQUE reduces to VERTEX-COVER;
+* VERTEX-COVER reduces to HAM-CYCLE;
+* HAM-CYCLE reduces to decision-TSP; and
+* 3-CNF-SAT reduces to SUBSET-SUM by carry-free column packing.
+
+Each public target has an honest raw language, bounded certificate semantics, a
+fixed polynomial-time verifier, a total fixed polynomial-time reduction
+machine, and an exact all-input semantic bridge.  The final wrappers are
+{lit}`VERTEXCOVER_npComplete`, {lit}`HAMCYCLE_npComplete`,
+{lit}`TSP_npComplete`, and {lit}`SUBSETSUM_npComplete`.
+
+## Deliberate boundary
+
+The P-versus-NP question is out of scope.  A standalone direct SAT verifier and
+direct concrete deciders for the empty and universal languages remain optional
+refinements, not Chapter 34 closure gaps.  The canonical fourth-edition summary
+is {lit}`CLRSLean.FourthEdition.Chapter_34`.
 -/
-
 namespace CLRS
 
 namespace Chapter34
