@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.Construction
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Reduction.RadixBounds
 
 /-!
 # Column semantics of the SUBSET-SUM construction
@@ -50,9 +50,6 @@ theorem columnSum_le_three_mul_card
     (fun item _ => itemDigit_le_three hthree item column)
   simpa [Nat.mul_comm] using hsum
 
-theorem reductionBase_pos (formula : CNF) : 0 < reductionBase formula := by
-  simp [reductionBase]
-
 theorem columnSum_lt_reductionBase
     {formula : CNF} {chosen : Finset SubsetSumItem}
     (hthree : IsThreeCNF formula)
@@ -60,12 +57,12 @@ theorem columnSum_lt_reductionBase
     columnSum formula chosen column < reductionBase formula := by
   have hsum := columnSum_le_three_mul_card hthree chosen column
   have hcard := Finset.card_le_card hsubset
-  simp only [reductionBase]
-  omega
+  exact lt_of_le_of_lt (le_trans hsum (Nat.mul_le_mul_left 3 hcard))
+    (three_mul_reductionItems_card_lt_base formula)
 
 theorem targetDigit_lt_reductionBase (formula : CNF) (column : Nat) :
     targetDigit formula column < reductionBase formula := by
-  have hbase : 5 ≤ reductionBase formula := by simp [reductionBase]
+  have hbase := four_lt_reductionBase formula
   simp only [targetDigit]
   split <;> omega
 

@@ -1,0 +1,14 @@
+import CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum
+
+open CLRS.Chapter34
+
+#check SubsetSumReduction.reductionBlockWidth
+#check SubsetSumReduction.reductionBase_eq_pow
+#check SubsetSumReduction.columnSum_lt_reductionBase
+#check SubsetSumReduction.rawThreeCNFToSubsetSum_correct
+#check SubsetSumReduction.rawThreeCNFToSubsetSum_length_le
+
+#check SubsetSumReduction.reductionTargetBits_eq
+#check SubsetSumReduction.reductionItemBits_eq
+#check Turing.SubsetSumReduction.binaryCanonicalizer_eq
+#check Turing.SubsetSumReduction.computableInPolyTime

@@ -21,18 +21,16 @@ theorem packColumns_lt_pow {base width : Nat} {digits : Nat → Nat}
       simp only [packColumns_succ, pow_succ]
       nlinarith
 
-/-- The binary size of a bounded packed vector is at most `base * width`.
-This deliberately coarse estimate is convenient for later polynomial bounds. -/
-theorem size_packColumns_le {base width : Nat} {digits : Nat → Nat}
-    (hbase : 0 < base)
-    (hdigits : ∀ column < width, digits column < base) :
-    Nat.size (packColumns base width digits) ≤ base * width := by
+/-- With a power-of-two radix, the binary size of a bounded packed vector is
+at most the number of fixed-width bit cells. -/
+theorem size_packColumns_pow_two_le {blockWidth width : Nat}
+    {digits : Nat → Nat}
+    (hdigits : ∀ column < width, digits column < 2 ^ blockWidth) :
+    Nat.size (packColumns (2 ^ blockWidth) width digits) ≤
+      blockWidth * width := by
   rw [Nat.size_le]
-  have hpacked := packColumns_lt_pow hbase hdigits
-  have hbasePow : base ^ width ≤ (2 ^ base) ^ width :=
-    Nat.pow_le_pow_left (Nat.le_of_lt base.lt_two_pow_self) width
-  exact lt_of_lt_of_le hpacked (by
-    simpa [pow_mul] using hbasePow)
+  simpa [pow_mul] using
+    (packColumns_lt_pow (by simp) hdigits)
 
 @[simp] theorem variableItemList_length (variableCount : Nat) :
     (variableItemList variableCount).length = 2 * variableCount := by
@@ -59,12 +57,11 @@ theorem reductionItems_card_eq (formula : CNF) :
   rw [← heq, List.toFinset_card_of_nodup
     (reductionItemList_nodup formula)]
 
-theorem reductionBase_le (formula : CNF) :
-    reductionBase formula ≤
-      6 * cnfVarCount formula + 9 * formula.length + 5 := by
-  rw [reductionBase, reductionItems_card_eq,
+theorem reductionBlockWidth_eq (formula : CNF) :
+    reductionBlockWidth formula =
+      2 * cnfVarCount formula + 3 * formula.length + 3 := by
+  rw [reductionBlockWidth, reductionItems_card_eq,
     reductionItemList_length]
-  omega
 
 theorem reductionWidth_le (formula : CNF) :
     reductionWidth formula ≤
@@ -73,18 +70,21 @@ theorem reductionWidth_le (formula : CNF) :
 
 theorem reductionTarget_size_le (formula : CNF) :
     Nat.size (reductionTarget formula) ≤
-      reductionBase formula * reductionWidth formula := by
-  exact size_packColumns_le (reductionBase_pos formula)
+      reductionBlockWidth formula * reductionWidth formula := by
+  rw [reductionTarget, reductionBase]
+  exact size_packColumns_pow_two_le
     (fun column _ => targetDigit_lt_reductionBase formula column)
 
 theorem itemValue_size_le {formula : CNF}
     (hthree : IsThreeCNF formula) (item : SubsetSumItem) :
     Nat.size (itemValue formula item) ≤
-      reductionBase formula * reductionWidth formula := by
-  apply size_packColumns_le (reductionBase_pos formula)
+      reductionBlockWidth formula * reductionWidth formula := by
+  rw [itemValue, reductionBase]
+  apply size_packColumns_pow_two_le
   intro column _
   have hdigit := itemDigit_le_three hthree item column
-  have hbase : 5 ≤ reductionBase formula := by simp [reductionBase]
+  have hbase : 4 < 2 ^ reductionBlockWidth formula := by
+    simpa [reductionBase] using four_lt_reductionBase formula
   omega
 
 end CLRS.Chapter34.SubsetSumReduction

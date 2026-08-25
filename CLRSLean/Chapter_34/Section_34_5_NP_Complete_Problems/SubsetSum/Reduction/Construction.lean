@@ -67,10 +67,17 @@ theorem mem_reductionItems_iff {formula : CNF} {item : SubsetSumItem} :
 def reductionWidth (formula : CNF) : Nat :=
   cnfVarCount formula + formula.length
 
-/-- A carry-free radix larger than the number of selectable items and all
-target digits. -/
+/-- Width of one binary column block.  The three spare bits make the
+power-of-two radix larger than every possible selected column sum. -/
+def reductionBlockWidth (formula : CNF) : Nat :=
+  (reductionItems formula).card + 3
+
+/-- A carry-free power-of-two radix.  Choosing a binary radix keeps the
+textbook column construction directly serializable as fixed-width bit
+blocks, without requiring a general multiplication routine in the reduction
+machine. -/
 def reductionBase (formula : CNF) : Nat :=
-  3 * (reductionItems formula).card + 5
+  2 ^ reductionBlockWidth formula
 
 /-- The digit contributed by one generated item to one column. -/
 def itemDigit (formula : CNF) (item : SubsetSumItem) (column : Nat) : Nat :=
