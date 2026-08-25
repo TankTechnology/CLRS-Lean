@@ -121,7 +121,7 @@ Create and verify chapter files in these independently committable bands:
 
 - [x] Chapters 7--12: randomized quicksort, sorting lower bounds, selection,
   elementary structures, hashing, and BST correctness.
-- [ ] Chapters 13--18: red-black invariants, augmented trees, dynamic
+- [x] Chapters 13--18: red-black invariants, augmented trees, dynamic
   programming, greedy optimality, amortized analysis, and B-tree operations.
 - [ ] Chapters 19--24: disjoint sets, graph algorithms, MST, shortest paths,
   matching, and maximum flow.
