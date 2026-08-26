@@ -4,6 +4,7 @@ import CLRSLean.Chapter_06.Section_06_3_Building_A_Heap
 import CLRSLean.Chapter_06.Section_06_4_Heapsort
 import CLRSLean.Chapter_06.Section_06_4_Heapsort.CostedExecution
 import CLRSLean.Chapter_06.Section_06_5_Priority_Queues
+import CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert
 
 /-!
 # Chapter 6 - Heapsort
@@ -97,7 +98,7 @@ counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
   {lit}`CLRS.Chapter06.heapSortNLogNBound_isBigO_nlogn`.
 * 6.5 Priority queues: {lit}`proved` for the functional heap interface, with
   array-level {lit}`HEAP-MAXIMUM`, full fuelled
-  {lit}`HEAP-INCREASE-KEY`, {lit}`HEAP-EXTRACT-MAX`, and
+  {lit}`HEAP-INCREASE-KEY`, {lit}`MAX-HEAP-INSERT`, {lit}`HEAP-EXTRACT-MAX`, and
   {lit}`HEAP-DELETE` state theorems.
   Main results:
   {lit}`CLRS.Chapter06.heapInsert_orderedDesc`,
@@ -109,6 +110,7 @@ counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
   {lit}`CLRS.Chapter06.ArrayMaxHeapExceptUp.bubble_step`,
   {lit}`CLRS.Chapter06.ArrayMaxHeapExceptUp.bubbleUpFuel_global`,
   {lit}`CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct`,
+  {lit}`CLRS.Chapter06.arrayHeapInsert_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapExtractMax?_state_correct`, and
   {lit}`CLRS.Chapter06.arrayHeapDelete?_state_correct`.

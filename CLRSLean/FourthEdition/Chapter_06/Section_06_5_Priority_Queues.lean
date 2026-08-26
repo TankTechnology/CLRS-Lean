@@ -39,6 +39,12 @@ Main results:
   root maximum and then extracting the maximum, returns a shrunk heap prefix
   and records the deleted key.
 
+Implementation detail:
+
+- [Array-level MAX-HEAP-INSERT](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/)
+  appends the new cell, isolates its incoming-edge violation, and reuses the
+  established upward-bubbling invariant.
+
 Current gaps:
 
 - Runtime bounds and RAM semantics are deferred.

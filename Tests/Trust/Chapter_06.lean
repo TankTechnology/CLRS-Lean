@@ -6,12 +6,13 @@ import CLRSLean.FourthEdition.Chapter_06
 #check CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost
 #check CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n
 #check CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct
+#check CLRS.Chapter06.arrayHeapInsert_state_correct
 #check CLRS.Chapter06.arrayHeapDelete?_state_correct
 
 #assert_axioms CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost
 #assert_axioms CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n
 
-/-- Package the two advertised array-level priority-queue updates into one
+/-- Package the advertised array-level priority-queue updates into one
 audit declaration, keeping the chapter-wide flagship budget at three. -/
 private def IncreaseKeyStateContract : Prop :=
   ∀ {a rest : List Nat} {heapSize i key : Nat},
@@ -39,9 +40,18 @@ private def DeleteStateContract : Prop :=
         ∀ {k : Nat}, k < heapSize →
           CLRS.Chapter06.valAt a k ≤ CLRS.Chapter06.valAt a 0
 
+private def InsertStateContract : Prop :=
+  ∀ {a : List Nat} (key : Nat),
+    CLRS.Chapter06.ArrayMaxHeap a a.length →
+      CLRS.Chapter06.ArrayMaxHeap
+          (CLRS.Chapter06.arrayHeapInsert a key) (a.length + 1) ∧
+        (CLRS.Chapter06.arrayHeapInsert a key).length = a.length + 1 ∧
+        (CLRS.Chapter06.arrayHeapInsert a key).Perm (key :: a)
+
 private theorem priorityQueue_state_bundle :
-    IncreaseKeyStateContract ∧ DeleteStateContract :=
+    IncreaseKeyStateContract ∧ InsertStateContract ∧ DeleteStateContract :=
   ⟨CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct,
+    CLRS.Chapter06.arrayHeapInsert_state_correct,
     CLRS.Chapter06.arrayHeapDelete?_state_correct⟩
 
 #assert_axioms priorityQueue_state_bundle

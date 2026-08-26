@@ -47,6 +47,11 @@ import CLRSLean.Chapter_06
 #check CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n
 #check CLRS.Chapter06.heapSortNLogNBound_isBigO_nlogn
 
+-- Array-level MAX-HEAP-INSERT refinement.
+#check CLRS.Chapter06.ArrayMaxHeap.append_key_except_up
+#check CLRS.Chapter06.arrayHeapInsert
+#check CLRS.Chapter06.arrayHeapInsert_state_correct
+
 example (fuel : Nat) (a : List Nat) (heapSize i : Nat) :
     (CLRS.Chapter06.maxHeapifyFuelWithCost fuel a heapSize i).1 =
       CLRS.Chapter06.maxHeapifyFuel fuel a heapSize i :=
