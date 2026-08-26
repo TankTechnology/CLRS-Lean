@@ -15,7 +15,7 @@ class ReaderPageSourceTests(unittest.TestCase):
 
         self.assertIn("## Whole-Book Snapshot", landing)
         self.assertIn("35 fourth-edition chapters", landing)
-        self.assertIn("1,627", landing)
+        self.assertIn("1,632", landing)
         self.assertIn("selected theorem", landing)
         self.assertIn("Lean-native trust gate", landing)
 

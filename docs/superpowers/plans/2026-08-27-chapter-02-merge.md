@@ -2,12 +2,12 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add an executable, costed CLRS MERGE procedure with kernel-checked sortedness, permutation, and linear-comparison theorems.
+**Goal:** Add an executable, costed CLRS MERGE procedure with kernel-checked sortedness, permutation, linear-comparison, and exact output-write theorems.
 
 **Architecture:** A small `Merge` facade imports separate definition,
-correctness, and cost modules. `MergeExecution` keeps the output and comparison
-counter in the same recursive computation, so value correctness and runtime
-cannot drift apart.
+correctness, and cost modules. `MergeExecution` keeps the output, comparison
+counter, and output-write counter in the same recursive computation, so value
+correctness and runtime cannot drift apart.
 
 **Tech Stack:** Lean 4, Mathlib lists and `List.Perm`, Lake focused builds,
 the repository's native axiom audit and progress tooling.
@@ -29,6 +29,7 @@ import CLRSLean.FourthEdition.Chapter_02
 #check CLRS.Chapter02.merge_perm
 #check CLRS.Chapter02.merge_sorted
 #check CLRS.Chapter02.merge_comparisons_le
+#check CLRS.Chapter02.merge_outputWrites_eq
 #check CLRS.Chapter02.merge_correct
 
 example : CLRS.Chapter02.merge [1, 4, 7] [2, 3, 9] = [1, 2, 3, 4, 7, 9] := by
@@ -53,15 +54,16 @@ theorems do not yet exist.
 structure MergeExecution where
   value : List Nat
   comparisons : Nat
+  outputWrites : Nat
 ```
 
 - [ ] **Step 2: Define the two-list recursion**
 
 Define `mergeWithCost` by cases on both lists. Empty branches return the
-remaining list and zero comparisons. A nonempty branch compares the two heads,
-emits the smaller head, recursively consumes that input, and increments the
-recursive comparison count. Use `left.length + right.length` as the termination
-measure.
+remaining list and zero comparisons while charging one output write per copied
+element. A nonempty branch compares the two heads, emits the smaller head,
+recursively consumes that input, and increments both counters. Use
+`left.length + right.length` as the termination measure.
 
 - [ ] **Step 3: Add the value projection**
 
@@ -119,7 +121,7 @@ Run:
 
 Expected: build succeeds without unfinished proof markers.
 
-### Task 4: Prove the linear comparison bound
+### Task 4: Prove the linear work bounds
 
 **Files:**
 - Create: `CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Cost.lean`
@@ -136,12 +138,22 @@ element is consumed at every comparison; empty branches are immediate.
 
 - [ ] **Step 2: Package the public contract**
 
+First prove the exact write count:
+
+```lean
+theorem merge_outputWrites_eq (left right : List Nat) :
+    (mergeWithCost left right).outputWrites = left.length + right.length
+```
+
+Then package both cost facts:
+
 ```lean
 theorem merge_correct {left right : List Nat}
     (hl : left.SortedLE) (hr : right.SortedLE) :
     (merge left right).SortedLE ∧
       (merge left right).Perm (left ++ right) ∧
-      (mergeWithCost left right).comparisons ≤ left.length + right.length
+      (mergeWithCost left right).comparisons ≤ left.length + right.length ∧
+      (mergeWithCost left right).outputWrites = left.length + right.length
 ```
 
 - [ ] **Step 3: Build the cost module**
@@ -172,7 +184,7 @@ import CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge
 
 - [ ] **Step 2: Export and pin the public declarations**
 
-Import the facade from the Section 2.3 guide, add the six `#check` declarations
+Import the facade from the Section 2.3 guide, add the seven `#check` declarations
 to `Tests/Chapter_02_Interface.lean`, and add `merge_correct` to
 `Tests/Trust/Chapter_02.lean` with `#assert_axioms`.
 
@@ -202,9 +214,9 @@ Expected: all four commands succeed.
 
 - [ ] **Step 1: Replace the stale MERGE gap text**
 
-Document that the explicit list-level MERGE and its linear comparison bound are
-proved, while temporary-array allocation and word-RAM instruction accounting
-remain outside the current scope.
+Document that the explicit list-level MERGE, its linear comparison bound, and
+its exact output-write count are proved, while temporary-array allocation and
+word-RAM instruction accounting remain outside the current scope.
 
 - [ ] **Step 2: Update generated progress outputs**
 

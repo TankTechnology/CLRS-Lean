@@ -278,7 +278,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms",
 ]
 "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge",
   "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence",
+]
+"CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge" = [
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Definitions",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Correctness",
+  "CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Cost",
 ]
 "CLRSLean.FourthEdition.Chapter_03" = [
   "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation",
@@ -2511,6 +2517,18 @@ title = "2.2. Analyzing Algorithms"
 
 [modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms"]
 title = "2.3. Designing Algorithms"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge"]
+title = "2.3. MERGE"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Definitions"]
+title = "2.3. MERGE — Definitions"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Correctness"]
+title = "2.3. MERGE — Correctness"
+
+[modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge.Cost"]
+title = "2.3. MERGE — Cost"
 
 [modules."CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurrence"]
 title = "2.3. Merge-Sort Recurrence"
