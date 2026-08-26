@@ -1,0 +1,13 @@
+import CLRSLean.Audit.Axioms
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.EmptyStart
+
+open CLRS.Caching
+
+#check cacheSeq_empty_eq_singleton_after_first
+#check misses_empty_eq_singleton_add_one
+#check fifo_optimal_from_empty
+#check fifo_optimal_after_compulsory_fill
+
+#assert_axioms fifo_optimal_from_empty
+#assert_axioms fifo_optimal_after_compulsory_fill
+
