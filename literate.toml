@@ -926,10 +926,27 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Certificate",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.NPCompleteness",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.CertificateCodec",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.ReductionMap",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Input",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Runtime",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Semantics",
 ]
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Certificate",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.NPCompleteness",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.CertificateCodec",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Input",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Runtime",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Semantics",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover",
@@ -4742,6 +4759,27 @@ title = "34.4. SAT Assignment Certificates"
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification"]
 title = "34.4. Total SAT Certificate Verification"
 
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier"]
+title = "34.4. Reduction-Backed SAT Verifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.CertificateCodec"]
+title = "34.4. SAT Reduction-Verifier Certificate Codec"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.ReductionMap"]
+title = "34.4. SAT Reduction-Verifier Map"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Input"]
+title = "34.4. SAT Reduction-Verifier Input"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Runtime"]
+title = "34.4. SAT Reduction-Verifier Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.ReductionVerifier.Semantics"]
+title = "34.4. SAT Reduction-Verifier Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.NPCompleteness"]
+title = "34.4. SAT NP-Completeness"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine"]
 title = "34.4. SAT → 3-CNF-SAT reduction machine"
 
@@ -4753,6 +4791,24 @@ title = "34.4. 3-CNF-SAT Assignment Certificates"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification"]
 title = "34.4. Total 3-CNF-SAT Certificate Verification"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier"]
+title = "34.4. Reduction-Backed 3-CNF-SAT Verifier"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.CertificateCodec"]
+title = "34.4. 3-CNF-SAT Reduction-Verifier Certificate Codec"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Input"]
+title = "34.4. 3-CNF-SAT Reduction-Verifier Input"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Runtime"]
+title = "34.4. 3-CNF-SAT Reduction-Verifier Runtime"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.ReductionVerifier.Semantics"]
+title = "34.4. 3-CNF-SAT Reduction-Verifier Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.NPCompleteness"]
+title = "34.4. 3-CNF-SAT NP-Completeness"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique"]
 title = "34.4. 3-CNF-SAT poly-reduces to CLIQUE"

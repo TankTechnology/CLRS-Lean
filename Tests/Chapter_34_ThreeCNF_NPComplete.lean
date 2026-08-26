@@ -1,0 +1,13 @@
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.NPCompleteness
+
+open CLRS Chapter34
+
+#check Turing.ThreeCNFVerifier.reductionVerifierComputableInPolyTime
+#check threeCNFSat_polyTimeVerifiable
+#check threeCNFSat_mem_ClassNP
+#check threeCNFSat_npComplete
+
+#print axioms Turing.ThreeCNFVerifier.reductionVerifierComputableInPolyTime
+#print axioms threeCNFSat_polyTimeVerifiable
+#print axioms threeCNFSat_mem_ClassNP
+#print axioms threeCNFSat_npComplete
