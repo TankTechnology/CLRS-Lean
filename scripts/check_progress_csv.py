@@ -348,34 +348,28 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "",
             "## Chapter Matrix",
             "",
-            "```",
-            "Ch  Chapter                                                     Status                               Sections                      Tracked  Gap units",
-            "--  ----------------------------------------------------------  -----------------------------------  ----------------------------  -------  ---------",
+            "| Ch | Chapter | Status | Sections | Tracked | Gap units |",
+            "| ---: | --- | --- | --- | ---: | ---: |",
         ]
     )
 
     for row in rows:
-        chapter = f"{row['chapter_no']}. {row['chapter_title']}"[:58]
+        chapter = f"{row['chapter_no']}. {row['chapter_title']}"
         status = (
             "partial (edition coverage)"
             if row["repo_status"] == "partial"
             else row["repo_status"]
-        )[:35]
-        sections = clean_sections(row["represented_sections"])[:28]
+        )
+        sections = clean_sections(row["represented_sections"])
         tracked_count = row["tracked_key_theorems"]
         gap_count = row["edition_gap_units"]
         lines.append(
-            f"{int(row['chapter_no']):>2}  "
-            f"{chapter:<58}  "
-            f"{status:<35}  "
-            f"{sections:<28}  "
-            f"{tracked_count:>7}  "
-            f"{gap_count:>7}"
+            f"| {int(row['chapter_no'])} | {chapter} | {lit(status)} | "
+            f"{sections} | {tracked_count} | {gap_count} |"
         )
 
     lines.extend(
         [
-            "```",
             "",
             "## Agent Update Rule",
             "",
