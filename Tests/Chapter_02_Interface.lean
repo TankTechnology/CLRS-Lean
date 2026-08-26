@@ -12,6 +12,13 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurren
 #check CLRS.Chapter02.mergeSort
 #check CLRS.Chapter02.mergeSort_sortedLE
 #check CLRS.Chapter02.mergeSort_perm
+#check CLRS.Chapter02.mergeWithCost
+#check CLRS.Chapter02.mergeWithCost_value
+#check CLRS.Chapter02.merge_perm
+#check CLRS.Chapter02.merge_sorted
+#check CLRS.Chapter02.merge_comparisons_le
+#check CLRS.Chapter02.merge_outputWrites_eq
+#check CLRS.Chapter02.merge_correct
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm
 #check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs

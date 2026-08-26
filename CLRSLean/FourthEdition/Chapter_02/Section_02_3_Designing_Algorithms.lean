@@ -1,34 +1,41 @@
 import Mathlib
 import CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort
+import CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge
 
 /-!
 # CLRS Section 2.3 - Designing algorithms
 
 This file introduces merge sort as the Chapter 2 divide-and-conquer example.
-For this first complete chapter pass, we use Lean's verified List.mergeSort
-implementation and expose CLRS-facing theorem names.  This keeps the chapter
-workflow focused on the algorithmic contract:
+The top-level sorting function uses Lean's verified List.mergeSort
+implementation and exposes CLRS-facing theorem names.  The central combine
+step is also formalized locally as an explicit, costed MERGE procedure with the
+same head-comparison control flow as the textbook algorithm.  Together these
+developments establish the algorithmic contract:
 
 * merge sort returns a sorted list;
 * merge sort preserves the input elements.
+* MERGE returns a sorted permutation of two sorted inputs;
+* MERGE performs at most a linear number of head comparisons and writes each
+  output element exactly once.
 
 It also records the exact solution of the textbook recurrence on powers of two:
 {lit}`T(1) = 1` and {lit}`T(2^(k+1)) = 2 * T(2^k) + 2^(k+1)`.
 
-A later strengthening can inline the merge routine and prove the split/merge
-lemmas locally if we want a from-scratch artifact.
-
 ## Known simplifications
 
-* The algorithm delegates to Lean's verified {lit}`List.mergeSort` instead of
-  explicitly implementing the divide/conquer/combine three-step structure
-  from CLRS §2.3.
-* The MERGE procedure (the 27-line pseudocode with temporary arrays L/R and
-  three while loops) is not formalized here; the linear-time merge cost is
-  captured at the recurrence level instead.
+* The top-level sorting function still delegates to Lean's verified
+  {lit}`List.mergeSort`; its recursion is not yet connected by an erasure
+  theorem to the local MERGE execution.
+* The local MERGE uses immutable lists rather than temporary mutable arrays.
+  Its counters charge head comparisons and output writes, not allocation or
+  word-RAM instructions.
 
 ## Implementation details
 
+* [Explicit MERGE](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/)
+  ([definitions](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Definitions/),
+  [correctness](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Correctness/),
+  [cost](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Cost/))
 * [Merge-sort recurrence](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence/)
 -/
 
