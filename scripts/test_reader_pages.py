@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+import csv
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def selected_theorem_total() -> str:
+    with (ROOT / "docs" / "clrs-proof-progress.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        total = sum(int(row["tracked_key_theorems"]) for row in csv.DictReader(handle))
+    return f"{total:,}"
 
 
 class ReaderPageSourceTests(unittest.TestCase):
@@ -15,7 +24,7 @@ class ReaderPageSourceTests(unittest.TestCase):
 
         self.assertIn("## Whole-Book Snapshot", landing)
         self.assertIn("35 fourth-edition chapters", landing)
-        self.assertIn("1,643", landing)
+        self.assertIn(selected_theorem_total(), landing)
         self.assertIn("selected theorem", landing)
         self.assertIn("Lean-native trust gate", landing)
 

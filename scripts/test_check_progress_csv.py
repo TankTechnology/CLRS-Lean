@@ -111,11 +111,13 @@ class FourthEditionContractTest(unittest.TestCase):
 
 class FourthEditionDashboardTest(unittest.TestCase):
     def test_opens_with_reader_facts_before_maintainer_commands(self) -> None:
-        dashboard = render_dashboard(load_rows())
+        rows = load_rows()
+        dashboard = render_dashboard(rows)
         opening = dashboard.split("## Fourth-Edition Snapshot", 1)[0]
+        total_tracked = f"{sum(int(r['tracked_key_theorems']) for r in rows):,}"
 
         self.assertIn("35 fourth-edition chapters", opening)
-        self.assertIn("1,643", opening)
+        self.assertIn(total_tracked, opening)
         self.assertNotIn("--write-dashboard", opening)
 
     def test_renders_fourth_edition_snapshot_from_csv(self) -> None:

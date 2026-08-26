@@ -298,6 +298,17 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation",
   "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions",
 ]
+"CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation" = [
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.Core",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.CLRSBridge",
+]
+"CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions" = [
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.Core",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.TextbookIdentities",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.Robbins",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.GrowthBridges",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.GrowthHierarchy",
+]
 "CLRSLean.FourthEdition.Chapter_04" = [
   "CLRSLean.FourthEdition.Chapter_04.Section_04_1_Multiplying_Square_Matrices",
   "CLRSLean.FourthEdition.Chapter_04.Section_04_2_Strassen_Algorithm",
@@ -2564,8 +2575,29 @@ title = "Chapter 3. Characterizing Running Times"
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
 
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.Core"]
+title = "3.1–3.2. Asymptotic Notation — Core"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.CLRSBridge"]
+title = "3.1–3.2. Asymptotic Notation — CLRS Bridges"
+
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions"]
-title = "3.2. Standard Functions"
+title = "3.3. Standard Notations and Common Functions"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.Core"]
+title = "3.3. Standard Functions — Core Growth Facts"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.TextbookIdentities"]
+title = "3.3. Standard Functions — Textbook Identities"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.Robbins"]
+title = "3.3. Standard Functions — Robbins Bounds"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.GrowthBridges"]
+title = "3.3. Standard Functions — Growth Bridges"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.GrowthHierarchy"]
+title = "3.3. Standard Functions — Extended Growth Hierarchy"
 
 [modules."CLRSLean.FourthEdition.Chapter_04"]
 title = "Chapter 4. Divide-and-Conquer"

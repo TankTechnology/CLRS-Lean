@@ -1,4 +1,41 @@
-# Ch3 Characterizing Running Times 语义忠实性审计
+# Ch3 Characterizing Running Times 语义忠实性审计与闭合记录
+
+- **闭合复核日期（北京时间）**: 2026-08-27
+- **基准来源**: 参考第 3.1–3.3 节
+- **当前结论分布**: MATCH 59 · MINOR 0 · MAJOR 0 · CRITICAL 0 · UNCERTAIN 0
+- **历史基线**: 2026-08-17 的首次审计为 MATCH 38 · MINOR 21
+
+## 2026-08-27 闭合复核
+
+首次审计列出的 21 个 MINOR 项均已形成可导入的 Lean 接口，并由三组
+focused interface tests 与 Chapter 3 trust surface 覆盖。原有定义没有为了
+追求表面一致而破坏兼容性；涉及课本表述差异的部分均采用等价桥接定理。
+
+| 缺口 | 闭合证据 | 结果 |
+|------|----------|------|
+| m1–m3：绝对值/非绝对值、Θ 组织、严格 o/ω | `isBigO_iff_clrs`, `isBigOmega_iff_clrs`, `isBigTheta_iff_clrs`, `isLittleO_iff_clrs_strict`, `isLittleOmega_iff_clrs_strict` | MATCH |
+| m4：实数定义域版本 | `isBigOReal`, `isBigOmegaReal`, `isBigThetaReal`, `isLittleOReal`, `isLittleOmegaReal` | MATCH |
+| m5：o/ω 传递性 | `isLittleO_trans`, `isLittleOmega_trans` 及 real-domain 版本 | MATCH |
+| m6：单调性定义 | `MonotonicallyIncreasing`, `MonotonicallyDecreasing`, `StrictlyIncreasing`, `StrictlyDecreasing` | MATCH |
+| m7：式 (3.1)–(3.10) | `TextbookIdentities.lean` 的 floor/ceiling 接口 | MATCH |
+| m8：式 (3.11)–(3.12) | `int_mod_eq_sub_mul_floor`, `int_mod_bounds`，并含自然数版本 | MATCH |
+| m9：一般多项式 Θ(nᵈ) | `polynomial_isEquivalent_leadingTerm`, `polynomial_isBigTheta_degree` | MATCH |
+| m10–m12：指数恒等式、不等式、级数与极限 | `pow_*_identity`, `rpow_*_identity`, `one_add_le_exp`, `exp_series`, `tendsto_one_add_inv_pow`, `exp_sub_one_sub_id_isTheta_sq` | MATCH |
+| m13–m14：实数指数增长比较 | `isLittleO_rpow_const_exp`, `isLittleO_log_rpow_rpow` | MATCH |
+| m15：式 (3.17)–(3.23) | `log*_identity`, `log_one_add_series`, `log_one_add_le`, `div_one_add_le_log_one_add` | MATCH |
+| m16：显式 Stirling | `stirling_formula`, `stirling_lower_bound` | MATCH |
+| m17：式 (3.29) Robbins 细化界 | `factorial_eq_stirling_mul_exp_robbinsAlpha`, `robbinsAlpha_bounds` | MATCH |
+| m18：一般函数迭代 | `iterateFunction`, `iterateFunction_zero`, `iterateFunction_succ` | MATCH |
+| m19：lg* 具体值 | `lgStar_four`, `lgStar_sixteen`, `lgStar_65536`, `lgStar_two_pow_65536` | MATCH |
+| m20：Fibonacci 与黄金比例定义接口 | `fibonacci_recurrence`, `fibonacci_zero`, `fibonacci_one`, `goldenRatio_definition`, `goldenConj_definition` | MATCH |
+| m21：扩展增长层级 | `nPowLog`, `isLittleO_rpow_rpow`, `isLittleO_rpow_nPowLog`, `isLittleO_nPowLog_const_exp`, `complete_growth_hierarchy` | MATCH |
+
+闭合实现按证明主题拆分在 `CLRSBridge.lean`、`TextbookIdentities.lean`、
+`Robbins.lean`、`GrowthBridges.lean` 和 `GrowthHierarchy.lean`，避免把章节
+继续堆叠为单个慢编译文件。严格 o/ω 与课本表述的等价定理显式要求最终
+正性；这是零点情形下保持陈述为真的必要条件，而不是遗漏。
+
+## 2026-08-17 历史基线
 
 - **审计日期（北京时间）**: 2026-08-17 17:16 CST
 - **Skill 版本**: semantic-fidelity-audit v1
