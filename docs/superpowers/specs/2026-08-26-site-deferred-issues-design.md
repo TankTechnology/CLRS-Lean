@@ -11,12 +11,15 @@ redesigning the Verso application or changing CLRS-Lean's proof claims.
 
 ### Progress matrix
 
-The generated fixed-width code block will become a Markdown table.  The table
-keeps the same six fields and the existing CSS table treatment.  At narrow
-widths, only the Chapter Matrix table will reflow each row into a labeled card;
-other documentation tables keep their current behavior.  This provides
-semantic table markup on desktop and removes per-row horizontal scrolling on
-mobile.
+Verso's Literate genre rejects both Markdown tables and the Manual genre's table
+directive.  The generator will therefore emit a marked, tab-delimited code
+block that remains valid Literate input.  The existing one-pass HTML optimizer
+will recognize only that marker and replace the block with a semantic table,
+including column headers and per-cell `data-label` attributes.  At narrow
+widths, only this table will reflow each row into a labeled card; other
+documentation tables keep their current behavior.  This provides semantic
+table markup in the deployable site and removes per-row horizontal scrolling on
+mobile without patching Verso.
 
 ### Literate shards
 
@@ -44,8 +47,10 @@ copy immediately.
 
 ## Verification
 
-- Generator tests require a Markdown table and reject the old code fence.
-- Stylesheet tests require the Chapter Matrix-only mobile card contract.
+- Generator tests require the structured marker and reject the old fixed-width
+  matrix.
+- Optimizer tests require the marker to become a semantic table exactly once.
+- Stylesheet tests require the Progress table-only mobile card contract.
 - Planner tests reproduce an oversized affinity group, require it to split,
   preserve small affinity groups, and check deterministic balance.
 - Site preparation tests require correct canonical URLs, idempotent metadata,
@@ -53,4 +58,3 @@ copy immediately.
 - The real 2,001-module plan must show materially lower estimated skew.
 - The final generated Progress page is checked in desktop and mobile Chrome for
   semantics, overflow, and console errors.
-
