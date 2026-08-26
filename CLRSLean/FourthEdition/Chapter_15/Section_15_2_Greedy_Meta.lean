@@ -6,9 +6,9 @@ import Mathlib
 This section formalizes the two structural properties that CLRS §15.2 identifies
 as the reusable core of every greedy algorithm:
 
-1. **Greedy-choice property** (CLRS Lemma 15.1): making a locally optimal
+1. **Greedy-choice property**: making a locally optimal
    (greedy) choice never prevents a globally optimal solution.
-2. **Optimal substructure** (CLRS Lemma 15.2): an optimal solution to a
+2. **Optimal substructure**: an optimal solution to a
    problem contains within it optimal solutions to its subproblems.
 
 We define an abstract `GreedyProblem` structure that bundles the data and axioms
@@ -28,10 +28,9 @@ Main results:
 - Definition `gsolve` : the generic recursive greedy solver.
 - Theorem `gsolve_optimal` : `gsolve` returns optimal solutions for every
   instance of a `GreedyProblem`.
-- Predicate `GreedyChoiceProperty` : the abstract greedy-choice property
-  (CLRS Lemma 15.1).
-- Predicate `OptimalSubstructure` : the abstract optimal-substructure property
-  (CLRS Lemma 15.2).
+- Predicate `GreedyChoiceProperty` : the abstract greedy-choice property.
+- Predicate `OptimalSubstructure` : the abstract, solver-independent
+  optimal-substructure property.
 
 Notation conventions:
 
@@ -63,13 +62,14 @@ A `GreedyProblem` formalizes the CLRS §15.2 pattern.  It bundles:
 - `base` : the base (empty) solution
 - `size p` : a `Nat` measure for termination and induction
 
-**Axioms** (the two CLRS §15.2 properties plus well-foundedness):
-1. `gcp` (greedy-choice property, Lemma 15.1): for a non-base problem, any
-   optimal solution for the subproblem extends to an optimal solution for the
-   original via the greedy choice.
-2. `sub_lt` (size decreases): the subproblem is strictly smaller.
-3. `base_opt` (base-case optimality): the base solution is optimal when the
-   problem size is zero.
+**Axioms**:
+1. `greedy_choice`: a non-base problem has an optimal solution beginning with
+   the greedy choice.
+2. `optimal_substructure`: the tail of such an optimal solution is optimal for
+   the residual subproblem.
+3. `replace_optimal_tail`: any other optimal residual solution can replace that
+   tail.  This is the small compositional bridge needed by the generic solver.
+4. `sub_lt` and `base_opt`: well-foundedness and base-case optimality.
 -/
 structure GreedyProblem (Elem Sol P : Type) where
   optimal : P → Sol → Prop
@@ -79,8 +79,19 @@ structure GreedyProblem (Elem Sol P : Type) where
   base : Sol
   size : P → ℕ
 
-  -- Greedy-choice property (Lemma 15.1): only required for nonempty problems
-  gcp : ∀ (p : P) (s : Sol), size p > 0 → optimal (sub p) s → optimal p (combine (greedyElt p) s)
+  -- The greedy choice occurs in some optimal solution.
+  greedy_choice : ∀ (p : P), size p > 0 →
+    ∃ tail, optimal p (combine (greedyElt p) tail)
+
+  -- The tail of an optimal greedy-shaped solution is optimal for the subproblem.
+  optimal_substructure : ∀ (p : P) (tail : Sol), size p > 0 →
+    optimal p (combine (greedyElt p) tail) → optimal (sub p) tail
+
+  -- Optimal tails are interchangeable under the fixed greedy choice.
+  replace_optimal_tail : ∀ (p : P) (oldTail newTail : Sol), size p > 0 →
+    optimal (sub p) oldTail → optimal (sub p) newTail →
+    optimal p (combine (greedyElt p) oldTail) →
+    optimal p (combine (greedyElt p) newTail)
 
   -- The subproblem is strictly smaller (well-foundedness)
   sub_lt : ∀ (p : P), size p > 0 → size (sub p) < size p
@@ -140,34 +151,51 @@ theorem gsolve_optimal (gp : GreedyProblem Elem Sol P) (p : P) :
       exact gp.base_opt p hzero
     · have hpos : gp.size p > 0 := Nat.pos_of_ne_zero hzero
       rw [gsolve_eq gp hpos]
-      apply gp.gcp p (gsolve gp (gp.sub p)) hpos
       have hsub_lt : gp.size (gp.sub p) < gp.size p := gp.sub_lt p hpos
       have h_eq : gp.size (gp.sub p) < n := by
         rw [← hsize]
         exact hsub_lt
       have h_ih : gp.optimal (gp.sub p) (gsolve gp (gp.sub p)) :=
         ih (gp.size (gp.sub p)) h_eq (gp.sub p) rfl
-      exact h_ih
+      rcases gp.greedy_choice p hpos with ⟨oldTail, hwhole⟩
+      have hold_opt : gp.optimal (gp.sub p) oldTail :=
+        gp.optimal_substructure p oldTail hpos hwhole
+      exact gp.replace_optimal_tail p oldTail (gsolve gp (gp.sub p)) hpos
+        hold_opt h_ih hwhole
 
 /-! ## Predicate form of the greedy properties -/
 
 /--
-`GreedyChoiceProperty` is a predicate on a problem class: for every problem `p`
-and optimal subproblem solution `s`, the combined solution `combine s` is
-optimal for `p`.  This is the abstract version of CLRS Lemma 15.1.
+`GreedyChoiceProperty` says that every active problem has an optimal solution
+that begins with its locally greedy element.  It is an existence property and
+does not mention a particular solver.
 -/
-def GreedyChoiceProperty (P Sol : Type) (optimal : P → Sol → Prop)
-    (subproblem : outParam (P → P)) (combine : outParam (Sol → Sol)) : Prop :=
-  ∀ (p : P) (s : Sol), optimal (subproblem p) s → optimal p (combine s)
+def GreedyChoiceProperty (P Elem Sol : Type) (optimal : P → Sol → Prop)
+    (active : P → Prop) (greedyElt : P → Elem)
+    (combine : Elem → Sol → Sol) : Prop :=
+  ∀ p, active p → ∃ tail, optimal p (combine (greedyElt p) tail)
 
 /--
-`OptimalSubstructure` is a predicate on a problem class: the greedy solver
-`solve` returns an optimal solution for every subproblem.  This is the abstract
-version of CLRS Lemma 15.2.
+`OptimalSubstructure` says that whenever an optimal solution is decomposed into
+the greedy choice and a tail, that tail is optimal for the residual subproblem.
+Unlike the former formulation, this is a property of the problem decomposition
+and is independent of any solver.
 -/
-def OptimalSubstructure (P Sol : Type) (optimal : P → Sol → Prop)
-    (subproblem : outParam (P → P)) (solve : outParam (P → Sol)) : Prop :=
-  ∀ (p : P), optimal (subproblem p) (solve (subproblem p))
+def OptimalSubstructure (P Elem Sol : Type) (optimal : P → Sol → Prop)
+    (active : P → Prop) (greedyElt : P → Elem) (subproblem : P → P)
+    (combine : Elem → Sol → Sol) : Prop :=
+  ∀ p tail, active p →
+    optimal p (combine (greedyElt p) tail) → optimal (subproblem p) tail
+
+theorem GreedyProblem.greedyChoiceProperty (gp : GreedyProblem Elem Sol P) :
+    GreedyChoiceProperty P Elem Sol gp.optimal (fun p => gp.size p > 0)
+      gp.greedyElt gp.combine :=
+  gp.greedy_choice
+
+theorem GreedyProblem.hasOptimalSubstructure (gp : GreedyProblem Elem Sol P) :
+    OptimalSubstructure P Elem Sol gp.optimal (fun p => gp.size p > 0)
+      gp.greedyElt gp.sub gp.combine :=
+  gp.optimal_substructure
 
 end GreedyMeta
 end CLRS
