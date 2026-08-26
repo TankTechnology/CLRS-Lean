@@ -861,6 +861,13 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_33.Section_33_2_Multiplicative_Weights",
   "CLRSLean.FourthEdition.Chapter_33.Section_33_3_Gradient_Descent",
 ]
+"CLRSLean.FourthEdition.Chapter_34" = [
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_1_Polynomial_Time",
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_2_Polynomial_Time_Verification",
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility",
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_4_NP_Completeness_Proofs",
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_5_NP_Complete_Problems",
+]
 "CLRSLean.Chapter_31" = [
   "CLRSLean.Chapter_31.Section_31_1_Elementary_Number_Theory",
   "CLRSLean.Chapter_31.Section_31_2_Greatest_Common_Divisor",
@@ -3284,6 +3291,21 @@ title = "33.3. Gradient Descent"
 
 [modules."CLRSLean.FourthEdition.Chapter_34"]
 title = "Chapter 34. NP-Completeness"
+
+[modules."CLRSLean.FourthEdition.Chapter_34.Section_34_1_Polynomial_Time"]
+title = "34.1. Polynomial Time"
+
+[modules."CLRSLean.FourthEdition.Chapter_34.Section_34_2_Polynomial_Time_Verification"]
+title = "34.2. Polynomial-Time Verification"
+
+[modules."CLRSLean.FourthEdition.Chapter_34.Section_34_3_NP_Completeness_And_Reducibility"]
+title = "34.3. NP-Completeness and Reducibility"
+
+[modules."CLRSLean.FourthEdition.Chapter_34.Section_34_4_NP_Completeness_Proofs"]
+title = "34.4. NP-Completeness Proofs"
+
+[modules."CLRSLean.FourthEdition.Chapter_34.Section_34_5_NP_Complete_Problems"]
+title = "34.5. NP-Complete Problems"
 
 [modules."CLRSLean.FourthEdition.Chapter_35"]
 title = "Chapter 35. Approximation Algorithms"

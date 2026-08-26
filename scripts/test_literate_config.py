@@ -93,6 +93,35 @@ class LiterateConfigTest(unittest.TestCase):
             {module: titled_modules.get(module) for module in expected_modules},
         )
 
+    def test_fourth_edition_chapter_34_has_five_reader_sections(self) -> None:
+        chapter = "CLRSLean.FourthEdition.Chapter_34"
+        expected = [
+            f"{chapter}.Section_34_1_Polynomial_Time",
+            f"{chapter}.Section_34_2_Polynomial_Time_Verification",
+            f"{chapter}.Section_34_3_NP_Completeness_And_Reducibility",
+            f"{chapter}.Section_34_4_NP_Completeness_Proofs",
+            f"{chapter}.Section_34_5_NP_Complete_Problems",
+        ]
+        chapter_source = _module_source(chapter).read_text(encoding="utf-8")
+        imported_sections = re.findall(
+            rf"^import\s+({re.escape(chapter)}\.Section_[^\s]+)",
+            chapter_source,
+            re.MULTILINE,
+        )
+        config_text = LITERATE_TOML.read_text(encoding="utf-8")
+        order_children = parse_order_children(config_text)
+        titled_modules = parse_module_titles(config_text)
+
+        self.assertEqual(expected, imported_sections)
+        self.assertEqual(expected, order_children.get(chapter, []))
+        self.assertTrue(all(module in titled_modules for module in expected))
+        self.assertTrue(
+            all(
+                f"]({module.replace('.', '/')}/)" in chapter_source
+                for module in expected
+            )
+        )
+
     def test_legacy_chapter_pages_stay_titled_but_leave_primary_root(self) -> None:
         text = LITERATE_TOML.read_text()
         order_children = parse_order_children(text)
