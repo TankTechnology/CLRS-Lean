@@ -115,7 +115,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         opening = dashboard.split("## Fourth-Edition Snapshot", 1)[0]
 
         self.assertIn("35 fourth-edition chapters", opening)
-        self.assertIn("1,613", opening)
+        self.assertIn("1,617", opening)
         self.assertNotIn("--write-dashboard", opening)
 
     def test_renders_fourth_edition_snapshot_from_csv(self) -> None:

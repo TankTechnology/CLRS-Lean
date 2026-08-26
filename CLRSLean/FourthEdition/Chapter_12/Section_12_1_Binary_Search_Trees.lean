@@ -119,6 +119,14 @@ Main results:
 - Theorems {lit}`expected_depth_le_two_harmonic` and
   {lit}`expected_depth_le_O_log`: this expectation is at most {lit}`2·Hₙ` and
   hence {lit}`O(log n)`.
+- The companion
+  [random-construction bridge](CLRSLean/FourthEdition/Chapter_12/Section_12_1_Binary_Search_Trees/RandomConstruction/)
+  identifies the insertion-order BST with the reversed-priority height model
+  for every permutation.
+- The companion
+  [expected-height theorem](CLRSLean/FourthEdition/Chapter_12/Section_12_1_Binary_Search_Trees/ExpectedHeight/)
+  proves CLRS Theorem 12.4 in the explicit form
+  {lit}`E[height] ≤ 30 Hₙ ≤ 30(1 + log n)`.
 
 Current gaps:
 
@@ -127,10 +135,6 @@ Current gaps:
   pointer-heap layer now proves in-place TRANSPLANT and leaf TREE-INSERT refine
   the functional specification.
 - An explicit RAM cost model over the pointer operations remains future work.
-- The expected *height* of a randomly built BST (CLRS Theorem 12.4 proper, via
-  the exponential-height recurrence and Jensen's inequality) is not yet
-  formalized; the expected-*depth* analysis above is the standard
-  expected-search-cost bound.
 -/
 
 namespace CLRS
@@ -2404,16 +2408,17 @@ theorem deleteCost_le (x : Nat) (t : BSTree) :
 
 /-! ## Randomly built binary search trees (Section 12.4)
 
-A randomly built BST inserts a uniform random permutation of `Fin n` into the
+A randomly built BST inserts a uniform random permutation of {lit}`Fin n` into the
 empty tree.  This section proves the classic combinatorial characterization
-(Lemma 12.3): key `x` is an ancestor of key `y` in the tree built from a list of
-distinct keys exactly when `x` is the first key of the list that lies in the
-closed interval between them.  This is the workhorse behind the `O(log n)`
+(Lemma 12.3): key {lit}`x` is an ancestor of key {lit}`y` in the tree built from a list of
+distinct keys exactly when {lit}`x` is the first key of the list that lies in the
+closed interval between them.  This is the workhorse behind the {lit}`O(log n)`
 expected-depth analysis of a randomly built BST.
 
-**Remaining gap.**  The probability `P(i is an ancestor of j) = 1/(|i-j|+1)` and
-the resulting expected-depth bound `O(log n)` are not yet formalized; the
-combinatorial characterization below is the needed foundation.
+The probability {lit}`P(i is an ancestor of j) = 1/(|i-j|+1)` and the resulting
+expected-depth bound are proved below.  The companion expected-height module
+uses the same ancestor structure together with an exponential tail and a union
+bound over all keys to prove the whole-tree logarithmic height theorem.
 -/
 
 /-- Depth of key `y` (0 at root, 0 when absent). -/

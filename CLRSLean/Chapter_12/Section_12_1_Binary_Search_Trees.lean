@@ -1,4 +1,4 @@
-import CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees
+import CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees.ExpectedHeight
 
 /-!
 # Section 12.1 - Binary search trees (legacy compatibility path)
