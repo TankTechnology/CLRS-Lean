@@ -20,6 +20,7 @@ modules.
 
 The detailed DFS proof layers remain available outside the main sidebar:
 
+* [DFS Cost Accounting](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/Cost/)
 * [White-Path Theorem](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath/)
 * [Intervals and Timestamps](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals/)
 * [Discovery-State Bridge](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge/)
