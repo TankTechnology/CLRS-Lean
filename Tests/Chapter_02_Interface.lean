@@ -9,6 +9,15 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurren
 #check CLRS.Chapter02.triangular
 #check CLRS.Chapter02.insertionSortWorstComparisons_quadratic
 #check CLRS.Chapter02.insertionSortWorstComparisons_eventually_quadratic
+#check CLRS.Chapter02.InsertionSortLineCosts
+#check CLRS.Chapter02.InsertionSortLineCounts
+#check CLRS.Chapter02.insertionSortLineCounts
+#check CLRS.Chapter02.insertionSortRunningTime
+#check CLRS.Chapter02.insertionSortRunningTime_eq_textbook_sum
+#check CLRS.Chapter02.insertionSortLineCounts_best_case
+#check CLRS.Chapter02.insertionSortLineCounts_worst_case
+#check CLRS.Chapter02.insertionSortRunningTime_best_case
+#check CLRS.Chapter02.insertionSortRunningTime_worst_case
 #check CLRS.Chapter02.mergeSort
 #check CLRS.Chapter02.mergeSort_sortedLE
 #check CLRS.Chapter02.mergeSort_perm

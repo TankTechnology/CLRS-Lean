@@ -4,11 +4,17 @@ import CLRSLean.FourthEdition.Chapter_02
 /-! # Chapter 2 flagship trust surface -/
 
 #check CLRS.Chapter02.insertionSort_sorted
+#check CLRS.Chapter02.insertionSortRunningTime_eq_textbook_sum
+#check CLRS.Chapter02.insertionSortRunningTime_best_case
+#check CLRS.Chapter02.insertionSortRunningTime_worst_case
 #check CLRS.Chapter02.mergeSort_perm
 #check CLRS.Chapter02.merge_correct
 #check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
 
 #assert_axioms CLRS.Chapter02.insertionSort_sorted
+#assert_axioms CLRS.Chapter02.insertionSortRunningTime_eq_textbook_sum
+#assert_axioms CLRS.Chapter02.insertionSortRunningTime_best_case
+#assert_axioms CLRS.Chapter02.insertionSortRunningTime_worst_case
 #assert_axioms CLRS.Chapter02.mergeSort_perm
 #assert_axioms CLRS.Chapter02.merge_correct
 #assert_axioms CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
