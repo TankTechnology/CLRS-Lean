@@ -38,6 +38,18 @@ class PrepareLiterateSiteTests(unittest.TestCase):
         self.assertIn(".breadcrumbs li:last-child:not(:first-child)", stylesheet)
         self.assertIn(".breadcrumbs li:not(:last-child)::after", stylesheet)
 
+    def test_mobile_stylesheet_reflows_only_the_progress_matrix(self) -> None:
+        stylesheet = (
+            SCRIPT_PATH.parents[1] / "docs" / "literate" / "clrs-literate.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("#Chapter-Matrix + table thead", stylesheet)
+        self.assertIn("#Chapter-Matrix + table tbody", stylesheet)
+        self.assertIn("#Chapter-Matrix + table tr", stylesheet)
+        self.assertIn("#Chapter-Matrix + table td", stylesheet)
+        self.assertIn("#Chapter-Matrix + table td:nth-child(2)::before", stylesheet)
+        self.assertIn('content: "Chapter"', stylesheet)
+
     def test_rejects_a_destination_that_contains_the_source(self) -> None:
         self.assertTrue(SCRIPT_PATH.is_file())
         preparer = load_preparer()

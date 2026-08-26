@@ -133,7 +133,7 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertNotIn("* {lit}`partial`:", dashboard)
         self.assertIn("Remaining edition-coverage units", dashboard)
         self.assertIn("Remaining edition-coverage units: 0", dashboard)
-        self.assertIn("34  34. NP-Completeness", dashboard)
+        self.assertIn("| 34 | 34. NP-Completeness |", dashboard)
         self.assertIn(
             "one unresolved section in a represented chapter", normalized
         )
@@ -143,6 +143,19 @@ class FourthEditionDashboardTest(unittest.TestCase):
         self.assertNotIn("{lit}`not-started`", dashboard)
         self.assertNotIn("Chapters 1--29 Milestone", dashboard)
         self.assertNotIn("advertised proof scopes of Chapters 1--29 are complete", dashboard)
+
+    def test_renders_chapter_matrix_as_a_semantic_markdown_table(self) -> None:
+        dashboard = render_dashboard(load_rows())
+
+        self.assertIn(
+            "| Ch | Chapter | Status | Sections | Tracked | Gap units |",
+            dashboard,
+        )
+        self.assertIn("| 34 | 34. NP-Completeness |", dashboard)
+        self.assertNotIn(
+            "Ch  Chapter                                                     Status",
+            dashboard,
+        )
 
 
 class DashboardFreshnessTest(unittest.TestCase):
