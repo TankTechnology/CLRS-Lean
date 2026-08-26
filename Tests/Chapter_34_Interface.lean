@@ -38,6 +38,10 @@ example (x : List CNFSym) (hx : x ∈ ThreeCNFSat) :
 #check SAT_npHard
 #check threeCNFSat_npHard
 #check CLIQUE_npComplete
+#check satVerifier_accepts_iff
+#check mem_SAT_iff_exists_bounded_certificate
+#check threeCNFSatVerifier_accepts_iff
+#check mem_threeCNFSat_iff_exists_bounded_certificate
 
 -- basic sanity checks
 example (Γ : Type) : ClassP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp
