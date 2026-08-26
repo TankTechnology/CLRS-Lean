@@ -2,6 +2,7 @@ import CLRSLean.Chapter_22
 import CLRSLean.FourthEdition.Chapter_20.Section_20_1_Representing_Graphs
 import CLRSLean.FourthEdition.Chapter_20.Section_20_2_BFS
 import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS
+import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.Cost
 import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath
 import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals
 import CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge
@@ -40,6 +41,7 @@ to these sources.
 The supporting implementation pages remain available outside the main sidebar:
 
 * [White-Path Theorem](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S1_WhitePath/)
+* [DFS Cost Accounting](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/Cost/)
 * [Intervals and Timestamps](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S2_Intervals/)
 * [Discovery-State Bridge](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S3_Bridge/)
 * [SCC Preliminaries](CLRSLean/FourthEdition/Chapter_20/Section_20_3_DFS/S4_SCC/)

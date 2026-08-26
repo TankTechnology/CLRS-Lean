@@ -457,6 +457,7 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_20.Section_20_5_Strongly_Connected_Components",
 ]
 "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS" = [
+  "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.Cost",
   "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath",
   "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S2_Intervals",
   "CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S3_Bridge",
@@ -2865,6 +2866,9 @@ title = "20.2. Breadth-First Search"
 
 [modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS"]
 title = "20.3. Depth-First Search"
+
+[modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.Cost"]
+title = "DFS Cost Accounting"
 
 [modules."CLRSLean.FourthEdition.Chapter_20.Section_20_3_DFS.S1_WhitePath"]
 title = "White-Path Theorem"
