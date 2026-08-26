@@ -47,11 +47,13 @@ The formalization packages the textbook argument in four layers:
 ## Coverage boundary
 
 Status: main-proof-complete.  Every represented section has an explicit
-reader page, concrete polynomial-time machines where the reduction or verifier
-claim requires one, exact all-input semantic bridges, and the corresponding
-public NP-completeness theorem.  A standalone direct SAT verifier is retained
-as an optional refinement because SAT membership in NP already follows through
-the proved reduction chain.
+reader page, concrete polynomial-time machines where the advertised reduction
+or verifier claim requires one, exact all-input semantic bridges, and the
+corresponding public NP-completeness theorem.  Standalone SAT and 3-CNF-SAT now
+also have exact total assignment checkers and linear certificate bounds.  Their
+direct fixed-machine NP wrappers remain an optional refinement because the
+chapter's advertised NP-completeness chain is already closed through the
+proved general-circuit and CLIQUE endpoints.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level ledger,
 {lit}`docs/migrations/clrs4.md` for compatibility policy, and

@@ -59,7 +59,7 @@ interfaces, and proofs.
 
 The current reviewed ledger represents all 35 fourth-edition chapters.  Of
 these, 34 chapters are {lit}`main-proof-complete` for their advertised Lean
-models and Chapter 1 is an {lit}`expository` project guide.  All 1,617 selected
+models and Chapter 1 is an {lit}`expository` project guide.  All 1,621 selected
 reader-facing theorem entries are proved, with zero edition-coverage gap units;
 465 separately tracked entries belong to online or supplementary material.
 

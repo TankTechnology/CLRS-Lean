@@ -1,6 +1,8 @@
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder
@@ -61,8 +63,11 @@ computes this total map in polynomial time, yielding
 `generalCircuitSAT_reducible_to_SAT` and `SAT_npHard`.  Together with the
 concrete SAT-to-3-CNF and 3-CNF-to-general-CLIQUE machines, this closes the
 full hardness chain and proves `CLIQUE_npComplete` for the honest serialized
-graph-plus-`k` language.  A standalone SAT NP verifier remains an optional
-direct refinement.  Section 34.5 closes the selected textbook reductions and
-their strict serialized layers through `VERTEXCOVER_npComplete`,
+graph-plus-`k` language.  Standalone SAT and 3-CNF-SAT assignment formats now
+have total exact Boolean checkers, malformed-certificate rejection, raw-decoder
+index bounds, and linear certificate characterizations.  Their fixed checker
+machines and direct NP-completeness wrappers remain an optional final
+refinement.  Section 34.5 closes the selected textbook reductions and their
+strict serialized layers through `VERTEXCOVER_npComplete`,
 `HAMCYCLE_npComplete`, `TSP_npComplete`, and `SUBSETSUM_npComplete`.
 -/

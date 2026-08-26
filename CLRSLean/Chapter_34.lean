@@ -79,8 +79,14 @@ import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.To
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Machine.Emitter.Computable
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Machine.GuardedBridge
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Reduction
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Certificate
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Certificate
+import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine
 import CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique
@@ -1350,6 +1356,11 @@ input.  The public results include:
 * the concrete SAT-to-3-CNF-SAT and 3-CNF-SAT-to-CLIQUE reductions; and
 * {lit}`CLIQUE_npComplete` for the honest serialized graph-plus-k language.
 
+The standalone SAT and 3-CNF-SAT layers additionally provide total serialized
+assignment checkers, exact malformed-input semantics, and linear bounded-
+certificate characterizations.  Lowering those two checkers to fixed TM2s and
+packaging their direct NP-completeness wrappers remains an optional refinement.
+
 The supporting compiler modules are proof-level constructions: they turn a
 fixed verifier and raw input into the circuit encoding required by the
 reduction.  They are part of the concrete polynomial-time proof, not a compiler
@@ -1373,10 +1384,11 @@ machine, and an exact all-input semantic bridge.  The final wrappers are
 
 ## Deliberate boundary
 
-The P-versus-NP question is out of scope.  A standalone direct SAT verifier and
-direct concrete deciders for the empty and universal languages remain optional
-refinements, not Chapter 34 closure gaps.  The canonical fourth-edition summary
-is {lit}`CLRSLean.FourthEdition.Chapter_34`.
+The P-versus-NP question is out of scope.  Fixed-machine realizations of the
+standalone SAT/3-CNF-SAT checkers and direct concrete deciders for the empty and
+universal languages remain optional refinements, not Chapter 34 closure gaps.
+The canonical fourth-edition summary is
+{lit}`CLRSLean.FourthEdition.Chapter_34`.
 -/
 namespace CLRS
 

@@ -913,13 +913,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs" = [
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToCliqueMachine",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.PolyBuilder",
   "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Certificate",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification",
+]
+"CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF" = [
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Certificate",
+  "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification",
 ]
 "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems" = [
   "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover",
@@ -4723,8 +4733,26 @@ title = "34.4. Composed General Circuit-to-SAT Machine"
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat"]
 title = "34.4. SAT poly-reduces to 3-CNF-SAT"
 
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT"]
+title = "34.4. Standalone SAT Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Certificate"]
+title = "34.4. SAT Assignment Certificates"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification"]
+title = "34.4. Total SAT Certificate Verification"
+
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine"]
 title = "34.4. SAT → 3-CNF-SAT reduction machine"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF"]
+title = "34.4. Standalone 3-CNF-SAT Certificate Semantics"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Certificate"]
+title = "34.4. 3-CNF-SAT Assignment Certificates"
+
+[modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification"]
+title = "34.4. Total 3-CNF-SAT Certificate Verification"
 
 [modules."CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CNFToClique"]
 title = "34.4. 3-CNF-SAT poly-reduces to CLIQUE"
