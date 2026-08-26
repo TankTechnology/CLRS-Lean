@@ -312,6 +312,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort" = [
   "CLRSLean.FourthEdition.Chapter_06.Section_06_4_Heapsort.CostedExecution",
 ]
+"CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert",
+]
 "CLRSLean.FourthEdition.Chapter_07" = [
   "CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort",
   "CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort",
@@ -2544,6 +2547,9 @@ title = "6.4. Costed Heapsort Execution"
 
 [modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues"]
 title = "6.5. Priority Queues"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert"]
+title = "6.5. Array-level MAX-HEAP-INSERT"
 
 [modules."CLRSLean.FourthEdition.Chapter_07"]
 title = "Chapter 7. Quicksort"
