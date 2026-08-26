@@ -10,4 +10,3 @@ open CLRS.Caching
 
 #assert_axioms fifo_optimal_from_empty
 #assert_axioms fifo_optimal_after_compulsory_fill
-

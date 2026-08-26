@@ -20,4 +20,3 @@ example :
     textbookCost
       (HuffTree.htInner (HuffTree.htLeaf 0 2) (HuffTree.htLeaf 1 3)) = 5 := by
   decide
-

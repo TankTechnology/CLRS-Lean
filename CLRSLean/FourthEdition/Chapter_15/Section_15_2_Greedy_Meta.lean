@@ -21,6 +21,8 @@ in a separate companion file and recovers the existing
 `greedySelect_maxCardinality` theorem as a corollary of the generic
 meta-theorem.
 
+* [Activity-selection instance](CLRSLean/FourthEdition/Chapter_15/Section_15_2_Greedy_Meta/ActivitySelection/)
+
 Main results:
 
 - Structure `GreedyProblem` : bundles the greedy-choice property and optimal

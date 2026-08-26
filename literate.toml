@@ -411,10 +411,23 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
   "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching",
 ]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection.TextbookModel",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection.Iterative",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta.ActivitySelection",
+]
+"CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes" = [
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookCost",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookLemmas",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.Complexity",
+]
 "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching" = [
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality",
+  "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.EmptyStart",
   "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality",
 ]
 "CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality" = [
@@ -2812,11 +2825,29 @@ title = "Chapter 15. Greedy Algorithms"
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection"]
 title = "15.1. Activity Selection"
 
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection.TextbookModel"]
+title = "15.1. Textbook Activity Model"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection.Iterative"]
+title = "15.1. Iterative Activity Selector"
+
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta"]
 title = "15.2. Greedy-Choice Property and Optimal Substructure (Meta-Theorems)"
 
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta.ActivitySelection"]
+title = "15.2. Activity-Selection Instance"
+
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes"]
 title = "15.3. Huffman Codes"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookCost"]
+title = "15.3. Textbook Huffman Cost"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookLemmas"]
+title = "15.3. Huffman Greedy Lemmas"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.Complexity"]
+title = "15.3. Huffman Complexity Models"
 
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching"]
 title = "15.4. Offline caching"
@@ -2829,6 +2860,9 @@ title = "Farthest-In-Future Eviction"
 
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality"]
 title = "Optimality"
+
+[modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.EmptyStart"]
+title = "Empty-Start Optimality"
 
 [modules."CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.Optimality"]
 title = "Optimality Proof"

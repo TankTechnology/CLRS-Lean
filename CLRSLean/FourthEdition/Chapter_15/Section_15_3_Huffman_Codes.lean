@@ -18,6 +18,12 @@ is arranged as a readable pipeline:
 3. Preservation lemmas for {lit}`huffman` over a forest.
 4. The exchange/split-leaf theorem.
 5. The bundled-forest V2 optimality theorem and frequency-table interface.
+
+Textbook-facing companion modules:
+
+* [Equation (15.4) cost bridge](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/TextbookCost/)
+* [Named Lemma 15.2 and Lemma 15.3 interfaces](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/TextbookLemmas/)
+* [List and heap complexity models](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/Complexity/)
 -/
 
 open List
