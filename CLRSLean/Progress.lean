@@ -1,10 +1,11 @@
 /-!
 # Progress Dashboard
 
-This page is the public, reader-facing progress dashboard for CLRS-Lean.
+CLRS-Lean represents all 35 fourth-edition chapters and proves
+all 1,609 of its 1,609 selected reader-facing theorem entries.
+These are scope-qualified inventory counts, not a claim that every paragraph,
+exercise, implementation model, or textbook problem has been formalized.
 The machine-readable source of truth is {lit}`docs/clrs-proof-progress.csv`.
-When the CSV changes, regenerate this page with
-{lit}`uv run python scripts/check_progress_csv.py --write-dashboard`.
 
 ## Fourth-Edition Snapshot
 
@@ -91,6 +92,6 @@ building the site.
 Minimum maintenance loop:
 
 1. Consult {lit}`docs/clrs-fourth-edition-map.csv`, then update the relevant Lean files and {lit}`docs/clrs-proof-progress.csv`.
-2. Run {lit}`uv run python scripts/check_progress_csv.py --write-dashboard`.
+2. Regenerate this page with {lit}`uv run python scripts/check_progress_csv.py --write-dashboard`.
 3. Run {lit}`lake build CLRSLean`; for explicit website publishing, use the four-shard runbook in {lit}`docs/site-architecture.md`.  The serial {lit}`lake build :literateHtml` target is a diagnostic fallback.
 -/

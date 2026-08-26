@@ -55,6 +55,21 @@ proofs.  It is organized as an online book: canonical guides under
 theorem-bearing source modules contain the definitions, executable models,
 interfaces, and proofs.
 
+## Whole-Book Snapshot
+
+The current reviewed ledger represents all 35 fourth-edition chapters.  Of
+these, 34 chapters are {lit}`main-proof-complete` for their advertised Lean
+models and Chapter 1 is an {lit}`expository` project guide.  All 1,609 selected
+reader-facing theorem entries are proved, with zero edition-coverage gap units;
+465 separately tracked entries belong to online or supplementary material.
+
+The Lean-native trust gate audits a flagship declaration for every chapter and
+permits only Lean's standard {lit}`propext`, {lit}`Classical.choice`, and
+{lit}`Quot.sound` axioms.  These counts describe the reviewed theorem inventory:
+they do not claim every exercise, end-of-chapter problem, RAM implementation,
+or low-level refinement.  Open **Progress Dashboard** for the chapter matrix and
+**Proof Status** for the exact interpretation.
+
 ## Project Aim
 
 The first target is the mathematical content of CLRS: loop invariants,
