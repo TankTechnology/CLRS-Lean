@@ -391,6 +391,29 @@ a {
     line-height: 1.5;
 }
 
+.code-content > .verso-text.mod-doc table.clrs-progress-matrix,
+.code-content > .md-text.mod-doc table.clrs-progress-matrix {
+    display: table;
+    table-layout: fixed;
+    overflow-x: visible;
+}
+
+.clrs-progress-matrix th,
+.clrs-progress-matrix td {
+    overflow-wrap: anywhere;
+}
+
+.clrs-progress-matrix th {
+    white-space: normal;
+}
+
+.clrs-progress-matrix th:nth-child(1) { width: 6%; }
+.clrs-progress-matrix th:nth-child(2) { width: 21%; }
+.clrs-progress-matrix th:nth-child(3) { width: 15%; }
+.clrs-progress-matrix th:nth-child(4) { width: 34%; }
+.clrs-progress-matrix th:nth-child(5) { width: 11%; }
+.clrs-progress-matrix th:nth-child(6) { width: 13%; }
+
 .code-content > .verso-text.mod-doc thead,
 .code-content > .md-text.mod-doc thead {
     background: color-mix(in srgb, var(--clrs-green-soft) 72%, transparent);
@@ -628,6 +651,12 @@ a {
         box-shadow: none;
     }
 
+    .code-content > .verso-text.mod-doc table.clrs-progress-matrix,
+    .code-content > .md-text.mod-doc table.clrs-progress-matrix {
+        display: block;
+        table-layout: auto;
+    }
+
     .clrs-progress-matrix thead {
         position: absolute;
         width: 1px;
@@ -654,6 +683,7 @@ a {
 
     .clrs-progress-matrix td {
         display: grid;
+        width: auto;
         grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr);
         gap: 10px;
         padding: 6px 0;

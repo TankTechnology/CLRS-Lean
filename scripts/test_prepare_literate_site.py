@@ -43,6 +43,8 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             SCRIPT_PATH.parents[1] / "docs" / "literate" / "clrs-literate.css"
         ).read_text(encoding="utf-8")
 
+        self.assertIn("table.clrs-progress-matrix", stylesheet)
+        self.assertIn("table-layout: fixed", stylesheet)
         self.assertIn(".clrs-progress-matrix thead", stylesheet)
         self.assertIn(".clrs-progress-matrix tbody", stylesheet)
         self.assertIn(".clrs-progress-matrix tr", stylesheet)
