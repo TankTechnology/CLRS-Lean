@@ -85,3 +85,6 @@ import CLRSLean.Chapter_12
 #check CLRS.Chapter12.BSTree.expected_depth_eq
 #check CLRS.Chapter12.BSTree.expected_depth_le_two_harmonic
 #check CLRS.Chapter12.BSTree.expected_depth_le_O_log
+#check CLRS.Chapter12.BSTree.height_buildFromPerm_eq_treapHeight
+#check CLRS.Chapter12.BSTree.expected_height_le_thirty_harmonic
+#check CLRS.Chapter12.BSTree.expected_height_le_O_log

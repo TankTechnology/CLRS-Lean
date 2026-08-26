@@ -14,7 +14,7 @@ successor/predecessor equivalent to the established functional operations.
 
 ## Sections
 
-* 12.1 Binary search trees: {lit}`partial`, with the functional BST theorem and
+* 12.1 Binary search trees: {lit}`main-proof-complete`, with the functional BST theorem and
   zipper-based parent-navigation boundaries complete for the current
   inductive-tree model.
   Main results: {lit}`CLRS.Chapter12.BSTree.search_eq_true_iff`,
@@ -62,6 +62,9 @@ cost functions with their {lit}`O(h)` bounds ({lit}`searchCost_le_height`,
 {lit}`deleteMinCost_le_height`, {lit}`deleteRootCost_le`, {lit}`deleteCost_le`),
 and the randomly-built-BST ancestor characterization
 {lit}`CLRS.Chapter12.BSTree.isAncestorOf_iff_firstInInterval` (CLRS Lemma 12.3).
+The finite uniform-permutation analysis additionally proves the ancestor
+probability, the expected-depth bound, and CLRS Theorem 12.4 proper through
+{lit}`CLRS.Chapter12.BSTree.expected_height_le_O_log`.
 
 ## Current Gaps
 
@@ -72,9 +75,7 @@ imperative pointer-heap layer models nodes as records with mutable
 proves that in-place {lit}`TRANSPLANT` and leaf {lit}`TREE-INSERT` refine the
 functional subtree-replacement specification through the {lit}`RepresentsW`
 heap-to-tree abstraction.  An explicit RAM-cost model connecting these pointer
-operations to concrete running times remains future work, as does the
-probability {lit}`P(i is an ancestor of j) = 1/(|i-j|+1)` and the
-{lit}`O(log n)` expected-depth bound of a randomly built BST.
+operations to concrete running times remains future work.
 -/
 
 namespace CLRS
