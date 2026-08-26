@@ -105,7 +105,12 @@ class PrepareLiterateSiteTests(unittest.TestCase):
 </body></html>
 """,
             )
-            write_module(source, child, "<html><body>Expected time</body></html>\n")
+            write_module(
+                source,
+                child,
+                "<html><head><title>Randomized select</title></head>"
+                "<body>Expected time</body></html>\n",
+            )
             destination.mkdir()
             (destination / "stale.html").write_text("stale", encoding="utf-8")
 
@@ -120,7 +125,13 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             parent_html = destination.joinpath(
                 *parent.split("."), "index.html"
             ).read_text(encoding="utf-8")
+            child_html = destination.joinpath(
+                *child.split("."), "index.html"
+            ).read_text(encoding="utf-8")
             sitemap = (destination / "sitemap.xml").read_text(encoding="utf-8")
+            robots_path = destination / "robots.txt"
+            self.assertTrue(robots_path.is_file())
+            robots = robots_path.read_text(encoding="utf-8")
             stale_exists = (destination / "stale.html").exists()
             stylesheet_text = (destination / "clrs-literate.css").read_text(
                 encoding="utf-8"
@@ -137,6 +148,23 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             sitemap,
         )
         self.assertIn("<lastmod>2026-07-15</lastmod>", sitemap)
+        self.assertEqual(1, parent_html.count('rel="canonical"'))
+        self.assertIn(
+            'href="https://example.test/CLRS-Lean/CLRSLean/FourthEdition/Chapter_09/"',
+            parent_html,
+        )
+        self.assertEqual(1, child_html.count('rel="canonical"'))
+        self.assertIn(
+            'href="https://example.test/CLRS-Lean/CLRSLean/FourthEdition/'
+            'Chapter_09/Randomized_Select/"',
+            child_html,
+        )
+        self.assertEqual(
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Sitemap: https://example.test/CLRS-Lean/sitemap.xml\n",
+            robots,
+        )
 
 
 if __name__ == "__main__":
