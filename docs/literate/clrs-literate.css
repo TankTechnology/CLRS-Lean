@@ -604,6 +604,14 @@ a {
         padding-left: 72px;
     }
 
+    .breadcrumbs li:last-child:not(:first-child) {
+        display: none;
+    }
+
+    .breadcrumbs li:not(:last-child)::after {
+        display: none;
+    }
+
     .code-content {
         padding: 22px 16px 36px;
     }
