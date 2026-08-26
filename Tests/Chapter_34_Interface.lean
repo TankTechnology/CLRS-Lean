@@ -42,6 +42,12 @@ example (x : List CNFSym) (hx : x ∈ ThreeCNFSat) :
 #check mem_SAT_iff_exists_bounded_certificate
 #check threeCNFSatVerifier_accepts_iff
 #check mem_threeCNFSat_iff_exists_bounded_certificate
+#check Turing.SATVerifier.reductionVerifierComputableInPolyTime
+#check SAT_mem_ClassNP
+#check SAT_npComplete
+#check Turing.ThreeCNFVerifier.reductionVerifierComputableInPolyTime
+#check threeCNFSat_mem_ClassNP
+#check threeCNFSat_npComplete
 
 -- basic sanity checks
 example (Γ : Type) : ClassP Γ ⊆ (Set.univ : Set (Language Γ)) := by simp

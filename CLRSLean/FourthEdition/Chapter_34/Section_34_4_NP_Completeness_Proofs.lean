@@ -11,7 +11,8 @@ reductions in the textbook chain.
 - Cook--Levin reduces every NP language to general circuit satisfiability.
 - {lit}`CIRCUIT-SAT ≤_P SAT ≤_P 3-CNF-SAT ≤_P CLIQUE`.
 - SAT and 3-CNF-SAT have total raw assignment checkers with linear certificate
-  bounds; their direct fixed-machine NP wrappers remain a separate refinement.
+  bounds, fixed reduction-backed verifier machines, and standalone
+  NP-completeness theorems.
 - General circuit satisfiability and the public graph-plus-{lit}`k` CLIQUE
   language are NP-complete.
 

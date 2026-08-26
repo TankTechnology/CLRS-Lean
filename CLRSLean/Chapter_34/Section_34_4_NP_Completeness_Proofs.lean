@@ -65,9 +65,11 @@ concrete SAT-to-3-CNF and 3-CNF-to-general-CLIQUE machines, this closes the
 full hardness chain and proves `CLIQUE_npComplete` for the honest serialized
 graph-plus-`k` language.  Standalone SAT and 3-CNF-SAT assignment formats now
 have total exact Boolean checkers, malformed-certificate rejection, raw-decoder
-index bounds, and linear certificate characterizations.  Their fixed checker
-machines and direct NP-completeness wrappers remain an optional final
-refinement.  Section 34.5 closes the selected textbook reductions and their
-strict serialized layers through `VERTEXCOVER_npComplete`,
+index bounds, and linear certificate characterizations.  Reduction-backed
+fixed verifier machines reuse the already verified reduction chain and prove
+standalone membership in NP and NP-completeness for both languages.  Directly
+lowering the smaller assignment checkers to machines remains an optional
+implementation refinement.  Section 34.5 closes the selected textbook
+reductions and their strict serialized layers through `VERTEXCOVER_npComplete`,
 `HAMCYCLE_npComplete`, `TSP_npComplete`, and `SUBSETSUM_npComplete`.
 -/
