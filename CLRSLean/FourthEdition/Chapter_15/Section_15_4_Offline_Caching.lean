@@ -2,6 +2,7 @@ import Mathlib
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S1_Cache_Model
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S2_Farthest_In_Future
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.S3_Optimality
+import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching.EmptyStart
 
 /-!
 # 15.4. Offline caching
@@ -20,14 +21,18 @@ Main results:
 - `fifoPolicy σ`: the farthest-in-future eviction policy
 - `fifo_step_of_mem` / `fifo_step_fault`: the policy's cache transitions
 - `LegalTrace`: a policy-independent certificate for a legal cache execution
-- `fifo_optimal`: for every nonempty initial cache and finite request sequence,
-  the farthest-in-future policy incurs no more misses than any policy (CLRS
-  Theorem 15.5)
+- `fifo_optimal`: optimality for every nonempty eviction-phase cache
+- `fifo_optimal_from_empty`: optimality from the literal empty cache, including
+  the compulsory first miss (CLRS Theorem 15.5)
+- `fifo_optimal_after_compulsory_fill`: the capacity-independent bridge from a
+  common compulsory-fill phase to the verified eviction phase
 
 Completion boundary:
 
-- The mathematical offline-caching optimality theorem is complete.  The result
-  is stated for finite request lists and a nonempty finite initial cache.
+- The mathematical offline-caching optimality theorem is complete for finite
+  request lists.  Both a nonempty eviction-phase cache and the literal empty
+  start of the core transition semantics are covered; arbitrary-capacity fill
+  phases use the explicit policy-independent `compulsoryFillCost` bridge.
   Pointer-level cache mutation, RAM costs, and hardware caching behavior are
   separate implementation refinements and are not claimed here.
 
