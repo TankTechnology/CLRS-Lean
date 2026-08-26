@@ -43,12 +43,12 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             SCRIPT_PATH.parents[1] / "docs" / "literate" / "clrs-literate.css"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("#Chapter-Matrix + table thead", stylesheet)
-        self.assertIn("#Chapter-Matrix + table tbody", stylesheet)
-        self.assertIn("#Chapter-Matrix + table tr", stylesheet)
-        self.assertIn("#Chapter-Matrix + table td", stylesheet)
-        self.assertIn("#Chapter-Matrix + table td:nth-child(2)::before", stylesheet)
-        self.assertIn('content: "Chapter"', stylesheet)
+        self.assertIn(".clrs-progress-matrix thead", stylesheet)
+        self.assertIn(".clrs-progress-matrix tbody", stylesheet)
+        self.assertIn(".clrs-progress-matrix tr", stylesheet)
+        self.assertIn(".clrs-progress-matrix td", stylesheet)
+        self.assertIn(".clrs-progress-matrix td::before", stylesheet)
+        self.assertIn("content: attr(data-label)", stylesheet)
 
     def test_rejects_a_destination_that_contains_the_source(self) -> None:
         self.assertTrue(SCRIPT_PATH.is_file())
