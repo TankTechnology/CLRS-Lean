@@ -21,9 +21,9 @@
 
 - [ ] **Step 1: Write failing generator and stylesheet tests**
 
-Require `| Ch | Chapter | Status | Sections | Tracked | Gap units |`, reject
+Require a `CLRS-PROGRESS-MATRIX` marker followed by tab-delimited fields, reject
 the old fixed-width header, and require mobile selectors scoped through
-`#Chapter-Matrix + table`.
+`.clrs-progress-matrix`.
 
 - [ ] **Step 2: Verify RED**
 
@@ -33,8 +33,9 @@ the missing Markdown table and missing matrix-specific mobile rules.
 
 - [ ] **Step 3: Implement the minimal generator and CSS changes**
 
-Emit one pipe-delimited row per CSV chapter and add narrow-screen row-card rules
-using `nth-child` labels for the six fields.
+Emit one tab-delimited row per CSV chapter.  Add a tested optimizer transform
+from the marked `<pre>` to a semantic table with `scope="col"` headers and
+`data-label` cells, then add narrow-screen row-card rules using those labels.
 
 - [ ] **Step 4: Regenerate and verify GREEN**
 
@@ -133,4 +134,3 @@ global horizontal overflow, correct canonical URL, and zero console errors.
 
 State that repository-controlled indexing signals are fixed while crawler cache
 refresh timing remains external.  Do not push or deploy without authorization.
-
