@@ -27,6 +27,13 @@ Main results:
   array-level {lit}`HEAP-INCREASE-KEY` wrapper writes a larger key, repeatedly
   bubbles it toward the root, and returns a max-heap with the same backing-list
   length and swapped multiset.
+- Theorem {lit}`arrayHeapInsert?_state_correct`: checked insertion accepts any
+  active prefix fitting in the backing list, inserts before the inactive tail,
+  grows both heap size and list length by one, and adds exactly the requested
+  key.
+- Theorem {lit}`arrayHeapInsertWithCost?_state_correct_and_log_cost`: the same
+  state contract paired with an honest upward-bubbling control-frame count
+  bounded by {lit}`⌊log₂(heapSize + 1)⌋ + 1`.
 - Theorem {lit}`arrayHeapIncreaseKeyNoBubble?_state_correct`: the no-bubble
   branch of CLRS {lit}`HEAP-INCREASE-KEY` remains as a small readable corollary
   for the immediate-stop case.
@@ -42,12 +49,18 @@ Main results:
 Implementation detail:
 
 - [Array-level MAX-HEAP-INSERT](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/)
-  appends the new cell, isolates its incoming-edge violation, and reuses the
-  established upward-bubbling invariant.
+  contains focused basic, checked, and costed modules.  They isolate the new
+  cell's incoming-edge violation and reuse the established upward-bubbling
+  invariant.
+- [Basic insertion proof](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/Basic/)
+- [Checked active-prefix proof](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/Checked/)
+- [Logarithmic cost proof](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/Cost/)
 
-Current gaps:
+Current gap:
 
-- Runtime bounds and RAM semantics are deferred.
+- The proved insertion cost counts visited bubbling frames; guard evaluation,
+  persistent-list operations, allocation, and imperative RAM semantics remain
+  outside this metric.
 -/
 
 namespace CLRS

@@ -1,9 +1,9 @@
 # Ch6 Heapsort 语义忠实性审计
 
-- **审计日期（北京时间）**: 2026-08-18 11:30 CST
+- **审计日期（北京时间）**: 2026-08-18 11:30 CST（原始审计），2026-08-27 更新（checked insert 与对数成本闭合）
 - **Skill 版本**: semantic-fidelity-audit v1
 - **基准来源**: 参考第 6.1–6.5 节（课本语料已核对）
-- **结论分布**: MATCH 38 · MINOR 12 · MAJOR 3 · CRITICAL 0 · UNCERTAIN 0
+- **结论分布**: MATCH 39 · MINOR 12 · MAJOR 2 · CRITICAL 0 · UNCERTAIN 0
 - **结构前提**: `check_book_coverage.py` 通过（Book coverage OK, 35 chapters）
 
 ## 断言对照表
@@ -81,7 +81,7 @@
 | 5.5 | HEAP-INCREASE-KEY：更新 key，沿路径向上冒泡至根（O(lg n)） | `Section_06_5_Priority_Queues.lean:434-443` `arrayHeapIncreaseKeyBubbleUpFuel` + `Section_06_5_Priority_Queues.lean:510-514` `arrayHeapIncreaseKey?` | MATCH | 冒泡循环正确实现 |
 | 5.6 | HEAP-INCREASE-KEY 前提：新 key ≥ 旧 key | `Section_06_5_Priority_Queues.lean:511` `valAt a i ≤ key` | MATCH | 前置条件检查正确 |
 | 5.7 | 向上冒泡的不变量：除可能违反的当前节点外，所有边有效 | `Section_06_5_Priority_Queues.lean:162-172` `ArrayMaxHeapExceptUp` + `Section_06_5_Priority_Queues.lean:330-427` `bubble_step` | MATCH | 精确形式化冒泡不变量 |
-| 5.8 | HEAP-INSERT：扩展 heap-size，设新叶为 -∞，调用 INCREASE-KEY（O(lg n)） | 无对应 | MAJOR | HEAP-INSERT 完全缺失；仅实现 INCREASE-KEY / EXTRACT-MAX / DELETE |
+| 5.8 | HEAP-INSERT：扩展 heap-size，设新叶为 -∞，调用 INCREASE-KEY（O(lg n)） | `Insert/Checked.lean` `arrayHeapInsert?`; `Insert/Cost.lean` `arrayHeapInsertWithCost?_state_correct_and_log_cost` | MATCH | checked API 扩展活动前缀、保留 inactive tail，并证明堆/长度/heap-size/多重集语义；逐冒泡帧成本严格界于 `⌊log₂(heapSize+1)⌋+1` |
 | 5.9 | HEAP-DELETE（书中未作为独立伪代码，但 6.5 节练习提及） | `Section_06_5_Priority_Queues.lean:799-809` `arrayHeapDelete?` | MATCH | 通过 raise-to-max + extract-max 实现，语义正确 |
 | 5.10 | 对象-索引映射（handle）的开销讨论 | 无对应 | MINOR | 书中 handle 映射讨论未形式化；handle 在纯函数式模型中不可见 |
 | 5.11 | 功能接口：insert/increase-key/delete/maximum | `Section_06_5_Priority_Queues.lean:53-66` `heapInsert`/`heapIncreaseKey`/`heapDelete`/`heapMaximum?` | MATCH | 功能包装正确 |
@@ -99,12 +99,12 @@
 
 ## 缺陷清单
 
-### MAJOR（3 条）
+### MAJOR（2 条）
 
-**M1. 严重度: MAJOR**
-- **位置**: 第 6.5 节 — 缺失，应在 `Section_06_5_Priority_Queues.lean`
-- **差异描述**: HEAP-INSERT 操作完全缺失。书中 §6.5 定义了 MAX-HEAP-INSERT(A, x, n) 伪代码（8 行）：检查溢出、扩展 heap-size、设新叶 key 为 -∞、调用 HEAP-INCREASE-KEY。Lean 实现了 INCREASE-KEY、EXTRACT-MAX、DELETE，但缺少 INSERT。
-- **建议修法**: 添加 `arrayHeapInsert?` 函数，实现 heap-size 扩展 + 初始 -∞ 写入 + increase-key 调用链，并证明其 O(lg n) 代价和堆性质保持。
+原 **M1** 已于 2026-08-27 闭合：`arrayHeapInsert?` 对所有
+`heapSize ≤ a.length` 的状态扩展活动前缀，`arrayHeapInsertWithCost?`
+擦除到同一操作，且逐控制帧成本具有显式对数上界。持久化 List 分配与
+RAM 指令成本仍由既有范围边界排除。
 
 **M2. 严重度: MAJOR**
 - **位置**: `Section_06_5_Priority_Queues.lean:61-66` `heapIncreaseKey` / `heapDelete`
@@ -158,7 +158,7 @@
 | §6.2 Maintaining the Heap Property | 9 | 2 | 0 | 0 |
 | §6.3 Building a Heap | 10 | 0 | 0 | 0 |
 | §6.4 The Heapsort Algorithm | 7 | 3 | 1 | 0 |
-| §6.5 Priority Queues | 5 | 4 | 2 | 0 |
+| §6.5 Priority Queues | 6 | 4 | 1 | 0 |
 | CostedExecution | 6 | 0 | 0 | 0 |
 
-**关键发现**: 第 6 章是形式化质量最高的章节之一。核心算法（MAX-HEAPIFY、BUILD-MAX-HEAP、HEAPSORT）的正确性证明完整且严格，代价分析（CostedExecution）精确再现了 CLRS 的 O(n) 构建和 O(n log n) 排序界，包括高度双重计数（`sum_heapHeight_le`）和聚集求和论证。主要缺陷集中在 §6.5 优先队列：HEAP-INSERT 缺失（MAJOR），功能接口使用 O(n) 重建而非 O(lg n) 更新（MAJOR）。所有已知简化（零起始索引、List 替代数组、燃料化递归）已在模块文档中妥善声明。
+**关键发现（2026-08-27 更新）**: 第 6 章是形式化质量最高的章节之一。核心算法（MAX-HEAPIFY、BUILD-MAX-HEAP、HEAPSORT）的正确性证明完整且严格，代价分析精确再现了 CLRS 的 O(n) 构建和 O(n log n) 排序界。§6.5 的 checked MAX-HEAP-INSERT 及 O(log n) 冒泡帧界也已闭合。保留差异是功能 scaffold 的重建实现与纯函数 List 表示；读者级数组操作本身使用已验证的局部上冒泡/下沉算法，且范围说明不声称 RAM 指令成本。

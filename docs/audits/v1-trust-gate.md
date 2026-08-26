@@ -164,16 +164,16 @@ canonical chapter guides.
 
 | Historical finding | V1 classification | Current evidence |
 |---|---|---|
-| Chapter 2 M1/M3: line-cost table and exact instruction sum | Outside advertised boundary | `docs/scope.md` excludes line-by-line pseudocode and word-RAM behavior; Chapter 2 advertises comparison bounds, correctness, and recurrence results. |
-| Chapter 2 M2/M4: from-scratch MERGE and implementation-derived linear cost | Outside advertised boundary | The canonical §2.3 guide explicitly delegates to verified `List.mergeSort` and records local MERGE as a future strengthening; executable-performance matching is not claimed. |
+| Chapter 2 M1/M3: line-cost table and exact instruction sum | Fixed in the 2026-08-27 follow-up | `LineCost` now proves the seven symbolic line contributions, trace-derived counts, the complete textbook sum, and exact best/worst specializations. |
+| Chapter 2 M2/M4: from-scratch MERGE and implementation-derived linear cost | Fixed in the 2026-08-27 follow-up | The canonical §2.3 development now contains local executable MERGE, sortedness/permutation correctness, a linear comparison bound, and exact output-write count. |
 | Chapter 5 M1: RANDOMIZE-IN-PLACE mislabeled as Lemma 5.5 | Fixed | Every live reference now says Lemma 5.4; `randomizeInPlace_uniform` is axiom-audited in `Tests/Trust/Chapter_05.lean`. |
-| Chapter 6 M1: array-level MAX-HEAP-INSERT absent | Outside advertised boundary | The represented functional interface includes proved `heapInsert`; the §6.5 guide explicitly selects array-level maximum, increase-key, extract-max, and delete state theorems rather than every pseudocode operation. |
+| Chapter 6 M1: array-level MAX-HEAP-INSERT absent | Fixed in the 2026-08-27 follow-up | §6.5 now proves full-prefix and checked active-prefix insertion, exact guard/state/multiset behavior, cost erasure, and an explicit logarithmic bubbling-frame bound. |
 | Chapter 6 M2: functional increase/delete rebuild the heap | Outside advertised boundary | The functions are documented as a compact mathematical scaffold, and `docs/scope.md` excludes executable-performance equivalence. The selected array-level increase/delete state theorems are now bundled into the native Chapter 6 trust audit. |
 | Chapter 6 M3: functional arrays rather than mutation | Outside advertised boundary | Mutation, allocation, and imperative RAM behavior are explicit project-wide exclusions; the §6.4 guide states the functional-array boundary. |
 
-Result: all eight historical MAJOR findings are explained—one fixed and seven
-outside the advertised v1 boundary.  There is no still-real MAJOR inside that
-boundary.
+Result after the 2026-08-27 follow-ups: all eight historical MAJOR findings are
+explained—six fixed and two outside the advertised v1 boundary.  There is no
+still-real MAJOR inside that boundary.
 
 ### Verification record
 
