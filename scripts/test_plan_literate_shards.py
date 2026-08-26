@@ -56,6 +56,36 @@ class LiterateShardPlannerTests(unittest.TestCase):
         }
         self.assertEqual({0}, chapter_one_shards)
 
+    def test_partition_splits_only_an_oversized_affinity_group(self) -> None:
+        modules = [
+            ModuleCost("CLRSLean.Chapter_34.A", Path("34-a"), 80),
+            ModuleCost("CLRSLean.Chapter_34.B", Path("34-b"), 70),
+            ModuleCost("CLRSLean.Chapter_34.C", Path("34-c"), 60),
+            ModuleCost("CLRSLean.Chapter_34.D", Path("34-d"), 50),
+            ModuleCost("CLRSLean.Chapter_01.A", Path("01-a"), 40),
+            ModuleCost("CLRSLean.Chapter_02.A", Path("02-a"), 30),
+            ModuleCost("CLRSLean.Chapter_03.A", Path("03-a"), 20),
+            ModuleCost("CLRSLean.Chapter_03.B", Path("03-b"), 10),
+        ]
+
+        shards = partition_modules(modules, 4)
+        loads = [sum(module.size_bytes for module in shard) for shard in shards]
+        chapter_34_shards = {
+            index
+            for index, shard in enumerate(shards)
+            if any(module.name.startswith("CLRSLean.Chapter_34") for module in shard)
+        }
+        chapter_03_shards = {
+            index
+            for index, shard in enumerate(shards)
+            if any(module.name.startswith("CLRSLean.Chapter_03") for module in shard)
+        }
+
+        self.assertGreater(len(chapter_34_shards), 1)
+        self.assertEqual(1, len(chapter_03_shards))
+        self.assertEqual(360, sum(loads))
+        self.assertLessEqual(max(loads) - min(loads), 20)
+
     def test_rejects_non_positive_shard_count(self) -> None:
         with self.assertRaisesRegex(ValueError, "positive"):
             partition_modules([], 0)

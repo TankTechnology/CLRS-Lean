@@ -69,21 +69,35 @@ def discover_modules(module_map: Path) -> list[ModuleCost]:
 
 
 def partition_modules(modules: list[ModuleCost], shard_count: int) -> list[list[ModuleCost]]:
-    """Assign largest affinity groups first to the currently lightest shard."""
+    """Balance modules while keeping non-oversized affinity groups together."""
     if shard_count <= 0:
         raise ValueError("shard count must be positive")
     groups: dict[str, list[ModuleCost]] = {}
     for module in modules:
         groups.setdefault(module.affinity, []).append(module)
-    ordered_groups = sorted(
-        groups.items(),
+
+    total_bytes = sum(module.size_bytes for module in modules)
+    ideal_load = (total_bytes + shard_count - 1) // shard_count
+    planning_units: list[tuple[str, list[ModuleCost]]] = []
+    for affinity, group in sorted(groups.items()):
+        ordered_group = sorted(group, key=lambda module: module.name)
+        group_load = sum(module.size_bytes for module in ordered_group)
+        if len(ordered_group) > 1 and group_load > ideal_load:
+            planning_units.extend(
+                (f"{affinity}\0{module.name}", [module]) for module in ordered_group
+            )
+        else:
+            planning_units.append((affinity, ordered_group))
+
+    ordered_units = sorted(
+        planning_units,
         key=lambda item: (-sum(module.size_bytes for module in item[1]), item[0]),
     )
     shards: list[list[ModuleCost]] = [[] for _ in range(shard_count)]
     loads = [0] * shard_count
-    for _, group in ordered_groups:
+    for _, group in ordered_units:
         target = min(range(shard_count), key=lambda index: (loads[index], index))
-        shards[target].extend(sorted(group, key=lambda module: module.name))
+        shards[target].extend(group)
         loads[target] += sum(module.size_bytes for module in group)
     return [sorted(shard, key=lambda module: module.name) for shard in shards]
 
