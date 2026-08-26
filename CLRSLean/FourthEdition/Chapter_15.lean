@@ -5,6 +5,9 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_1_Activity_Selection.Iterati
 import CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta
 import CLRSLean.FourthEdition.Chapter_15.Section_15_2_Greedy_Meta.ActivitySelection
 import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes
+import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookCost
+import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookLemmas
+import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.Complexity
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching
 
 /-!
