@@ -20,6 +20,30 @@ SPEC.loader.exec_module(optimizer)
 
 
 class OptimizeLiterateHtmlTests(unittest.TestCase):
+    def test_converts_marked_progress_matrix_to_semantic_table_once(self) -> None:
+        self.assertTrue(
+            hasattr(optimizer, "replace_progress_matrix"),
+            "optimizer must expose the Progress matrix transform",
+        )
+        source = (
+            '<section><h2 id="Chapter-Matrix">Chapter Matrix</h2>'
+            "<pre>CLRS-PROGRESS-MATRIX\n"
+            "Ch\tChapter\tStatus\tSections\tTracked\tGap units\n"
+            "34\t34. NP-Completeness\tmain-proof-complete\t34.1;34.2\t49\t0"
+            "</pre></section>"
+        )
+
+        first, first_changes = optimizer.replace_progress_matrix(source)
+        second, second_changes = optimizer.replace_progress_matrix(first)
+
+        self.assertEqual(1, first_changes)
+        self.assertEqual(0, second_changes)
+        self.assertEqual(first, second)
+        self.assertIn('<table class="clrs-progress-matrix">', first)
+        self.assertIn('<th scope="col">Chapter</th>', first)
+        self.assertIn('<td data-label="Status">main-proof-complete</td>', first)
+        self.assertNotIn("CLRS-PROGRESS-MATRIX", first)
+
     def test_canonical_link_injection_replaces_stale_link_idempotently(self) -> None:
         self.assertTrue(
             hasattr(optimizer, "inject_canonical_link"),

@@ -621,14 +621,14 @@ a {
         max-width: 100%;
     }
 
-    #Chapter-Matrix + table {
+    .clrs-progress-matrix {
         overflow-x: visible;
         border: 0;
         background: transparent;
         box-shadow: none;
     }
 
-    #Chapter-Matrix + table thead {
+    .clrs-progress-matrix thead {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -637,12 +637,12 @@ a {
         white-space: nowrap;
     }
 
-    #Chapter-Matrix + table tbody {
+    .clrs-progress-matrix tbody {
         display: grid;
         gap: 12px;
     }
 
-    #Chapter-Matrix + table tr {
+    .clrs-progress-matrix tr {
         display: grid;
         padding: 10px 12px;
         border: 1px solid var(--clrs-line);
@@ -652,7 +652,7 @@ a {
         box-shadow: var(--clrs-shadow);
     }
 
-    #Chapter-Matrix + table td {
+    .clrs-progress-matrix td {
         display: grid;
         grid-template-columns: minmax(5.5rem, 0.35fr) minmax(0, 1fr);
         gap: 10px;
@@ -662,40 +662,17 @@ a {
         overflow-wrap: anywhere;
     }
 
-    #Chapter-Matrix + table td:last-child {
+    .clrs-progress-matrix td:last-child {
         border-bottom: 0;
     }
 
-    #Chapter-Matrix + table td::before {
+    .clrs-progress-matrix td::before {
+        content: attr(data-label);
         color: var(--clrs-ink-soft);
         font-size: 0.76rem;
         font-weight: 820;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-    }
-
-    #Chapter-Matrix + table td:nth-child(1)::before {
-        content: "No.";
-    }
-
-    #Chapter-Matrix + table td:nth-child(2)::before {
-        content: "Chapter";
-    }
-
-    #Chapter-Matrix + table td:nth-child(3)::before {
-        content: "Status";
-    }
-
-    #Chapter-Matrix + table td:nth-child(4)::before {
-        content: "Sections";
-    }
-
-    #Chapter-Matrix + table td:nth-child(5)::before {
-        content: "Tracked";
-    }
-
-    #Chapter-Matrix + table td:nth-child(6)::before {
-        content: "Gap units";
     }
 
     .code-box {

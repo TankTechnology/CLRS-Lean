@@ -348,8 +348,9 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
             "",
             "## Chapter Matrix",
             "",
-            "| Ch | Chapter | Status | Sections | Tracked | Gap units |",
-            "| ---: | --- | --- | --- | ---: | ---: |",
+            "```",
+            "CLRS-PROGRESS-MATRIX",
+            "Ch\tChapter\tStatus\tSections\tTracked\tGap units",
         ]
     )
 
@@ -364,12 +365,13 @@ def render_dashboard(rows: list[dict[str, str]]) -> str:
         tracked_count = row["tracked_key_theorems"]
         gap_count = row["edition_gap_units"]
         lines.append(
-            f"| {int(row['chapter_no'])} | {chapter} | {lit(status)} | "
-            f"{sections} | {tracked_count} | {gap_count} |"
+            f"{int(row['chapter_no'])}\t{chapter}\t{status}\t"
+            f"{sections}\t{tracked_count}\t{gap_count}"
         )
 
     lines.extend(
         [
+            "```",
             "",
             "## Agent Update Rule",
             "",

@@ -67,6 +67,11 @@ CANONICAL_LINK_RE = re.compile(
     r"\s*<link\b(?=[^>]*\brel\s*=\s*[\"']canonical[\"'])[^>]*>\s*",
     re.IGNORECASE,
 )
+PROGRESS_MATRIX_MARKER = "CLRS-PROGRESS-MATRIX"
+PROGRESS_MATRIX_PRE_RE = re.compile(
+    rf"<pre>{PROGRESS_MATRIX_MARKER}\r?\n(?P<body>.*?)</pre>",
+    re.DOTALL,
+)
 NAV_STATE_SCRIPT_ID = "clrs-nav-state-script"
 NAV_STATE_SCRIPT_RE = re.compile(
     rf"<script\s+id=[\"']{NAV_STATE_SCRIPT_ID}[\"'][^>]*>.*?</script>",
@@ -281,6 +286,7 @@ class PageStats:
     injected_nav_scripts: int
     injected_verification_meta: int
     injected_canonical_links: int
+    converted_progress_matrices: int
     opened_nav_details: int
     removed_nav_modules: int
     flattened_nav_details: int
@@ -299,6 +305,7 @@ class PageStats:
             or self.injected_nav_scripts > 0
             or self.injected_verification_meta > 0
             or self.injected_canonical_links > 0
+            or self.converted_progress_matrices > 0
             or self.opened_nav_details > 0
             or self.removed_nav_modules > 0
             or self.flattened_nav_details > 0
@@ -532,6 +539,45 @@ def inject_canonical_link(text: str, canonical_url: str) -> tuple[str, int]:
     return (text, 0) if next_text == text else (next_text, 1)
 
 
+def replace_progress_matrix(text: str) -> tuple[str, int]:
+    """Convert the marked Literate-safe matrix block into a semantic table."""
+
+    def render(match: re.Match[str]) -> str:
+        lines = html.unescape(match.group("body")).rstrip("\r\n").splitlines()
+        rows = [line.split("\t") for line in lines]
+        if not rows or rows[0] != [
+            "Ch",
+            "Chapter",
+            "Status",
+            "Sections",
+            "Tracked",
+            "Gap units",
+        ]:
+            raise ValueError("Progress matrix has an invalid header")
+        if any(len(row) != len(rows[0]) for row in rows[1:]):
+            raise ValueError("Progress matrix rows must have six tab-separated cells")
+
+        headers = "".join(
+            f'<th scope="col">{html.escape(cell)}</th>' for cell in rows[0]
+        )
+        body_rows = []
+        for row in rows[1:]:
+            cells = "".join(
+                f'<td data-label="{html.escape(label, quote=True)}">'
+                f"{html.escape(cell)}</td>"
+                for label, cell in zip(rows[0], row, strict=True)
+            )
+            body_rows.append(f"<tr>{cells}</tr>")
+        return (
+            '<table class="clrs-progress-matrix">'
+            f"<thead><tr>{headers}</tr></thead>"
+            f"<tbody>{''.join(body_rows)}</tbody>"
+            "</table>"
+        )
+
+    return PROGRESS_MATRIX_PRE_RE.subn(render, text, count=1)
+
+
 def optimize_file(
     path: Path,
     strip_attrs_min_bytes: int,
@@ -568,6 +614,7 @@ def optimize_file(
     text = tmp.read_text(encoding="utf-8", errors="replace")
     sidebar = prune_reader_sidebar(text, READER_PARENT_ROUTES)
     text = sidebar.html
+    text, converted_progress_matrices = replace_progress_matrix(text)
     text, injected_nav_scripts = inject_nav_state_script(text)
     text, injected_verification_meta = inject_google_site_verification(text)
     injected_canonical_links = 0
@@ -579,6 +626,7 @@ def optimize_file(
         or injected_nav_scripts
         or injected_verification_meta
         or injected_canonical_links
+        or converted_progress_matrices
     ):
         tmp.write_text(text, encoding="utf-8", newline="")
 
@@ -597,6 +645,7 @@ def optimize_file(
         injected_nav_scripts=injected_nav_scripts,
         injected_verification_meta=injected_verification_meta,
         injected_canonical_links=injected_canonical_links,
+        converted_progress_matrices=converted_progress_matrices,
         opened_nav_details=parser.opened_nav_details,
         removed_nav_modules=len(sidebar.removed_modules),
         flattened_nav_details=len(sidebar.flattened_modules),
