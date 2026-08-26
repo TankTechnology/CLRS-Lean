@@ -63,6 +63,10 @@ GOOGLE_SITE_VERIFICATION_META = (
     f'<meta name="google-site-verification" '
     f'content="{GOOGLE_SITE_VERIFICATION_CONTENT}" />'
 )
+CANONICAL_LINK_RE = re.compile(
+    r"\s*<link\b(?=[^>]*\brel\s*=\s*[\"']canonical[\"'])[^>]*>\s*",
+    re.IGNORECASE,
+)
 NAV_STATE_SCRIPT_ID = "clrs-nav-state-script"
 NAV_STATE_SCRIPT_RE = re.compile(
     rf"<script\s+id=[\"']{NAV_STATE_SCRIPT_ID}[\"'][^>]*>.*?</script>",
@@ -276,6 +280,7 @@ class PageStats:
     removed_inline_hover_scripts: int
     injected_nav_scripts: int
     injected_verification_meta: int
+    injected_canonical_links: int
     opened_nav_details: int
     removed_nav_modules: int
     flattened_nav_details: int
@@ -293,6 +298,7 @@ class PageStats:
             or self.removed_inline_hover_scripts > 0
             or self.injected_nav_scripts > 0
             or self.injected_verification_meta > 0
+            or self.injected_canonical_links > 0
             or self.opened_nav_details > 0
             or self.removed_nav_modules > 0
             or self.flattened_nav_details > 0
@@ -512,7 +518,26 @@ def inject_google_site_verification(text: str) -> tuple[str, int]:
     return next_text, min(count, 1)
 
 
-def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
+def inject_canonical_link(text: str, canonical_url: str) -> tuple[str, int]:
+    """Replace stale canonical metadata with one stable page-specific link."""
+    without_existing = CANONICAL_LINK_RE.sub("", text)
+    tag = f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}" />'
+    next_text, head_count = HEAD_END_RE.subn(
+        lambda _match: f"    {tag}\n</head>",
+        without_existing,
+        count=1,
+    )
+    if head_count != 1:
+        raise ValueError("HTML page lacks a unique closing head tag")
+    return (text, 0) if next_text == text else (next_text, 1)
+
+
+def optimize_file(
+    path: Path,
+    strip_attrs_min_bytes: int,
+    *,
+    canonical_url: str | None = None,
+) -> PageStats:
     before = path.stat().st_size
     strip_editor_attrs = before >= strip_attrs_min_bytes
     disable_hover_features = strip_editor_attrs
@@ -545,11 +570,15 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
     text = sidebar.html
     text, injected_nav_scripts = inject_nav_state_script(text)
     text, injected_verification_meta = inject_google_site_verification(text)
+    injected_canonical_links = 0
+    if canonical_url is not None:
+        text, injected_canonical_links = inject_canonical_link(text, canonical_url)
     if (
         sidebar.removed_modules
         or sidebar.flattened_modules
         or injected_nav_scripts
         or injected_verification_meta
+        or injected_canonical_links
     ):
         tmp.write_text(text, encoding="utf-8", newline="")
 
@@ -567,6 +596,7 @@ def optimize_file(path: Path, strip_attrs_min_bytes: int) -> PageStats:
         removed_inline_hover_scripts=removed_inline_hover_scripts,
         injected_nav_scripts=injected_nav_scripts,
         injected_verification_meta=injected_verification_meta,
+        injected_canonical_links=injected_canonical_links,
         opened_nav_details=parser.opened_nav_details,
         removed_nav_modules=len(sidebar.removed_modules),
         flattened_nav_details=len(sidebar.flattened_modules),

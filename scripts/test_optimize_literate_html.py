@@ -20,6 +20,27 @@ SPEC.loader.exec_module(optimizer)
 
 
 class OptimizeLiterateHtmlTests(unittest.TestCase):
+    def test_canonical_link_injection_replaces_stale_link_idempotently(self) -> None:
+        self.assertTrue(
+            hasattr(optimizer, "inject_canonical_link"),
+            "optimizer must expose canonical-link normalization",
+        )
+        source = (
+            '<html><head><link rel="canonical" href="https://old.example/page">'
+            "<title>CLRS-Lean</title></head><body></body></html>"
+        )
+        expected_url = "https://example.test/CLRS-Lean/CLRSLean/Progress/"
+
+        first, first_changes = optimizer.inject_canonical_link(source, expected_url)
+        second, second_changes = optimizer.inject_canonical_link(first, expected_url)
+
+        self.assertEqual(1, first_changes)
+        self.assertEqual(0, second_changes)
+        self.assertEqual(first, second)
+        self.assertEqual(1, first.count('rel="canonical"'))
+        self.assertIn(f'href="{expected_url}"', first)
+        self.assertNotIn("old.example", first)
+
     def test_injects_google_site_verification_meta_once(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"

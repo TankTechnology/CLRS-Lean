@@ -16,7 +16,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.check_literate_rendering import check_site
-from scripts.generate_sitemap import iter_html_pages, page_url, render_sitemap
+from scripts.generate_sitemap import (
+    iter_html_pages,
+    normalize_base_url,
+    page_url,
+    render_sitemap,
+)
 from scripts.optimize_literate_html import iter_html_files, optimize_file
 
 
@@ -64,7 +69,16 @@ def prepare_site(
     html_files = list(iter_html_files([destination]))
     optimized_pages = 0
     for html_file in html_files:
-        if optimize_file(html_file, strip_attrs_min_bytes).changed:
+        canonical_url = (
+            None
+            if html_file.name == "404.html"
+            else page_url(destination, html_file, base_url)
+        )
+        if optimize_file(
+            html_file,
+            strip_attrs_min_bytes,
+            canonical_url=canonical_url,
+        ).changed:
             optimized_pages += 1
 
     failures = check_site(destination)
@@ -79,6 +93,14 @@ def prepare_site(
     sitemap_lastmod = lastmod or dt.datetime.now(dt.timezone.utc).date().isoformat()
     (destination / "sitemap.xml").write_text(
         render_sitemap(sitemap_urls, sitemap_lastmod),
+        encoding="utf-8",
+        newline="",
+    )
+    sitemap_url = normalize_base_url(base_url) + "sitemap.xml"
+    (destination / "robots.txt").write_text(
+        "User-agent: *\n"
+        "Allow: /\n"
+        f"Sitemap: {sitemap_url}\n",
         encoding="utf-8",
         newline="",
     )
