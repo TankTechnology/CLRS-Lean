@@ -11,4 +11,3 @@
 5. Update the audit, textbook map, progress totals, Chapter 15 trust surface,
    and site navigation; run focused and root verification, then integrate into
    `main`, push, and close issue #317 with evidence.
-

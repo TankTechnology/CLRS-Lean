@@ -46,4 +46,3 @@ being developed.
    bridge or bound.
 4. Each coherent section is committed separately before final Chapter 15
    documentation and progress metadata are updated.
-

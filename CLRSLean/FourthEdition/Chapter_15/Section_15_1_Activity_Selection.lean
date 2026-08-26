@@ -55,11 +55,15 @@ Main results:
   optimal full solution, feasibility, sublist membership, and optimal-length
   inequality in one statement.
 
+Textbook-facing companion modules:
+
+* [Positive-duration activity inputs](CLRSLean/FourthEdition/Chapter_15/Section_15_1_Activity_Selection/TextbookModel/)
+* [Iterative selector and exact scan cost](CLRSLean/FourthEdition/Chapter_15/Section_15_1_Activity_Selection/Iterative/)
+
 Current gaps:
 
-- None for the current finite-list model.  A lower-level refinement to CLRS
-  array/pseudocode execution and richer interval-validity assumptions remains a
-  future extension.
+- None for the current finite-list model.  A lower-level mutable-array/RAM
+  refinement remains a future extension.
 -/
 
 open List
@@ -71,8 +75,9 @@ namespace ActivitySelection
 
 /--
 An activity is an interval with a natural-number start time and finish time.
-The model intentionally does not require {lit}`start ≤ finish`; that assumption can
-be added by clients that want to rule out degenerate input data.
+The reusable core intentionally does not require {lit}`start ≤ finish`;
+`TextbookModel` supplies the exact textbook predicate {lit}`start < finish`
+without breaking clients of the more general representation.
 -/
 structure Activity where
   start : Nat

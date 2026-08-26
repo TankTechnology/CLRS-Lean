@@ -50,6 +50,7 @@ The section is split into the following sub-modules:
 * [Cache Model](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S1_Cache_Model/)
 * [Farthest-In-Future Eviction](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S2_Farthest_In_Future/)
 * [Optimality](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/S3_Optimality/)
+* [Empty-start optimality](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/EmptyStart/)
 * [Optimality proof overview](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/Optimality/)
 * [Trace-coupling proof](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/Optimality/Trace/)
 * [Legal cache traces](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/Optimality/Trace/A1_LegalTrace/)

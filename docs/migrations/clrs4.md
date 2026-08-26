@@ -43,7 +43,7 @@ import CLRSLean.OnlineMaterial
 | --- | --- | --- |
 | Chapters 1--13 | `CLRSLean.Chapter_01`--`CLRSLean.Chapter_13` | Same chapter number; section differences are recorded in the edition map. |
 | Chapter 14, Dynamic Programming | `CLRSLean.Chapter_15` | Shifted facade. |
-| Chapter 15, Greedy Algorithms | `CLRSLean.FourthEdition.Chapter_15` (native §15.1--15.4) | Sections 15.1--15.4 use native fourth-edition sources. Section 15.4 includes the unconditional finite-trace `fifo_optimal` theorem (CLRS Theorem 15.5); legacy `CLRSLean.Chapter_16.Section_16_1..3_*` forward to the first three sections. Matroid and task-scheduling material is supplementary online material. |
+| Chapter 15, Greedy Algorithms | `CLRSLean.FourthEdition.Chapter_15` (native §15.1--15.4) | Sections 15.1--15.4 use native fourth-edition sources. Textbook-facing companions provide the iterative activity selector and exact scan count, the activity instance of the generic greedy theorem, Huffman equation (15.4), named Lemma 15.2/15.3 interfaces, honest list/heap cost layers, and literal-empty-start offline-cache optimality. Legacy `CLRSLean.Chapter_16.Section_16_1..3_*` forward to the first three core sections. Matroid and task-scheduling material is supplementary online material. |
 | Chapter 16, Amortized Analysis | `CLRSLean.FourthEdition.Chapter_16` (native §16.1--16.4) | Sections 16.1--16.4 migrated to native fourth-edition sources; legacy `CLRSLean.Chapter_17.Section_17_*` forward to them. Declarations retain the `CLRS.Chapter17` namespace pending the chapter-by-chapter namespace migration. |
 | Chapter 17, Augmenting Data Structures | `CLRSLean.Chapter_14` | Shifted facade. |
 | Chapter 18, B-Trees | `CLRSLean.Chapter_18` | Same chapter number. |
