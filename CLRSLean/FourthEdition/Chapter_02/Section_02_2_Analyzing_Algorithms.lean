@@ -1,15 +1,17 @@
 import Mathlib
 import CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort
+import CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms.LineCost
 
 /-!
 # CLRS Section 2.2 - Analyzing algorithms
 
-This file records the first lightweight cost model used in the Chapter 2
-workflow.  It does not try to formalize a full RAM model yet.  Instead it
-captures the standard insertion-sort worst-case comparison count as a triangular
-sum and proves both a quadratic upper bound and a quadratic lower bound
-(together giving Θ(n²)).  It also formalizes the best-case analysis (linear
-comparison count for already-sorted input, CLRS eq. (2.1)).
+This file records the Chapter 2 cost models.  The line-cost development assigns
+the textbook constants `c₁`, `c₂`, and `c₄`--`c₈`, derives the execution count
+of every charged pseudocode line from the loop trace `tᵢ`, and proves the full
+seven-term equation for `T(n)`.  Its best- and worst-case specializations are
+proved as exact execution-count records.  The comparison model separately
+proves the tight asymptotic bounds: Θ(n²) in the worst case and Θ(n) for
+already-sorted input.
 
 A `ThetaBoundedBy` predicate packages the O and Ω directions into a single
 Θ-notation claim, matching the textbook's asymptotic language in §2.2.
@@ -21,24 +23,26 @@ A `ThetaBoundedBy` predicate packages the O and Ω directions into a single
   `ThetaBoundedBy` wrapper combines both directions to recover the Θ claim.
   The worst-case Θ(n²) bound is `insertionSortWorstComparisons_theta_quadratic`;
   the best-case Θ(n) bound is `insertionSortBestComparisons_theta_linear`.
-* The cost model tracks only the while-loop comparison count via `triangular`;
-  it does not account for for-loop overhead, assignment statements, or the
-  full line-by-line cost table in CLRS p. 25.
+* The line-cost table is a symbolic unit-cost model.  It accounts for the
+  for-loop test, assignments, while-loop tests, shifts, and decrements, but it
+  is not an operational word-RAM or mutable-array semantics.
 * Discursive content (why worst-case analysis is preferred, RAM-model
   instruction set enumeration) is not formalized — this is a reasonable
   omission for a theorem-oriented companion.
 * `Nat` subtraction truncates to 0 when `n = 0`, so `triangular (n - 1)` gives
   `triangular 0 = 0` for `n = 0`, which is consistent with the textbook
   convention of zero comparisons for an empty input.
+
+## Implementation details
+
+* [Line-cost facade](CLRSLean/FourthEdition/Chapter_02/Section_02_2_Analyzing_Algorithms/LineCost/)
+  ([definitions](CLRSLean/FourthEdition/Chapter_02/Section_02_2_Analyzing_Algorithms/LineCost/Definitions/),
+  [formula](CLRSLean/FourthEdition/Chapter_02/Section_02_2_Analyzing_Algorithms/LineCost/Formula/),
+  [best/worst cases](CLRSLean/FourthEdition/Chapter_02/Section_02_2_Analyzing_Algorithms/LineCost/BestWorst/))
 -/
 
 namespace CLRS
 namespace Chapter02
-
-/-- The triangular sum {lit}`1 + 2 + ... + n`. -/
-def triangular : Nat → Nat
-  | 0 => 0
-  | n + 1 => triangular n + (n + 1)
 
 /-- A small eventual upper-bound predicate for chapter-level runtime claims. -/
 def EventuallyBoundedBy (f g : Nat → Nat) : Prop :=

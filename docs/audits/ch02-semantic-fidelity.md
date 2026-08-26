@@ -1,9 +1,9 @@
 # Ch2 Getting Started 语义忠实性审计
 
-- **审计日期（北京时间）**: 2026-08-17 13:06 CST（原始审计），2026-08-18 更新（反映 `feat/ch02-fixes` 新增内容，含 `ThetaBoundedBy` Θ-记法包装）
+- **审计日期（北京时间）**: 2026-08-17 13:06 CST（原始审计），2026-08-27 更新（反映逐行成本表与显式 MERGE 闭合）
 - **Skill 版本**: semantic-fidelity-audit v1
 - **基准来源**: 参考第 2.1–2.3 节（课本语料已核对）
-- **结论分布**: MATCH 20 · MINOR 10 · MAJOR 4 · CRITICAL 0 · UNCERTAIN 0
+- **结论分布**: MATCH 24 · MINOR 10 · MAJOR 0 · CRITICAL 0 · UNCERTAIN 0
 - **结构前提**: `check_book_coverage.py` 通过（Book coverage OK, 35 chapters）
 
 ## 断言对照表
@@ -27,9 +27,9 @@
 
 | # | 书条目 | Lean 位置 | 判定 | 说明 |
 |---|--------|-----------|------|------|
-| 2.1 | RAM 模型定义（统一指令成本、顺序执行、整数/浮点/字符类型） | 无对应 | MINOR | 模块文档声明不形式化完整 RAM 模型（"does not try to formalize a full RAM model yet"）；已知缺口已入台账 |
-| 2.2 | 插入排序逐行成本分析：每行伪代码标注成本 c_k 与执行次数 | 无对应 | MAJOR | 书中核心分析方法论（逐行成本表 + 求和公式）完全缺失；Lean 仅建模比较次数 |
-| 2.3 | 完整运行时间公式 T(n) = c1·n + c2·(n-1) + c4·(n-1) + c5·Σti + c6·Σ(ti-1) + c7·Σ(ti-1) + c8·(n-1) | 无对应 | MAJOR | 书中 Eq (pre-2.1) 无 Lean 对应；仅 `triangular (n-1)` 捕获 while 循环比较次数，未捕获 for 循环开销 |
+| 2.1 | RAM 模型定义（统一指令成本、顺序执行、整数/浮点/字符类型） | `LineCost/Definitions.lean` | MINOR | 已形式化课本本节实际使用的符号单位成本表；未声称数组、字长或存储层面的完整 operational RAM 语义 |
+| 2.2 | 插入排序逐行成本分析：每行伪代码标注成本 c_k 与执行次数 | `LineCost/Definitions.lean` `InsertionSortLineCosts` / `InsertionSortLineCounts` | MATCH | `c₁,c₂,c₄,...,c₈` 与七行执行次数均有独立字段，并由 `n` 和 `tᵢ` 轨迹生成 |
+| 2.3 | 完整运行时间公式 T(n) = c1·n + c2·(n-1) + c4·(n-1) + c5·Σti + c6·Σ(ti-1) + c7·Σ(ti-1) + c8·(n-1) | `LineCost/Formula.lean` `insertionSortRunningTime_eq_textbook_sum` | MATCH | 逐项证明完整七项公式；`BestWorst.lean` 进一步证明 `tᵢ=1` 与 `tᵢ=i` 的精确计数表和完整运行时间公式 |
 | 2.4 | 最坏情况分析：ti = i，T(n) = an² + bn + c（式 2.2） | `Section_02_2_Analyzing_Algorithms.lean:55-56` `insertionSortWorstComparisons` + 行 137-140 `insertionSortWorstComparisons_theta_quadratic` | MATCH | 比较次数正确（triangular(n-1) = n(n-1)/2）；O(n²) 上界和 Ω(n²) 下界均已证明；`ThetaBoundedBy` 谓词将二者打包为 Θ(n²) 断言 |
 | 2.5 | 最坏情况为 Θ(n²)（书中明确使用 Θ-记法） | `Section_02_2_Analyzing_Algorithms.lean:137-140` `insertionSortWorstComparisons_theta_quadratic` | MATCH | `ThetaBoundedBy` 谓词定义为 O ∩ Ω，直接给出 Θ(n²) 紧确界 |
 | 2.6 | 最好情况分析：已排序数组，ti = 1，T(n) = an + b（式 2.1），Θ(n) | `Section_02_2_Analyzing_Algorithms.lean:167-196` `insertionSortComparisons_best_case` + 行 225-228 `insertionSortBestComparisons_theta_linear` | MATCH | 已排序输入比较次数 = n-1 精确证明（行 167）；`ThetaBoundedBy` 打包上界和下界给出 Θ(n) |
@@ -46,8 +46,8 @@
 | # | 书条目 | Lean 位置 | 判定 | 说明 |
 |---|--------|-----------|------|------|
 | 3.1 | 分治法三步：Divide / Conquer / Combine | `Section_02_3_Designing_Algorithms.lean:30-31` `mergeSort` | MINOR | 委托给 `List.mergeSort`，未显式展示三步结构；模块文档声明 "we use Lean's verified List.mergeSort implementation" |
-| 3.2 | MERGE 过程伪代码（27 行，含临时数组 L/R、三个 while 循环） | 无对应 | MAJOR | MERGE 过程完全未形式化；模块文档注明 "A later strengthening can inline the merge routine" |
-| 3.3 | MERGE 运行时间 Θ(n) 的分析 | 无对应 | MAJOR | MERGE 过程缺失导致其 Θ(n) 分析也无法形式化 |
+| 3.2 | MERGE 过程伪代码（27 行，含临时数组 L/R、三个 while 循环） | `Merge/Definitions.lean` `mergeWithCost` | MATCH | 按审计建议采用显式双列表 MERGE；每步比较表头并消费一个元素，空侧分支复制剩余后缀，不再委托 `List.merge` |
+| 3.3 | MERGE 运行时间 Θ(n) 的分析 | `Merge/Cost.lean` | MATCH | `merge_comparisons_le` 给出线性比较上界，`merge_outputWrites_eq` 给出恰好 `left.length + right.length` 次输出写入；合并后的列表级工作量上下界均为线性 |
 | 3.4 | MERGE-SORT 伪代码（递归，p<r 时分裂，p=r 时基始） | `Section_02_3_Designing_Algorithms.lean:30-31` | MINOR | 委托 `List.mergeSort`；递归结构等价但未显式对应伪代码 |
 | 3.5 | 归并排序正确性：输出有序且保持原元素 | `Section_02_3_Designing_Algorithms.lean:34-39` | MATCH | `mergeSort_sortedLE` + `mergeSort_perm` 完整覆盖 |
 | 3.6 | 递推关系 T(n) = 2T(n/2) + Θ(n)，T(1) = Θ(1)（n 为 2 的幂时） | `Section_02_3_Designing_Algorithms.lean:47-49` `mergeSortRecurrenceOnPowersOfTwo` | MATCH | 递推式正确：T(2⁰)=1, T(2^(k+1)) = 2·T(2^k) + 2^(k+1) |
@@ -59,27 +59,13 @@
 
 ## 缺陷清单
 
-### MAJOR（4 条）
+### MAJOR（0 条）
 
-**M1. 严重度: MAJOR**
-- **位置**: 第 2.2 节 — 缺失，应在 `Section_02_2_Analyzing_Algorithms.lean`
-- **差异描述**: 书中逐行伪代码成本分析（c1..c8 常数 + 执行次数表 + 完整求和公式 T(n)）完全未形式化。这是 §2.2 的核心分析方法论。
-- **建议修法**: 增加形式化逐行成本模型（至少定义 c_k 常量和执行次数计数），并证明完整 T(n) 公式等于逐行乘积之和。
-
-**M2. 严重度: MAJOR**
-- **位置**: 第 2.3 节 — 缺失，应在 `Section_02_3_Designing_Algorithms.lean`
-- **差异描述**: MERGE 过程（书中 27 行伪代码，含临时数组 L/R 分配、三个 while 循环、Θ(n) 时间分析）完全未形式化。MERGE 是归并排序的核心子程序。
-- **建议修法**: 形式化 MERGE 过程（即使使用 List 而非数组），证明其正确性（合并两个有序列表产生有序结果且保持元素）和线性时间复杂度。
-
-**M3. 严重度: MAJOR**
-- **位置**: 第 2.2 节 — 缺失
-- **差异描述**: 书中完整运行时间公式包含所有伪代码行的贡献（for 循环开销 n 次、赋值语句 n-1 次等），而 Lean 仅建模 while 循环比较次数（triangular sum）。代价粒度不同：书中是"每条指令"，Lean 是"仅比较次数"。
-- **建议修法**: 文档已声明此为已知缺口（"full RAM semantics and exact line-by-line pseudocode cost are future strengthening targets"），建议优先补全至少 for 循环迭代计数和赋值语句计数。
-
-**M4. 严重度: MAJOR**
-- **位置**: 第 2.3 节 — 缺失，应在 `Section_02_3_Designing_Algorithms.lean`
-- **差异描述**: MERGE 过程缺失导致其 Θ(n) 运行时间分析也无法形式化。书中明确分析了 MERGE 的线性时间（每个元素恰好被比较一次）。`Merge_Sort_Recurrence.lean` 中递推式以 `(n : ℝ)` 作为加法项，隐含假设该线性代价，但未从 MERGE 实现中导出。
-- **建议修法**: 形式化 MERGE 后，证明其比较次数为 Θ(n)；将已证明的合并代价代入递推式，闭合从 MERGE 实现到 Θ(n log n) 的完整推理链。
+2026-08-27 复核关闭原四条 MAJOR：M1/M3 由 `LineCost` 模块组的七行
+符号成本、执行次数表、完整 `T(n)` 公式及 best/worst 特化闭合；M2/M4
+由显式 `mergeWithCost`、排序/排列正确性、线性比较上界和精确输出写入
+计数闭合。数组分配和 word-RAM 指令语义仍是可选的更低层 refinement，
+不再构成本审计所要求的课本层 MAJOR 缺口。
 
 ### 已解决（原 MAJOR，现已在 `feat/ch02-fixes` 中修复）
 
@@ -121,7 +107,9 @@
 
 **m10. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:43-45`：`EventuallyBoundedBy` 为 O-记法。`ThetaBoundedBy` 谓词（行 47-52）现提供直接 Θ 包装，`insertionSortWorstComparisons_theta_quadratic`（行 137-140）为 Θ(n²) 断言。此条目降级为台账记录。
 
-**m11. 严重度: MINOR** — `Section_02_2_Analyzing_Algorithms.lean:41-43`（原条目 2.4）：完整系数公式 an²+bn+c 缺失，仅捕获主导项 Θ(n²)。
+**m11. 严重度: MINOR** — `LineCost/BestWorst.lean` 已给出含全部 `cᵢ`
+的最坏情况精确式；尚未另行引入存在量词系数 `a,b,c`，把同一表达式重包装
+成字面形式 `an²+bn+c`。该省略不影响精确公式或 Θ(n²) 结论。
 
 **m12. 严重度: MINOR** — `Section_02_1_Insertion_Sort.lean`：采用递归函数式版本，非伪代码逐行翻译。模块文档已声明。
 
@@ -141,7 +129,11 @@
 | 节 | MATCH | MINOR | MAJOR | CRITICAL |
 |----|-------|-------|-------|----------|
 | §2.1 Insertion Sort | 6 | 4 | 0 | 0 |
-| §2.2 Analyzing Algorithms | 8 | 3 | 2 | 0 |
-| §2.3 Designing Algorithms | 6 | 3 | 2 | 0 |
+| §2.2 Analyzing Algorithms | 10 | 3 | 0 | 0 |
+| §2.3 Designing Algorithms | 8 | 3 | 0 | 0 |
 
-**关键发现（更新）**: `feat/ch02-fixes` 分支显著改善了 §2.2 的覆盖度。原 5 条 MAJOR 中的 2 条已解决：Ω(n²) 最坏情况下界（新增 `triangular_ge_quarter_square` 等）和最好情况分析（新增 `insertionSortComparisons_best_case` 及线性 Θ(n) 界）。此外新增 `ThetaBoundedBy` 谓词（O ∩ Ω）将四条 Θ-记法相关条目（2.4, 2.5, 2.8, 2.9）从 MINOR 升级为 MATCH——`insertionSortWorstComparisons_theta_quadratic` 和 `insertionSortBestComparisons_theta_linear` 直接提供 Θ(n²) 和 Θ(n) 断言，不再需要手动组合上下界。剩余 4 条 MAJOR 为：逐行成本表（M1）、MERGE 过程（M2）、完整 T(n) 公式（M3）、MERGE Θ(n) 分析（M4），均为模块文档已声明的已知简化方向。第 2.1 节和第 2.3 节的正确性定理忠实于原著，第 2.3 节的递推分析与 Θ(n log n) 界完整且比书中的非正式分析更精确。
+**关键发现（2026-08-27 更新）**: 课本层四条 MAJOR 均已闭合。§2.2
+现在从符号行成本和 `tᵢ` 轨迹推出完整 `T(n)`，并验证 best/worst
+执行表；§2.3 现在具有本地可执行 MERGE、正确性和列表级线性工作量。
+保留的 MINOR 主要是不可变 List 与可变数组之间的实现表示差异、论述性
+RAM 内容，以及任意规模递推所需的合理单调性技术假设。

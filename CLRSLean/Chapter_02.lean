@@ -21,7 +21,10 @@ basic pattern used throughout the project:
   Main results: {lit}`CLRS.Chapter02.insertionSort_sorted`,
   {lit}`CLRS.Chapter02.insertionSort_perm`.
 * 2.2 Analyzing algorithms: {lit}`proved`.
-  Main result: {lit}`CLRS.Chapter02.insertionSortWorstComparisons_quadratic`.
+  Main results: {lit}`CLRS.Chapter02.insertionSortRunningTime_eq_textbook_sum`,
+  {lit}`CLRS.Chapter02.insertionSortRunningTime_best_case`,
+  {lit}`CLRS.Chapter02.insertionSortRunningTime_worst_case`, and
+  {lit}`CLRS.Chapter02.insertionSortWorstComparisons_theta_quadratic`.
 * 2.3 Designing algorithms: {lit}`proved`.
   Main results: {lit}`CLRS.Chapter02.merge_correct`,
   {lit}`CLRS.Chapter02.merge_comparisons_le`,
@@ -38,10 +41,10 @@ invariant becomes two structural claims: inserting into an ordered list
 preserves orderedness, and insertion preserves the input elements up to
 permutation.
 
-The algorithm-analysis section deliberately starts with a lightweight cost
-model.  It proves the standard quadratic upper bound for the insertion-sort
-worst-case comparison count without committing the project to a full RAM
-semantics.
+The algorithm-analysis section formalizes the textbook symbolic costs
+`c₁`, `c₂`, and `c₄`--`c₈`, all seven line execution counts, and the complete
+sum for `T(n)`.  Exact best- and worst-case trace substitutions coexist with
+the tight comparison-count asymptotics, without claiming a full RAM semantics.
 
 The section now contains an explicit list-level MERGE execution whose value and
 comparison counter are computed together.  Its public contract proves sorted
@@ -57,6 +60,7 @@ Master-theorem sandwich bridge).
 Future Chapter 2 work should keep the main theorem pages stable while adding
 stronger optional layers:
 
-* a full pseudocode-line or RAM cost semantics beyond head comparisons;
+* an operational mutable-array or word-RAM refinement of the symbolic line
+  costs;
 * selected exercises after the main section interfaces remain stable.
 -/
