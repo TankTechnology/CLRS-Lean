@@ -2,7 +2,7 @@
 # Progress Dashboard
 
 CLRS-Lean represents all 35 fourth-edition chapters and proves
-all 1,637 of its 1,637 selected reader-facing theorem entries.
+all 1,643 of its 1,643 selected reader-facing theorem entries.
 These are scope-qualified inventory counts, not a claim that every paragraph,
 exercise, implementation model, or textbook problem has been formalized.
 The machine-readable source of truth is {lit}`docs/clrs-proof-progress.csv`.
@@ -17,8 +17,8 @@ least six months; removal is possible only in 2.0 or later.
 
 * Fourth-edition chapters tracked: 35.
 * Chapters represented in Lean: 35.
-* Tracked reader-facing theorem entries: 1,637.
-* Proved tracked theorem entries: 1,637.
+* Tracked reader-facing theorem entries: 1,643.
+* Proved tracked theorem entries: 1,643.
 * Online/supplementary theorem entries: 465.
 * Remaining edition-coverage units: 0.
 
@@ -48,7 +48,7 @@ Ch	Chapter	Status	Sections	Tracked	Gap units
 3	3. Characterizing Running Times	main-proof-complete	3.1;3.2;3.3	56	0
 4	4. Divide-and-Conquer	main-proof-complete	4.1;4.2;4.3;4.4;4.5;4.6;4.7	99	0
 5	5. Probabilistic Analysis and Randomized Algorithms	main-proof-complete	5.1;5.2;5.3;5.4	26	0
-6	6. Heapsort	main-proof-complete	6.1;6.2;6.3;6.4;6.5	79	0
+6	6. Heapsort	main-proof-complete	6.1;6.2;6.3;6.4;6.5	85	0
 7	7. Quicksort	main-proof-complete	7.1;7.2;7.3;7.4	34	0
 8	8. Sorting in Linear Time	main-proof-complete	8.1;8.2;8.3;8.4	58	0
 9	9. Medians and Order Statistics	main-proof-complete	9.1;9.2;9.3	72	0

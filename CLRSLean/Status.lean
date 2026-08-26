@@ -39,7 +39,7 @@ an obligation that has not yet been selected into that inventory.
 The canonical ledger contains 35 chapter rows.  All 35 chapters are represented
 in Lean: 34 chapters are {lit}`main-proof-complete` for their advertised models,
 and Chapter 1 is {lit}`expository`.  No chapter remains {lit}`partial` or
-{lit}`not-started`, and the generated dashboard reports all 1,637 selected
+{lit}`not-started`, and the generated dashboard reports all 1,643 selected
 reader-facing theorem entries proved with zero edition-coverage gap units.
 
 This is a selected, reviewed theorem inventory.  It does not claim every
@@ -88,6 +88,13 @@ head-comparison bound, and exactly one output write per input element.
 Operational mutable-array and word-RAM semantics remain lower-level
 refinements rather than implied by these symbolic cost theorems.
 
+Chapter 6 now exposes checked active-prefix `MAX-HEAP-INSERT`: it rejects only
+an oversized heap prefix, preserves any inactive backing-list tail, grows the
+heap and backing list by one, and adds exactly the requested key.  Its costed
+wrapper erases to the same operation and proves an explicit logarithmic bound
+on visited upward-bubbling frames.  Persistent-list and RAM instruction costs
+are not included in that metric.
+
 Chapter 15 is no longer an edition-map gap: the native §15.4 finite-cache model
 now exposes `CLRS.Caching.fifo_optimal`, the unconditional farthest-in-future
 optimality theorem for nonempty initial caches and finite request sequences.
@@ -103,7 +110,7 @@ The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
 groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 44 groups are disjoint from the 1,637 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,643 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.

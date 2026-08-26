@@ -111,6 +111,8 @@ counts visited {lit}`MAX-HEAPIFY` frames and nontrivial extraction transitions.
   {lit}`CLRS.Chapter06.ArrayMaxHeapExceptUp.bubbleUpFuel_global`,
   {lit}`CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapInsert_state_correct`,
+  {lit}`CLRS.Chapter06.arrayHeapInsert?_state_correct`,
+  {lit}`CLRS.Chapter06.arrayHeapInsertWithCost?_state_correct_and_log_cost`,
   {lit}`CLRS.Chapter06.arrayHeapIncreaseKeyNoBubble?_state_correct`,
   {lit}`CLRS.Chapter06.arrayHeapExtractMax?_state_correct`, and
   {lit}`CLRS.Chapter06.arrayHeapDelete?_state_correct`.
@@ -122,7 +124,9 @@ visited heapify frames and nontrivial extraction transitions are charged.  The
 tight textbook {lit}`O(log n)` {lit}`MAX-HEAPIFY`, {lit}`O(n)`
 {lit}`BUILD-MAX-HEAP`, and {lit}`O(n log n)` {lit}`HEAPSORT` bounds are now
 proved against this metric.  The costs of guards and list operations, and an
-imperative RAM refinement, remain open.
+imperative RAM refinement, remain open.  Checked {lit}`MAX-HEAP-INSERT` now has
+the same style of frame-count erasure theorem and an explicit logarithmic
+bound.
 -/
 
 namespace CLRS

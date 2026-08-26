@@ -329,6 +329,11 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues" = [
   "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert",
 ]
+"CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert" = [
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Basic",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Checked",
+  "CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Cost",
+]
 "CLRSLean.FourthEdition.Chapter_07" = [
   "CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort",
   "CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort",
@@ -2627,6 +2632,15 @@ title = "6.5. Priority Queues"
 
 [modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert"]
 title = "6.5. Array-level MAX-HEAP-INSERT"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Basic"]
+title = "6.5. MAX-HEAP-INSERT — Basic"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Checked"]
+title = "6.5. MAX-HEAP-INSERT — Checked Prefix"
+
+[modules."CLRSLean.FourthEdition.Chapter_06.Section_06_5_Priority_Queues.Insert.Cost"]
+title = "6.5. MAX-HEAP-INSERT — Logarithmic Cost"
 
 [modules."CLRSLean.FourthEdition.Chapter_07"]
 title = "Chapter 7. Quicksort"

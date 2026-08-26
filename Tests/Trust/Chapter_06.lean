@@ -7,6 +7,8 @@ import CLRSLean.FourthEdition.Chapter_06
 #check CLRS.Chapter06.buildMaxHeapLinearBound_isBigO_n
 #check CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct
 #check CLRS.Chapter06.arrayHeapInsert_state_correct
+#check CLRS.Chapter06.arrayHeapInsert?_state_correct
+#check CLRS.Chapter06.arrayHeapInsertWithCost?_state_correct_and_log_cost
 #check CLRS.Chapter06.arrayHeapDelete?_state_correct
 
 #assert_axioms CLRS.Chapter06.arrayHeapSortInPlaceWithCost_correct_and_log_cost
@@ -48,10 +50,25 @@ private def InsertStateContract : Prop :=
         (CLRS.Chapter06.arrayHeapInsert a key).length = a.length + 1 ∧
         (CLRS.Chapter06.arrayHeapInsert a key).Perm (key :: a)
 
+private def CheckedInsertCostContract : Prop :=
+  ∀ {a rest : List Nat} {heapSize newHeapSize key cost : Nat},
+    CLRS.Chapter06.ArrayMaxHeap a heapSize →
+    CLRS.Chapter06.arrayHeapInsertWithCost? a heapSize key =
+        some ((rest, newHeapSize), cost) →
+      heapSize ≤ a.length ∧
+        newHeapSize = heapSize + 1 ∧
+        rest.length = a.length + 1 ∧
+        CLRS.Chapter06.ArrayMaxHeap rest newHeapSize ∧
+        rest.Perm (key :: a) ∧
+        rest.drop newHeapSize = a.drop heapSize ∧
+        cost ≤ Nat.log 2 newHeapSize + 1
+
 private theorem priorityQueue_state_bundle :
-    IncreaseKeyStateContract ∧ InsertStateContract ∧ DeleteStateContract :=
+    IncreaseKeyStateContract ∧ InsertStateContract ∧
+      CheckedInsertCostContract ∧ DeleteStateContract :=
   ⟨CLRS.Chapter06.arrayHeapIncreaseKey?_state_correct,
     CLRS.Chapter06.arrayHeapInsert_state_correct,
+    CLRS.Chapter06.arrayHeapInsertWithCost?_state_correct_and_log_cost,
     CLRS.Chapter06.arrayHeapDelete?_state_correct⟩
 
 #assert_axioms priorityQueue_state_bundle

@@ -32,7 +32,8 @@ third-edition-numbered imports {lit}`CLRSLean.Chapter_06` and
 The supporting implementation page remains available outside the main sidebar:
 
 * [Costed Heapsort Execution](CLRSLean/FourthEdition/Chapter_06/Section_06_4_Heapsort/CostedExecution/)
-* [Array-level MAX-HEAP-INSERT](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/)
+* [Array-level MAX-HEAP-INSERT](CLRSLean/FourthEdition/Chapter_06/Section_06_5_Priority_Queues/Insert/),
+  including checked active-prefix semantics and logarithmic bubbling cost
 
 ## Coverage boundary
 
