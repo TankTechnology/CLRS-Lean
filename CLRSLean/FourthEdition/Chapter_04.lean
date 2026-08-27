@@ -27,9 +27,10 @@ Sections 4.1--4.7 are native fourth-edition sections:
 * [Section 4.4 — The recursion-tree method](CLRSLean/FourthEdition/Chapter_04/Section_04_4_Recursion_Tree_Method/):
   exact additive level unrolling, explicit finite branching trees, internal
   level-plus-leaf decomposition, reusable geometric bounds, and the textbook
-  `3T(n/4)+cn²` and `T(n/3)+T(2n/3)+cn` level-cost calculations.  These
-  branching examples deliberately use exact real scaling and a common cutoff
-  depth, distinct from arbitrary-size floor/ceiling transfer.
+  {lit}`3T(n/4)+cn²` and {lit}`T(n/3)+T(2n/3)+cn` calculations.  Alongside the
+  exact-real common-depth model, natural-size floor/ceiling trees now execute
+  to their base cases, permit unequal child depths, and agree exactly with
+  independently stated recurrence equations.
 * [Section 4.5 — The master method](CLRSLean/FourthEdition/Chapter_04/Section_04_5_Master_Theorem/):
   normalized recurrence expansion and the three Master-style exact-power
   criteria (including the polylog case-2 extension).

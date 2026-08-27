@@ -39,7 +39,7 @@ an obligation that has not yet been selected into that inventory.
 The canonical ledger contains 35 chapter rows.  All 35 chapters are represented
 in Lean: 34 chapters are {lit}`main-proof-complete` for their advertised models,
 and Chapter 1 is {lit}`expository`.  No chapter remains {lit}`partial` or
-{lit}`not-started`, and the generated dashboard reports all 1,668 selected
+{lit}`not-started`, and the generated dashboard reports all 1,689 selected
 reader-facing theorem entries proved with zero edition-coverage gap units.
 
 This is a selected, reviewed theorem inventory.  It does not claim every
@@ -115,7 +115,7 @@ The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 470 tracked theorem
 groups: 426 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
-factorization.  Those 44 groups are disjoint from the 1,668 canonical tracked
+factorization.  Those 44 groups are disjoint from the 1,689 canonical tracked
 theorem entries.
 {lit}`docs/clrs-online-material.csv` owns the topic-level counts and source
 modules; compatibility imports do not duplicate either ledger.

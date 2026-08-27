@@ -1,5 +1,11 @@
 # Ch04 Divide-and-Conquer 语义忠实性审计
 
+> 2026-08-28 closure update: the historical §4.4 findings about missing
+> branching examples and integer rounding are closed by
+> `Branching/IntegerTree`.  The new finite execution proves child termination,
+> unequal depths, and exact total-cost equality for both detailed recurrences;
+> the remaining table is retained as the 2026-08-18 audit baseline.
+
 - 审计日期(北京时间): 2026-08-18 12:36 CST / skill 版本 v1 / 基准来源: 第四版第 4 章 (pp. 78--125)
 - 结论分布: MATCH 57 · MINOR 13 · MAJOR 0 · CRITICAL 0 · UNCERTAIN 0
 - 结构前提: check_book_coverage.py 通过 (Chapter 4 全部 native, 无覆盖漂移)

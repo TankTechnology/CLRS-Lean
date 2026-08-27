@@ -9,6 +9,11 @@ import CLRSLean.FourthEdition.Chapter_04
 #check CLRS.Chapter04.akraBazzi_bigTheta_critical
 #check CLRS.Chapter04.balancedThreeQuarter_totalCost_le
 #check CLRS.Chapter04.unbalancedThirdTwoThird_totalCost
+#check CLRS.Chapter04.IntegerBranchingSpec.build_totalCost_eq
+#check CLRS.Chapter04.balancedIntegerTree_totalCost_eq
+#check CLRS.Chapter04.unbalancedIntegerTree_totalCost_eq
+#check CLRS.Chapter04.unbalancedIntegerTree_has_unequal_depth
+#check CLRS.Chapter04.balancedIntegerCost_floorRecurrence
 
 #assert_axioms CLRS.Chapter04.strassen_runtime_bigTheta
 #assert_axioms CLRS.Chapter04.continuous_master_case1
@@ -16,3 +21,8 @@ import CLRSLean.FourthEdition.Chapter_04
 #assert_axioms CLRS.Chapter04.akraBazzi_bigTheta_critical
 #assert_axioms CLRS.Chapter04.balancedThreeQuarter_totalCost_le
 #assert_axioms CLRS.Chapter04.unbalancedThirdTwoThird_totalCost
+#assert_axioms CLRS.Chapter04.IntegerBranchingSpec.build_totalCost_eq
+#assert_axioms CLRS.Chapter04.balancedIntegerTree_totalCost_eq
+#assert_axioms CLRS.Chapter04.unbalancedIntegerTree_totalCost_eq
+#assert_axioms CLRS.Chapter04.unbalancedIntegerTree_has_unequal_depth
+#assert_axioms CLRS.Chapter04.balancedIntegerCost_floorRecurrence

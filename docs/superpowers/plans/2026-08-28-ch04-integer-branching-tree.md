@@ -82,8 +82,8 @@ existing Chapter 4 master-theorem and Akra--Bazzi APIs.
 - Modify: `Tests/Trust/Chapter_04.lean`
 - Modify: progress/audit documentation
 
-- [ ] Publish the small facade and update §4.4's status text.
-- [ ] Run the focused interface/native tests and Chapter 4 trust audit.
-- [ ] Run one Chapter 4 aggregate build as the checkpoint.
-- [ ] Update the proof ledger and issue #336 with exact verification evidence.
-- [ ] Commit and push the closure.
+- [x] Publish the small facade and update §4.4's status text.
+- [x] Run the focused interface/native tests and Chapter 4 trust audit.
+- [x] Run one Chapter 4 aggregate build as the checkpoint.
+- [x] Update the proof ledger and issue #336 with exact verification evidence.
+- [x] Commit and push the closure.
