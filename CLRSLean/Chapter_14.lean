@@ -67,17 +67,19 @@ rank selector.
   {lit}`CLRS.Chapter14.AugmentedRBTree.sizeAug_wellAugmented_insert` and
   {lit}`CLRS.Chapter14.AugmentedRBTree.maxHighAug_wellAugmented_insert`.
 
-## Current Gaps
+## Legacy-layer boundary
 
-The current model proves size-field preservation, OS-SELECT's agreement with an
-inorder selector, the local generic augmentation invariant, and static
-interval-search correctness.  It also threads arbitrary cached fields through
-functional red-black insertion and deletion.  The full fourth-edition boundary
-still lacks OS-RANK; combined BST/red-black/augmentation preservation; the
-constant-time-combine-to-logarithmic-operation cost theorem; and a bridge
-connecting interval-specific updates on the dynamic augmented red-black type to
-the static interval-search model.  The interval comparison also needs a policy
-for equal low endpoints before it represents arbitrary interval sets.
+This third-edition compatibility layer supplies size-field preservation,
+OS-SELECT, generic augmentation preservation, and the static interval-search
+specification.  The canonical fourth-edition Chapter 17 modules build on it and
+now provide OS-RANK with its logarithmic bound, the constant-time-combine update
+bound, and the dynamic/static interval-tree search-after-update bridge.  Those
+results live under {lit}`CLRSLean.FourthEdition.Chapter_17` rather than being
+duplicated here.
+
+A single bundled BST/red-black/augmentation predicate, RAM-level pointer costs,
+and a duplicate-low-endpoint policy are optional refinements beyond the
+advertised fourth-edition theorem inventory.
 -/
 
 namespace CLRS

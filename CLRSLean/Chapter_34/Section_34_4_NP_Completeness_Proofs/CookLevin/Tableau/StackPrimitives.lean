@@ -22,7 +22,7 @@ Main results:
   exact premises; {lit}`pushStackBits_not_rawDecodable_of_full` exposes the
   full-stack overflow boundary.
 
-Current gaps:
+Layer boundary:
 
 - These theorems concern raw one-hot stack structure only.  They do not claim
   canonical active/nonblank cell semantics or machine-level push/pop/peek
@@ -30,8 +30,9 @@ Current gaps:
   bounded-stack validity bridge.
 - Circuit allocation and recursive statement compilation are supplied by
   downstream {lit}`StackCircuits` and {lit}`StatementCircuits`, and
-  {lit}`TransitionCircuits` supplies the local step check.  Non-aliasing row
-  allocation and verified whole-tableau assembly remain milestone 8F.
+  {lit}`TransitionCircuits` supplies the local step check.  Downstream fresh-row
+  and assembly modules supply non-aliasing allocation and verified
+  whole-tableau assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

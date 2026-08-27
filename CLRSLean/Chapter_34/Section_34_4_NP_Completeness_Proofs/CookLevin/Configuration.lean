@@ -18,10 +18,10 @@ Main results:
 - Theorem {lit}`stack_length_iterate_le`: every tableau row fits a linear stack
   height bound.
 
-Current gaps:
+Layer boundary:
 
-- None for the finite configuration and stuttering model; circuitization is the
-  next module.
+- None for the finite configuration and stuttering model.  The downstream
+  tableau and circuitization modules consume this interface.
 -/
 
 open Computability StateTransition

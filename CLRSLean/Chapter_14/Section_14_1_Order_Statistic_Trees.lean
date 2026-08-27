@@ -89,13 +89,15 @@ transfer ({lit}`OSRBTree.redBlackShape_toRB_delete`,
 {lit}`OSRBTree.mem_keys_delete`), and {lit}`OSRBTree.wellSized_delete` shows the
 size invariant survives deletion (CLRS 14.1 maintained through {lit}`RB-DELETE`).
 
-Current gaps:
+Legacy-layer boundary:
 
-* OS-RANK is not yet represented.
-* The current transfer theorems keep size fields, color/black-height shape, and
-  key membership separately; they do not yet prove one combined BST/red-black/
-  size invariant through insertion and deletion.
-* Query and update costs are not yet connected to the logarithmic height bound.
+* This file supplies OS-SELECT and the augmentation-preserving red-black update
+  spine.  The canonical fourth-edition §17.1 module adds OS-RANK, proves cached
+  and ideal ranks agree, and connects its cost to the logarithmic red-black
+  height bound.
+* A single combined BST/red-black/size predicate and RAM-level update costs are
+  optional refinements; the current transfer theorems expose those properties
+  separately.
 -/
 
 namespace CLRS

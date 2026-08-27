@@ -21,14 +21,15 @@ Main results:
   {lit}`CircuitBuilder.eqFin_eval_iff`: exact evaluation contracts, including
   the empty family.
 
-Current gaps:
+Layer boundary:
 
 - Symbolic stack and configuration operations using these generic combinators
   belong to the downstream tableau stack-primitive layer.
 - Recursive bundled-statement compilation is supplied by downstream
   {lit}`StatementCircuits`, while {lit}`TransitionCircuits` now supplies
-  finite-label dispatch and the local step check.  Non-aliasing row allocation
-  and verified whole-tableau assembly remain milestone 8F.
+  finite-label dispatch and the local step check.  Downstream fresh-row,
+  tableau-constraint, and assembly modules supply non-aliasing allocation and
+  verified whole-tableau assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

@@ -19,11 +19,11 @@ Main results:
 - Definition {lit}`compileStmt`: all seven statement constructors over finite
   truth-table primitives.
 
-Current gaps:
+Layer boundary:
 
 - Downstream {lit}`TransitionCircuits` now supplies finite-label dispatch and
-  the complete local step check.  Non-aliasing row allocation and verified
-  whole-tableau assembly remain milestone 8F.
+  the complete local step check.  Downstream fresh-row and assembly modules
+  supply non-aliasing allocation and verified whole-tableau assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

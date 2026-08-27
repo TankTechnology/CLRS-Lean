@@ -20,11 +20,13 @@ Main results:
   proposals
 - `gs_stable` (Theorem 25.5): the Gale–Shapley output is stable
 - `stable_matching_exists`: every preference profile has a stable pairing
+- `gs_perfect`: equal-size sides yield a perfect Gale–Shapley pairing
+- `gs_man_optimal` (Theorem 25.6): every man receives his best valid partner
+- `gs_woman_pessimal`: the same output is woman-pessimal among stable pairings
 
 Current gaps:
 
-- The perfectness theorem (all men matched when `|M| = |W|`) and
-  man-optimality remain to be formalized.
+- None for the finite preference model and the textbook optimality theorems.
 
 Notation conventions used in this section:
 

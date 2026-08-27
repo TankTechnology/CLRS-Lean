@@ -18,12 +18,13 @@ Main results:
 - {lit}`popCfgWires` and {lit}`cfgStackCapacity` lift stack operations and
   semantic queries to complete configuration rows with explicit frame laws.
 
-Current gaps:
+Layer boundary:
 
 - Recursive statement compilation is supplied by downstream
   {lit}`StatementCircuits`; {lit}`TransitionCircuits` now supplies finite-label
-  selection and the complete local step check.  Non-aliasing row allocation
-  and verified whole-tableau assembly remain milestone 8F.
+  selection and the complete local step check.  Downstream fresh-row and
+  assembly modules supply non-aliasing allocation and verified whole-tableau
+  assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

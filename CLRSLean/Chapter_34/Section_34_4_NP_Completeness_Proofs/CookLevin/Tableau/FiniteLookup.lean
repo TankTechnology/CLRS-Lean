@@ -16,12 +16,12 @@ Main results:
 - Definition {lit}`oneHotPredicate`: finite predicates with exact true-fiber
   cost and the uniform bound {lit}`n + 1`.
 
-Current gaps:
+Layer boundary:
 
 - None for these finite lookup primitives.  Downstream {lit}`StatementCircuits`
   and {lit}`TransitionCircuits` supply recursive statement compilation and the
-  local step check.  Non-aliasing row allocation and verified whole-tableau
-  assembly remain milestone 8F.
+  local step check.  Downstream fresh-row and assembly modules supply
+  non-aliasing allocation and verified whole-tableau assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

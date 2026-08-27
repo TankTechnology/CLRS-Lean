@@ -19,10 +19,10 @@ Main results:
 - Definition {lit}`cfgOneHotGroupEquivFin`: the one-hot family order is
   explicit and uniform in the runtime stack height.
 
-Current gaps:
+Layer boundary:
 
-- The row-transition circuit and whole-tableau assembly belong to the next
-  circuitization layers.
+- Downstream transition, tableau-constraint, and assembly modules supply the
+  row-transition circuit and complete tableau circuit.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

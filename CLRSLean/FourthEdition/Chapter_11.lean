@@ -30,7 +30,8 @@ unsuccessful-search cost by {lit}`1/m`.
   Main results: {lit}`CLRS.Chapter11.search_insert_same`,
   {lit}`CLRS.Chapter11.search_insert_other`,
   {lit}`CLRS.Chapter11.search_delete_same`.
-* 11.2 Hash tables: {lit}`partial`.
+* 11.2 Hash tables: {lit}`proved` for the advertised functional and finite
+  probability models.
   Main results: {lit}`CLRS.Chapter11.bucket_hashInsert_same`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_self`,
   {lit}`CLRS.Chapter11.hashSearch_hashInsert_iff`,

@@ -24,14 +24,14 @@ Main results:
   across the public/workspace boundary, with an explicit fit premise when
   narrowing.
 
-Current gaps:
+Layer boundary:
 
 - Symbolic push, pop, peek, equality, and mux operations are provided by the
   downstream stack-primitive layer.
 - Recursive statement compilation is provided by downstream
   {lit}`StatementCircuits`, and {lit}`TransitionCircuits` now consumes this
-  bridge in the complete local step check.  Non-aliasing row allocation and
-  verified whole-tableau assembly remain milestone 8F.
+  bridge in the complete local step check.  Downstream fresh-row and assembly
+  modules supply non-aliasing allocation and verified whole-tableau assembly.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

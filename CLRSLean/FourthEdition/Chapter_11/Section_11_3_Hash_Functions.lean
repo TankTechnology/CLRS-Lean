@@ -33,10 +33,13 @@ Main results:
   instantiated on the concrete family, i.e. expected collisions {lit}`≤ n/m` and
   expected search cost {lit}`≤ 1 + n/m` with no {lit}`IsUniversal` hypothesis left
   open.
+- Definition {lit}`affineHashMod` and theorem
+  {lit}`affineHashMod_isUniversal`: the full CLRS Theorem 11.5 family for
+  arbitrary {lit}`m ≤ p`, using the outer reduction modulo {lit}`m`.
 
-Status: `proved`.  A concrete universal family exists and instantiates the
-downstream §11.2 bounds; the deterministic heuristics are recorded with range
-lemmas.
+Status: `proved`.  Both the exact {lit}`m = p` family and the general
+{lit}`m ≤ p` form exist and instantiate the downstream §11.2 bounds; the
+deterministic heuristics are recorded with range lemmas.
 
 Notation conventions used in this section:
 
@@ -45,9 +48,9 @@ Notation conventions used in this section:
 - `a`, `b` : the slope and intercept of an affine hash `h_{a,b}(k) = a * k + b`
 - `A` : the multiplicative constant in `(0, 1)` of the multiplication method
 
-Current gaps: the general mod-`m` reduction of CLRS Theorem 11.5 (arbitrary
-`m ≤ p` via an outer `mod m`) is a refinement of the exact `m = p` construction
-proved here; both give a genuine universal family discharging {lit}`IsUniversal`.
+Current gaps: none for the mathematical statement of CLRS Theorem 11.5.
+Operational RAM/probe accounting remains outside this section's advertised
+boundary.
 -/
 
 namespace CLRS
