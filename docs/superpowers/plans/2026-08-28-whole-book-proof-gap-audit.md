@@ -250,7 +250,7 @@ git commit -m "docs(audit): assess proof obligations across all 35 chapters"
 - Update: GitHub issues for every unresolved `semantic-bridge-gap` or
   `core-proof-gap`.
 
-- [ ] **Step 1: Create one issue per independent proof gap**
+- [x] **Step 1: Create one issue per independent proof gap**
 
 Each issue body must include:
 
@@ -267,21 +267,21 @@ Do not create issues for merely stale prose fixed in Task 2.  Group shared RAM
 or pointer-model work into one infrastructure issue rather than duplicating it
 across chapters.
 
-- [ ] **Step 2: Write the Chapter 2 proof design and plan if confirmed**
+- [x] **Step 2: Write the Chapter 2 proof design and plan if confirmed**
 
 The design must select a terminating recursion representation for top-level
 merge sort, reuse `mergeWithCost`, and state exact sortedness, permutation,
 erasure, and cost-attachment theorems.  The implementation plan must begin with
 failing `#check` declarations in a focused Chapter 2 interface test.
 
-- [ ] **Step 3: Write the Chapter 11 probability design and plan if confirmed**
+- [x] **Step 3: Write the Chapter 11 probability design and plan if confirmed**
 
 The design must define the finite permutation sample space, the event that the
 first `i` positions lie in a fixed occupied set, and the exact equality to
 `probeTail`.  The plan must not redefine `probeTail` to make the equality
 definitional.
 
-- [ ] **Step 4: Verify issue/report consistency and commit the plans**
+- [x] **Step 4: Verify issue/report consistency and commit the plans**
 
 Run:
 
@@ -306,13 +306,13 @@ git commit -m "docs(proof): plan highest-risk textbook closure batches"
 - Modify only the source, interface, trust, guide, and ledger files named by
   each focused proof plan.
 
-- [ ] **Step 1: Execute the Chapter 2 plan through its green interface**
+- [x] **Step 1: Execute the Chapter 2 plan through its green interface**
 
 Run each new small Lean module directly while developing.  After the public
 bridge is green, run the Chapter 2 interface and trust files, then commit the
 independently checkable closure.
 
-- [ ] **Step 2: Execute the Chapter 11 plan through its green interface**
+- [x] **Step 2: Execute the Chapter 11 plan through its green interface**
 
 Keep finite counting, probability normalization, and public expectation
 transport in separate modules.  Run each module directly and commit only after
