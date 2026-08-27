@@ -22,11 +22,11 @@ existing Chapter 4 master-theorem and Akra--Bazzi APIs.
 **Files:**
 - Create: `Tests/Chapter_04/IntegerBranchingTree.lean`
 
-- [ ] Add failing imports and `#check` declarations for the generic exact
+- [x] Add failing imports and `#check` declarations for the generic exact
   bridge, the two example bridges, the unequal-depth witness, and the
   all-input recurrence connection.
-- [ ] Run only this test and record the expected missing-module failure.
-- [ ] Commit the contract test.
+- [x] Run only this test and record the expected missing-module failure.
+- [x] Commit the contract test.
 
 ### Task 2: Tree model
 
