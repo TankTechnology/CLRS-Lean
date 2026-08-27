@@ -1,5 +1,4 @@
 import Mathlib
-import CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Chapter_04.Section_04_5_Master_Theorem
 import CLRSLean.Chapter_04.Section_04_6_Master_Theorem_All_Input

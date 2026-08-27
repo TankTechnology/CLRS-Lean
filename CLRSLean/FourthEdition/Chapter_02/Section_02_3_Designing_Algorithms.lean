@@ -1,31 +1,31 @@
 import Mathlib
 import CLRSLean.FourthEdition.Chapter_02.Section_02_1_Insertion_Sort
 import CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.Merge
+import CLRSLean.FourthEdition.Chapter_02.Section_02_3_Designing_Algorithms.MergeSort
 
 /-!
 # CLRS Section 2.3 - Designing algorithms
 
 This file introduces merge sort as the Chapter 2 divide-and-conquer example.
-The top-level sorting function uses Lean's verified List.mergeSort
-implementation and exposes CLRS-facing theorem names.  The central combine
-step is also formalized locally as an explicit, costed MERGE procedure with the
-same head-comparison control flow as the textbook algorithm.  Together these
-developments establish the algorithmic contract:
+The executable top-level algorithm splits the input, recursively sorts both
+halves, and invokes the locally verified, costed MERGE procedure at every
+combine node.  A compatibility theorem identifies its output with Lean's
+{lit}`List.mergeSort`.  Together these developments establish the algorithmic
+contract:
 
 * merge sort returns a sorted list;
 * merge sort preserves the input elements.
 * MERGE returns a sorted permutation of two sorted inputs;
 * MERGE performs at most a linear number of head comparisons and writes each
   output element exactly once.
+* the execution-derived merge-sort work satisfies the floor/ceiling recurrence
+  and belongs to {lit}`Theta(n log n)` for all natural input lengths.
 
 It also records the exact solution of the textbook recurrence on powers of two:
 {lit}`T(1) = 1` and {lit}`T(2^(k+1)) = 2 * T(2^k) + 2^(k+1)`.
 
 ## Known simplifications
 
-* The top-level sorting function still delegates to Lean's verified
-  {lit}`List.mergeSort`; its recursion is not yet connected by an erasure
-  theorem to the local MERGE execution.
 * The local MERGE uses immutable lists rather than temporary mutable arrays.
   Its counters charge head comparisons and output writes, not allocation or
   word-RAM instructions.
@@ -36,23 +36,15 @@ It also records the exact solution of the textbook recurrence on powers of two:
   ([definitions](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Definitions/),
   [correctness](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Correctness/),
   [cost](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge/Cost/))
+* [Executable merge sort](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/MergeSort/)
+  ([definitions](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/MergeSort/Definitions/),
+  [correctness](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/MergeSort/Correctness/),
+  [cost](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/MergeSort/Cost/))
 * [Merge-sort recurrence](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/Merge_Sort_Recurrence/)
 -/
 
 namespace CLRS
 namespace Chapter02
-
-/-- Merge sort over natural numbers, using the standard nondecreasing order. -/
-def mergeSort (xs : List Nat) : List Nat :=
-  xs.mergeSort (· ≤ ·)
-
-/-- Merge sort returns a list sorted in Mathlib's standard {lit}`SortedLE` sense. -/
-theorem mergeSort_sortedLE (xs : List Nat) : (mergeSort xs).SortedLE := by
-  simpa [mergeSort] using (List.sortedLE_mergeSort (l := xs))
-
-/-- Merge sort preserves the input elements up to permutation. -/
-theorem mergeSort_perm (xs : List Nat) : (mergeSort xs).Perm xs := by
-  simpa [mergeSort] using (List.mergeSort_perm xs (· ≤ ·))
 
 /--
 The merge-sort recurrence restricted to inputs of size {lit}`2^k`.

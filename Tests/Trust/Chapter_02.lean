@@ -9,6 +9,10 @@ import CLRSLean.FourthEdition.Chapter_02
 #check CLRS.Chapter02.insertionSortRunningTime_worst_case
 #check CLRS.Chapter02.mergeSort_perm
 #check CLRS.Chapter02.merge_correct
+#check CLRS.Chapter02.mergeSortWithCost_eq_mergeSort
+#check CLRS.Chapter02.mergeSortWithCost_comparisons_le_work
+#check CLRS.Chapter02.mergeSortWork_recurrence
+#check CLRS.Chapter02.mergeSortWork_isBigTheta_nlogn
 #check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
 
 #assert_axioms CLRS.Chapter02.insertionSort_sorted
@@ -17,6 +21,10 @@ import CLRSLean.FourthEdition.Chapter_02
 #assert_axioms CLRS.Chapter02.insertionSortRunningTime_worst_case
 #assert_axioms CLRS.Chapter02.mergeSort_perm
 #assert_axioms CLRS.Chapter02.merge_correct
+#assert_axioms CLRS.Chapter02.mergeSortWithCost_eq_mergeSort
+#assert_axioms CLRS.Chapter02.mergeSortWithCost_comparisons_le_work
+#assert_axioms CLRS.Chapter02.mergeSortWork_recurrence
+#assert_axioms CLRS.Chapter02.mergeSortWork_isBigTheta_nlogn
 #assert_axioms CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
 
 example : CLRS.Chapter02.insertionSort [5, 2, 4, 1, 3] = [1, 2, 3, 4, 5] := by
@@ -27,3 +35,7 @@ example : CLRS.Chapter02.mergeSort [5, 2, 4, 1, 3] = [1, 2, 3, 4, 5] := by
 
 example : CLRS.Chapter02.merge [1, 4, 7] [2, 3, 9] = [1, 2, 3, 4, 7, 9] := by
   norm_num [CLRS.Chapter02.merge, CLRS.Chapter02.mergeWithCost]
+
+example : (CLRS.Chapter02.mergeSortWithCost [5, 2, 4, 1, 3]).value =
+    [1, 2, 3, 4, 5] := by
+  native_decide
