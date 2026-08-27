@@ -15,7 +15,7 @@ definitions, theorem interfaces, and proofs.
 > 35 of 35 chapters have canonical represented content.
 > 1,668 / 1,668 selected source-inventory entries are proved and mapped into the fourth-edition ledger.
 > This selected inventory is not a claim of complete fourth-edition section coverage.
-> 465 additional entries remain available through the
+> 470 additional entries remain available through the
 > machine-readable online-material catalog. They are disjoint from the canonical chapter counts;
 > compatibility imports do not duplicate either ledger.
 <!-- END edition-summary -->

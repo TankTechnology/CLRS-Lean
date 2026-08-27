@@ -111,8 +111,8 @@ represented section or an expository guide.
 
 ## Online And Supplementary Material
 
-The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 465 tracked theorem
-groups: 421 from the three wholly excluded third-edition Chapters 19, 20, and
+The separate {lit}`CLRSLean.OnlineMaterial` catalog retains 470 tracked theorem
+groups: 426 from the three wholly excluded third-edition Chapters 19, 20, and
 33, plus 44 from moved section-level developments such as maximum subarray,
 matroids and task scheduling, detailed SIMPLEX, iterative FFT, and integer
 factorization.  Those 44 groups are disjoint from the 1,668 canonical tracked

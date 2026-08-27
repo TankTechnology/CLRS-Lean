@@ -1,4 +1,5 @@
 import CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties
+import CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties.SharedEndpoint
 
 /-! # Chapter 33 — Computational Geometry
 
@@ -17,16 +18,18 @@ cross-product and orientation theorems.
 * `CLRS.Chapter33.cross` — 2D cross product with antisymmetry, bilinearity, and additivity lemmas
 * `CLRS.Chapter33.Orientation` — inductive `Counterclockwise | Clockwise | Collinear`
 * `CLRS.Chapter33.Segment` — line-segment structure with bounding-box and intersection predicates
+* `CLRS.Chapter33.segmentIntersect_of_sharesEndpoint` — every shared endpoint
+  is accepted by the CLRS intersection predicate
 
-**Status: `partial`** — six cross-product algebra theorems and
-`orientation_spec` are proved.  The `segmentIntersect`, `bboxIntersect`, and
-`sharesEndpoint` definitions still need correctness theorems, in particular
-soundness and completeness against an independent geometric-intersection
-specification covering endpoint and collinear cases.
+**Status: `partial`** — six cross-product algebra theorems,
+`orientation_spec`, and the shared-endpoint intersection case are proved.  The
+`segmentIntersect` and `bboxIntersect` definitions still need full soundness
+and completeness against an independent geometric-intersection specification.
 
 ## Deferred Work
 
-* 33.1 correctness of the line-segment intersection predicate
+* 33.1 general correctness of the line-segment intersection predicate,
+  beyond the proved shared-endpoint case
 * 33.2–33.3 Sweep-line segment intersection and Graham-scan convex hull
 * 33.4 Closest-pair divide-and-conquer
 -/
