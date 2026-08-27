@@ -34,6 +34,12 @@ issues.
   and the complete heap loop refine `huffmanOfFreqs` exactly.  Construction and
   merge counters follow the actual Chapter 6 heap-controller paths and satisfy
   the explicit `4n(log₂(n+1)+1)` bound.
+- Chapter 4 target #336 is closed on the same branch: a well-founded
+  natural-size branching execution reaches explicit base leaves at unequal
+  depths, and its total cost is proved equal to independently stated rounded
+  recurrences.  The two textbook examples instantiate floor `n/4` and mixed
+  floor/ceiling `n/3, ceil(2n/3)` children and connect to the existing
+  all-input Master and Akra--Bazzi interfaces.
 
 The matrix below remains the dated baseline that motivated those batches; the
 live ledger and GitHub issues record their current state.

@@ -112,7 +112,20 @@ theorem unbalancedIntegerTree_has_unequal_depth :
       IntegerBranchingTree.height
         ((unbalancedIntegerSpec 1 1).build
           ((unbalancedIntegerSpec 1 1).childSize true 4)) := by
-  native_decide
+  have hleft : (unbalancedIntegerSpec 1 1).childSize false 4 = 1 := by
+    norm_num [unbalancedIntegerSpec]
+  have hright : (unbalancedIntegerSpec 1 1).childSize true 4 = 3 := by
+    norm_num [unbalancedIntegerSpec, twoThirdsCeil, Nat.ceilDiv_eq_add_pred_div]
+  rw [hleft, hright]
+  have hheightOne : IntegerBranchingTree.height
+      ((unbalancedIntegerSpec 1 1).build 1) = 0 := by
+    rw [IntegerBranchingSpec.build_of_le _ _ (by norm_num [unbalancedIntegerSpec])]
+    rfl
+  have hheightThree : IntegerBranchingTree.height
+      ((unbalancedIntegerSpec 1 1).build 3) = 1 := by
+    rw [IntegerBranchingSpec.build_of_lt _ _ (by norm_num [unbalancedIntegerSpec])]
+    simp [IntegerBranchingTree.height, unbalancedIntegerSpec, twoThirdsCeil]
+  omega
 
 /-- The limiting one-third and two-thirds branch weights sum to one. -/
 theorem unbalancedInteger_characteristic_one :

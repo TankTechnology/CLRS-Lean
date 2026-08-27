@@ -1,4 +1,5 @@
 import CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method.Branching.TextbookExamples
+import CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method.Branching.IntegerTree
 
 open Finset
 open scoped BigOperators
@@ -24,10 +25,17 @@ Main results:
 - Theorems {lit}`CLRS.Chapter04.balancedThreeQuarter_totalCost_le` and
   {lit}`CLRS.Chapter04.unbalancedThirdTwoThird_totalCost`: the two detailed
   textbook examples have respectively geometric and constant level costs.
+- Theorem {lit}`CLRS.Chapter04.IntegerBranchingSpec.build_totalCost_eq`: an
+  explicit finite natural-size tree has exactly the value of its independently
+  stated floor/ceiling recurrence, even when branches stop at unequal depths.
+- Theorems {lit}`CLRS.Chapter04.balancedIntegerTree_totalCost_eq` and
+  {lit}`CLRS.Chapter04.unbalancedIntegerTree_totalCost_eq`: arbitrary-input
+  integer instances of the two detailed textbook examples.
 
-Status: `proved` for the finite-sum core and full fixed-depth branching trees.
-The branching examples use exact real scaling and a common cutoff depth;
-arbitrary-size floor/ceiling transfer remains separate.
+Status: {lit}`proved` for the finite-sum core, the fixed-depth level-sum model,
+and the explicit unequal-depth integer floor/ceiling trees.  The exact tree
+semantics connect to the existing all-input Master and Akra--Bazzi interfaces;
+their analytic asymptotic hypotheses remain separate theorems.
 -/
 
 namespace CLRS
