@@ -2708,6 +2708,18 @@ title = "7.4. Analysis of Quicksort"
 [modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability"]
 title = "7.3. Randomized Quicksort: Comparison Probability"
 
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.OperationalBridge"]
+title = "7.3. Randomized Quicksort: Operational Bridge"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.OperationalBridge.UnorderedPairs"]
+title = "7.3. Operational Bridge: Unordered-Pair Sums"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.OperationalBridge.ExecutionToBST"]
+title = "7.3. Operational Bridge: Execution to BST Depth"
+
+[modules."CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.OperationalBridge.PairTraceToBST"]
+title = "7.3. Operational Bridge: Pair Trace to BST Depth"
+
 [modules."CLRSLean.FourthEdition.Chapter_08"]
 title = "Chapter 8. Sorting in Linear Time"
 
