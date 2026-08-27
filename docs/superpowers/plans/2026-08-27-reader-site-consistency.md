@@ -371,9 +371,15 @@ Online Material links, followed by these explicit chapter groups:
   [34](CLRSLean/FourthEdition/Chapter_34/), [35](CLRSLean/FourthEdition/Chapter_35/).
 ```
 
-Use exact links `[Progress Dashboard](CLRSLean/Progress/)`,
-`[Proof Status](CLRSLean/Status/)`, and
-`[Online Material](CLRSLean/OnlineMaterial/)`. Do not duplicate theorem counts.
+Use these exact links:
+
+```markdown
+[Progress Dashboard](CLRSLean/Progress/)
+[Proof Status](CLRSLean/Status/)
+[Online Material](CLRSLean/OnlineMaterial/)
+```
+
+Do not duplicate theorem counts.
 
 - [ ] **Step 4: Verify and commit**
 
