@@ -12,6 +12,9 @@ import CLRSLean.FourthEdition.Chapter_15
 #check CLRS.HuffmanV2.lemma15_2_greedy_choice
 #check CLRS.HuffmanV2.lemma15_3_optimal_substructure
 #check CLRS.HuffmanV2.huffmanOfFreqsComparisons_le_quadratic
+#check CLRS.HuffmanV2.heapHuffmanOfFreqs_eq
+#check CLRS.HuffmanV2.heapHuffmanOfFreqs_correct
+#check CLRS.HuffmanV2.heapHuffmanOfFreqs_work_le_nlogn
 #check CLRS.Caching.fifo_optimal
 #check CLRS.Caching.fifo_optimal_from_empty
 #check CLRS.Caching.fifo_optimal_after_compulsory_fill
@@ -25,6 +28,9 @@ import CLRSLean.FourthEdition.Chapter_15
 #assert_axioms CLRS.HuffmanV2.lemma15_2_greedy_choice
 #assert_axioms CLRS.HuffmanV2.lemma15_3_optimal_substructure
 #assert_axioms CLRS.HuffmanV2.huffmanOfFreqsComparisons_le_quadratic
+#assert_axioms CLRS.HuffmanV2.heapHuffmanOfFreqs_eq
+#assert_axioms CLRS.HuffmanV2.heapHuffmanOfFreqs_correct
+#assert_axioms CLRS.HuffmanV2.heapHuffmanOfFreqs_work_le_nlogn
 #assert_axioms CLRS.Caching.fifo_optimal
 #assert_axioms CLRS.Caching.fifo_optimal_from_empty
 #assert_axioms CLRS.Caching.fifo_optimal_after_compulsory_fill

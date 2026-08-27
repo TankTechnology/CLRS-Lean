@@ -1,7 +1,7 @@
 # Ch15 Greedy Algorithms 语义忠实性审计
 
 - 初次审计日期（北京时间）：2026-08-17
-- 闭合复核日期（北京时间）：2026-08-27
+- 闭合复核日期（北京时间）：2026-08-28
 - 基准范围：CLRS 第四版第 15.1–15.4 节
 - 实时结论：MATCH 48 · MINOR 0 · MAJOR 0 · CRITICAL 0 · UNCERTAIN 0
 
@@ -23,7 +23,7 @@
 | §15.2 缺少活动选择实例 | MATCH | `activityGreedyProblem`, `activityGsolve_eq_greedySelect`, `greedySelect_maxCardinality_via_meta` | 泛型框架与 §15.1 的具体算法、最优性定理已连接。 |
 | §15.3 式 (15.4) 与内部代价未连接 | MATCH | `textbookCost`, `textbookCost_eq_cost` | 对一致的满二叉前缀码树证明叶频率乘深度之和等于内部节点频率和。 |
 | §15.3 Lemma 15.2/15.3 无独立接口 | MATCH | `lemma15_2_greedy_choice`, `lemma15_3_optimal_substructure` | 两个教材引理分别作为已有交换/拆叶证明的命名接口公开。 |
-| §15.3 缺少复杂度说明 | MATCH | `huffmanOfFreqsComparisons_le_quadratic`, `textbookHeapHuffmanWork_le_nlogn` | 已验证列表实现有 `2n²` 比较上界；教材二叉堆实现另有 `3n(log₂ n+1)` 操作包络，二者不混同。 |
+| §15.3 缺少复杂度说明 | MATCH | `heapHuffmanOfFreqs_eq`, `heapHuffmanOfFreqs_correct`, `heapHuffmanOfFreqs_work_le_nlogn` | 稳定优先级的真实数组二叉堆执行精确细化到既有 Huffman 语义；同一执行的建堆、两次取最小值和插入控制帧总数满足 `4n(log₂(n+1)+1)`。 |
 | §15.4 未覆盖空初始缓存 | MATCH | `misses_empty_eq_singleton_add_one`, `fifo_optimal_from_empty`, `fifo_optimal_after_compulsory_fill` | 当前语义下空缓存恰多一次强制缺失；之后复用非空交换定理。任意容量预填充只以共同成本桥表达。 |
 
 ## 教材主链复核
@@ -47,8 +47,9 @@
 `optimum_huffman_v2` 和 `optimum_huffman_freqs` 继续承担 Huffman 最优性主定理。
 `textbookCost_eq_cost` 补上式 (15.4) 与原内部节点代价之间的语义桥；
 `lemma15_2_greedy_choice` 和 `lemma15_3_optimal_substructure` 给出教材编号接口。
-复杂度结论刻意分层：仓库中的可执行有序列表算法证明二次比较界，教材的
-优先队列实现证明基于每次堆操作对数预算的 `n log n` 包络。
+复杂度结论刻意分层：有序列表算法仍保留二次比较界作为简洁参考语义；
+`HeapExecution` 则实现稳定戳优先级、数组二叉最小堆、插入和取最小值，证明
+完整程序与 `huffmanOfFreqs` 精确相等，并从同一堆控制路径推出 `n log n` 界。
 
 ### §15.4 Offline caching
 
@@ -62,8 +63,8 @@
 
 - `fifoPolicy` 是历史名称，语义是 farthest-in-future/Belady 策略，不是通常
   所说的 first-in-first-out。
-- Huffman 的 `n log n` 结论是教材堆操作模型；当前列表程序的已验证比较界是
-  二次的。
+- Huffman 的 `n log n` 结论统计与 Chapter 6 一致的堆控制帧；它不声称 Lean
+  持久列表分配、索引或字级 RAM 指令也具有同一成本。
 - 指针、内存分配、字级 RAM、硬件缓存和并发实现不属于本章宣称的数学边界。
 - 章节习题和章末问题未因本次 11 项审计闭合而自动宣称完成。
 

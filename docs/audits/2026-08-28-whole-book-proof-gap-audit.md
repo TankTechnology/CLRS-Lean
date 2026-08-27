@@ -29,6 +29,11 @@ issues.
   row permutation, pointwise elimination, and Schur-block recursion return
   certified LUP factors or singular failure; the decomposition counter is
   cubic and the costed LUP-SOLVE counter is quadratic.
+- Chapter 15 target #338 is closed on the same branch: stable stamped entries,
+  a list-backed array binary min-heap, verified insert/extract-min operations,
+  and the complete heap loop refine `huffmanOfFreqs` exactly.  Construction and
+  merge counters follow the actual Chapter 6 heap-controller paths and satisfy
+  the explicit `4n(log₂(n+1)+1)` bound.
 
 The matrix below remains the dated baseline that motivated those batches; the
 live ledger and GitHub issues record their current state.

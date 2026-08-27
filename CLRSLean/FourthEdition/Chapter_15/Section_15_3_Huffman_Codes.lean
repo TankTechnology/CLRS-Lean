@@ -24,6 +24,7 @@ Textbook-facing companion modules:
 * [Equation (15.4) cost bridge](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/TextbookCost/)
 * [Named Lemma 15.2 and Lemma 15.3 interfaces](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/TextbookLemmas/)
 * [List and heap complexity models](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/Complexity/)
+* [Verified binary-heap execution](CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/HeapExecution/)
 -/
 
 open List
