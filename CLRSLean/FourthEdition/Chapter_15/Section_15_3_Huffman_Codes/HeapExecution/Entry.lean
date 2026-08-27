@@ -126,7 +126,7 @@ theorem priorityLE_of_not_lt {a b : HeapEntry}
 
 end HeapEntry
 
-/-- Decorate a list with consecutive stamps starting at `base`. -/
+/-- Decorate a list with consecutive stamps starting at the supplied base. -/
 def decorateFrom : Nat → List HuffTree → List HeapEntry
   | _, [] => []
   | base, t :: ts =>
@@ -136,7 +136,7 @@ def decorateFrom : Nat → List HuffTree → List HeapEntry
 def initialEntries (ts : List HuffTree) : List HeapEntry :=
   decorateFrom ts.length ts
 
-/-- A merge performed at queue size `m` uses the next decreasing stamp. -/
+/-- A merge uses the current queue size to obtain the next decreasing stamp. -/
 def mergedEntry (queueSize : Nat) (a b : HeapEntry) : HeapEntry :=
   { tree := unite a.tree b.tree, stamp := queueSize - 2 }
 
