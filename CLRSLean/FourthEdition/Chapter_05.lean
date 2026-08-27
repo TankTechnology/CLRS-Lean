@@ -1,6 +1,8 @@
 import CLRSLean.FourthEdition.Chapter_05.Section_05_1_Hiring_Problem
 import CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables
+import CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Expectation
 import CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms
+import CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Hiring
 import CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis
 import CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring
 
@@ -28,12 +30,21 @@ recurrence.
 
 Section 5.2 formalizes the **indicator random variable** technique and
 **linearity of expectation** with the **hat-check problem** (expected fixed
-points of a uniform random permutation of {lit}`Fin n` equal {lit}`1`).
+points of a uniform random permutation of {lit}`Fin n` equal {lit}`1`).  Its
+textbook boundary also exposes
+{lit}`CLRS.Chapter05.indicator_expectation_eq_probability`: the expectation of
+an event indicator is its finite-uniform probability.
 
 Section 5.3 proves the central result of CLRS §5.3: the `RANDOMIZE-IN-PLACE`
 procedure (Fisher–Yates shuffle) yields a uniform random permutation of
 {lit}`Fin n` (Lemma 5.4), modelled by an explicit choice-vector sample space
-and a bijection onto {lit}`Equiv.Perm (Fin n)`.
+and a bijection onto {lit}`Equiv.Perm (Fin n)`.  The companion
+{lit}`CLRS.Chapter05.randomizedHireAssistant` composes that randomization with
+the executable hiring loop.  The exact transport theorem
+{lit}`CLRS.Chapter05.randomizedExpectedHiringCost_eq_uniform` moves its expected
+cost to the uniform-permutation space; the remaining record-count expectation
+bridge is explicit as {lit}`CLRS.Chapter05.HiringExpectationBridge` and tracked
+in GitHub issue #332.
 
 Section 5.4 applies indicators plus independence to two classic probabilistic
 analyses: the **birthday paradox** (expected number of same-birthday pairs is
@@ -50,9 +61,13 @@ success probability for the threshold {lit}`⌊n/e⌋`.
 * Section 5.1: {lit}`proved` for the finite rank-symmetry model, including
   {lit}`CLRS.Chapter05.expectedHires_isBigTheta_log`.
 * Section 5.2: {lit}`proved` for the uniform-permutation model, including
+  {lit}`CLRS.Chapter05.indicator_expectation_eq_probability` and
   {lit}`CLRS.Chapter05.expectedFixedPoints_eq_one`.
 * Section 5.3: {lit}`proved` for the independent-swap-choice model, including
-  {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.4).
+  {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.4), plus the exact
+  randomized-hiring transport to the uniform-permutation expectation.  The
+  executable record-count expectation equality itself remains the explicit
+  issue #332 boundary.
 * Section 5.4: {lit}`proved` for the product-uniform birthday and balls-and-bins
   models ({lit}`CLRS.Chapter05.expectedCollisions_eq`,
   {lit}`CLRS.Chapter05.expectedBallsInBin_eq`), the longest-streak
