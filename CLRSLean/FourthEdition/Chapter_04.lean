@@ -25,7 +25,11 @@ Sections 4.1--4.7 are native fourth-edition sections:
 * [Section 4.3 — The substitution method](CLRSLean/FourthEdition/Chapter_04/Section_04_3_Substitution_Method/):
   one-step upper-bound, lower-bound, and sandwich substitution templates.
 * [Section 4.4 — The recursion-tree method](CLRSLean/FourthEdition/Chapter_04/Section_04_4_Recursion_Tree_Method/):
-  exact additive level unrolling and envelope bounds.
+  exact additive level unrolling, explicit finite branching trees, internal
+  level-plus-leaf decomposition, reusable geometric bounds, and the textbook
+  `3T(n/4)+cn²` and `T(n/3)+T(2n/3)+cn` level-cost calculations.  These
+  branching examples deliberately use exact real scaling and a common cutoff
+  depth, distinct from arbitrary-size floor/ceiling transfer.
 * [Section 4.5 — The master method](CLRSLean/FourthEdition/Chapter_04/Section_04_5_Master_Theorem/):
   normalized recurrence expansion and the three Master-style exact-power
   criteria (including the polylog case-2 extension).

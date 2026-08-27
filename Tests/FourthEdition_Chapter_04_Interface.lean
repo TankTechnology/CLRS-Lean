@@ -11,6 +11,16 @@ and §4.7 (Akra–Bazzi recurrences).
 namespace CLRS
 namespace Chapter04
 
+-- §4.4 Branching recursion trees
+#check BranchingRecursionTree
+#check BranchingRecursionTree.totalCost_eq_levelCosts_add_leafCost
+#check scaledBranchingTree_levelCost
+#check geometricLevelSum_le
+#check balancedThreeQuarter_levelCost
+#check balancedThreeQuarter_totalCost_le
+#check unbalancedThirdTwoThird_levelCost
+#check unbalancedThirdTwoThird_totalCost
+
 -- §4.1 Multiplying square matrices
 #check mul2
 #check mul2_eq_mul

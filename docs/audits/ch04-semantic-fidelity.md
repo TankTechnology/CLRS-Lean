@@ -149,3 +149,17 @@
 - **最终降级数**: 5 条 MATCH → MINOR
 
 审计员与反驳员对 MAJOR/CRITICAL 级别的判定一致: 无 MAJOR 或 CRITICAL 缺陷。反驳员提出的四项"MAJOR"主张经评估均不满足 MAJOR 标准: 每一项要么是文档注释已声明的已知简化,要么是渐近等价的不同表述,均不改变章节的主要数学结论。
+
+## 后续闭合记录（2026-08-27）
+
+本节保留上面的 2026-08-18 审计快照，不回写其历史计数。
+
+| 原审计项 | 当前状态 | 可验收证据 |
+|----------|----------|------------|
+| §4.4 框架简化 / 缺陷 5 | 已解决（固定深度精确尺度） | `BranchingRecursionTree` 明确保存每个内部节点的所有分支；`totalCost_eq_levelCosts_add_leafCost` 证明总成本等于内部逐层成本加叶成本；`scaledBranchingTree_levelCost` 给出一般分支比例的精确层成本 |
+| §4.4 示例未实例化 / 缺陷 12 | 已解决（固定深度精确尺度） | `balancedThreeQuarter_totalCost_le` 形式化 `3T(n/4)+cn²` 的 `3/16` 几何层成本；`unbalancedThirdTwoThird_totalCost` 保留不同的 `1/3`、`2/3` 分支并证明每层成本为 `cn` |
+| §4.7 临界 Θ 打包 / 缺陷 13 | 已解决 | `akraBazzi_bigTheta_critical` |
+
+上述 §4.4 结论没有把精确尺度结果误写成任意自然数输入结论：它们假设实数
+比例、共同展开深度和显式叶成本。带 floor/ceiling 的不同终止深度仍由单独的
+全输入转移或 Akra–Bazzi 框架处理。
