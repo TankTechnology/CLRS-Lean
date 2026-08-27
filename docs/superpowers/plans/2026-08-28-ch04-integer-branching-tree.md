@@ -35,7 +35,7 @@ existing Chapter 4 master-theorem and Akra--Bazzi APIs.
 
 - [x] Define `IntegerBranchingTree`, `rootSize`, `rootWork`, `totalCost`, and
   `height`.
-- [ ] Add native examples that distinguish equal and unequal child heights.
+- [x] Add native examples that distinguish equal and unequal child heights.
 - [x] Compile the model module.
 
 ### Task 3: Well-founded execution and exact semantics
@@ -54,24 +54,24 @@ existing Chapter 4 master-theorem and Akra--Bazzi APIs.
 **Files:**
 - Create: `.../Branching/IntegerTree/Balanced.lean`
 
-- [ ] Prove `n / 4 < n` above the cutoff and instantiate three branches.
-- [ ] State the textbook `3T(n/4)+cn^2` recurrence and prove the exact tree
+- [x] Prove `n / 4 < n` above the cutoff and instantiate three branches.
+- [x] State the textbook `3T(n/4)+cn^2` recurrence and prove the exact tree
   equality.
-- [ ] Define the generated tree cost and prove its
+- [x] Define the generated tree cost and prove its
   `FloorDivideRecurrence 3 4` bridge plus the above-cutoff forcing equation.
-- [ ] Add native shape/total checks and compile the module.
+- [x] Add native shape/total checks and compile the module.
 
 ### Task 5: Unbalanced floor/ceiling instance
 
 **Files:**
 - Create: `.../Branching/IntegerTree/Unbalanced.lean`
 
-- [ ] Prove both `n/3` and `ceil(2n/3)` strictly decrease for `n > 2`.
-- [ ] State the textbook recurrence and prove the exact tree equality.
-- [ ] Prove a concrete unequal-depth child witness.
-- [ ] Prove the floor/ceiling one-unit sandwich and publish the existing
+- [x] Prove both `n/3` and `ceil(2n/3)` strictly decrease for `n > 2`.
+- [x] State the textbook recurrence and prove the exact tree equality.
+- [x] Prove a concrete unequal-depth child witness.
+- [x] Prove the floor/ceiling one-unit sandwich and publish the existing
   Akra--Bazzi `p = 1` root as the asymptotic connection.
-- [ ] Add native checks and compile the module.
+- [x] Add native checks and compile the module.
 
 ### Task 6: Facade, trust audit, and chapter integration
 
