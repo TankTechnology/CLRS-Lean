@@ -28,6 +28,12 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurren
 #check CLRS.Chapter02.merge_comparisons_le
 #check CLRS.Chapter02.merge_outputWrites_eq
 #check CLRS.Chapter02.merge_correct
+#check CLRS.Chapter02.mergeSortWithCost
+#check CLRS.Chapter02.mergeSortWithCost_correct
+#check CLRS.Chapter02.mergeSortWithCost_eq_mergeSort
+#check CLRS.Chapter02.mergeSortWithCost_comparisons_le_work
+#check CLRS.Chapter02.mergeSortWork_recurrence
+#check CLRS.Chapter02.mergeSortWork_isBigTheta_nlogn
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm
 #check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
