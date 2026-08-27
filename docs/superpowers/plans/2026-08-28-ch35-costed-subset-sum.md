@@ -15,7 +15,7 @@
 **Files:**
 - Create: `Tests/Chapter_35_Costed_SubsetSum_Interface.lean`
 
-- [ ] **Step 1: Add the public theorem checks before production code exists**
+- [x] **Step 1: Add the public theorem checks before production code exists**
 
 ```lean
 import CLRSLean.FourthEdition.Chapter_35
@@ -30,7 +30,7 @@ import CLRSLean.FourthEdition.Chapter_35
 #check CLRS.ApproxSubsetSum.approxSubsetSumWithCost_fptas
 ```
 
-- [ ] **Step 2: Run the focused interface and record the intended RED state**
+- [x] **Step 2: Run the focused interface and record the intended RED state**
 
 Run:
 
@@ -47,7 +47,7 @@ name is reported as unknown.
 - Create: `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/Costed/Definitions.lean`
 - Test: `Tests/Chapter_35_Costed_SubsetSum_Interface.lean`
 
-- [ ] **Step 1: Define result records and the five scans**
+- [x] **Step 1: Define result records and the five scans**
 
 The definitions module imports only the original Section 35.5 file and adds:
 
@@ -117,7 +117,7 @@ def maximumWithCost (xs : List Nat) : NatExecution :=
 actual input tail and increment by one exactly where the specified comparison
 is made.
 
-- [ ] **Step 2: Elaborate only the definitions module**
+- [x] **Step 2: Elaborate only the definitions module**
 
 Run:
 
@@ -132,7 +132,7 @@ Expected: success without new linter warnings.
 **Files:**
 - Create: `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/Costed/LocalCorrectness.lean`
 
-- [ ] **Step 1: Prove the map and merge contracts**
+- [x] **Step 1: Prove the map and merge contracts**
 
 Provide these results by structural or well-founded induction over the same
 recursion used by the executions:
@@ -154,7 +154,7 @@ theorem mergeWithCost_work_le (L M : List Nat) :
   (mergeWithCost L M).work <= L.length + M.length
 ```
 
-- [ ] **Step 2: Prove the trim, filter, and maximum contracts**
+- [x] **Step 2: Prove the trim, filter, and maximum contracts**
 
 ```lean
 theorem trimWithCost_value (delta : Real) (L : List Nat) :
@@ -179,7 +179,7 @@ theorem maximumWithCost_work (L : List Nat) :
   (maximumWithCost L).work = L.length
 ```
 
-- [ ] **Step 3: Add concrete regression examples and elaborate the module**
+- [x] **Step 3: Add concrete regression examples and elaborate the module**
 
 The focused test should include examples equivalent to:
 
@@ -197,7 +197,7 @@ for the local declarations.
 **Files:**
 - Create: `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/Costed/Execution.lean`
 
-- [ ] **Step 1: Define the outer list execution from local stages**
+- [x] **Step 1: Define the outer list execution from local stages**
 
 ```lean
 def approxListsWithCost (delta : Real) (t : Nat) : List Nat -> ListExecution
@@ -212,7 +212,7 @@ def approxListsWithCost (delta : Real) (t : Nat) : List Nat -> ListExecution
         prior.work + shifted.work + merged.work + trimmed.work + kept.work + 1⟩
 ```
 
-- [ ] **Step 2: Prove outer erasure**
+- [x] **Step 2: Prove outer erasure**
 
 ```lean
 theorem approxListsWithCost_value (delta : Real) (t : Nat) (xs : List Nat) :
@@ -222,7 +222,7 @@ theorem approxListsWithCost_value (delta : Real) (t : Nat) (xs : List Nat) :
 The proof rewrites only through the five local erasure theorems; it must not
 re-prove the semantic approximation invariant.
 
-- [ ] **Step 3: Define and identify the returned maximum**
+- [x] **Step 3: Define and identify the returned maximum**
 
 ```lean
 def approxSubsetSumWithCost (xs : List Nat) (t : Nat) (epsilon : Real) : NatExecution :=
@@ -238,7 +238,7 @@ Prove the value theorem by showing the recursive maximum scan is both an upper
 bound for every list member and a member when `0` is present, then use the
 characterization of `Finset.max'` already used by `approxSum`.
 
-- [ ] **Step 4: Elaborate only `Execution.lean` and rerun the interface**
+- [x] **Step 4: Elaborate only `Execution.lean` and rerun the interface**
 
 Expected: all value checks are green; the total-work and bundle checks remain
 red because `Bounds.lean` does not exist yet.
@@ -248,7 +248,7 @@ red because `Bounds.lean` does not exist yet.
 **Files:**
 - Create: `CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/Costed/Bounds.lean`
 
-- [ ] **Step 1: Prove the fixed-parameter intermediate-list bound**
+- [x] **Step 1: Prove the fixed-parameter intermediate-list bound**
 
 For positive original length `n`, prove for every list `ys`:
 
@@ -264,7 +264,7 @@ This must instantiate `approxLists_length_bound` at the one `delta` selected
 from the original `n`; applying the old `approxSubsetSum_fptas` to `ys` would
 silently change `delta` and is not accepted.
 
-- [ ] **Step 2: Prove a generic outer recurrence bound**
+- [x] **Step 2: Prove a generic outer recurrence bound**
 
 Let every semantic intermediate list have real length at most `B`.  Induction
 over `xs`, combined with local work and erasure, proves:
@@ -277,7 +277,7 @@ theorem approxListsWithCost_work_le_of_length_bound
     (xs.length : Real) * (7 * B + 1)
 ```
 
-- [ ] **Step 3: Derive the public edge-safe polynomial bound**
+- [x] **Step 3: Derive the public edge-safe polynomial bound**
 
 Split on `xs = []`; for the nonempty case instantiate the preceding two
 lemmas and include the final maximum scan.  Prove:
@@ -295,7 +295,7 @@ The final arithmetic must use the execution recurrence and the existing
 list-size theorem.  Do not replace the left-hand side with a separately defined
 closed-form cost.
 
-- [ ] **Step 4: Bundle correctness, approximation, and work**
+- [x] **Step 4: Bundle correctness, approximation, and work**
 
 ```lean
 theorem approxSubsetSumWithCost_fptas
@@ -313,7 +313,7 @@ theorem approxSubsetSumWithCost_fptas
 Use `approxSubsetSumWithCost_value`, `approxSum_mem_subsetSums`,
 `approxSum_le_t`, `approxSubsetSum_approx_lt`, and the new work theorem.
 
-- [ ] **Step 5: Elaborate `Bounds.lean` and make the focused interface green**
+- [x] **Step 5: Elaborate `Bounds.lean` and make the focused interface green**
 
 Run only the new bounds module and
 `Tests/Chapter_35_Costed_SubsetSum_Interface.lean` during iteration.
@@ -328,14 +328,14 @@ Run only the new bounds module and
 - Modify: `docs/audits/2026-08-28-whole-book-proof-gap-audit.md`
 - Modify generated progress/readme files through repository scripts.
 
-- [ ] **Step 1: Add the facade and canonical import**
+- [x] **Step 1: Add the facade and canonical import**
 
 The facade imports `Definitions`, `LocalCorrectness`, `Execution`, and `Bounds`.
 The Chapter 35 guide imports the facade after the original Section 35.5 import,
 describes the unit-cost boundary, and names
 `approxSubsetSumWithCost_fptas` as Theorem 35.8's runtime closure.
 
-- [ ] **Step 2: Add trust evidence**
+- [x] **Step 2: Add trust evidence**
 
 ```lean
 #check CLRS.ApproxSubsetSum.approxSubsetSumWithCost_value
@@ -347,13 +347,13 @@ describes the unit-cost boundary, and names
 #assert_axioms CLRS.ApproxSubsetSum.approxSubsetSumWithCost_fptas
 ```
 
-- [ ] **Step 3: Update the live ledger and dated audit closure log**
+- [x] **Step 3: Update the live ledger and dated audit closure log**
 
 Add three tracked Chapter 35 groups: costed local scans, outer erasure, and the
 execution-derived polynomial FPTAS bundle.  Regenerate the dashboard and README
 and update the hand-written whole-book snapshot to the resulting total.
 
-- [ ] **Step 4: Run the proportional final gate**
+- [x] **Step 4: Run the proportional final gate**
 
 ```text
 lake env lean <each new source file>
@@ -369,7 +369,7 @@ Expected: all commands succeed, no new warning is emitted by the costed files,
 the ledger reports all selected entries proved, and the public trust surface
 uses only the allowed Lean/Mathlib axioms.
 
-- [ ] **Step 5: Commit, push, and close issue #341**
+- [x] **Step 5: Commit, push, and close issue #341**
 
 ```text
 git commit -m "feat(ch35): prove costed subset-sum fptas"
