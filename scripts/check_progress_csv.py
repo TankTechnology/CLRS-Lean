@@ -7,6 +7,7 @@ import argparse
 import csv
 from collections import Counter
 from pathlib import Path
+import re
 import sys
 
 from online_material import online_tracked_total
@@ -49,6 +50,34 @@ MIGRATION_STATES = {
     "not-started",
     "online-material",
 }
+
+TRACKED_COUNT_CLAIM = re.compile(
+    r"\b(\d+)\s+tracked (?:theorem )?(?:entries|groups)\b", re.IGNORECASE
+)
+FULLY_PROVED_RANGE = re.compile(
+    r"\bSections?\s+(\d+)\.(\d+)\s*[-–]\s*(\d+)\.(\d+)\s+fully proved\b",
+    re.IGNORECASE,
+)
+
+
+def tracked_count_claims(text: str) -> tuple[int, ...]:
+    """Extract explicit tracked-theorem totals from reader-facing prose."""
+    return tuple(
+        int(match.group(1)) for match in TRACKED_COUNT_CLAIM.finditer(text)
+    )
+
+
+def fully_proved_sections(text: str) -> tuple[str, ...]:
+    """Expand well-formed same-chapter ranges claimed to be fully proved."""
+    sections: list[str] = []
+    for match in FULLY_PROVED_RANGE.finditer(text):
+        low_chapter, low, high_chapter, high = map(int, match.groups())
+        if low_chapter != high_chapter or high < low:
+            continue
+        sections.extend(
+            f"{low_chapter}.{index}" for index in range(low, high + 1)
+        )
+    return tuple(sections)
 
 def load_rows() -> list[dict[str, str]]:
     with CSV_PATH.open(newline="", encoding="utf-8") as handle:
@@ -195,6 +224,14 @@ def validate(rows: list[dict[str, str]]) -> None:
         proved = int_field(row, "proved_tracked_theorems")
         edition_gap_units = int_field(row, "edition_gap_units")
         require(proved <= tracked, f"Chapter {chapter_no}: proved theorem count exceeds tracked count")
+        claims = tracked_count_claims(row["completion_read"])
+        if claims:
+            require(
+                sum(claims) == tracked,
+                f"Chapter {chapter_no}: completion_read claims tracked counts "
+                f"{list(claims)} totaling {sum(claims)}, but "
+                f"tracked_key_theorems={tracked}",
+            )
 
         for key in ("chapter_title", "repo_status", "completion_read", "evidence_source"):
             require(row[key].strip(), f"Chapter {chapter_no}: {key} must be nonempty")
@@ -278,6 +315,12 @@ def validate(rows: list[dict[str, str]]) -> None:
             "do not match represented sections in docs/clrs-fourth-edition-map.csv "
             f"{list(contract['represented_sections'])}",
         )
+        for section in fully_proved_sections(row["notes"]):
+            require(
+                section in expected_sections,
+                f"Chapter {chapter_no}: notes claim fully proved section "
+                f"{section}, which is not represented in the canonical chapter",
+            )
 
 
 def lit(text: str) -> str:

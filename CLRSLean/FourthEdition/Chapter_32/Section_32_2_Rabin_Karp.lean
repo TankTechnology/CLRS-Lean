@@ -31,9 +31,11 @@ correct for every choice of modulus.
 - Theorem {lit}`rabinKarp_correct` — `rabinKarpMatcher` agrees with
   `naiveMatcher` on every shift.
 
-The full CLRS window-slide recurrence (eq. (32.3)) is left as a named gap; the
-O(1) right-extend step `hash_snoc` covers the incremental update used to seed
-the hashes.
+The CLRS window-slide recurrence (eq. (32.3)) is proved as {lit}`hash_slide`.
+{lit}`rabinKarpRollingMatches_correct` connects the rolling execution to the
+all-occurrences specification, while {lit}`rabinKarpRollingCost_eq` and
+{lit}`rabinKarpRollingCost_le` attach the deterministic work bound to that
+execution.
 
 Notation conventions used in this section:
 
