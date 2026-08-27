@@ -90,6 +90,16 @@ current textbook-completion claims most directly.
 | P2 | 4 | `semantic-bridge-gap` | Exact-depth branching trees and all-input recurrence tools are not connected for the §4.4 examples. | Integer floor/ceiling branching-tree construction with unequal-depth cost equality. |
 | P2 | 25 | `semantic-bridge-gap` | Maximum-matching correctness is proved, but the textbook O(VE) unit-capacity flow execution cost is absent. | Costed augmenting-flow-to-matching theorem. |
 
+Tracking issues:
+
+- [#335](https://github.com/TankTechnology/CLRS-Lean/issues/335) — Chapter 2 executable merge-sort/MERGE bridge.
+- [#336](https://github.com/TankTechnology/CLRS-Lean/issues/336) — Chapter 4 integer branching-tree bridge.
+- [#337](https://github.com/TankTechnology/CLRS-Lean/issues/337) — Chapter 11 uniform probe-permutation probability.
+- [#338](https://github.com/TankTechnology/CLRS-Lean/issues/338) — Chapter 15 heap-based Huffman execution and cost.
+- [#339](https://github.com/TankTechnology/CLRS-Lean/issues/339) — Chapter 25 flow-method O(VE) matching cost.
+- [#340](https://github.com/TankTechnology/CLRS-Lean/issues/340) — Chapter 28 executable LUP decomposition and cost.
+- [#341](https://github.com/TankTechnology/CLRS-Lean/issues/341) — Chapter 35 costed APPROX-SUBSET-SUM FPTAS.
+
 ## Documentation findings
 
 These do not require new mathematical proofs:
