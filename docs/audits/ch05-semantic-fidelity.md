@@ -228,7 +228,7 @@
 | M1：Lemma 5.4 编号 | 已解决 | 第四版公开接口统一标为 Lemma 5.4 |
 | m1：指标期望接口 | 已解决 | `indicator_expectation_eq_probability` |
 | m2 / m12：录用成本常数 | 已解决 | `expectedHiringCost_eq_harmonic`、`expectedHiringCost_isBigO_log` |
-| m3：随机化录用成本 | 部分解决 | `randomizedExpectedHiringCost_eq_uniform` 已把具体执行传输到均匀排列空间；最后的记录数期望桥由 `HiringExpectationBridge` 明示并在 issue #332 跟踪 |
+| m3：随机化录用成本 | 已解决 | `randomizedExpectedHiringCost_eq_uniform` 把具体执行传输到均匀排列空间；`hiringExpectationBridge` 由纪录指标和有限对称计数闭合，公开成本定理不再需要额外前提 |
 | m4：RANDOMIZED-HIRE-ASSISTANT | 已解决 | `randomizedHireAssistant` |
 | m5 / m14：非构造双射与循环不变量 | 已解决 | `fisherYates` 是可执行的函数式 Fisher–Yates；`fisherYates_succ_invariant` 给出逐层一步交换不变量，`fisherYates_first_uniform` 给出当前选择均匀性，`fisherYates_uniform` 给出最终排列均匀性 |
 
