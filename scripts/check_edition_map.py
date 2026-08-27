@@ -9,6 +9,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from csv_contract import load_strict_dict_rows
 from online_material import ONLINE_HEADER, load_online_rows, split_source_modules
 
 
@@ -34,36 +35,14 @@ def module_source(root: Path, module: str) -> Path:
     return root.joinpath(*parts[:-1], f"{parts[-1]}.lean")
 
 
-def load_csv(path: Path, expected_header: list[str], errors: list[str]) -> list[dict[str, str]]:
-    """Load one CSV while reporting a missing file or schema mismatch."""
-    if not path.is_file():
-        errors.append(f"missing file: {path.name}")
-        return []
-    with path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        if reader.fieldnames != expected_header:
-            errors.append(
-                f"unexpected header in {path.name}: {reader.fieldnames}; expected {expected_header}"
-            )
-            return []
-        return list(reader)
-
-
 def validate_repository(root: Path) -> list[str]:
     """Return all fourth-edition map, facade, and progress contract errors."""
     errors: list[str] = []
     map_path = root / "docs" / "clrs-fourth-edition-map.csv"
-    if not map_path.is_file():
-        return ["missing file: clrs-fourth-edition-map.csv"]
-
-    with map_path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        if reader.fieldnames != MAP_HEADER:
-            return [
-                f"unexpected header in clrs-fourth-edition-map.csv: {reader.fieldnames}; "
-                f"expected {MAP_HEADER}"
-            ]
-        map_rows = list(reader)
+    try:
+        map_rows = load_strict_dict_rows(map_path, MAP_HEADER)
+    except ValueError as error:
+        return [str(error)]
 
     progress_path = root / "docs" / "clrs-proof-progress.csv"
     if not progress_path.is_file():

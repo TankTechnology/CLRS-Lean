@@ -105,6 +105,30 @@ class EditionMapTests(unittest.TestCase):
     def test_valid_repository_has_no_errors(self) -> None:
         self.assertEqual([], validate_repository(self.make_repo()))
 
+    def test_rejects_extra_edition_map_field_with_line_number(self) -> None:
+        root = self.make_repo()
+        path = root / "docs" / "clrs-fourth-edition-map.csv"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[1] = f"{lines[1]},unexpected"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        self.assertIn(
+            "clrs-fourth-edition-map.csv line 2: unexpected extra fields: unexpected",
+            validate_repository(root),
+        )
+
+    def test_rejects_extra_online_ledger_field_with_line_number(self) -> None:
+        root = self.make_repo()
+        path = root / "docs" / "clrs-online-material.csv"
+        lines = path.read_text(encoding="utf-8").splitlines()
+        lines[1] = f"{lines[1]},unexpected"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+        self.assertIn(
+            "clrs-online-material.csv line 2: unexpected extra fields: unexpected",
+            validate_repository(root),
+        )
+
     def test_requires_all_35_chapters(self) -> None:
         root = self.make_repo()
         path = root / "docs" / "clrs-fourth-edition-map.csv"
