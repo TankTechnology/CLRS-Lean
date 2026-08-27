@@ -113,4 +113,3 @@ The public signatures are first pinned as failing checks in a focused Chapter
 11 interface test.  Counting, probability, and expectation modules are
 elaborated separately.  The final batch adds native axiom checks and updates
 the Chapter 11 guide's model-provenance statement.
-

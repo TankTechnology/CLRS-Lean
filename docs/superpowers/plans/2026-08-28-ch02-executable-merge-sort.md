@@ -88,4 +88,3 @@
 - [ ] Run `python3 scripts/check_repository.py` and `git diff --check`.
 - [ ] Commit the independently verifiable Chapter 2 proof batch and close issue
   #335 only after all acceptance targets pass.
-
