@@ -33,21 +33,21 @@ existing Chapter 4 master-theorem and Akra--Bazzi APIs.
 **Files:**
 - Create: `.../Branching/IntegerTree/Model.lean`
 
-- [ ] Define `IntegerBranchingTree`, `rootSize`, `rootWork`, `totalCost`, and
+- [x] Define `IntegerBranchingTree`, `rootSize`, `rootWork`, `totalCost`, and
   `height`.
 - [ ] Add native examples that distinguish equal and unequal child heights.
-- [ ] Compile the model module.
+- [x] Compile the model module.
 
 ### Task 3: Well-founded execution and exact semantics
 
 **Files:**
 - Create: `.../Branching/IntegerTree/Execution.lean`
 
-- [ ] Define `IntegerBranchingSpec` and its independent `Satisfies` predicate.
-- [ ] Define `build` by well-founded recursion on input size.
-- [ ] Prove root-size, leaf-cutoff, and internal-node invariants.
-- [ ] Prove `build_totalCost_eq` by strong induction.
-- [ ] Compile and commit the generic layer.
+- [x] Define `IntegerBranchingSpec` and its independent `Satisfies` predicate.
+- [x] Define `build` by well-founded recursion on input size.
+- [x] Prove root-size, leaf-cutoff, and internal-node invariants.
+- [x] Prove `build_totalCost_eq` by strong induction.
+- [x] Compile and commit the generic layer.
 
 ### Task 4: Balanced floor-division instance
 
