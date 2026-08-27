@@ -6,6 +6,7 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method
+import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution
 
 /-!
 # 25.1. Maximum bipartite matching revisited
@@ -30,11 +31,9 @@ Main results:
   maximum iff it admits no augmenting path
 - `flowMethod_finds_maximum_matching`: a maximum matching exists and is
   certified by the flow method
-
-Current gaps:
-
-- The O(V · E) execution-cost refinement of the flow method is an optional
-  low-level refinement and is not stated here.
+- `flowMethod_finds_maximum_matching_in_OVE`: the BFS-selected unit-capacity
+  run returns a maximum matching with at most `|V|` augmentations and an
+  attached adjacency-list `O(VE)` work bound
 
 Notation conventions used in this section:
 
@@ -52,4 +51,5 @@ The section is split into the following sub-modules:
 * [Matching Flow Residuals](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S4_Matching_Flow/)
 * [Residual Reachability Translation](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S5_Residual_Translation/)
 * [Berge's Lemma and the Flow Method](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S6_Berge_Flow_Method/)
+* [Costed Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
 -/
