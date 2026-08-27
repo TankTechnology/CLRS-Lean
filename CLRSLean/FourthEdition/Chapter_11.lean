@@ -2,6 +2,7 @@ import CLRSLean.FourthEdition.Chapter_11.Section_11_1_Direct_Address_Tables
 import CLRSLean.FourthEdition.Chapter_11.Section_11_2_Chained_Hash_Tables
 import CLRSLean.FourthEdition.Chapter_11.Section_11_3_Hash_Functions
 import CLRSLean.FourthEdition.Chapter_11.Section_11_4_Open_Addressing
+import CLRSLean.FourthEdition.Chapter_11.Section_11_4_Open_Addressing.UniformProbe
 import CLRSLean.FourthEdition.Chapter_11.Section_11_5_Perfect_Hashing
 
 /-!
@@ -67,6 +68,10 @@ unsuccessful-search cost by {lit}`1/m`.
   {lit}`CLRS.Chapter11.openSearch_eq_false_of_absent`,
   {lit}`CLRS.Chapter11.linearProbe_bijective`,
   {lit}`CLRS.Chapter11.doubleHashProbe_bijective`,
+  {lit}`CLRS.Chapter11.firstProbesOccupied_card`,
+  {lit}`CLRS.Chapter11.uniformProbeTailProbability_eq_probeTail`,
+  {lit}`CLRS.Chapter11.uniformUnsuccessfulExpectedProbes_eq`,
+  {lit}`CLRS.Chapter11.uniformUnsuccessfulExpectedProbes_le`,
   {lit}`CLRS.Chapter11.expectedUnsuccessfulProbes_le`,
   {lit}`CLRS.Chapter11.expectedSuccessfulProbes_le`,
   and {lit}`CLRS.Chapter11.expectedSuccessfulProbes_le_ln` (CLRS Theorem 11.8,
@@ -88,11 +93,16 @@ Section 11.3 supplies a concrete universal family (the prime-field affine family
 {lit}`h_{a,b}(k) = a * k + b`) that discharges the {lit}`IsUniversal` hypothesis,
 so the universal-hashing bounds are no longer conditional.  Section 11.4
 formalises the open addressing model with probe sequences (linear, quadratic,
-double hashing) and proves the uniform-hashing expected-probe bounds:
+double hashing).  Its uniform-hashing assumption is now realized by the finite
+sample space {lit}`Equiv.Perm (Fin m)`: every injective prefix has exactly
+{lit}`(m-i)!` full-permutation extensions, the occupied-prefix probability is
+proved equal to the without-replacement product {lit}`probeTail`, and the
+expected concrete probe count is proved equal to the chapter's tail sum.  This
+gives explicit-sample-space versions of the expected-probe bounds:
 unsuccessful search and insertion {lit}`≤ 1/(1-α)` (CLRS Theorems 11.6-11.7)
 and successful search `(1/α) · ∑_{j<n} 1/(m-j)` (CLRS Theorem 11.8 harmonic
 form), refined to the closed form `(1/α) · ln(1/(1-α))`
-({lit}`CLRS.Chapter11.expectedSuccessfulProbes_le_ln`).  Section 11.5
+({lit}`CLRS.Chapter11.uniformSuccessfulExpectedProbes_le_ln`).  Section 11.5
 formalises the two-level perfect-hashing scheme: a primary
 hash into `m = n` buckets plus per-bucket secondary tables of size `n_j²`, which
 are collision-free with probability ≥ 1/2 (Theorem 11.9) and collectively use

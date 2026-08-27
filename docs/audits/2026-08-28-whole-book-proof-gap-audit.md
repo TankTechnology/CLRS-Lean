@@ -12,6 +12,19 @@ current numeric status remains in `docs/clrs-proof-progress.csv` and
 `docs/clrs-fourth-edition-map.csv`; unresolved proof work is tracked in GitHub
 issues.
 
+## Closure checkpoints after the audit baseline
+
+- Chapter 2 target #335 is closed on branch `codex/whole-book-proof-closure`:
+  the recursive execution calls the verified local merge, erases to the public
+  merge sort, and carries an all-input Θ(n log n) cost theorem (`08c188c8`).
+- Chapter 11 target #337 is closed on the same branch: uniform permutations are
+  counted through their injective prefixes, their event probability is proved
+  equal to `probeTail`, and the concrete probe-count expectations inherit CLRS
+  Theorems 11.6--11.8.
+
+The matrix below remains the dated baseline that motivated those batches; the
+live ledger and GitHub issues record their current state.
+
 ## Audit question
 
 The existing inventory answers “are all declarations selected by the project
