@@ -3,6 +3,7 @@ import CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_
 import CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming
 import CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem
+import CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem.Costed
 
 /-!
 # Chapter 35 — Approximation Algorithms
@@ -60,9 +61,19 @@ list (Lemma 35.5, TRIM), and the trimmed lists of APPROX-SUBSET-SUM.  Theorem
 APPROX-SUBSET-SUM is an achievable subset sum at most `t` and the optimum `y*`
 satisfies `y* ≤ (1 + ε) · z*` (via the compounded `(1 + ε/(2n))^n ≤ e^{ε/2} ≤
 1 + ε` bound).  Theorem 35.8 (the FPTAS running-time analysis) shows that, with
-`δ = ε/(2n)` and `n = |S|`, every trimmed list has size `O(n/ε)` and the whole
-algorithm runs in time `O(n² · lg t / ε)`, polynomial in the input size and in
-`1/ε` — a fully polynomial-time approximation scheme.  It is imported through
+`δ = ε/(2n)` and {lit}`n = |S|`, the intermediate list-size theorem
+{lit}`approxSubsetSum_fptas` supplies the semantic bound used by the executable
+analysis.  The costed refinement performs the actual map-add, merge, trim,
+target-filter, and final-maximum scans and records their work.  Its erasure
+theorem {lit}`approxSubsetSumWithCost_value` identifies the returned value with
+{lit}`approxSum`; {lit}`approxSubsetSumWithCost_fptas` proves for that same run both the
+Theorem 35.7 approximation guarantee and the explicit work bound
+`48 · (n + 1)² · (log t + 1) / ε`.
+
+This is a unit-cost list model: one unit is charged for each modeled addition,
+comparison, or outer composition step.  Bit complexity, allocation, and an
+imperative-array refinement remain outside this theorem's stated boundary.
+The development is imported through
 [Section 35.5](CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/).
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and

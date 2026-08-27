@@ -21,6 +21,10 @@ issues.
   counted through their injective prefixes, their event probability is proved
   equal to `probeTail`, and the concrete probe-count expectations inherit CLRS
   Theorems 11.6--11.8.
+- Chapter 35 target #341 is closed on the same branch: costed map-add, merge,
+  trim, target-filter, and maximum scans erase to the original semantics; the
+  execution-derived work theorem and `approxSubsetSumWithCost_fptas` bundle
+  feasibility, approximation, and polynomial work for the same run.
 
 The matrix below remains the dated baseline that motivated those batches; the
 live ledger and GitHub issues record their current state.
