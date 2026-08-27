@@ -348,7 +348,7 @@ git diff --check
 
 Expected: every command exits 0; trust output contains no unexpected axiom.
 
-- [ ] **Step 4: Update evidence and close the issue**
+- [x] **Step 4: Update evidence and close the issue**
 
 Record the exact theorem names and commands in both audits, update the ledger
 without changing unrelated rows, commit as
