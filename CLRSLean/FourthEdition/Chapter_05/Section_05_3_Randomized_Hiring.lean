@@ -62,11 +62,12 @@ noncomputable def uniformPermutationExpectedHires (n : Nat) : Real :=
 uniform-permutation sample space. -/
 theorem randomizedExpectedHires_eq_uniform (n : Nat) :
     randomizedExpectedHires n = uniformPermutationExpectedHires n := by
-  simpa [randomizedExpectedHires, uniformPermutationExpectedHires,
-    randomizedHireAssistant, randomizeInPlace] using
-    (fintypeExpect_equiv (randomizeInPlace_equiv n)
-      (fun sigma : Equiv.Perm (Fin n) =>
-        (hireAssistant (permutationRanks sigma) : Real)))
+  unfold randomizedExpectedHires uniformPermutationExpectedHires
+  change fintypeExpect (fun choices : ChoiceVector n =>
+      (hireAssistant (permutationRanks (fisherYates choices)) : Real)) = _
+  exact fintypeExpect_equiv (fisherYatesEquiv n)
+    (fun sigma : Equiv.Perm (Fin n) =>
+      (hireAssistant (permutationRanks sigma) : Real))
 
 /-- The actual expected cost of the randomized executable. -/
 noncomputable def randomizedExpectedHiringCost (hireCost : Real) (n : Nat) : Real :=
@@ -83,11 +84,12 @@ uniform-permutation model. -/
 theorem randomizedExpectedHiringCost_eq_uniform (hireCost : Real) (n : Nat) :
     randomizedExpectedHiringCost hireCost n =
       uniformPermutationExpectedHiringCost hireCost n := by
-  simpa [randomizedExpectedHiringCost, uniformPermutationExpectedHiringCost,
-    randomizedHireAssistant, randomizeInPlace] using
-    (fintypeExpect_equiv (randomizeInPlace_equiv n)
-      (fun sigma : Equiv.Perm (Fin n) =>
-        hireCost * (hireAssistant (permutationRanks sigma) : Real)))
+  unfold randomizedExpectedHiringCost uniformPermutationExpectedHiringCost
+  change fintypeExpect (fun choices : ChoiceVector n =>
+      hireCost * (hireAssistant (permutationRanks (fisherYates choices)) : Real)) = _
+  exact fintypeExpect_equiv (fisherYatesEquiv n)
+    (fun sigma : Equiv.Perm (Fin n) =>
+      hireCost * (hireAssistant (permutationRanks sigma) : Real))
 
 /-- The remaining textbook bridge: the expectation of the executable record
 counter over uniform permutations agrees with the rank-symmetry recurrence. -/

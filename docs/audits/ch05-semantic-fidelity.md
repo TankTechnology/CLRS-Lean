@@ -218,3 +218,20 @@
 
 **U1. 第 4 版与第 3 版第 5 章的引理编号差异**
 - 阻塞原因：对照语料为第 4 版文本，第 5 章仅有 Lemmas 5.1–5.4。如果历史上第 3 版或某些印刷版本有 Lemma 5.5，则 M1 可能不是缺陷。建议双重确认目标版本。
+
+## 后续闭合记录（2026-08-27）
+
+本节保留上面的 2026-08-18 审计快照，不回写其历史计数；下表记录此后已验收的修复。
+
+| 原审计项 | 当前状态 | 可验收证据 |
+|----------|----------|------------|
+| M1：Lemma 5.4 编号 | 已解决 | 第四版公开接口统一标为 Lemma 5.4 |
+| m1：指标期望接口 | 已解决 | `indicator_expectation_eq_probability` |
+| m2 / m12：录用成本常数 | 已解决 | `expectedHiringCost_eq_harmonic`、`expectedHiringCost_isBigO_log` |
+| m3：随机化录用成本 | 部分解决 | `randomizedExpectedHiringCost_eq_uniform` 已把具体执行传输到均匀排列空间；最后的记录数期望桥由 `HiringExpectationBridge` 明示并在 issue #332 跟踪 |
+| m4：RANDOMIZED-HIRE-ASSISTANT | 已解决 | `randomizedHireAssistant` |
+| m5 / m14：非构造双射与循环不变量 | 已解决 | `fisherYates` 是可执行的函数式 Fisher–Yates；`fisherYates_succ_invariant` 给出逐层一步交换不变量，`fisherYates_first_uniform` 给出当前选择均匀性，`fisherYates_uniform` 给出最终排列均匀性 |
+
+这里的“可执行”指递归的函数式算法：每层把均匀选中的元素放到当前
+位置，再在剩余后缀上递归。它与教材的原地数组循环具有同样的一步交换
+结构和随机选择空间，但没有额外引入可变数组状态。
