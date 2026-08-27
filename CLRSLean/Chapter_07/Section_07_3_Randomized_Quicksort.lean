@@ -1,4 +1,5 @@
 import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort
+import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.Bridge
 
 /-!
 # Section 7.3 - Randomized quicksort (legacy compatibility path)

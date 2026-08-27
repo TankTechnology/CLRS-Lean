@@ -108,7 +108,9 @@ elements, given by the closed-form solution of CLRS recurrence (7.4):
 
 where {lit}`H_n` is the {lit}`n`-th harmonic number. This is a computable
 deterministic rational function; the expectation is folded into the recurrence
-coefficients, not into a probability space.
+coefficients in this core file.  The companion `ExplicitRandomness` modules
+construct the finite permutation sample space and prove its executable
+pair-trace-count expectation equals this function.
 -/
 def expectedComparisons (n : Nat) : Rat :=
   2 * ((n : Rat) + 1) * harmonic n - 4 * (n : Rat)

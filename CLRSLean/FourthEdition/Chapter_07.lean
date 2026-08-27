@@ -2,6 +2,7 @@ import CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability
+import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.Bridge
 import CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort
 
 /-!
@@ -17,12 +18,11 @@ under {lit}`CLRSLean.FourthEdition.Chapter_07`.  Declarations retain the
 and its {lit}`Section_07_*` modules forward to these sources during the
 compatibility period.
 
-Chapter 7 now has three compiler-clean proof layers: the functional quicksort
-correctness spine, a deterministic comparison-count upper bound, and the
-expected-comparison recurrence with a named closed form and harmonic bounds for
-the current randomized-quicksort model.  The remaining gap is not the recurrence
-algebra itself, but the lower-level CLRS array refinement and an explicit
-probability space for random pivot choices.
+Chapter 7 now has four compiler-clean proof layers: the functional quicksort
+correctness spine, a deterministic comparison-count upper bound, the
+expected-comparison recurrence with a named closed form and harmonic bounds,
+and an explicit finite random-priority trace semantics whose expected
+comparison count is proved equal to that closed form.
 
 ## Sections
 
@@ -48,8 +48,10 @@ probability space for random pivot choices.
   {lit}`CLRS.Chapter07.quickSortComparisons_quadratic`.
 
 * 7.3 Randomized quicksort: {lit}`proved` for the expected-comparison closed
-  form and {lit}`Θ(n log n)` asymptotic bound, including the bridge between the
-  random-permutation probability model and the algebraic closed form.  Main results:
+  form and {lit}`Θ(n log n)` asymptotic bound, including an explicit uniform
+  sample space {lit}`Equiv.Perm (Fin n)`, its concrete permutation input to the
+  executable first-pivot quicksort, an executable natural pair-trace counter,
+  the pivot-symmetry theorem, and the exact expectation bridge.  Main results:
   {lit}`CLRS.Chapter07.harmonic_succ`,
   {lit}`CLRS.Chapter07.sum_mul_harmonic_eq`,
   {lit}`CLRS.Chapter07.sum_expectedComparisons_eq`,
@@ -61,8 +63,12 @@ probability space for random pivot choices.
   {lit}`CLRS.Chapter07.expectedComparisons_quadratic`,
   {lit}`CLRS.Chapter07.expectedComparisons_monotone`,
   {lit}`CLRS.Chapter07.expectedComparisons_isBigTheta_nlogn`,
-  {lit}`CLRS.Chapter07.expectedComparisons_succ_add_two`, and
-  {lit}`CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons`.
+  {lit}`CLRS.Chapter07.expectedComparisons_succ_add_two`,
+  {lit}`CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons`,
+  {lit}`CLRS.Chapter07.priorityPivot_uniform`,
+  {lit}`CLRS.Chapter07.randomizedQuicksortOutput_correct`,
+  {lit}`CLRS.Chapter07.explicitRandomizedQuicksortExpectedComparisons_eq`, and
+  {lit}`CLRS.Chapter07.explicitRandomizedQuicksortExpectedComparisons_isBigTheta_nlogn`.
 
 * 7.4 Analysis of quicksort: {lit}`proved` for the expected running time.
   The section identifies the expected running time with the expected number of
@@ -78,15 +84,16 @@ probability space for random pivot choices.
 ## Current Gaps
 
 * Index-level mutable-array {lit}`PARTITION` loop refinement and RAM cost model.
+* Pointwise refinement of the CLRS rank-pair trace cardinality to the separate
+  operational counter {lit}`quickSortComparisons` on every sampled input.
 * Sharp {lit}`n log n` tail bound (Chernoff/Hoeffding) and lower bound
   ({lit}`Omega(n log n)` for comparison sorting).
 
-The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, and the
-bridge between the random-permutation probability model and the algebraic formula
-({lit}`sum_compared_prob_eq_expectedComparisons`) are now proved.  Deriving that
-same expectation bridge directly from an explicit recursive pivot-choice
-execution and its independence facts is an optional refinement tracked in
-GitHub issue #330.
+The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, and both
+bridges from the explicit permutation execution through pairwise indicators to
+the algebraic formula are proved.  Independence of pair indicators is neither
+assumed nor needed: finite linearity of expectation and the proved
+transposition symmetry suffice.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
