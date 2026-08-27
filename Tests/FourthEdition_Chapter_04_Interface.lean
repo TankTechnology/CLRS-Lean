@@ -84,6 +84,7 @@ namespace Chapter04
 #check akraBazzi_scale_factor_le_linear
 #check akraBazzi_scale_floor_decomp
 #check akraBazzi_lower_bound_critical
+#check akraBazzi_bigTheta_critical
 #check akraBazzi_bigTheta
 #check akraBazziSmoothingFn
 #check akraBazzi_smoothing_gain_ge_loss
@@ -109,6 +110,7 @@ namespace Chapter04
 #print axioms akraBazzi_upper_bound
 #print axioms akraBazzi_lower_bound
 #print axioms akraBazzi_lower_bound_critical
+#print axioms akraBazzi_bigTheta_critical
 #print axioms akraBazzi_bigTheta
 #print axioms akraBazzi_lower_bound_leaf
 #print axioms akraBazzi_bigTheta_leaf
