@@ -1,12 +1,13 @@
 import CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching
 
 /-!
-# Cost model for the §25.1 bipartite-flow execution
+# Target cost model for a future adjacency-list §25.1 refinement
 
-The selected representation is an adjacency-list representation of the
-support of the unit-capacity flow network.  Its forward arcs are the
-source-to-left arcs, the original bipartite edges, and the right-to-sink
-arcs.  Residual BFS scans at most both orientations of every support arc.
+These definitions state the textbook adjacency-list budget for the support of
+the unit-capacity flow network.  They are deliberately kept separate from the
+current executable residual BFS, which enumerates the finite vertex universe.
+An `O(VE)` implementation theorem will require an adjacency-list BFS, a
+cost-producing path update, and erasure proofs to the semantic flow step.
 -/
 
 namespace CLRS
@@ -25,17 +26,17 @@ def flowArcCount (G : BipartiteGraph V) : ℕ :=
 def flowVertexCount (V : Type*) [Fintype V] : ℕ :=
   Fintype.card (V ⊕ Bool)
 
-/-- Adjacency-list work charged to one complete residual BFS. -/
-def adjacencyBFSWork (G : BipartiteGraph V) : ℕ :=
+/-- Target adjacency-list budget for one complete residual BFS. -/
+def adjacencyBFSBudget (G : BipartiteGraph V) : ℕ :=
   flowVertexCount V + 2 * flowArcCount G
 
-/-- Work charged to updating a simple augmenting path. -/
-def pathUpdateWork (_G : BipartiteGraph V) : ℕ :=
+/-- Target budget for updating a simple augmenting path. -/
+def pathUpdateBudget (_G : BipartiteGraph V) : ℕ :=
   flowVertexCount V
 
-/-- Total work budget charged to one BFS augmentation attempt. -/
-def augmentationAttemptWork (G : BipartiteGraph V) : ℕ :=
-  adjacencyBFSWork G + pathUpdateWork G
+/-- Target budget for one adjacency-list BFS augmentation attempt. -/
+def augmentationAttemptBudget (G : BipartiteGraph V) : ℕ :=
+  adjacencyBFSBudget G + pathUpdateBudget G
 
 /-- The two bipartition sizes add up to the number of graph vertices. -/
 theorem partition_card (G : BipartiteGraph V) :
@@ -64,11 +65,13 @@ theorem left_card_le_vertex_card (G : BipartiteGraph V) :
     G.L.card ≤ Fintype.card V := by
   exact Finset.card_le_card (Finset.subset_univ G.L)
 
-/-- One residual BFS plus one simple-path update is linear in the number of
-support arcs of the constructed flow network. -/
-theorem augmentationAttemptWork_le (G : BipartiteGraph V) :
-    augmentationAttemptWork G ≤ 4 * (flowArcCount G + 1) := by
-  simp only [augmentationAttemptWork, adjacencyBFSWork, pathUpdateWork,
+/-- The target per-attempt budget is linear in the number of support arcs.
+
+This arithmetic lemma is a specification for the missing adjacency-list
+refinement; it is not a cost theorem about `residualBFS`. -/
+theorem augmentationAttemptBudget_le (G : BipartiteGraph V) :
+    augmentationAttemptBudget G ≤ 4 * (flowArcCount G + 1) := by
+  simp only [augmentationAttemptBudget, adjacencyBFSBudget, pathUpdateBudget,
     flowVertexCount_eq]
   rw [flowArcCount_eq]
   omega

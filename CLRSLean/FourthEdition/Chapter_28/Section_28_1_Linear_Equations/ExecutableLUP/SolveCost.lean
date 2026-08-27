@@ -89,10 +89,22 @@ theorem backSubstWithCost_work_le : ∀ {n : Nat}
       simp [pow_two]
       nlinarith
 
-/-- Costed LUP-SOLVE, including both triangular substitutions. -/
+/-- Apply a permutation to a vector by direct index lookup.  This is the
+zero-field-operation implementation of multiplication by a permutation
+matrix. -/
+def permuteVector {n : Nat} (σ : Equiv.Perm (Fin n)) (b : Fin n → F) : Fin n → F :=
+  b ∘ σ
+
+theorem permuteVector_eq_permMatrix_mulVec {n : Nat} (σ : Equiv.Perm (Fin n))
+    (b : Fin n → F) :
+    permuteVector σ b = σ.permMatrix F *ᵥ b := by
+  simpa [permuteVector] using (Matrix.permMatrix_mulVec (σ := σ) (v := b)).symm
+
+/-- Costed LUP-SOLVE, including the direct permutation and both triangular
+substitutions. -/
 def lupSolveWithCost {n : Nat} (σ : Equiv.Perm (Fin n))
     (L U : Matrix (Fin n) (Fin n) F) (b : Fin n → F) : VectorExecution n F :=
-  let forward := forwardSubstWithCost L (σ.permMatrix F *ᵥ b)
+  let forward := forwardSubstWithCost L (permuteVector σ b)
   let backward := backSubstWithCost U forward.value
   ⟨backward.value, forward.work + backward.work⟩
 
@@ -103,6 +115,7 @@ theorem lupSolveWithCost_value {n : Nat} (σ : Equiv.Perm (Fin n))
   rw [lupSolveWithCost]
   simp only
   rw [backSubstWithCost_value, forwardSubstWithCost_value]
+  rw [permuteVector_eq_permMatrix_mulVec]
   rfl
 
 /-- The actual two-substitution execution uses at most `2n²` field
@@ -112,9 +125,9 @@ theorem lupSolveWithCost_work_le {n : Nat} (σ : Equiv.Perm (Fin n))
     (lupSolveWithCost σ L U b).work ≤ 2 * n ^ 2 := by
   rw [lupSolveWithCost]
   simp only
-  have hf := forwardSubstWithCost_work_le L (σ.permMatrix F *ᵥ b)
+  have hf := forwardSubstWithCost_work_le L (permuteVector σ b)
   have hb := backSubstWithCost_work_le U
-    (forwardSubstWithCost L (σ.permMatrix F *ᵥ b)).value
+    (forwardSubstWithCost L (permuteVector σ b)).value
   omega
 
 /-- The costed solver returns the same certified solution as `lupSolve`. -/

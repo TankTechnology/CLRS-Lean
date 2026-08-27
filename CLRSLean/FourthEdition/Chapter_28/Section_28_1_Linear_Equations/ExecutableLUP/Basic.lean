@@ -18,7 +18,8 @@ structure LUPFactors (n : Nat) (F : Type) where
   lower : Matrix (Fin n) (Fin n) F
   upper : Matrix (Fin n) (Fin n) F
 
-/-- Result and field-operation work of a total LUP execution. -/
+/-- Result and exact-algebra work of a total LUP execution: pivot comparisons
+plus the field operations performed by elimination and factor assembly. -/
 structure LUPExecution (n : Nat) (F : Type) where
   result : Option (LUPFactors n F)
   work : Nat

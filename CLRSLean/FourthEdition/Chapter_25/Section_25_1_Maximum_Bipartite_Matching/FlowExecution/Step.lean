@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 /-!
 # BFS-selected unit-capacity augmentation
 
-This module defines the flow iteration used by the costed §25.1 algorithm.
+This module defines the flow iteration used by the executable §25.1 algorithm.
 Unlike the abstract existence-level loop, an active step augments along the
 shortest path reconstructed by the executable residual BFS.
 -/

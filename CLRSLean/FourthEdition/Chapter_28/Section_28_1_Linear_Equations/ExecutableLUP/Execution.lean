@@ -5,7 +5,8 @@ import CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations.Executabl
 
 This file contains only data-producing definitions.  The recursive execution
 uses the concrete pivot scan and direct elimination before assembling child
-factors by block reindexing.
+factors by block reindexing.  Permutations are direct index lookups, and the
+counter includes the multiplier divisions performed during factor assembly.
 -/
 
 namespace CLRS
@@ -64,9 +65,12 @@ def assembleLUPFactors {n : Nat}
   let α : Matrix (Fin 1) (Fin 1) F := fun _ _ => D 0 0
   let v : Matrix (Fin 1) (Fin n) F := fun _ j => D 0 (Fin.succ j)
   let mult : Matrix (Fin n) (Fin 1) F := fun i _ => B (Fin.succ i) 0 / B 0 0
-  let P₁ : Matrix (Fin n) (Fin n) F := child.perm.permMatrix F
+  -- Multiplication by a permutation matrix is implemented as direct row
+  -- lookup, so factor assembly does not hide an `n × n` matrix product.
+  let permutedMult : Matrix (Fin n) (Fin 1) F :=
+    fun i j => mult (child.perm i) j
   let L : Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
-    (Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 (P₁ * mult) child.lower).reindex
+    (Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 permutedMult child.lower).reindex
       re.symm re.symm
   let U : Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
     (Matrix.fromBlocks α v (0 : Matrix (Fin n) (Fin 1) F) child.upper).reindex
@@ -74,7 +78,9 @@ def assembleLUPFactors {n : Nat}
   ⟨pivotPerm * liftTrailingPerm child.perm, L, U⟩
 
 /-- Total LUP execution.  Failure is data: no factor triple is returned, but
-the comparisons and field operations already performed remain recorded. -/
+the comparisons and field operations already performed remain recorded.  A
+successful size-`n+1` assembly charges the `n` multiplier divisions used in
+the lower-left block. -/
 def lupDecomposeWithCost : ∀ (n : Nat),
     Matrix (Fin n) (Fin n) F → LUPExecution n F
   | 0, _A =>
@@ -98,7 +104,7 @@ def lupDecomposeWithCost : ∀ (n : Nat),
               ⟨none, pivotRun.comparisons + eliminated.work + child.work⟩
           | some factors =>
               ⟨some (assembleLUPFactors B eliminated.value pivotPerm factors),
-                pivotRun.comparisons + eliminated.work + child.work⟩
+                pivotRun.comparisons + eliminated.work + child.work + n⟩
 
 end Chapter28
 end CLRS

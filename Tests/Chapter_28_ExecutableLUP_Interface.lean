@@ -14,6 +14,8 @@ import CLRSLean.FourthEdition.Chapter_28
 #check CLRS.Chapter28.lupDecomposeWithCost_eq_none_iff
 #check CLRS.Chapter28.lupDecomposeWithCost_work_le
 #check CLRS.Chapter28.lupDecomposeWithCost_correct
+#check CLRS.Chapter28.permuteVector
+#check CLRS.Chapter28.permuteVector_eq_permMatrix_mulVec
 #check CLRS.Chapter28.lupSolveWithCost
 #check CLRS.Chapter28.lupSolveWithCost_value
 #check CLRS.Chapter28.lupSolveWithCost_work_le

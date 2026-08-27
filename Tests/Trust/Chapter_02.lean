@@ -38,4 +38,4 @@ example : CLRS.Chapter02.merge [1, 4, 7] [2, 3, 9] = [1, 2, 3, 4, 7, 9] := by
 
 example : (CLRS.Chapter02.mergeSortWithCost [5, 2, 4, 1, 3]).value =
     [1, 2, 3, 4, 5] := by
-  native_decide
+  norm_num [CLRS.Chapter02.mergeSortWithCost, CLRS.Chapter02.mergeWithCost]

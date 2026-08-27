@@ -30,7 +30,8 @@ The native sections supply the represented fourth-edition matrix-operations
 sections (CLRS Theorem 28.1 and Lemmas 28.1--28.2).  The constructive
 Theorem 28.1 layer is exposed by {lit}`lupDecomposeWithCost`: it explicitly
 scans for a nonzero pivot, swaps rows, performs pointwise Gaussian elimination,
-recurses on the Schur block, and returns either factors or failure.
+recurses on the Schur block, directly reindexes permutation rows, counts the
+factor-assembly multiplier divisions, and returns either factors or failure.
 {lit}`lupDecomposeWithCost_correct` proves that every nonsingular input returns
 a unit-lower-triangular factor, an upper-triangular factor with nonzero
 diagonal, and the exact equation {lit}`P·A=L·U`, while the same execution's
@@ -38,7 +39,8 @@ counter is at most {lit}`4n³`.  Failure is equivalent to a zero determinant.
 
 The costed solver {lit}`lupSolveWithCost` erases to the existing
 {lit}`lupSolve`, inherits its solution theorem, and records at most
-{lit}`2n²` field operations.  These are exact-field unit-cost results with
+{lit}`2n²` field operations; its permutation is implemented by direct vector
+indexing rather than a hidden matrix-vector product.  These are exact-field unit-cost results with
 decidable zero testing; floating-point stability, mutable storage, allocation,
 and bit/RAM costs remain outside this boundary.
 

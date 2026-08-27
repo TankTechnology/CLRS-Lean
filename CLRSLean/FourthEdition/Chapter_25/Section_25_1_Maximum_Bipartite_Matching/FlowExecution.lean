@@ -4,8 +4,9 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.Refinement
 
 /-!
-# Costed flow execution for maximum bipartite matching
+# BFS flow execution for maximum bipartite matching
 
-Public facade for the adjacency-list cost model, BFS-selected augmentation
-run, integral matching refinement, and the §25.1 `O(VE)` theorem.
+Public facade for the target adjacency-list budget, BFS-selected augmentation
+run, and integral matching refinement.  The budget is not yet attached to an
+adjacency-list implementation, so this facade does not advertise `O(VE)`.
 -/

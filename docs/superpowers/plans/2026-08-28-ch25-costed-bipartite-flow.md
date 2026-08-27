@@ -1,5 +1,12 @@
 # Chapter 25 costed bipartite-flow implementation plan
 
+Status (2026-08-28): partially implemented.  The BFS-selected flow execution,
+integrality, termination after `|G.L|` attempts, and maximum-matching
+refinement are proved.  Pre-merge review rejected the initial closed-form work
+field because it was not produced by the current all-vertices residual BFS.
+Steps 4--7 therefore remain open and require a genuine adjacency-list BFS and
+path-update counter with erasure theorems; issue #339 must remain open.
+
 1. Add a failing interface test naming the cost-model, run, refinement, and
    final `O(VE)` theorem.
 2. Implement graph/network counts and prove the per-attempt linear budget.
