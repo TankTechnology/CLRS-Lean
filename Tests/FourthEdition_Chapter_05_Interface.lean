@@ -31,6 +31,11 @@ namespace Chapter05
 #check randomizedHireAssistant
 #check randomizedExpectedHires_eq_uniform
 #check HiringExpectationBridge
+#check hireAssistant_eq_sum_prefixRecordIndicators
+#check prefixRecord_probability
+#check uniformPermutationExpectedHires_eq_harmonic
+#check hiringExpectationBridge
+#check randomizedExpectedHires_eq
 #check randomizedExpectedHiringCost
 #check randomizedExpectedHiringCost_eq_uniform
 #check randomizedExpectedHiringCost_eq
@@ -55,10 +60,13 @@ example : hireAssistant [] = 0 := by native_decide
 example : hireAssistant [7] = 1 := by native_decide
 example : hireAssistant [3, 1, 4, 1, 5, 9, 2, 6] = 4 := by native_decide
 example : recordsFrom 5 [1, 6, 3, 9, 8] = 2 := by native_decide
+example : hireAssistant (permutationRanks (Equiv.refl (Fin 4))) = 4 := by native_decide
 
 /-! The headline theorems must not carry `sorryAx` or any project axiom. -/
 #print axioms recordsFrom_step
 #print axioms hireAssistant_le_length
+#print axioms hiringExpectationBridge
+#print axioms randomizedExpectedHiringCost_isBigO_log
 
 end Chapter05
 end CLRS

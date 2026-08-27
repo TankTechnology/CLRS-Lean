@@ -3,6 +3,7 @@ import CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Random_Variables
 import CLRSLean.FourthEdition.Chapter_05.Section_05_2_Indicator_Expectation
 import CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Algorithms
 import CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Hiring
+import CLRSLean.FourthEdition.Chapter_05.Section_05_3_Randomized_Hiring.ExpectationBridge
 import CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis
 import CLRSLean.FourthEdition.Chapter_05.Section_05_4_Probabilistic_Analysis.OnlineHiring
 
@@ -48,9 +49,12 @@ not merely distributionally equivalent.  The companion
 {lit}`CLRS.Chapter05.randomizedHireAssistant` composes that randomization with
 the executable hiring loop.  The exact transport theorem
 {lit}`CLRS.Chapter05.randomizedExpectedHiringCost_eq_uniform` moves its expected
-cost to the uniform-permutation space; the remaining record-count expectation
-bridge is explicit as {lit}`CLRS.Chapter05.HiringExpectationBridge` and tracked
-in GitHub issue #332.
+cost to the uniform-permutation space.  The companion record-indicator proof
+then identifies the executable counter with a sum of prefix-record events,
+proves that the event at position {lit}`i` has probability {lit}`1/(i+1)`, and
+closes the expectation bridge as
+{lit}`CLRS.Chapter05.hiringExpectationBridge`.  Consequently
+{lit}`CLRS.Chapter05.randomizedExpectedHiringCost_isBigO_log` is premise-free.
 
 Section 5.4 applies indicators plus independence to two classic probabilistic
 analyses: the **birthday paradox** (expected number of same-birthday pairs is
@@ -75,8 +79,10 @@ success probability for the threshold {lit}`⌊n/e⌋`.
   ({lit}`CLRS.Chapter05.fisherYates_first_uniform`), and completed-permutation
   uniformity ({lit}`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.4), plus
   the exact randomized-hiring transport to the uniform-permutation
-  expectation.  The executable record-count expectation equality itself
-  remains the explicit issue #332 boundary.
+  expectation, the executable record-count identity
+  ({lit}`CLRS.Chapter05.hireAssistant_eq_sum_prefixRecordIndicators`), the
+  prefix-record probability ({lit}`CLRS.Chapter05.prefixRecord_probability`),
+  and the resulting harmonic expectation and logarithmic expected-cost bound.
 * Section 5.4: {lit}`proved` for the product-uniform birthday and balls-and-bins
   models ({lit}`CLRS.Chapter05.expectedCollisions_eq`,
   {lit}`CLRS.Chapter05.expectedBallsInBin_eq`), the longest-streak

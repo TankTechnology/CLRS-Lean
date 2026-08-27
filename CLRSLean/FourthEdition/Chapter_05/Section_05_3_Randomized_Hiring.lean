@@ -12,8 +12,9 @@ expected hiring-cost calculation without conflating two distinct facts:
   permutation space;
 * the rank-symmetry calculation identifies the latter with `expectedHires`.
 
-The second fact is represented by `HiringExpectationBridge`.  Keeping it
-explicit makes the remaining execution-to-analysis boundary auditable.
+The second fact has the named interface `HiringExpectationBridge`; the small
+companion modules under `Randomized_Hiring/` prove it from prefix-record
+indicators and finite permutation symmetry.
 -/
 
 namespace CLRS
@@ -96,9 +97,11 @@ counter over uniform permutations agrees with the rank-symmetry recurrence. -/
 def HiringExpectationBridge : Prop :=
   forall n, uniformPermutationExpectedHires n = expectedHires n
 
-/-- Under the explicit execution-to-analysis bridge, the randomized
-executable has the analytic expected hiring cost. -/
-theorem randomizedExpectedHiringCost_eq (hbridge : HiringExpectationBridge)
+/-- Compatibility wrapper: under an explicitly supplied
+execution-to-analysis bridge, the randomized executable has the analytic
+expected hiring cost.  The companion `ExpectationBridge` module proves the
+bridge and exposes a premise-free theorem under the original public name. -/
+theorem randomizedExpectedHiringCost_eq_of_bridge (hbridge : HiringExpectationBridge)
     (hireCost : Real) (n : Nat) :
     randomizedExpectedHiringCost hireCost n = expectedHiringCost hireCost n := by
   rw [randomizedExpectedHiringCost_eq_uniform]
@@ -120,15 +123,15 @@ theorem randomizedExpectedHiringCost_eq (hbridge : HiringExpectationBridge)
             (Fintype.card (Equiv.Perm (Fin n)) : Real)) := by ring
     _ = hireCost * expectedHires n := by rw [hb]
 
-/-- RANDOMIZED-HIRE-ASSISTANT has logarithmic expected hiring cost once the
-uniform-permutation record-count bridge is supplied. -/
-theorem randomizedExpectedHiringCost_isBigO_log
+/-- Compatibility wrapper for the logarithmic bound with an explicitly
+supplied bridge. -/
+theorem randomizedExpectedHiringCost_isBigO_log_of_bridge
     (hbridge : HiringExpectationBridge) (hireCost : Real) (hcost : 0 <= hireCost) :
     Chapter03.isBigO (randomizedExpectedHiringCost hireCost)
       (fun n : Nat => Real.log (n : Real)) := by
   have heq : randomizedExpectedHiringCost hireCost = expectedHiringCost hireCost := by
     funext n
-    exact randomizedExpectedHiringCost_eq hbridge hireCost n
+    exact randomizedExpectedHiringCost_eq_of_bridge hbridge hireCost n
   rw [heq]
   exact expectedHiringCost_isBigO_log hireCost hcost
 
