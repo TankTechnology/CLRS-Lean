@@ -627,7 +627,7 @@ a {
         padding-left: 72px;
     }
 
-    .breadcrumbs li:last-child:not(:first-child) {
+    .breadcrumbs li:not(:first-child) {
         display: none;
     }
 
