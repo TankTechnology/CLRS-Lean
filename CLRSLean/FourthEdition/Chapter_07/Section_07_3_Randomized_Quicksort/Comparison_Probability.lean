@@ -324,8 +324,12 @@ probability.  The imported §7.3 and §7.4 layers close the two former follow-up
 items: {lit}`sum_compared_prob_eq_expectedComparisons` identifies the pairwise
 sum with the expected comparison count, and
 {lit}`expectedRunningTime_isBigTheta_nlogn` proves the textbook
-{lit}`Θ(n log n)` result.  A concrete recursive pivot-choice probability space
-is a separate optional refinement tracked in GitHub issue #330.
+{lit}`Θ(n log n)` result.  The `ExplicitRandomness` companion now closes the
+former probability-space gap: a uniform priority permutation feeds the
+executable first-pivot quicksort, its natural pair-trace counter is a sum of
+these same events, and its finite expectation is proved equal to the closed
+form.  Pointwise refinement to the separate operational counter remains
+explicitly tracked by the Chapter 7 guide.
 -/
 
 end Chapter07
