@@ -845,6 +845,9 @@ description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
 "CLRSLean.Chapter_33" = [
   "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties",
 ]
+"CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties" = [
+  "CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties.SharedEndpoint",
+]
 "CLRSLean.FourthEdition.Chapter_27" = [
   "CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator",
   "CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List",
@@ -7852,6 +7855,9 @@ title = "Extensions Beyond the Textbook"
 
 [modules."CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties"]
 title = "33.1. Line-Segment Properties"
+
+[modules."CLRSLean.Chapter_33.Section_33_1_Line_Segment_Properties.SharedEndpoint"]
+title = "33.1 supplement. Shared Endpoints Imply Intersection"
 
 [modules."CLRSLean.Chapter_34.BinaryNat"]
 title = "Chapter 34 support. Compact natural-number fields for strict Chapter 34 languages"

@@ -20,10 +20,10 @@ third edition of CLRS.
   orientation determination plus the collinear special case)
 
 Status: `partial` — the definitions, the cross-product algebra theorems, and
-`orientation_spec` are formalized; the soundness and completeness of
-`segmentIntersect` with respect to an independent geometric intersection
-specification remain to be proved, including the shared-endpoint and collinear
-cases.
+`orientation_spec` are formalized.  The companion `SharedEndpoint` module
+proves that sharing any endpoint implies `segmentIntersect`; full soundness and
+completeness with respect to an independent geometric intersection
+specification remain open, including the general collinear-overlap case.
 
 ## Geometric meaning of the cross product
 
@@ -240,10 +240,8 @@ Determines whether two segments share an endpoint.
 This is a special case of intersection: if they share an endpoint, some of the
 intersection test's orientations are collinear.
 
-**TODO:** Two segments sharing an endpoint must satisfy `segmentIntersect`.
-Proof sketch: a shared endpoint means at least one of the four orientations is
-`Collinear`, and the shared endpoint always lies in the other segment's bounding
-box.
+The companion theorem `segmentIntersect_of_sharesEndpoint` proves that this
+predicate implies `segmentIntersect` by covering all four endpoint equalities.
 -/
 noncomputable def sharesEndpoint (s1 s2 : Segment) : Prop :=
   s1.p = s2.p ∨ s1.p = s2.q ∨ s1.q = s2.p ∨ s1.q = s2.q
