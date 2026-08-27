@@ -36,6 +36,20 @@ namespace Chapter05
 #check randomizedExpectedHiringCost_eq
 #check randomizedExpectedHiringCost_isBigO_log
 
+-- §5.3 constructive RANDOMIZE-IN-PLACE / Fisher–Yates refinement
+#check choiceVectorSuccEquiv
+#check fisherYatesStep
+#check fisherYates
+#check fisherYates_succ_invariant
+#check fisherYatesStep_map_finRange_perm
+#check fisherYates_map_finRange_perm
+#check fisherYates_first_uniform
+#check fisherYates_uniform
+#check randomizeInPlace_eq_fisherYates
+
+example : fisherYates (zeroChoiceVector 4) 2 = 2 := by native_decide
+example : fisherYates (lastChoiceVector 4) 0 = 3 := by native_decide
+
 -- The executable loop counts left-to-right maxima (records).
 example : hireAssistant [] = 0 := by native_decide
 example : hireAssistant [7] = 1 := by native_decide

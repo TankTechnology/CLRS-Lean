@@ -37,8 +37,14 @@ an event indicator is its finite-uniform probability.
 
 Section 5.3 proves the central result of CLRS §5.3: the `RANDOMIZE-IN-PLACE`
 procedure (Fisher–Yates shuffle) yields a uniform random permutation of
-{lit}`Fin n` (Lemma 5.4), modelled by an explicit choice-vector sample space
-and a bijection onto {lit}`Equiv.Perm (Fin n)`.  The companion
+{lit}`Fin n` (Lemma 5.4).  The functional implementation
+{lit}`CLRS.Chapter05.fisherYates` recursively performs one explicit placement
+swap and continues on the remaining suffix.  Its equations are packaged as
+{lit}`CLRS.Chapter05.fisherYates_succ_invariant`; the current selection is
+uniform by {lit}`CLRS.Chapter05.fisherYates_first_uniform`, and the completed
+permutation is uniform by {lit}`CLRS.Chapter05.fisherYates_uniform`.  The public
+{lit}`randomizeInPlace` name is pointwise equal to this executable definition,
+not merely distributionally equivalent.  The companion
 {lit}`CLRS.Chapter05.randomizedHireAssistant` composes that randomization with
 the executable hiring loop.  The exact transport theorem
 {lit}`CLRS.Chapter05.randomizedExpectedHiringCost_eq_uniform` moves its expected
@@ -63,11 +69,14 @@ success probability for the threshold {lit}`⌊n/e⌋`.
 * Section 5.2: {lit}`proved` for the uniform-permutation model, including
   {lit}`CLRS.Chapter05.indicator_expectation_eq_probability` and
   {lit}`CLRS.Chapter05.expectedFixedPoints_eq_one`.
-* Section 5.3: {lit}`proved` for the independent-swap-choice model, including
-  {lit}`CLRS.Chapter05.randomizeInPlace_uniform` (Lemma 5.4), plus the exact
-  randomized-hiring transport to the uniform-permutation expectation.  The
-  executable record-count expectation equality itself remains the explicit
-  issue #332 boundary.
+* Section 5.3: {lit}`proved` for the executable independent-swap-choice model,
+  including the recursive placement invariant
+  ({lit}`CLRS.Chapter05.fisherYates_succ_invariant`), current-choice uniformity
+  ({lit}`CLRS.Chapter05.fisherYates_first_uniform`), and completed-permutation
+  uniformity ({lit}`CLRS.Chapter05.randomizeInPlace_uniform`, Lemma 5.4), plus
+  the exact randomized-hiring transport to the uniform-permutation
+  expectation.  The executable record-count expectation equality itself
+  remains the explicit issue #332 boundary.
 * Section 5.4: {lit}`proved` for the product-uniform birthday and balls-and-bins
   models ({lit}`CLRS.Chapter05.expectedCollisions_eq`,
   {lit}`CLRS.Chapter05.expectedBallsInBin_eq`), the longest-streak
