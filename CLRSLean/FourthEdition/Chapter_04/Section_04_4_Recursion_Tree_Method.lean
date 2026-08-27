@@ -1,4 +1,4 @@
-import Mathlib.Tactic
+import CLRSLean.FourthEdition.Chapter_04.Section_04_4_Recursion_Tree_Method.Branching.TextbookExamples
 
 open Finset
 open scoped BigOperators
@@ -17,9 +17,17 @@ Main results:
   the envelope.
 - Theorem {lit}`CLRS.Chapter04.recursion_tree_constant_level_cost`: constant
   level costs give the usual linear closed form.
+- Theorem
+  {lit}`CLRS.Chapter04.BranchingRecursionTree.totalCost_eq_levelCosts_add_leafCost`:
+  an explicit finite branching tree decomposes into internal level costs plus
+  leaf costs.
+- Theorems {lit}`CLRS.Chapter04.balancedThreeQuarter_totalCost_le` and
+  {lit}`CLRS.Chapter04.unbalancedThirdTwoThird_totalCost`: the two detailed
+  textbook examples have respectively geometric and constant level costs.
 
-Status: `proved` for the finite-sum core of the recursion-tree method.
-Branching recurrences instantiate these lemmas after grouping level costs.
+Status: `proved` for the finite-sum core and full fixed-depth branching trees.
+The branching examples use exact real scaling and a common cutoff depth;
+arbitrary-size floor/ceiling transfer remains separate.
 -/
 
 namespace CLRS
