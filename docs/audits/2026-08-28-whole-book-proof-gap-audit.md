@@ -25,6 +25,10 @@ issues.
   trim, target-filter, and maximum scans erase to the original semantics; the
   execution-derived work theorem and `approxSubsetSumWithCost_fptas` bundle
   feasibility, approximation, and polynomial work for the same run.
+- Chapter 28 target #340 is closed on the same branch: explicit pivot scanning,
+  row permutation, pointwise elimination, and Schur-block recursion return
+  certified LUP factors or singular failure; the decomposition counter is
+  cubic and the costed LUP-SOLVE counter is quadratic.
 
 The matrix below remains the dated baseline that motivated those batches; the
 live ledger and GitHub issues record their current state.
