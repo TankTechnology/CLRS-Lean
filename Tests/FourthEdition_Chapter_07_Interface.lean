@@ -28,5 +28,17 @@ example : randomizedQuicksortComparisonCount (Equiv.refl (Fin 4)) = 6 := by
 example : randomizedQuicksortComparisonCount (Equiv.swap (0 : Fin 3) 1) = 2 := by
   native_decide
 
+example :
+    randomizedQuicksortComparisonCount (Equiv.refl (Fin 4)) =
+      quickSortComparisons
+        (randomizedQuicksortInput (Equiv.refl (Fin 4))) := by
+  native_decide
+
+example :
+    randomizedQuicksortComparisonCount (Equiv.swap (0 : Fin 3) 1) =
+      quickSortComparisons
+        (randomizedQuicksortInput (Equiv.swap (0 : Fin 3) 1)) := by
+  native_decide
+
 end Chapter07
 end CLRS
