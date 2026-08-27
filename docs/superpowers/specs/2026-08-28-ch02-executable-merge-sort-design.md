@@ -121,4 +121,3 @@ Development begins with failing `#check`s in
 `Tests/Chapter_02_Merge_Interface.lean`.  Only the affected modules and focused
 test are built during proof development.  The chapter trust file receives
 native axiom checks before the final repository gate.
-
