@@ -88,7 +88,21 @@ def load_rows() -> list[dict[str, str]]:
                 f"expected: {HEADER}\n"
                 f"actual:   {reader.fieldnames}"
             )
-        return list(reader)
+        rows: list[dict[str, str]] = []
+        for line_no, row in enumerate(reader, start=2):
+            if None in row:
+                extras = row[None]
+                raise SystemExit(
+                    f"{CSV_PATH.name} line {line_no}: unexpected extra fields: "
+                    f"{extras}"
+                )
+            missing = [field for field in HEADER if row[field] is None]
+            if missing:
+                raise SystemExit(
+                    f"{CSV_PATH.name} line {line_no}: missing fields: {missing}"
+                )
+            rows.append({field: row[field] for field in HEADER})
+        return rows
 
 
 def load_map_rows() -> list[dict[str, str]]:

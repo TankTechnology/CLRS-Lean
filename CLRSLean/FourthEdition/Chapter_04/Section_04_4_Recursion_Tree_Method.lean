@@ -34,8 +34,10 @@ Main results:
 
 Status: {lit}`proved` for the finite-sum core, the fixed-depth level-sum model,
 and the explicit unequal-depth integer floor/ceiling trees.  The exact tree
-semantics connect to the existing all-input Master and Akra--Bazzi interfaces;
-their analytic asymptotic hypotheses remain separate theorems.
+semantics equal independently stated rounded recurrences.  The existing
+Master and Akra--Bazzi interfaces prove related asymptotic results, but a
+direct theorem transporting these two rounded tree executions into those
+interfaces remains separate work.
 -/
 
 namespace CLRS

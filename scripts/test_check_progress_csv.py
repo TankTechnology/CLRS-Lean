@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import check_progress_csv
 from check_progress_csv import (
@@ -12,6 +13,38 @@ from check_progress_csv import (
 
 
 class FourthEditionContractTest(unittest.TestCase):
+    def test_load_rows_rejects_extra_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "progress.csv"
+            csv_path.write_text(
+                ",".join(check_progress_csv.HEADER)
+                + "\n"
+                + ",".join(["value"] * (len(check_progress_csv.HEADER) + 1))
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(check_progress_csv, "CSV_PATH", csv_path):
+                with self.assertRaisesRegex(
+                    SystemExit, "line 2: unexpected extra fields"
+                ):
+                    load_rows()
+
+    def test_load_rows_rejects_missing_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "progress.csv"
+            csv_path.write_text(
+                ",".join(check_progress_csv.HEADER)
+                + "\n"
+                + ",".join(["value"] * (len(check_progress_csv.HEADER) - 1))
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(check_progress_csv, "CSV_PATH", csv_path):
+                with self.assertRaisesRegex(SystemExit, "line 2: missing fields"):
+                    load_rows()
+
     def test_builds_chapter_contracts_from_fourth_edition_map(self) -> None:
         self.assertTrue(hasattr(check_progress_csv, "chapter_contracts"))
 

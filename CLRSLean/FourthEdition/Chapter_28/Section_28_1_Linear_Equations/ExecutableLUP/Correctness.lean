@@ -37,6 +37,12 @@ private theorem assembleLUPFactors_correct {n : Nat}
   let v : Matrix (Fin 1) (Fin n) F := fun _ j => D 0 (Fin.succ j)
   let mult : Matrix (Fin n) (Fin 1) F := fun i _ => B (Fin.succ i) 0 / B 0 0
   let P₁ : Matrix (Fin n) (Fin n) F := child.perm.permMatrix F
+  let permutedMult : Matrix (Fin n) (Fin 1) F :=
+    fun i j => mult (child.perm i) j
+  have hPermutedMult : permutedMult = P₁ * mult := by
+    ext i j
+    dsimp only [permutedMult, P₁]
+    simp [Matrix.mul_apply, Equiv.Perm.permMatrix, PEquiv.toMatrix_apply]
   have hMfac : P₁ * M = child.lower * child.upper := by
     simpa [P₁, M] using hchildFac
   let diagP : Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
@@ -45,7 +51,7 @@ private theorem assembleLUPFactors_correct {n : Nat}
     (Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 mult
       (1 : Matrix (Fin n) (Fin n) F)).reindex re.symm re.symm
   let L : Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
-    (Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 (P₁ * mult) child.lower).reindex
+    (Matrix.fromBlocks (1 : Matrix (Fin 1) (Fin 1) F) 0 permutedMult child.lower).reindex
       re.symm re.symm
   let U : Matrix (Fin (n + 1)) (Fin (n + 1)) F :=
     (Matrix.fromBlocks α v (0 : Matrix (Fin n) (Fin 1) F) child.upper).reindex
@@ -116,6 +122,7 @@ private theorem assembleLUPFactors_correct {n : Nat}
         (1 : Matrix (Fin n) (Fin n) F) by
       simp [E', Matrix.reindex_apply, Matrix.submatrix_submatrix]]
     rw [show (reindexRingEquiv F re) L = Matrix.fromBlocks 1 0 (P₁ * mult) child.lower by
+      rw [← hPermutedMult]
       simp [L, Matrix.reindex_apply, Matrix.submatrix_submatrix]]
     rw [show (reindexRingEquiv F re) U = Matrix.fromBlocks α v
         (0 : Matrix (Fin n) (Fin 1) F) child.upper by
@@ -226,7 +233,7 @@ private theorem assembleLUPFactors_correct {n : Nat}
     (assembleLUPFactors B D (Equiv.swap 0 p) child).perm.permMatrix F * A =
       (assembleLUPFactors B D (Equiv.swap 0 p) child).lower *
         (assembleLUPFactors B D (Equiv.swap 0 p) child).upper
-  simpa [assembleLUPFactors, re, α, v, mult, P₁, L, U, σP, σ₀,
+  simpa [assembleLUPFactors, re, α, v, mult, P₁, permutedMult, L, U, σP, σ₀,
     liftTrailingPerm] using And.intro hL (And.intro hU hEq)
 
 omit [DecidableEq F] in

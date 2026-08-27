@@ -4,12 +4,12 @@ import CLRSLean.FourthEdition.Chapter_25
 /-! # Chapter 25 flagship trust surface -/
 
 #check CLRS.Matchings.berge_maximum_iff_no_augmentingPath
-#check CLRS.Matchings.flowMethod_finds_maximum_matching_in_OVE
+#check CLRS.Matchings.flowMethod_finds_maximum_matching_with_bfs
 #check CLRS.StableMarriage.gs_man_optimal
 #check CLRS.AssignmentProblem.Problem.hungarian_constructs_optimal
 
 #assert_axioms CLRS.Matchings.berge_maximum_iff_no_augmentingPath
-#assert_axioms CLRS.Matchings.flowMethod_finds_maximum_matching_in_OVE
+#assert_axioms CLRS.Matchings.flowMethod_finds_maximum_matching_with_bfs
 #assert_axioms CLRS.StableMarriage.gs_man_optimal
 #assert_axioms CLRS.AssignmentProblem.Problem.hungarian_constructs_optimal
 

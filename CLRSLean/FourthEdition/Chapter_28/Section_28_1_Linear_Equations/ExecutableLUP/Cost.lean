@@ -4,7 +4,8 @@ import CLRSLean.FourthEdition.Chapter_28.Section_28_1_Linear_Equations.Executabl
 # CLRS Section 28.1 - Executable LUP work
 
 The cubic bound is derived from the counter stored by the recursive execution,
-including both successful and early-failure paths.
+including pivot comparisons, pointwise elimination, successful factor
+assembly, and both successful and early-failure paths.
 -/
 
 namespace CLRS
@@ -15,7 +16,7 @@ open Matrix
 variable {F : Type} [Field F] [DecidableEq F]
 
 private theorem lup_step_arithmetic (n : Nat) :
-    (n + 1) + 3 * (n + 1) ^ 2 + 4 * n ^ 3 ≤ 4 * (n + 1) ^ 3 := by
+    (n + 1) + 3 * (n + 1) ^ 2 + 4 * n ^ 3 + n ≤ 4 * (n + 1) ^ 3 := by
   nlinarith [sq_nonneg (n : Int)]
 
 /-- Every execution path uses at most `4n³` pivot comparisons and field
@@ -48,15 +49,14 @@ theorem lupDecomposeWithCost_work_le : ∀ {n : Nat}
           have hchildWork : child.work ≤ 4 * n ^ 3 := by
             simpa [child] using lupDecomposeWithCost_work_le M
           have hsum :
-              (findPivotWithCost A).comparisons + eliminated.work + child.work ≤
-                (n + 1) + 3 * (n + 1) ^ 2 + 4 * n ^ 3 := by
+              (findPivotWithCost A).comparisons + eliminated.work + child.work + n ≤
+                (n + 1) + 3 * (n + 1) ^ 2 + 4 * n ^ 3 + n := by
             omega
-          have hwork : (lupDecomposeWithCost (n + 1) A).work =
-              (findPivotWithCost A).comparisons + eliminated.work + child.work := by
+          have hwork : (lupDecomposeWithCost (n + 1) A).work ≤
+              (findPivotWithCost A).comparisons + eliminated.work + child.work + n := by
             cases hchild : child.result <;>
               simp [lupDecomposeWithCost, hpivot, B, eliminated, M, child, hchild]
-          rw [hwork]
-          exact le_trans hsum (lup_step_arithmetic n)
+          exact hwork.trans (hsum.trans (lup_step_arithmetic n))
 
 /-- Public executable Theorem 28.1 bundle: one run returns certified LUP
 factors and satisfies the cubic work bound. -/
