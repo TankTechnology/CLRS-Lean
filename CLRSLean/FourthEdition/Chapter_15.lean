@@ -8,6 +8,7 @@ import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes
 import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookCost
 import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.TextbookLemmas
 import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.Complexity
+import CLRSLean.FourthEdition.Chapter_15.Section_15_3_Huffman_Codes.HeapExecution
 import CLRSLean.FourthEdition.Chapter_15.Section_15_4_Offline_Caching
 
 /-!
