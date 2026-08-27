@@ -108,6 +108,39 @@ class FourthEditionContractTest(unittest.TestCase):
     def test_current_csv_validates_against_fourth_edition_contract(self) -> None:
         validate(load_rows())
 
+    def test_rejects_completion_read_tracked_count_drift(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[30]["completion_read"] = (
+            "The fourth-edition native source proves 17 tracked theorem groups"
+        )
+
+        with self.assertRaisesRegex(
+            SystemExit, "claims tracked counts.*totaling 17"
+        ):
+            validate(rows)
+
+    def test_accepts_completion_read_without_numeric_tracked_claim(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[30]["completion_read"] = "Native proof boundary documented in source"
+
+        validate(rows)
+
+    def test_accepts_section_breakdown_that_sums_to_chapter_total(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[30]["completion_read"] = (
+            "Section 31.1 proves 7 tracked entries; "
+            "Section 31.2 proves 11 tracked theorem groups"
+        )
+
+        validate(rows)
+
+    def test_rejects_fully_proved_range_outside_represented_sections(self) -> None:
+        rows = [row.copy() for row in load_rows()]
+        rows[30]["notes"] = "Sections 31.1-31.9 fully proved."
+
+        with self.assertRaisesRegex(SystemExit, "fully proved section 31.9"):
+            validate(rows)
+
 
 class FourthEditionDashboardTest(unittest.TestCase):
     def test_opens_with_reader_facts_before_maintainer_commands(self) -> None:
