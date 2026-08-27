@@ -79,6 +79,8 @@ Main results:
   {lit}`Ω(n^p (1 + I n))` when {lit}`q = p`, the lower comparison in the critical
   regime, established by the substitution induction with the power floor loss
   absorbed by the driving term.
+- Theorem {lit}`akraBazzi_bigTheta_critical`: the critical upper and lower
+  comparisons packaged as the textbook {lit}`Θ(n^p (1 + I n))` conclusion.
 - Theorem {lit}`akraBazzi_bigTheta`: the full {lit}`Θ(n^p (1 + I n))` bound when
   {lit}`p + 1 ≤ q`.
 - Definition {lit}`akraBazziSmoothingFn`: the smoothing function
@@ -1768,6 +1770,21 @@ theorem akraBazzi_lower_bound_critical {branches : List (ℕ × ℝ)} {g T : ℕ
   rw [abs_of_nonneg (akraBazziScale_nonneg hp.le hgnonneg n)]
   rw [abs_of_nonneg (hT_nonneg n)]
   exact hmain n
+
+/--
+**Akra–Bazzi asymptotic bound (critical regime).**  When the forcing exponent
+equals the root exponent {lit}`p`, the solution satisfies
+{lit}`T(n) = Θ(n^p (1 + Σ_{u≤n} g(u)/u^(p+1)))`.
+-/
+theorem akraBazzi_bigTheta_critical {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
+    {n₀ : ℕ} {p : ℝ}
+    (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
+    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p)
+    (hsmooth : PolynomialGrowth g p) (hsat : SatisfiesAkraBazzi branches g T n₀) :
+    Chapter03.isBigTheta T (akraBazziScale p g) := by
+  constructor
+  · exact akraBazzi_upper_bound hvalid hnonempty hroot hp hp.le hsmooth hsat
+  · exact akraBazzi_lower_bound_critical hvalid hnonempty hroot hp hsmooth hsat
 
 /--
 **Akra–Bazzi asymptotic bound (forcing-dominated regime).**  For {lit}`p + 1 ≤ q`
