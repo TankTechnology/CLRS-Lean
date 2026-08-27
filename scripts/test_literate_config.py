@@ -122,6 +122,42 @@ class LiterateConfigTest(unittest.TestCase):
             )
         )
 
+    def test_completed_fourth_edition_sections_have_canonical_titles(self) -> None:
+        titles = parse_module_titles(LITERATE_TOML.read_text(encoding="utf-8"))
+        expected = {
+            "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp":
+                "24.2. The Edmonds-Karp Algorithm",
+            "CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation":
+                "Ford-Fulkerson Augmentation Foundation",
+            "CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching":
+                "24.3. Maximum Bipartite Matching",
+            "CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut":
+                "Theorem 24.6. Max-Flow Min-Cut",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality":
+                "29.3. Duality",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions":
+                "29.3. Dual Feasibility",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality":
+                "29.3. Weak Duality",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality":
+                "29.3. Primal and Dual Optimality",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness":
+                "29.3. Complementary-Slackness Gap Identity",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate":
+                "29.3. Terminal Dual Certificates",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge":
+                "29.3. Dictionary/Primal Bridge",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality":
+                "29.3. Strong Duality",
+            "CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem":
+                "29.3. Complementary-Slackness Theorem",
+        }
+
+        self.assertEqual(
+            expected,
+            {module: titles.get(module) for module in expected},
+        )
+
     def test_legacy_chapter_pages_stay_titled_but_leave_primary_root(self) -> None:
         text = LITERATE_TOML.read_text()
         order_children = parse_order_children(text)

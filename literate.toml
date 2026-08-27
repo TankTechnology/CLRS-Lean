@@ -3119,10 +3119,10 @@ title = "Chapter 24. Maximum Flow"
 title = "24.1. Flow Networks"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp"]
-title = "24.2. The Edmonds-Karp Algorithm (partial)"
+title = "24.2. The Edmonds-Karp Algorithm"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.Ford_Fulkerson_Augmentation"]
-title = "Ford-Fulkerson Augmentation Foundation (partial)"
+title = "Ford-Fulkerson Augmentation Foundation"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_2_Edmonds_Karp.S1_ShortestAugmentingPath"]
 title = "Shortest Augmenting Paths"
@@ -3137,7 +3137,7 @@ title = "The O(VE²) Work Analysis"
 title = "Executable BFS"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching"]
-title = "24.3. Maximum Bipartite Matching (partial)"
+title = "24.3. Maximum Bipartite Matching"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_4_Push_Relabel"]
 title = "24.4. Push-Relabel Algorithms"
@@ -3146,7 +3146,7 @@ title = "24.4. Push-Relabel Algorithms"
 title = "24.5. Relabel-to-Front"
 
 [modules."CLRSLean.FourthEdition.Chapter_24.Section_24_6_MaxFlow_MinCut"]
-title = "Theorem 24.6. Max-Flow Min-Cut (partial)"
+title = "Theorem 24.6. Max-Flow Min-Cut"
 
 [modules."CLRSLean.FourthEdition.Chapter_25"]
 title = "Chapter 25. Matchings in Bipartite Graphs"
@@ -3364,23 +3364,23 @@ title = "29.2. Minimum-Cost Flow as an LP"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_2_Formulating_Problems_As_Linear_Programs.MulticommodityFlow"]
 title = "29.2. Multicommodity Flow as an LP"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality"]
-title = "29.4. Duality"
+title = "29.3. Duality"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Definitions"]
-title = "29.4. Dual Feasibility"
+title = "29.3. Dual Feasibility"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.WeakDuality"]
-title = "29.4. Weak Duality"
+title = "29.3. Weak Duality"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.Optimality"]
-title = "29.4. Primal and Dual Optimality"
+title = "29.3. Primal and Dual Optimality"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlackness"]
-title = "29.4. Complementary-Slackness Gap Identity"
+title = "29.3. Complementary-Slackness Gap Identity"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.TerminalCertificate"]
-title = "29.4. Terminal Dual Certificates"
+title = "29.3. Terminal Dual Certificates"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.DictionaryBridge"]
-title = "29.4. Dictionary/Primal Bridge"
+title = "29.3. Dictionary/Primal Bridge"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.StrongDuality"]
-title = "29.4. Strong Duality"
+title = "29.3. Strong Duality"
 [modules."CLRSLean.FourthEdition.Chapter_29.Section_29_3_Duality.ComplementarySlacknessTheorem"]
-title = "29.4. Complementary-Slackness Theorem"
+title = "29.3. Complementary-Slackness Theorem"
 
 [modules."CLRSLean.FourthEdition.Chapter_30"]
 title = "Chapter 30. Polynomials and the FFT"
