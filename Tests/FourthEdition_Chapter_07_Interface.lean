@@ -17,6 +17,10 @@ namespace Chapter07
 #check explicitRandomizedQuicksortExpectedComparisons_eq_pairSum
 #check explicitRandomizedQuicksortExpectedComparisons_eq
 #check explicitRandomizedQuicksortExpectedComparisons_isBigTheta_nlogn
+#check randomizedQuicksortComparisonCount_eq_quickSortComparisons
+#check operationalRandomizedQuicksortExpectedComparisons
+#check operationalRandomizedQuicksortExpectedComparisons_eq
+#check operationalRandomizedQuicksortExpectedComparisons_isBigTheta_nlogn
 
 example : randomizedQuicksortComparisonCount (Equiv.refl (Fin 4)) = 6 := by
   native_decide
