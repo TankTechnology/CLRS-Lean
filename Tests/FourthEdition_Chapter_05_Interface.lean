@@ -10,6 +10,10 @@ pseudocode layer in the native fourth-edition §5.1 source.
 namespace CLRS
 namespace Chapter05
 
+-- §5.2 textbook indicator/probability boundary (Lemma 5.1)
+#check eventProbability
+#check indicator_expectation_eq_probability
+
 -- §5.1 executable HIRE-ASSISTANT pseudocode
 #check recordsFrom
 #check hireAssistant
@@ -18,6 +22,19 @@ namespace Chapter05
 #check recordsFrom_le_length
 #check hireAssistant_le_length
 #check hireAssistant_pos
+
+-- §5.1/§5.3 expected-cost and randomized-hiring composition
+#check expectedHiringCost
+#check expectedHiringCost_eq_harmonic
+#check expectedHiringCost_isBigO_log
+#check permutationRanks
+#check randomizedHireAssistant
+#check randomizedExpectedHires_eq_uniform
+#check HiringExpectationBridge
+#check randomizedExpectedHiringCost
+#check randomizedExpectedHiringCost_eq_uniform
+#check randomizedExpectedHiringCost_eq
+#check randomizedExpectedHiringCost_isBigO_log
 
 -- The executable loop counts left-to-right maxima (records).
 example : hireAssistant [] = 0 := by native_decide
