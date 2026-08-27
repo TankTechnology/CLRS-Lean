@@ -22,6 +22,7 @@ its sub-modules are:
 * [Matching Flow Residuals](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S4_Matching_Flow/)
 * [Residual Reachability Translation](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S5_Residual_Translation/)
 * [Berge's Lemma and the Flow Method](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S6_Berge_Flow_Method/)
+* [Costed Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
 
 Section 25.2 (the stable-marriage problem) lives in the `CLRS.Matchings` and
 `CLRS.StableMarriage` namespaces, imported through
@@ -40,7 +41,9 @@ Section 25.3 (the Hungarian algorithm for the assignment problem) lives in the
 
 Status: complete.  Section 25.1 is formalized (Berge's augmenting-path lemma
 and the flow-method certification, built on the §26.3 matching-to-flow
-reduction).  Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
+reduction), including the BFS-selected unit-capacity execution, integral
+matching refinement at every step, at most `|V|` augmentations, and the
+adjacency-list `O(VE)` bound.  Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
 stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
 woman-pessimality.  Section 25.3 formalizes the assignment model and Lemma
 25.8 (dual optimality via feasible potentials), the alternating tree, the
