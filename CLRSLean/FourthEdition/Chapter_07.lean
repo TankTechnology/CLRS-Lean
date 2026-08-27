@@ -2,7 +2,7 @@ import CLRSLean.FourthEdition.Chapter_07.Section_07_1_Description_Of_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_2_Performance_Of_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort
 import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.Comparison_Probability
-import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.Bridge
+import CLRSLean.FourthEdition.Chapter_07.Section_07_3_Randomized_Quicksort.ExplicitRandomness.OperationalBridge
 import CLRSLean.FourthEdition.Chapter_07.Section_07_4_Analysis_Of_Quicksort
 
 /-!
@@ -21,8 +21,9 @@ compatibility period.
 Chapter 7 now has four compiler-clean proof layers: the functional quicksort
 correctness spine, a deterministic comparison-count upper bound, the
 expected-comparison recurrence with a named closed form and harmonic bounds,
-and an explicit finite random-priority trace semantics whose expected
-comparison count is proved equal to that closed form.
+and an explicit finite random-priority semantics whose pair trace is proved
+pointwise equal to the recursive quicksort comparison counter and whose
+expected comparison count is proved equal to that closed form.
 
 ## Sections
 
@@ -67,8 +68,10 @@ comparison count is proved equal to that closed form.
   {lit}`CLRS.Chapter07.sum_compared_prob_eq_expectedComparisons`,
   {lit}`CLRS.Chapter07.priorityPivot_uniform`,
   {lit}`CLRS.Chapter07.randomizedQuicksortOutput_correct`,
-  {lit}`CLRS.Chapter07.explicitRandomizedQuicksortExpectedComparisons_eq`, and
-  {lit}`CLRS.Chapter07.explicitRandomizedQuicksortExpectedComparisons_isBigTheta_nlogn`.
+  {lit}`CLRS.Chapter07.randomizedQuicksortComparisonCount_eq_quickSortComparisons`,
+  {lit}`CLRS.Chapter07.explicitRandomizedQuicksortExpectedComparisons_eq`,
+  {lit}`CLRS.Chapter07.operationalRandomizedQuicksortExpectedComparisons_eq`, and
+  {lit}`CLRS.Chapter07.operationalRandomizedQuicksortExpectedComparisons_isBigTheta_nlogn`.
 
 * 7.4 Analysis of quicksort: {lit}`proved` for the expected running time.
   The section identifies the expected running time with the expected number of
@@ -84,16 +87,14 @@ comparison count is proved equal to that closed form.
 ## Current Gaps
 
 * Index-level mutable-array {lit}`PARTITION` loop refinement and RAM cost model.
-* Pointwise refinement of the CLRS rank-pair trace cardinality to the separate
-  operational counter {lit}`quickSortComparisons` on every sampled input.
 * Sharp {lit}`n log n` tail bound (Chernoff/Hoeffding) and lower bound
   ({lit}`Omega(n log n)` for comparison sorting).
 
-The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, and both
-bridges from the explicit permutation execution through pairwise indicators to
-the algebraic formula are proved.  Independence of pair indicators is neither
-assumed nor needed: finite linearity of expectation and the proved
-transposition symmetry suffice.
+The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, the
+pointwise bridge from the CLRS pair trace to recursive execution, and the
+expectation bridge through pairwise indicators are proved.  Independence of
+pair indicators is neither assumed nor needed: finite linearity of expectation
+and the proved transposition symmetry suffice.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
