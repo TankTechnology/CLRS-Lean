@@ -93,6 +93,24 @@ class LiterateConfigTest(unittest.TestCase):
             {module: titled_modules.get(module) for module in expected_modules},
         )
 
+    def test_fourth_edition_landing_links_every_reader_route(self) -> None:
+        source = (ROOT / "CLRSLean" / "FourthEdition.lean").read_text(
+            encoding="utf-8"
+        )
+        modules = [
+            *(
+                f"CLRSLean.FourthEdition.Chapter_{chapter:02d}"
+                for chapter in range(1, 36)
+            ),
+            "CLRSLean.Progress",
+            "CLRSLean.Status",
+            "CLRSLean.OnlineMaterial",
+        ]
+
+        for module in modules:
+            with self.subTest(module=module):
+                self.assertIn(f"]({module.replace('.', '/')}/)", source)
+
     def test_fourth_edition_chapter_34_has_five_reader_sections(self) -> None:
         chapter = "CLRSLean.FourthEdition.Chapter_34"
         expected = [
