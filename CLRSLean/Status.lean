@@ -69,16 +69,17 @@ wrapper.
   {lit}`VERTEXCOVER_npComplete`, {lit}`HAMCYCLE_npComplete`,
   {lit}`TSP_npComplete`, and {lit}`SUBSETSUM_npComplete` theorems.
 
-A standalone SAT verifier and direct concrete machines for the empty and
-universal languages remain optional refinements; they do not reopen the chapter
-boundary.  The Chapter 34 guide and section pages own the construction-level
-details.
+SAT and 3-CNF-SAT have exact raw certificate checkers and reduction-backed
+fixed verifier machines.  Direct machine lowerings of the smaller assignment
+checkers, and direct concrete machines for the empty and universal languages,
+remain optional refinements; they do not reopen the chapter boundary.  The
+Chapter 34 guide and section pages own the construction-level details.
 
-All other represented chapters retain their more specific complete,
-correctness-complete, selected-section-complete, or expository labels from the
-progress ledger.  Such a label applies only to the advertised Lean model and
-represented fourth-edition sections, never automatically to exercises,
-chapter-end Problems, pointer/RAM models, or floating-point implementations.
+The canonical ledger currently classifies every theorem-bearing chapter as
+{lit}`main-proof-complete` for its advertised model; Chapter 1 is expository.
+That label applies only to the represented fourth-edition sections, never
+automatically to exercises, chapter-end Problems, pointer/RAM models, or
+floating-point implementations.
 
 Chapter 2 now includes the complete symbolic insertion-sort line-cost table:
 all seven `cᵢ` contributions, their trace-derived execution counts, and exact

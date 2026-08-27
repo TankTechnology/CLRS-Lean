@@ -20,15 +20,15 @@ Main results:
 - Definition {lit}`cfgEq`: streaming whole-row equality through the same
   canonical flattening, with exact cost {lit}`6 * cfgBitCount tm H + 1`.
 
-Current gaps:
+Layer boundary:
 
 - Symbolic push, pop, and stack-top transformations belong to the downstream
   stack-primitive layer.
 - Recursive statement compilation is supplied by downstream
   {lit}`StatementCircuits`, while {lit}`TransitionCircuits` supplies finite-label
   dispatch and one-step local correctness.  Fresh row allocation and exact
-  boundary constraints are supplied downstream; polynomial bounds and
-  verified whole-tableau assembly remain.
+  boundary constraints, polynomial bounds, and verified whole-tableau assembly
+  are supplied by downstream circuitization modules.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

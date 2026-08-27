@@ -83,9 +83,10 @@ probability space for random pivot choices.
 
 The expected-comparison closed form, the {lit}`Θ(n log n)` asymptotic, and the
 bridge between the random-permutation probability model and the algebraic formula
-({lit}`sum_compared_prob_eq_expectedComparisons`) are now proved.  The remaining
-random pivot-choice independence assertion and expectation-of-sum theorem are
-deferred refinements.
+({lit}`sum_compared_prob_eq_expectedComparisons`) are now proved.  Deriving that
+same expectation bridge directly from an explicit recursive pivot-choice
+execution and its independence facts is an optional refinement tracked in
+GitHub issue #330.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

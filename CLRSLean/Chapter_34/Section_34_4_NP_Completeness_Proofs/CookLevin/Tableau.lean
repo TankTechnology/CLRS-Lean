@@ -25,11 +25,12 @@ Main results:
 - Definition {lit}`exactlyOne`: a position-sensitive linear exactly-one circuit
   with exact semantics and gate count.
 
-Current gaps:
+Layer boundary:
 
 - Canonical row validity is circuitized in the downstream
-  {lit}`CookLevin.Tableau.Validity` module; row transitions and whole-tableau
-  assembly belong to later circuitization layers.
+  {lit}`CookLevin.Tableau.Validity` module; downstream transition,
+  tableau-constraint, and assembly modules supply row transitions and the
+  complete tableau circuit.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

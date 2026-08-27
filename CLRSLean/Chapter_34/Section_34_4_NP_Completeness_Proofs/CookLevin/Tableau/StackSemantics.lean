@@ -16,13 +16,13 @@ Main results:
 - {lit}`evalBundle_stack_represents` projects a successfully decoded complete
   tableau row to the semantic representation of each machine stack.
 
-Current gaps:
+Layer boundary:
 
 - Circuit allocation and recursive statement semantics are supplied by the
   downstream {lit}`StackCircuits` and {lit}`StatementCircuits` layers;
   {lit}`TransitionCircuits` supplies finite-label dispatch and local correctness.
-- Fresh row allocation and exact boundary constraints are supplied downstream;
-  polynomial bounds and verified whole-tableau assembly remain.
+- Fresh row allocation, exact boundary constraints, polynomial bounds, and
+  verified whole-tableau assembly are supplied downstream.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin

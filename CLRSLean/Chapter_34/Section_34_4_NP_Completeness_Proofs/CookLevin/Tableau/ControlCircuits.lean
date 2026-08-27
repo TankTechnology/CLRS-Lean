@@ -17,13 +17,13 @@ Main results:
   {lit}`evalBundle_replaceStatus`: replacing canonical control wires changes
   exactly the corresponding machine-configuration fields.
 
-Current gaps:
+Layer boundary:
 
 - Statement compilation is supplied by downstream {lit}`StatementCircuits`;
   {lit}`TransitionCircuits` supplies finite-label dispatch and the local step
   check, while the downstream boundary layer supplies exact initial and
-  accepting constraints.  Polynomial bounds and verified whole-tableau
-  assembly remain.
+  accepting constraints.  Downstream circuitization and assembly modules
+  supply the polynomial bounds and verified whole-tableau circuit.
 -/
 
 namespace CLRS.Chapter34.Turing.CookLevin
