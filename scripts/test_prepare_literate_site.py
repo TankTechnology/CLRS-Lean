@@ -30,12 +30,15 @@ def write_module(site_root: Path, module_name: str, html: str) -> Path:
 
 
 class PrepareLiterateSiteTests(unittest.TestCase):
-    def test_mobile_stylesheet_hides_only_the_extra_current_breadcrumb(self) -> None:
+    def test_mobile_stylesheet_keeps_only_the_root_breadcrumb(self) -> None:
         stylesheet = (
             SCRIPT_PATH.parents[1] / "docs" / "literate" / "clrs-literate.css"
         ).read_text(encoding="utf-8")
 
-        self.assertIn(".breadcrumbs li:last-child:not(:first-child)", stylesheet)
+        self.assertIn(".breadcrumbs li:not(:first-child)", stylesheet)
+        self.assertNotIn(
+            ".breadcrumbs li:last-child:not(:first-child)", stylesheet
+        )
         self.assertIn(".breadcrumbs li:not(:last-child)::after", stylesheet)
 
     def test_mobile_stylesheet_reflows_only_the_progress_matrix(self) -> None:

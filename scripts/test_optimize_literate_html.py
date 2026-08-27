@@ -128,11 +128,13 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
         self.assertIn("id=\"clrs-nav-state-script\"", text)
         self.assertIn("localStorage", text)
         self.assertIn("sessionStorage", text)
-        self.assertIn("details.open = true", text)
-        self.assertIn("clrs.nav.state.v7", text)
-        self.assertIn("clrs.nav.scroll.v7", text)
-        self.assertNotIn("clrs.nav.state.v6", text)
-        self.assertNotIn("clrs.nav.scroll.v6", text)
+        self.assertIn("details.open = false", text)
+        self.assertNotIn("details.open = true", text)
+        self.assertIn("parent.open = true", text)
+        self.assertIn("clrs.nav.state.v8", text)
+        self.assertIn("clrs.nav.scroll.v8", text)
+        self.assertNotIn("clrs.nav.state.v7", text)
+        self.assertNotIn("clrs.nav.scroll.v7", text)
         self.assertIn("stableNavPath", text)
         self.assertIn("new URL(raw, document.baseURI)", text)
         self.assertIn("CLRS-Lean", text)
@@ -214,8 +216,9 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 
         self.assertTrue(stats.changed)
         self.assertEqual(text.count("clrs-nav-state-script"), 1)
-        self.assertIn("clrs.nav.state.v7", text)
+        self.assertIn("clrs.nav.state.v8", text)
         self.assertNotIn("clrs.nav.state.v4", text)
+        self.assertNotIn("clrs.nav.state.v7", text)
 
     def test_prunes_hidden_sidebar_modules_and_flattens_parent(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
