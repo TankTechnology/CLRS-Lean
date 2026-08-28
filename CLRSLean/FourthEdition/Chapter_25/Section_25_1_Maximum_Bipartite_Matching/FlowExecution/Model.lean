@@ -1,13 +1,13 @@
 import CLRSLean.FourthEdition.Chapter_24.Section_24_3_Bipartite_Matching
 
 /-!
-# Target cost model for a future adjacency-list §25.1 refinement
+# Cost vocabulary for the adjacency-list §25.1 execution
 
-These definitions state the textbook adjacency-list budget for the support of
-the unit-capacity flow network.  They are deliberately kept separate from the
-current executable residual BFS, which enumerates the finite vertex universe.
-An `O(VE)` implementation theorem will require an adjacency-list BFS, a
-cost-producing path update, and erasure proofs to the semantic flow step.
+These definitions state the textbook adjacency-list budget vocabulary for the
+support of the unit-capacity flow network.  The legacy `residualBFS` still
+enumerates the finite vertex universe; `CostedSupportBFS` and `CostedRun`
+provide the separate support-indexed execution and its attached `O(VE)`
+theorem.
 -/
 
 namespace CLRS
@@ -26,15 +26,15 @@ def flowArcCount (G : BipartiteGraph V) : ℕ :=
 def flowVertexCount (V : Type*) [Fintype V] : ℕ :=
   Fintype.card (V ⊕ Bool)
 
-/-- Target adjacency-list budget for one complete residual BFS. -/
+/-- Coarse adjacency-list specification budget for one residual BFS. -/
 def adjacencyBFSBudget (G : BipartiteGraph V) : ℕ :=
   flowVertexCount V + 2 * flowArcCount G
 
-/-- Target budget for updating a simple augmenting path. -/
+/-- Coarse specification budget for updating a simple augmenting path. -/
 def pathUpdateBudget (_G : BipartiteGraph V) : ℕ :=
   flowVertexCount V
 
-/-- Target budget for one adjacency-list BFS augmentation attempt. -/
+/-- Coarse specification budget for one adjacency-list augmentation attempt. -/
 def augmentationAttemptBudget (G : BipartiteGraph V) : ℕ :=
   adjacencyBFSBudget G + pathUpdateBudget G
 
@@ -67,8 +67,9 @@ theorem left_card_le_vertex_card (G : BipartiteGraph V) :
 
 /-- The target per-attempt budget is linear in the number of support arcs.
 
-This arithmetic lemma is a specification for the missing adjacency-list
-refinement; it is not a cost theorem about `residualBFS`. -/
+This arithmetic lemma is a coarse specification bound; it is not a cost
+theorem about the legacy all-vertices `residualBFS`.  The attached execution
+theorem is `costedMatchingRun_work_le_product`. -/
 theorem augmentationAttemptBudget_le (G : BipartiteGraph V) :
     augmentationAttemptBudget G ≤ 4 * (flowArcCount G + 1) := by
   simp only [augmentationAttemptBudget, adjacencyBFSBudget, pathUpdateBudget,

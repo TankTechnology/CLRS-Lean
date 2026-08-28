@@ -9,6 +9,10 @@ reads only the bucket of the dequeued vertex and charges one dequeue plus four
 RAM operations per inspected candidate (residual test, visited test, and the
 possible discovery bookkeeping).  Under residual-support coverage, erasing
 the counter gives the existing semantic BFS state exactly.
+
+As in the textbook RAM model, bucket access and queue/discovery primitives
+carry stipulated unit charges.  The attached counter measures that abstract
+execution, not Lean evaluator time for the underlying persistent containers.
 -/
 
 namespace CLRS

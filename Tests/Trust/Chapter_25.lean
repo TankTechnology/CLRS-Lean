@@ -5,11 +5,13 @@ import CLRSLean.FourthEdition.Chapter_25
 
 #check CLRS.Matchings.berge_maximum_iff_no_augmentingPath
 #check CLRS.Matchings.flowMethod_finds_maximum_matching_with_bfs
+#check CLRS.Matchings.flowMethod_finds_maximum_matching_with_attached_cost
 #check CLRS.StableMarriage.gs_man_optimal
 #check CLRS.AssignmentProblem.Problem.hungarian_constructs_optimal
 
 #assert_axioms CLRS.Matchings.berge_maximum_iff_no_augmentingPath
 #assert_axioms CLRS.Matchings.flowMethod_finds_maximum_matching_with_bfs
+#assert_axioms CLRS.Matchings.flowMethod_finds_maximum_matching_with_attached_cost
 #assert_axioms CLRS.StableMarriage.gs_man_optimal
 #assert_axioms CLRS.AssignmentProblem.Problem.hungarian_constructs_optimal
 
