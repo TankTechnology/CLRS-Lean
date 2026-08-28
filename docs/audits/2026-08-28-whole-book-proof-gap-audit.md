@@ -133,7 +133,7 @@ Tracking issues:
 - [#336](https://github.com/TankTechnology/CLRS-Lean/issues/336) — Chapter 4 integer branching-tree bridge.
 - [#337](https://github.com/TankTechnology/CLRS-Lean/issues/337) — Chapter 11 uniform probe-permutation probability.
 - [#338](https://github.com/TankTechnology/CLRS-Lean/issues/338) — Chapter 15 heap-based Huffman execution and cost.
-- [#339](https://github.com/TankTechnology/CLRS-Lean/issues/339) — Chapter 25 flow-method O(VE) matching cost (closure implemented by `costedMatchingRun_work_le_product`; close after the audited merge).
+- [#339](https://github.com/TankTechnology/CLRS-Lean/issues/339) — Chapter 25 flow-method O(VE) matching cost (closed on `main` by `87ec9de4`; see `costedMatchingRun_work_le_product`).
 - [#340](https://github.com/TankTechnology/CLRS-Lean/issues/340) — Chapter 28 executable LUP decomposition and cost.
 - [#341](https://github.com/TankTechnology/CLRS-Lean/issues/341) — Chapter 35 costed APPROX-SUBSET-SUM FPTAS.
 
