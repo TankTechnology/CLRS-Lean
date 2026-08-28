@@ -30,10 +30,37 @@ theorem matchingFlowSupportsResidual {G : BipartiteGraph V}
   rw [matchingFlowAdjacency, mem_buildSupportAdjacency]
   exact matchingFlowResidualSupport_covers M hres
 
+/-- Matching residual BFS over an already-built support adjacency. -/
+noncomputable def matchingCostedBFSWith {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G) :
+    CostedBFSRun (V ⊕ Bool) :=
+  costedResidualBFS A (matchingToFlow M)
+
+theorem matchingCostedBFSWith_state {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) :
+    (matchingCostedBFSWith A M).state = residualBFS (matchingToFlow M) := by
+  exact costedResidualBFS_state A _ cover
+
+theorem matchingCostedBFSWith_work_le {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) :
+    (matchingCostedBFSWith A M).work ≤ flowVertexCount V + 4 * A.storage := by
+  simpa [matchingCostedBFSWith, flowVertexCount] using
+    costedResidualBFS_work_le A (matchingToFlow M) cover
+
+theorem matchingCostedBFSWith_distance {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    (residualBFS (matchingToFlow M)).distance (Sum.inr false) = some d := by
+  rw [← matchingCostedBFSWith_state A M cover]
+  exact hd
+
 /-- One support-indexed BFS execution for the residual network of `M`. -/
 noncomputable def matchingCostedBFS {G : BipartiteGraph V} (M : Matching V G) :
     CostedBFSRun (V ⊕ Bool) :=
-  costedResidualBFS (matchingFlowAdjacency G).adjacency (matchingToFlow M)
+  matchingCostedBFSWith (matchingFlowAdjacency G).adjacency M
 
 /-- Erasing the counter gives the established semantic residual BFS state. -/
 theorem matchingCostedBFS_state {G : BipartiteGraph V} (M : Matching V G) :
@@ -68,6 +95,61 @@ structure MatchingBFSPathRecovery {G : BipartiteGraph V} (M : Matching V G)
     where
   path : Flow.ResidualPath (matchingToFlow M) (Sum.inr true) (Sum.inr false)
   work : Nat
+
+/-- Recover a parent path from a BFS over an explicitly supplied, already
+built support adjacency. -/
+noncomputable def matchingBFSPathRecoveryWith {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    MatchingBFSPathRecovery M := by
+  let hd' := matchingCostedBFSWith_distance A M cover hd
+  let invariant := residualBFS_distanceInvariant (matchingToFlow M)
+  let parentPath := invariant.parentPath_of_distance hd'
+  let recovered := BFSParentPath.verticesWithCost parentPath
+  exact
+    { path :=
+        { vertices := recovered.vertices
+          chain := by
+            rw [BFSParentPath.verticesWithCost_vertices]
+            exact parentPath.vertices_chain invariant
+          head_eq := by
+            rw [BFSParentPath.verticesWithCost_vertices]
+            exact parentPath.vertices_head
+          last_eq := by
+            rw [BFSParentPath.verticesWithCost_vertices]
+            exact parentPath.vertices_getLast
+          nodup := by
+            rw [BFSParentPath.verticesWithCost_vertices]
+            exact parentPath.vertices_nodup invariant }
+      work := recovered.work }
+
+theorem matchingBFSPathRecoveryWith_work {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    (matchingBFSPathRecoveryWith A M cover hd).work = 2 * (d + 1) := by
+  simp [matchingBFSPathRecoveryWith, BFSParentPath.verticesWithCost_work]
+
+theorem matchingBFSPathRecoveryWith_work_le {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    (matchingBFSPathRecoveryWith A M cover hd).work ≤
+      2 * flowVertexCount V := by
+  rw [matchingBFSPathRecoveryWith_work]
+  let parentPath :=
+    (residualBFS_distanceInvariant (matchingToFlow M)).parentPath_of_distance
+      (matchingCostedBFSWith_distance A M cover hd)
+  have hnodup := parentPath.vertices_nodup
+    (residualBFS_distanceInvariant (matchingToFlow M))
+  have hlength : (BFSParentPath.vertices parentPath).length = d + 1 :=
+    by simpa [parentPath] using BFSParentPath.vertices_length (h := parentPath)
+  have hcard : (BFSParentPath.vertices parentPath).length ≤
+      Fintype.card (V ⊕ Bool) :=
+    List.Nodup.length_le_card hnodup
+  rw [hlength] at hcard
+  simpa [flowVertexCount] using Nat.mul_le_mul_left 2 hcard
 
 /-- Recover the source-to-sink parent chain selected by the same costed BFS
 state.  List construction uses cons followed by one reversal. -/
@@ -273,6 +355,38 @@ theorem projectGraphVerticesWithCost_work (w : List (V ⊕ Bool)) :
   | nil => rfl
   | cons x rest ih =>
       cases x <;> simp [projectGraphVerticesWithCost, ih]
+
+/-- Execute graph projection for the path recovered from an explicitly
+supplied, already-built support adjacency. -/
+noncomputable def matchingBFSGraphProjectionWith {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    CostedGraphPathProjection V :=
+  projectGraphVerticesWithCost
+    (matchingBFSPathRecoveryWith A M cover hd).path.vertices
+
+theorem matchingBFSGraphProjectionWith_isAugmenting {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    IsAugmentingPath G M
+      (matchingBFSGraphProjectionWith A M cover hd).vertices := by
+  rw [matchingBFSGraphProjectionWith, projectGraphVerticesWithCost_vertices]
+  exact projectGraphVertices_isAugmentingPath M
+    (matchingBFSPathRecoveryWith A M cover hd).path
+
+/-- The graph projection from an explicitly indexed BFS run is linear in
+the flow-network vertex count. -/
+theorem matchingBFSGraphProjectionWith_work_le {G : BipartiteGraph V}
+    (A : SupportAdjacency (V ⊕ Bool)) (M : Matching V G)
+    (cover : SupportsResidual A (matchingToFlow M)) {d : Nat}
+    (hd : (matchingCostedBFSWith A M).state.distance (Sum.inr false) = some d) :
+    (matchingBFSGraphProjectionWith A M cover hd).work ≤
+      flowVertexCount V := by
+  rw [matchingBFSGraphProjectionWith, projectGraphVerticesWithCost_work]
+  exact List.Nodup.length_le_card
+    (matchingBFSPathRecoveryWith A M cover hd).path.nodup
 
 /-- Execute the graph projection of the exact recovered matching-BFS path. -/
 noncomputable def matchingBFSGraphProjection {G : BipartiteGraph V}

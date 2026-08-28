@@ -79,11 +79,13 @@ theorem Matching.size_le_left_card {G : BipartiteGraph V}
   intro l hl
   exact M.mem_L_of_isMatchedLeft ((M.mem_matchedLeft_iff l).1 hl)
 
-/-- A missing sink label in the costed BFS certifies maximality of the
-current matching. -/
-theorem isMaximum_of_matchingCostedBFS_distance_none
-    {G : BipartiteGraph V} (M : Matching V G)
-    (hnone : (matchingCostedBFS M).state.distance (Sum.inr false) = none) :
+/-- A missing sink label in a BFS using an explicitly supplied support
+adjacency certifies maximality of the current matching. -/
+theorem isMaximum_of_matchingCostedBFSWith_distance_none
+    {G : BipartiteGraph V} (A : SupportAdjacency (V ⊕ Bool))
+    (M : Matching V G) (cover : SupportsResidual A (matchingToFlow M))
+    (hnone : (matchingCostedBFSWith A M).state.distance
+      (Sum.inr false) = none) :
     M.IsMaximum := by
   have hno : ¬ (matchingToFlow M).hasAugmentingPath := by
     intro hpath
@@ -91,7 +93,7 @@ theorem isMaximum_of_matchingCostedBFS_distance_none
         (Sum.inr false) = some d :=
       (bfsState_distance_defined_iff_reachable (matchingToFlow M)
         (Sum.inr false)).2 hpath
-    rw [← matchingCostedBFS_state M] at hex
+    rw [← matchingCostedBFSWith_state A M cover] at hex
     rcases hex with ⟨d, hd⟩
     rw [hnone] at hd
     simp at hd
@@ -100,6 +102,14 @@ theorem isMaximum_of_matchingCostedBFS_distance_none
   have hle := hmaxFlow (matchingToFlow M')
   rw [matchingToFlow_value, matchingToFlow_value] at hle
   exact_mod_cast hle
+
+/-- Specialized maximality wrapper for the canonical matching support. -/
+theorem isMaximum_of_matchingCostedBFS_distance_none
+    {G : BipartiteGraph V} (M : Matching V G)
+    (hnone : (matchingCostedBFS M).state.distance (Sum.inr false) = none) :
+    M.IsMaximum :=
+  isMaximum_of_matchingCostedBFSWith_distance_none
+    (matchingFlowAdjacency G).adjacency M (matchingFlowSupportsResidual M) hnone
 
 /-- Result of at most `fuel` costed augmentation attempts from `initial`. -/
 structure CostedMatchingRunFrom (G : BipartiteGraph V)
@@ -112,8 +122,11 @@ structure CostedMatchingRunFrom (G : BipartiteGraph V)
   maximum_or_full : matching.IsMaximum ∨ augmentations = fuel
   work_le : work ≤ fuel * matchingAttemptWorkBudget G
 
-/-- Run the attached-cost matching loop from an arbitrary matching. -/
-noncomputable def costedMatchingRunFrom (G : BipartiteGraph V) :
+/-- Run the attached-cost matching loop from an arbitrary matching while
+reusing one explicitly supplied support adjacency throughout the recursion. -/
+noncomputable def costedMatchingRunFrom (G : BipartiteGraph V)
+    (A : SupportAdjacency (V ⊕ Bool))
+    (hA : A = (matchingFlowAdjacency G).adjacency) :
     (fuel : Nat) → (initial : Matching V G) →
       CostedMatchingRunFrom G initial fuel
   | 0, initial =>
@@ -125,7 +138,10 @@ noncomputable def costedMatchingRunFrom (G : BipartiteGraph V) :
         maximum_or_full := Or.inr rfl
         work_le := by simp }
   | fuel + 1, initial =>
-      let bfs := matchingCostedBFS initial
+      let cover : SupportsResidual A (matchingToFlow initial) := by
+        rw [hA]
+        exact matchingFlowSupportsResidual initial
+      let bfs := matchingCostedBFSWith A initial
       match hdistance : bfs.state.distance (Sum.inr false) with
       | none =>
           { matching := initial
@@ -134,22 +150,30 @@ noncomputable def costedMatchingRunFrom (G : BipartiteGraph V) :
             size_eq := by simp
             augmentations_le := by simp
             maximum_or_full := Or.inl
-              (isMaximum_of_matchingCostedBFS_distance_none initial hdistance)
+              (isMaximum_of_matchingCostedBFSWith_distance_none
+                A initial cover hdistance)
             work_le := by
               have hbfs : bfs.work ≤
                   flowVertexCount V + 8 * flowArcCount G := by
-                simpa [bfs] using matchingCostedBFS_work_le initial
+                have h := matchingCostedBFSWith_work_le A initial cover
+                have hstorage : A.storage = 2 * flowArcCount G := by
+                  rw [hA, matchingFlowAdjacency_storage]
+                rw [hstorage] at h
+                simp only [bfs, flowVertexCount] at h ⊢
+                omega
               simp only [matchingAttemptWorkBudget]
               rw [Nat.add_mul]
               simp only [one_mul]
               omega }
       | some d =>
-          let recovery := matchingBFSPathRecovery initial hdistance
-          let projection := matchingBFSGraphProjection initial hdistance
+          let recovery := matchingBFSPathRecoveryWith A initial cover hdistance
+          let projection :=
+            matchingBFSGraphProjectionWith A initial cover hdistance
           let p := projection.vertices
-          let hp := matchingBFSGraphProjection_isAugmenting initial hdistance
+          let hp := matchingBFSGraphProjectionWith_isAugmenting
+            A initial cover hdistance
           let update := augmentMatchingAlong initial p hp
-          let tail := costedMatchingRunFrom G fuel update.matching
+          let tail := costedMatchingRunFrom G A hA fuel update.matching
           { matching := tail.matching
             work := bfs.work + recovery.work + projection.work + update.work +
               tail.work
@@ -171,13 +195,19 @@ noncomputable def costedMatchingRunFrom (G : BipartiteGraph V) :
             work_le := by
               have hbfs : bfs.work ≤
                   flowVertexCount V + 8 * flowArcCount G := by
-                simpa [bfs] using matchingCostedBFS_work_le initial
+                have h := matchingCostedBFSWith_work_le A initial cover
+                have hstorage : A.storage = 2 * flowArcCount G := by
+                  rw [hA, matchingFlowAdjacency_storage]
+                rw [hstorage] at h
+                simp only [bfs, flowVertexCount] at h ⊢
+                omega
               have hrecovery : recovery.work ≤ 2 * flowVertexCount V := by
                 simpa [recovery] using
-                  matchingBFSPathRecovery_work_le initial hdistance
+                  matchingBFSPathRecoveryWith_work_le A initial cover hdistance
               have hprojection : projection.work ≤ flowVertexCount V := by
                 simpa [projection] using
-                  matchingBFSGraphProjection_work_le initial hdistance
+                  matchingBFSGraphProjectionWith_work_le
+                    A initial cover hdistance
               have hupdate : update.work ≤ Fintype.card V := by
                 simpa [update] using
                   augmentMatchingAlong_work_le_vertexCard initial p hp
@@ -201,17 +231,21 @@ structure CostedMatchingRun (G : BipartiteGraph V) where
 successful augmentation per left vertex. -/
 noncomputable def costedMatchingRun (G : BipartiteGraph V) :
     CostedMatchingRun G :=
-  let core := costedMatchingRunFrom G G.L.card (Matching.empty G)
+  let built := matchingFlowAdjacency G
+  let core := costedMatchingRunFrom G built.adjacency rfl
+    G.L.card (Matching.empty G)
   { matching := core.matching
     flow := matchingToFlow core.matching
     flow_eq := rfl
-    work := (matchingFlowAdjacency G).work + core.work
+    work := built.work + core.work
     augmentations := core.augmentations }
 
 /-- The returned matching is maximum. -/
 theorem costedMatchingRun_maximum (G : BipartiteGraph V) :
     (costedMatchingRun G).matching.IsMaximum := by
-  let core := costedMatchingRunFrom G G.L.card (Matching.empty G)
+  let built := matchingFlowAdjacency G
+  let core := costedMatchingRunFrom G built.adjacency rfl
+    G.L.card (Matching.empty G)
   change core.matching.IsMaximum
   rcases core.maximum_or_full with hmax | hfull
   · exact hmax
@@ -254,10 +288,13 @@ theorem costedMatchingRun_flow_value (G : BipartiteGraph V) :
 theorem costedMatchingRun_work_le (G : BipartiteGraph V) :
     (costedMatchingRun G).work ≤
       2 * flowArcCount G + G.L.card * matchingAttemptWorkBudget G := by
-  let core := costedMatchingRunFrom G G.L.card (Matching.empty G)
+  let built := matchingFlowAdjacency G
+  let core := costedMatchingRunFrom G built.adjacency rfl
+    G.L.card (Matching.empty G)
   have hcore := core.work_le
   have hbuild := matchingFlowAdjacency_work G
-  change (matchingFlowAdjacency G).work + core.work ≤ _
+  change built.work + core.work ≤ _
+  change (matchingFlowAdjacency G).work = _ at hbuild
   rw [hbuild]
   omega
 
@@ -314,7 +351,9 @@ theorem costedMatchingRun_work_le_product (G : BipartiteGraph V) :
 /-- The run performs no more successful augmentations than left vertices. -/
 theorem costedMatchingRun_augmentations_le (G : BipartiteGraph V) :
     (costedMatchingRun G).augmentations ≤ G.L.card := by
-  exact (costedMatchingRunFrom G G.L.card (Matching.empty G)).augmentations_le
+  let built := matchingFlowAdjacency G
+  exact (costedMatchingRunFrom G built.adjacency rfl
+    G.L.card (Matching.empty G)).augmentations_le
 
 /-- **Attached-cost flow-method headline (CLRS §25.1).**  The returned value
 is a maximum matching produced by the support-indexed BFS/update execution,
