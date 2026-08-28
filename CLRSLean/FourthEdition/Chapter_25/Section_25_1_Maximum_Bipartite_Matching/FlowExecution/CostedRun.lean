@@ -11,6 +11,10 @@ recovers that run's parent path, and executes the concrete matching update.
 The counter is accumulated in the same recursion and includes the one-time
 support-index construction.
 
+The full run binds that support index once and threads it through every
+recursive attempt.  Work is stated in the explicit unit-cost RAM model of the
+support-BFS layer, not as Lean kernel or compiled-container evaluation time.
+
 Proof witnesses and erasure/translation proofs carry no RAM charge.  The
 charged data operations are precisely support construction, bucket scans,
 parent-list construction/reversal, residual-to-graph projection, and

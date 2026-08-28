@@ -7,7 +7,8 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 Every integral state of the costed flow run is refined to a matching of the
 same value.  The final state is a maximal flow, so its recovered matching is
 maximum.  The executable run also bounds the number of augmentations; an
-attached adjacency-list work theorem remains separate future work.
+attached adjacency-list work theorem is supplied by the sibling `CostedRun`
+module, while this file remains the semantic flow reference.
 -/
 
 namespace CLRS

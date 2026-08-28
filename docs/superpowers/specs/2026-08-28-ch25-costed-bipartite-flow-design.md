@@ -1,5 +1,19 @@
 # Chapter 25 attached adjacency-list flow-cost design
 
+## Implementation note (2026-08-28)
+
+The implemented route keeps the run state as a concrete matching and attaches
+the semantic flow definitionally as `matchingToFlow`.  It proves that every
+such flow is integral and that the returned one is maximal.  The exact BFS
+state still erases to the legacy semantic BFS, but the complete matching-state
+sequence is not claimed equal to `bfsFlowIter`, since separate valid path
+choices can produce different maximum matchings.  Residual-to-graph path
+projection is an explicit charged pass.  The resulting conventional product
+bound is `20 * V_f * (E_f + 1)`.
+The support index is built once and reused by every recursive attempt.  The
+counter formalizes the declared textbook unit-cost RAM operations rather than
+the reduction cost of Lean's persistent data structures.
+
 **Status:** route A approved on 2026-08-28.
 
 ## Goal

@@ -22,7 +22,7 @@ its sub-modules are:
 * [Matching Flow Residuals](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S4_Matching_Flow/)
 * [Residual Reachability Translation](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S5_Residual_Translation/)
 * [Berge's Lemma and the Flow Method](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S6_Berge_Flow_Method/)
-* [BFS Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
+* [BFS and Attached-Cost Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
 
 Section 25.2 (the stable-marriage problem) lives in the `CLRS.Matchings` and
 `CLRS.StableMarriage` namespaces, imported through
@@ -42,9 +42,11 @@ Section 25.3 (the Hungarian algorithm for the assignment problem) lives in the
 Status: complete.  Section 25.1 is formalized (Berge's augmenting-path lemma
 and the flow-method certification, built on the §26.3 matching-to-flow
 reduction), including the BFS-selected unit-capacity execution, integral
-matching refinement at every step, and at most `|V|` augmentations.  The
-textbook adjacency-list `O(VE)` execution refinement remains explicitly
-tracked because the current residual BFS enumerates all finite vertices.
+matching refinement at every step, at most `|V|` augmentations, and a separate
+support-indexed execution whose counter is attached to adjacency construction,
+residual bucket scans, parent-path recovery, graph-path projection, and
+concrete matching updates.
+The final bound is `O(V_f E_f)` for the constructed unit-capacity network.
 Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
 stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
 woman-pessimality.  Section 25.3 formalizes the assignment model and Lemma

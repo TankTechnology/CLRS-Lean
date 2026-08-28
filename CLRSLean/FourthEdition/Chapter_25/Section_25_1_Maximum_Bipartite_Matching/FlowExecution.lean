@@ -2,11 +2,15 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.Step
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.Run
 import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.Refinement
+import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.ResidualSupport
+import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.CostedBFS
+import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.MatchingAugment
+import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.FlowExecution.CostedRun
 
 /-!
-# BFS flow execution for maximum bipartite matching
+# BFS and attached-cost execution for maximum bipartite matching
 
-Public facade for the target adjacency-list budget, BFS-selected augmentation
-run, and integral matching refinement.  The budget is not yet attached to an
-adjacency-list implementation, so this facade does not advertise `O(VE)`.
+Public facade for the semantic BFS flow reference, support-indexed residual
+BFS, concrete alternating-path update, integral matching refinement, and the
+same-execution `O(V_f E_f)` work theorem.
 -/

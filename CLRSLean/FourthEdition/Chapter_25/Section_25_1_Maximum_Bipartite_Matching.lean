@@ -33,11 +33,14 @@ Main results:
   certified by the flow method
 - `flowMethod_finds_maximum_matching_with_bfs`: the BFS-selected unit-capacity
   run returns a maximum matching with at most `|V|` augmentations
+- `flowMethod_finds_maximum_matching_with_attached_cost`: the support-indexed
+  run returns a maximum matching with same-execution `O(V_f E_f)` work
 
-The textbook adjacency-list `O(VE)` budget is stated arithmetically, but is
-not claimed for the current Chapter 24 BFS, whose residual-neighbor operation
-enumerates the finite vertex universe.  An instrumented adjacency-list BFS
-and path-update erasure theorem remain a separate refinement task.
+The legacy Chapter 24 residual BFS remains the semantic reference whose
+neighbor operation enumerates the finite vertex universe.  The attached-cost
+execution separately builds finite support buckets, proves exact BFS-state
+erasure, recovers the same parent chain, executes and charges the graph-path
+projection and matching updates, and proves the textbook product bound.
 
 Notation conventions used in this section:
 
@@ -55,5 +58,5 @@ The section is split into the following sub-modules:
 * [Matching Flow Residuals](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S4_Matching_Flow/)
 * [Residual Reachability Translation](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S5_Residual_Translation/)
 * [Berge's Lemma and the Flow Method](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/S6_Berge_Flow_Method/)
-* [BFS Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
+* [BFS and Attached-Cost Flow Execution](CLRSLean/FourthEdition/Chapter_25/Section_25_1_Maximum_Bipartite_Matching/FlowExecution/)
 -/

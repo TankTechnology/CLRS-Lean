@@ -12,3 +12,6 @@ import CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching
 #check CLRS.Matchings.bfsFlowIter_noAugmentingPath_left_card
 #check CLRS.Matchings.flowMatchingAt_size
 #check CLRS.Matchings.flowMethod_finds_maximum_matching_with_bfs
+#check CLRS.Matchings.costedMatchingRun_maximum
+#check CLRS.Matchings.costedMatchingRun_work_le_product
+#check CLRS.Matchings.flowMethod_finds_maximum_matching_with_attached_cost

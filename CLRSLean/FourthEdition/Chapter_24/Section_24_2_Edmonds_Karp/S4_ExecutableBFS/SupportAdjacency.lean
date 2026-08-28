@@ -7,6 +7,10 @@ This module builds adjacency buckets from a finite directed support.  The
 builder records one RAM-model unit for each executed bucket insertion.  Its
 membership, work, and total-storage specifications are independent of flow
 semantics and are reused by the costed residual BFS.
+
+This is an explicit unit-cost RAM abstraction for the textbook analysis; the
+counter is not a claim about Lean kernel reduction or a particular compiled
+`Finset` representation.
 -/
 
 namespace CLRS

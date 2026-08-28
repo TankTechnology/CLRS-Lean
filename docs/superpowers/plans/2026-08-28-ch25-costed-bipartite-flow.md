@@ -9,6 +9,21 @@ same-execution theorem: a support-indexed residual BFS selects a path, a
 concrete alternating-path program updates the returned matching along that
 path, and the accumulated RAM-model work is bounded by `O(V_f E_f)`.
 
+**Implemented outcome (2026-08-28):** The closure uses a direct matching-state
+run.  Every recursive state is already a proved `Matching`; its semantic flow
+is definitionally `matchingToFlow` and is proved integral.  The support BFS
+erases exactly to `residualBFS`, while the returned parent list is projected
+to graph vertices by an explicit charged pass and fed to the concrete
+erase/insert matching update.  Different valid augmenting-path choices need
+not make the state sequence equal to the legacy `bfsFlowIter`, so the public
+refinement is per-state (`flow = matchingToFlow matching`) rather than equality
+to that legacy iteration.  The final execution proves a maximum matching, a
+maximal integral attached flow, the exact component-sum bound, and
+`work ≤ 20 * V_f * (E_f + 1)`.
+The residual-support index is constructed once at the top level and threaded
+through all recursive attempts.  The work field is an explicit textbook
+unit-cost RAM counter, not a measurement of Lean evaluator time.
+
 **Architecture:** Add a reusable finite-support adjacency and costed BFS layer
 beside Chapter 24's existing semantic BFS.  Specialize it to the bipartite
 matching network, prove exact state erasure, translate the exact BFS parent
