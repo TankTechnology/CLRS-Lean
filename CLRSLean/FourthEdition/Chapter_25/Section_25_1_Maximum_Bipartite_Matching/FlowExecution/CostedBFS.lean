@@ -135,10 +135,11 @@ theorem matchingBFSPathRecovery_work_le {G : BipartiteGraph V}
 /-- A concrete residual source-to-sink path in the matching network induces
 a graph augmenting path.  The proof consumes the supplied path itself; it
 does not replace it with a separately chosen reachability witness. -/
-theorem augmentingPath_of_residualPath {G : BipartiteGraph V}
+theorem augmentingPathProjection_of_residualPath {G : BipartiteGraph V}
     (M : Matching V G)
     (q : Flow.ResidualPath (matchingToFlow M) (Sum.inr true) (Sum.inr false)) :
-    ∃ p : List V, IsAugmentingPath G M p := by
+    ∃ p : List V, IsAugmentingPath G M p ∧
+      p = projectGraphVertices q.vertices := by
   cases hq : q.vertices with
   | nil =>
       have hhead := q.head_eq
@@ -187,11 +188,13 @@ theorem augmentingPath_of_residualPath {G : BipartiteGraph V}
                 have hnd := q.nodup
                 rw [hq, List.nodup_cons] at hnd
                 exact hnd.1
-              obtain ⟨p, hpn, hpe, hpge, hphead, hplast, hpfw, hpbw, -⟩ :=
+              obtain ⟨p, hpn, hpe, hpge, hphead, hplast, hpfw, hpbw, -,
+                hproject⟩ :=
                 translation_inner M l hl (Sum.inl l :: rest') hw hwnd hw0
                   hwlast hwns
               have hpne : p ≠ [] := fun h => by simp [h] at hpge
-              refine ⟨p, hpn, hpe, hpge, ?_, ?_, ?_, ?_, hpfw, hpbw⟩
+              refine ⟨p, ?_, by simpa [projectGraphVertices] using hproject⟩
+              refine ⟨hpn, hpe, hpge, ?_, ?_, ?_, ?_, hpfw, hpbw⟩
               · intro h
                 have h1 : p.head h = l := by
                   have h2 : p.head? = some (p.head h) :=
@@ -220,13 +223,89 @@ theorem augmentingPath_of_residualPath {G : BipartiteGraph V}
               exact absurd hstep0
                 (matchingToFlow_not_residualEdge_source_inr M b)
 
+/-- The graph projection of a concrete matching residual path is itself an
+augmenting path. -/
+theorem projectGraphVertices_isAugmentingPath {G : BipartiteGraph V}
+    (M : Matching V G)
+    (q : Flow.ResidualPath (matchingToFlow M) (Sum.inr true) (Sum.inr false)) :
+    IsAugmentingPath G M (projectGraphVertices q.vertices) := by
+  obtain ⟨p, hp, hproject⟩ := augmentingPathProjection_of_residualPath M q
+  simpa [hproject] using hp
+
+/-- Compatibility existential form of the concrete residual-path
+translation. -/
+theorem augmentingPath_of_residualPath {G : BipartiteGraph V}
+    (M : Matching V G)
+    (q : Flow.ResidualPath (matchingToFlow M) (Sum.inr true) (Sum.inr false)) :
+    ∃ p : List V, IsAugmentingPath G M p :=
+  ⟨projectGraphVertices q.vertices,
+    projectGraphVertices_isAugmentingPath M q⟩
+
+/-- Result of the one-pass projection from residual-network vertices to graph
+vertices. -/
+structure CostedGraphPathProjection (V : Type*) where
+  vertices : List V
+  work : Nat
+
+/-- Execute the graph-vertex projection, charging one case inspection per
+residual-path vertex. -/
+def projectGraphVerticesWithCost : List (V ⊕ Bool) →
+    CostedGraphPathProjection V
+  | [] => ⟨[], 0⟩
+  | x :: rest =>
+      let tail := projectGraphVerticesWithCost rest
+      match x with
+      | Sum.inl v => ⟨v :: tail.vertices, tail.work + 1⟩
+      | Sum.inr _ => ⟨tail.vertices, tail.work + 1⟩
+
+omit [Fintype V] [DecidableEq V] in
+theorem projectGraphVerticesWithCost_vertices (w : List (V ⊕ Bool)) :
+    (projectGraphVerticesWithCost w).vertices = projectGraphVertices w := by
+  induction w with
+  | nil => rfl
+  | cons x rest ih =>
+      cases x <;> simp [projectGraphVerticesWithCost, projectGraphVertices, ih]
+
+omit [Fintype V] [DecidableEq V] in
+theorem projectGraphVerticesWithCost_work (w : List (V ⊕ Bool)) :
+    (projectGraphVerticesWithCost w).work = w.length := by
+  induction w with
+  | nil => rfl
+  | cons x rest ih =>
+      cases x <;> simp [projectGraphVerticesWithCost, ih]
+
+/-- Execute the graph projection of the exact recovered matching-BFS path. -/
+noncomputable def matchingBFSGraphProjection {G : BipartiteGraph V}
+    (M : Matching V G) {d : Nat}
+    (hd : (matchingCostedBFS M).state.distance (Sum.inr false) = some d) :
+    CostedGraphPathProjection V :=
+  projectGraphVerticesWithCost (matchingBFSPathRecovery M hd).path.vertices
+
+theorem matchingBFSGraphProjection_isAugmenting {G : BipartiteGraph V}
+    (M : Matching V G) {d : Nat}
+    (hd : (matchingCostedBFS M).state.distance (Sum.inr false) = some d) :
+    IsAugmentingPath G M (matchingBFSGraphProjection M hd).vertices := by
+  rw [matchingBFSGraphProjection, projectGraphVerticesWithCost_vertices]
+  exact projectGraphVertices_isAugmentingPath M
+    (matchingBFSPathRecovery M hd).path
+
+/-- The one-pass path projection is linear in the flow-network vertex count. -/
+theorem matchingBFSGraphProjection_work_le {G : BipartiteGraph V}
+    (M : Matching V G) {d : Nat}
+    (hd : (matchingCostedBFS M).state.distance (Sum.inr false) = some d) :
+    (matchingBFSGraphProjection M hd).work ≤ flowVertexCount V := by
+  rw [matchingBFSGraphProjection, projectGraphVerticesWithCost_work]
+  exact List.Nodup.length_le_card
+    (matchingBFSPathRecovery M hd).path.nodup
+
 /-- The exact parent path recovered from the costed BFS translates to a graph
 augmenting path. -/
 theorem augmentingPath_of_matchingBFSPathRecovery {G : BipartiteGraph V}
     (M : Matching V G) {d : Nat}
     (hd : (matchingCostedBFS M).state.distance (Sum.inr false) = some d) :
     ∃ p : List V, IsAugmentingPath G M p :=
-  augmentingPath_of_residualPath M (matchingBFSPathRecovery M hd).path
+  ⟨(matchingBFSGraphProjection M hd).vertices,
+    matchingBFSGraphProjection_isAugmenting M hd⟩
 
 end Matchings
 end CLRS
