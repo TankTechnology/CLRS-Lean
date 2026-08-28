@@ -4,6 +4,9 @@
 
 **Goal:** Prove finite-grid same-color bounded-hop connectivity and the modular-period per-chain load bound for parameterized lattice-line defects.
 
+**Execution status:** Tasks 1--5 and the focused trust gate are complete.
+Draft-PR integration is the only remaining execution step.
+
 **Architecture:** Build five small research modules. `FiniteGrid` closes geometric boundary facts, `WindowOriginPath` builds an explicit finite Manhattan path, and `AffineFiniteConnectivity` combines them with the existing affine window theorem. `LineDefect` isolates modular progression and period facts, while `LineDefectLoad` proves the finite-range cardinality bound and specializations. Each module has a separate interface test and is committed only after its focused build passes.
 
 **Tech Stack:** Lean 4, Mathlib `Nat`, `Nat.ModEq`, `Nat.gcd`, `Finset.range`, `List.IsChain`, `omega`, `nlinarith`, Lake.
@@ -16,7 +19,7 @@
 - Create: `CLRSLean/Research/ThreeDIC/FiniteGrid.lean`
 - Create: `Tests/Research_ThreeDIC_FiniteGrid_Interface.lean`
 
-- [ ] **Step 1: Write the failing public interface**
+- [x] **Step 1: Write the failing public interface**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.FiniteGrid
@@ -31,7 +34,7 @@ open CLRS.Research.ThreeDIC
 #check gridDistSq_same_window_le
 ```
 
-- [ ] **Step 2: Verify red state**
+- [x] **Step 2: Verify red state**
 
 Run:
 
@@ -41,7 +44,7 @@ lake env lean Tests/Research_ThreeDIC_FiniteGrid_Interface.lean
 
 Expected: nonzero exit because `CLRSLean.Research.ThreeDIC.FiniteGrid` does not yet exist.
 
-- [ ] **Step 3: Implement the geometry interface**
+- [x] **Step 3: Implement the geometry interface**
 
 Use the following public signatures in `FiniteGrid.lean`:
 
@@ -77,7 +80,7 @@ Prove the interval bounds with `omega` after unfolding `inGrid`,
 squared-distance theorem with `nlinarith` from the two coordinate bounds
 `Nat.dist _ _ ≤ M - 1`.
 
-- [ ] **Step 4: Verify green state**
+- [x] **Step 4: Verify green state**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.FiniteGrid
@@ -86,7 +89,7 @@ lake env lean Tests/Research_ThreeDIC_FiniteGrid_Interface.lean
 
 Expected: both commands exit zero and expose all six public names.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/FiniteGrid.lean Tests/Research_ThreeDIC_FiniteGrid_Interface.lean
@@ -99,7 +102,7 @@ git commit -m "research: prove finite repair-window geometry"
 - Create: `CLRSLean/Research/ThreeDIC/WindowOriginPath.lean`
 - Create: `Tests/Research_ThreeDIC_WindowOriginPath_Interface.lean`
 
-- [ ] **Step 1: Write the failing interface**
+- [x] **Step 1: Write the failing interface**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.WindowOriginPath
@@ -118,7 +121,7 @@ open CLRS.Research.ThreeDIC
 #check windowOriginPath_mem_valid
 ```
 
-- [ ] **Step 2: Verify red state**
+- [x] **Step 2: Verify red state**
 
 ```bash
 lake env lean Tests/Research_ThreeDIC_WindowOriginPath_Interface.lean
@@ -126,7 +129,7 @@ lake env lean Tests/Research_ThreeDIC_WindowOriginPath_Interface.lean
 
 Expected: nonzero exit because the module is absent.
 
-- [ ] **Step 3: Implement the one-dimensional path**
+- [x] **Step 3: Implement the one-dimensional path**
 
 Define an inclusive monotone path:
 
@@ -141,7 +144,7 @@ elements have natural distance one, and every member lies between `min a b`
 and `max a b`. Use `List.range'`, reverse, membership, and `omega` lemmas rather
 than defining a partial recursive function.
 
-- [ ] **Step 4: Implement the two-dimensional Manhattan path**
+- [x] **Step 4: Implement the two-dimensional Manhattan path**
 
 Define the path as the horizontal segment at the source second coordinate,
 followed by the vertical segment at the destination first coordinate with its
@@ -158,7 +161,7 @@ of `validWindowOrigin N M` when both endpoints are valid. Split the append-chain
 proof at the corner `(b.1,a.2)` and use the four disjuncts of `windowAdjacent`
 for increasing/decreasing horizontal/vertical steps.
 
-- [ ] **Step 5: Verify green state**
+- [x] **Step 5: Verify green state**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.WindowOriginPath
@@ -167,7 +170,7 @@ lake env lean Tests/Research_ThreeDIC_WindowOriginPath_Interface.lean
 
 Expected: both commands exit zero.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/WindowOriginPath.lean Tests/Research_ThreeDIC_WindowOriginPath_Interface.lean
@@ -180,7 +183,7 @@ git commit -m "research: construct finite window-origin paths"
 - Create: `CLRSLean/Research/ThreeDIC/AffineFiniteConnectivity.lean`
 - Create: `Tests/Research_ThreeDIC_AffineFiniteConnectivity_Interface.lean`
 
-- [ ] **Step 1: Write the failing interface**
+- [x] **Step 1: Write the failing interface**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.AffineFiniteConnectivity
@@ -196,7 +199,7 @@ open CLRS.Research.ThreeDIC
 #check affineChainColor_finiteGrid_connected
 ```
 
-- [ ] **Step 2: Verify red state**
+- [x] **Step 2: Verify red state**
 
 ```bash
 lake env lean Tests/Research_ThreeDIC_AffineFiniteConnectivity_Interface.lean
@@ -204,7 +207,7 @@ lake env lean Tests/Research_ThreeDIC_AffineFiniteConnectivity_Interface.lean
 
 Expected: nonzero exit because the module is absent.
 
-- [ ] **Step 3: Define the bundled path contract**
+- [x] **Step 3: Define the bundled path contract**
 
 ```lean
 structure BoundedColorPath (N M K c : Nat) (x y : Nat × Nat) where
@@ -220,7 +223,7 @@ structure BoundedColorPath (N M K c : Nat) (x y : Nat × Nat) where
 The generated structure projections provide the five reader-facing wrapper
 names listed by the interface.
 
-- [ ] **Step 4: Prove the main connectivity theorem**
+- [x] **Step 4: Prove the main connectivity theorem**
 
 Use this public signature:
 
@@ -246,7 +249,7 @@ and prove the bundled contract. Endpoint-to-representative hops use
 finite-grid membership follows from `windowOriginPath_mem_valid` and
 `inWindow_of_validWindowOrigin_inGrid`.
 
-- [ ] **Step 5: Verify green state**
+- [x] **Step 5: Verify green state**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.AffineFiniteConnectivity
@@ -255,7 +258,7 @@ lake env lean Tests/Research_ThreeDIC_AffineFiniteConnectivity_Interface.lean
 
 Expected: both commands exit zero and the theorem has no additional assumptions.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/AffineFiniteConnectivity.lean Tests/Research_ThreeDIC_AffineFiniteConnectivity_Interface.lean
@@ -268,7 +271,7 @@ git commit -m "research: close finite affine color connectivity"
 - Create: `CLRSLean/Research/ThreeDIC/LineDefect.lean`
 - Create: `Tests/Research_ThreeDIC_LineDefect_Interface.lean`
 
-- [ ] **Step 1: Write the failing interface**
+- [x] **Step 1: Write the failing interface**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.LineDefect
@@ -284,7 +287,7 @@ open CLRS.Research.ThreeDIC
 #check lineColor_index_congruent
 ```
 
-- [ ] **Step 2: Verify red state**
+- [x] **Step 2: Verify red state**
 
 ```bash
 lake env lean Tests/Research_ThreeDIC_LineDefect_Interface.lean
@@ -292,7 +295,7 @@ lake env lean Tests/Research_ThreeDIC_LineDefect_Interface.lean
 
 Expected: nonzero exit because the module is absent.
 
-- [ ] **Step 3: Implement line definitions and progression identity**
+- [x] **Step 3: Implement line definitions and progression identity**
 
 ```lean
 def linePoint (base step : Nat × Nat) (t : Nat) : Nat × Nat :=
@@ -309,7 +312,7 @@ Prove `affineChainColor_linePoint` by unfolding and normalizing the semiring
 expression before applying `% K`. Prove `lineColorPeriod_pos` from `0 < K`,
 `Nat.gcd_dvd_left`, and positivity of division by a positive divisor.
 
-- [ ] **Step 4: Prove exact periodicity and same-color congruence**
+- [x] **Step 4: Prove exact periodicity and same-color congruence**
 
 `lineColor_period` states that advancing the index by `lineColorPeriod` leaves
 the color unchanged. `lineColor_index_congruent` states that if indices `s` and
@@ -325,7 +328,7 @@ modulus and multiplier by `gcd`, use coprimality of the quotients, cancel the
 multiplier, and translate the resulting `Nat.ModEq` back to equality of
 remainders modulo the period.
 
-- [ ] **Step 5: Verify green state**
+- [x] **Step 5: Verify green state**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.LineDefect
@@ -334,7 +337,7 @@ lake env lean Tests/Research_ThreeDIC_LineDefect_Interface.lean
 
 Expected: both commands exit zero, including the zero-step case where period is one.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/LineDefect.lean Tests/Research_ThreeDIC_LineDefect_Interface.lean
@@ -347,7 +350,7 @@ git commit -m "research: prove affine line-color period"
 - Create: `CLRSLean/Research/ThreeDIC/LineDefectLoad.lean`
 - Create: `Tests/Research_ThreeDIC_LineDefectLoad_Interface.lean`
 
-- [ ] **Step 1: Write the failing interface**
+- [x] **Step 1: Write the failing interface**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.LineDefectLoad
@@ -362,7 +365,7 @@ open CLRS.Research.ThreeDIC
 #check lineColor_finiteGrid_load_le
 ```
 
-- [ ] **Step 2: Verify red state**
+- [x] **Step 2: Verify red state**
 
 ```bash
 lake env lean Tests/Research_ThreeDIC_LineDefectLoad_Interface.lean
@@ -370,7 +373,7 @@ lake env lean Tests/Research_ThreeDIC_LineDefectLoad_Interface.lean
 
 Expected: nonzero exit because the module is absent.
 
-- [ ] **Step 3: Define the exact counting universe**
+- [x] **Step 3: Define the exact counting universe**
 
 ```lean
 def lineColorIndices (M K L c : Nat) (base step : Nat × Nat) : Finset Nat :=
@@ -382,7 +385,7 @@ def lineColorIndices (M K L c : Nat) (base step : Nat × Nat) : Finset Nat :=
 Define the ceiling expression in theorem statements as
 `(L + T - 1) / T`, carrying `0 < T` explicitly in private counting helpers.
 
-- [ ] **Step 4: Prove the generic residue-class counting lemma**
+- [x] **Step 4: Prove the generic residue-class counting lemma**
 
 For positive `T`, prove that a subset `s` of `Finset.range L` whose elements
 all have the same remainder modulo `T` satisfies
@@ -396,7 +399,7 @@ equal `t` via `Nat.mod_add_div`. Bound the quotient image inside
 `Finset.range ((L + T - 1) / T)` using `t < L` and division arithmetic. Apply
 `Finset.card_le_card` after the injective image construction.
 
-- [ ] **Step 5: Prove the public load theorem and specializations**
+- [x] **Step 5: Prove the public load theorem and specializations**
 
 Use `lineColor_index_congruent` to show that all members of
 `lineColorIndices` share one remainder when the finset is nonempty; the empty
@@ -419,7 +422,7 @@ The finite-grid corollary accepts
 and retains the same cardinality bound, making the geometric domain explicit
 without changing the counting set.
 
-- [ ] **Step 6: Add executable edge examples**
+- [x] **Step 6: Add executable edge examples**
 
 In the interface test, add `by decide` examples for:
 
@@ -430,7 +433,7 @@ example : lineColorPeriod 3 8 (0, 1) = 8 := by decide
 example : lineColorPeriod 2 8 (0, 1) = 4 := by decide
 ```
 
-- [ ] **Step 7: Verify green state**
+- [x] **Step 7: Verify green state**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.LineDefectLoad
@@ -439,7 +442,7 @@ lake env lean Tests/Research_ThreeDIC_LineDefectLoad_Interface.lean
 
 Expected: both commands exit zero and all four executable edge examples pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/LineDefectLoad.lean Tests/Research_ThreeDIC_LineDefectLoad_Interface.lean
@@ -453,13 +456,13 @@ git commit -m "research: bound affine line-defect chain load"
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
 - Modify: `docs/superpowers/plans/2026-08-29-3dic-affine-connectivity-line-load.md`
 
-- [ ] **Step 1: Update claim boundaries**
+- [x] **Step 1: Update claim boundaries**
 
 Record the finite-grid connectivity theorem and line-load theorem as proved.
 Keep simple Hamiltonian ordering, total wire length, mux/spare feasibility,
 empirical yield, and publication novelty in the unproved/model-dependent list.
 
-- [ ] **Step 2: Run the full focused verification gate**
+- [x] **Step 2: Run the full focused verification gate**
 
 ```bash
 lake build \
@@ -485,7 +488,7 @@ git diff --check
 Expected: all commands exit zero. The only tolerated warning is the pre-existing
 ignored `.lake/packages/verso` local-change warning.
 
-- [ ] **Step 3: Commit the documentation and checked plan**
+- [x] **Step 3: Commit the documentation and checked plan**
 
 ```bash
 git add docs/research/3d-ic-hbt-affine-window-coloring-2026-08-29.md \
@@ -500,4 +503,3 @@ Push the isolated implementation branch, then merge it into
 `codex/research-hbt-affine-coloring` without rewriting history. Push the updated
 draft-PR branch and add a PR/issue comment containing theorem names, exact
 verification commands, remaining claim boundaries, and commit identifiers.
-

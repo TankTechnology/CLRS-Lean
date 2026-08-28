@@ -30,7 +30,7 @@ structure BoundedColorPath
 /-- **Finite-grid affine-chain connectivity.**
 
 When {lit}`0 < K <= M^2` and {lit}`M <= N`, any two finite-grid bumps of color
-{lit}`c` admit an endpoint-exact same-color path whose every squared hop is at
+{lit}`c` have an endpoint-exact same-color path whose every squared hop is at
 most {lit}`M^2 + (M - 1)^2`. -/
 theorem affineChainColor_finiteGrid_connected
     (N M K c : Nat) (hK : 0 < K) (hKM : K ≤ M * M) (hMN : M ≤ N)
