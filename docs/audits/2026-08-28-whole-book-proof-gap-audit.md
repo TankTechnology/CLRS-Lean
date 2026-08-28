@@ -42,10 +42,11 @@ issues.
   recurrences.  The two textbook examples instantiate floor `n/4` and mixed
   floor/ceiling `n/3, ceil(2n/3)` children and connect to the existing
   all-input Master and Akra--Bazzi interfaces.
-- Chapter 25 target #339 remains open after pre-merge semantic review.  The
-  branch proves a BFS-selected integral flow run, maximum-matching refinement,
-  and at most `|V|` augmentations, but does not attach the textbook
-  adjacency-list `O(VE)` budget to the current all-vertices residual BFS.
+- Chapter 25 target #339 was blocked when pre-merge semantic review rejected
+  attaching stipulated charges to the all-vertices residual BFS.  Route A now
+  closes it with a separately executed support-indexed BFS, explicit path
+  recovery/projection and matching updates, a support index built once and
+  reused across attempts, and the attached `O(V_f E_f)` theorem on `main`.
 
 The matrix below remains the dated baseline that motivated those batches; the
 live ledger and GitHub issues record their current state.
