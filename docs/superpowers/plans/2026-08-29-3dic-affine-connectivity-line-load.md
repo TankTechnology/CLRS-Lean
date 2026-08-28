@@ -4,8 +4,8 @@
 
 **Goal:** Prove finite-grid same-color bounded-hop connectivity and the modular-period per-chain load bound for parameterized lattice-line defects.
 
-**Execution status:** Tasks 1--5 and the focused trust gate are complete.
-Draft-PR integration is the only remaining execution step.
+**Execution status:** Complete. All proof tasks, focused verification, and
+draft-PR integration finished on 2026-08-29.
 
 **Architecture:** Build five small research modules. `FiniteGrid` closes geometric boundary facts, `WindowOriginPath` builds an explicit finite Manhattan path, and `AffineFiniteConnectivity` combines them with the existing affine window theorem. `LineDefect` isolates modular progression and period facts, while `LineDefectLoad` proves the finite-range cardinality bound and specializations. Each module has a separate interface test and is committed only after its focused build passes.
 
@@ -497,7 +497,7 @@ git add docs/research/3d-ic-hbt-affine-window-coloring-2026-08-29.md \
 git commit -m "docs(research): record affine route A closure"
 ```
 
-- [ ] **Step 4: Integrate into the existing draft PR branch**
+- [x] **Step 4: Integrate into the existing draft PR branch**
 
 Push the isolated implementation branch, then merge it into
 `codex/research-hbt-affine-coloring` without rewriting history. Push the updated
