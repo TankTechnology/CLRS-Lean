@@ -28,6 +28,12 @@ open Chapter26
 variable {V : Type*} [Fintype V] [DecidableEq V] {G : BipartiteGraph V}
 /-! ## From residual reachability to graph augmenting paths -/
 
+/-- Project the embedded graph vertices from a residual-network walk. -/
+def projectGraphVertices : List (V ⊕ Bool) → List V
+  | [] => []
+  | Sum.inl v :: rest => v :: projectGraphVertices rest
+  | Sum.inr _ :: rest => projectGraphVertices rest
+
 /-- **Translation lemma** (auxiliary, well-founded on the walk length): a
 vertex-simple residual walk from an `inl`-embedded left vertex to the sink
 induces an alternating path in the bipartite graph.  The conclusion lists
@@ -42,7 +48,7 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
         (∀ r₂ : V, p.getLast? = some r₂ → r₂ ∈ G.R ∧ M.IsUnmatchedRight r₂) ∧
         (∀ e ∈ (altEdges p).1, e ∈ G.E ∧ e ∉ M.edges) ∧
         (∀ e ∈ (altEdges p).2, e ∈ M.edges) ∧
-        (∀ v ∈ p, Sum.inl v ∈ w) := by
+        (∀ v ∈ p, Sum.inl v ∈ w) ∧ p = projectGraphVertices w := by
   suffices aux : ∀ (n : ℕ) (l : V) (hl : l ∈ G.L) (w : List (V ⊕ Bool)),
       w.length ≤ n → w.IsChain (Flow.residualEdge (matchingToFlow M)) →
       w.Nodup → w[0]? = some (Sum.inl l) → w[w.length - 1]? = some (Sum.inr false) →
@@ -51,7 +57,7 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
         (∀ r₂ : V, p.getLast? = some r₂ → r₂ ∈ G.R ∧ M.IsUnmatchedRight r₂) ∧
         (∀ e ∈ (altEdges p).1, e ∈ G.E ∧ e ∉ M.edges) ∧
         (∀ e ∈ (altEdges p).2, e ∈ M.edges) ∧
-        (∀ v ∈ p, Sum.inl v ∈ w) from
+        (∀ v ∈ p, Sum.inl v ∈ w) ∧ p = projectGraphVertices w from
     fun w hw hnd h0 hlst hns => aux w.length l hl w le_rfl hw hnd h0 hlst hns
   intro n
   induction n with
@@ -127,7 +133,8 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
                   have hw₂ns : Sum.inr true ∉ Sum.inl l₂ :: rest'' := by
                     intro hcon
                     exact hns (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ hcon))
-                  obtain ⟨p', hp'n, hp'e, hp'ge, hp'head, hp'last, hp'fw, hp'bw, hp'mem⟩ :=
+                  obtain ⟨p', hp'n, hp'e, hp'ge, hp'head, hp'last, hp'fw,
+                    hp'bw, hp'mem, hp'project⟩ :=
                     ih l₂ hl₂ (Sum.inl l₂ :: rest'') hw₂len hw₂chain hw₂nodup hw₂0 hw₂last hw₂ns
                   -- assemble `l :: r :: p'`
                   have hp'ne : p' ≠ [] := fun h => by simp [h] at hp'ge
@@ -136,9 +143,10 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
                     rw [hp'] at hp'head
                     simp at hp'head
                     exact hp'head
+                  rw [hp'] at hp'project
                   subst l₃
                   subst p'
-                  refine ⟨l :: r :: l₂ :: p'', ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+                  refine ⟨l :: r :: l₂ :: p'', ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
                   · have hlr : l ≠ r := fun h => G.not_mem_R_of_mem_L hl (h ▸ hr)
                     have hlnotin : l ∉ r :: l₂ :: p'' := by
                       intro hcon
@@ -197,6 +205,7 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
                           (List.mem_cons_of_mem _ List.mem_cons_self)
                       · exact List.mem_cons_of_mem _
                           (List.mem_cons_of_mem _ (hp'mem v (List.mem_cons_of_mem _ hv)))
+                  · simpa [projectGraphVertices] using congrArg (l :: r :: ·) hp'project
               | inr b =>
                 cases b with
                 | true => exact absurd (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ List.mem_cons_self)) hns
@@ -225,7 +234,7 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
                           False by simp] at hinj
                       exact False.elim (hinj.mp rfl)
                   subst hrest''
-                  refine ⟨[l, r], ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+                  refine ⟨[l, r], ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
                   · exact List.nodup_cons.mpr ⟨by
                       simp; exact fun h => G.not_mem_R_of_mem_L hl (h ▸ hr),
                       List.nodup_singleton _⟩
@@ -247,6 +256,7 @@ theorem translation_inner (M : Matching V G) (l : V) (hl : l ∈ G.L) :
                     rcases hv with rfl | rfl
                     · exact List.mem_cons_self
                     · exact List.mem_cons_of_mem _ List.mem_cons_self
+                  · rfl
           · exact (G.not_mem_R_of_mem_L hl (G.hE_subset _ (M.h_subset hcon)).2).elim
         | inr b =>
           cases b with
@@ -296,7 +306,7 @@ theorem augmentingPath_of_hasAugmentingPath (M : Matching V G)
           have h1 := hqnodup
           rw [List.nodup_cons] at h1
           exact h1.1
-        obtain ⟨p, hpn, hpe, hpge, hphead, hplast, hpfw, hpbw, -⟩ :=
+        obtain ⟨p, hpn, hpe, hpge, hphead, hplast, hpfw, hpbw, -, -⟩ :=
           translation_inner M l hl (Sum.inl l :: rest') hw hwnd hw0 hwlast hwns
         have hpne : p ≠ [] := fun h => by simp [h] at hpge
         refine ⟨p, hpn, hpe, hpge, ?_, ?_, ?_, ?_, hpfw, hpbw⟩
