@@ -206,8 +206,8 @@ color preservation, and the hop bound.
 
 ### `LineDefect.lean`
 
-Defines `linePoint`, `lineColorStep`, and the line-color index set. Proves the
-modular progression identity and the exact index-period characterization.
+Defines `linePoint`, `lineColorStep`, and `lineColorPeriod`. Proves the modular
+progression identity, periodicity, and the exact index-period characterization.
 
 ### `LineDefectLoad.lean`
 
@@ -230,8 +230,8 @@ gridDistSq_same_window_le
 
 natIntervalPath
 windowOriginPath
-windowOriginPath_first
-windowOriginPath_last
+windowOriginPath_head?
+windowOriginPath_getLast?
 windowOriginPath_isChain
 windowOriginPath_mem_valid
 
@@ -262,8 +262,9 @@ The development must preserve all of the following:
 3. **Finite boundary:** every path point lies in `inGrid N`.
 4. **Local hop bound:** `List.IsChain` uses the same squared-distance threshold
    on every consecutive pair.
-5. **Nonempty modulus:** every modulo and period theorem explicitly carries
-   `0 < K`.
+5. **Nonempty modulus:** period positivity, same-color congruence, and every
+   counting theorem explicitly carry `0 < K`; periodicity itself is proved in
+   the stronger zero-modulus-compatible form.
 6. **Period positivity:** counting never divides by a zero period.
 7. **Counting universe:** the denominator is the exact index range
    `Finset.range L`, not all lattice points or all finite-grid points.
@@ -325,4 +326,3 @@ Route A's proof package is complete when:
 5. the research documentation states the claim boundary without calling the
    result a solved community open problem before the novelty audit;
 6. changes are committed in reviewable stages and pushed to draft PR #343.
-

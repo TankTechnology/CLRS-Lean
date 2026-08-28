@@ -4,8 +4,8 @@ Date: 2026-08-29
 
 Tracking issue: [#342](https://github.com/TankTechnology/CLRS-Lean/issues/342)
 
-Status: verified research baseline; not a novelty claim and not part of the
-CLRS textbook-completion claim
+Status: verified route A proof package; not a novelty claim and not part of
+the CLRS textbook-completion claim
 
 ## Research boundary
 
@@ -29,9 +29,12 @@ In the established language of polychromatic coloring, this is the special
 case where the square window tiles the integer grid. It should therefore be
 described as an exact DART-specific baseline, not as a solved open problem.
 
-This observation does not solve DART's full optimization problem. Routing
-length, finite-boundary chain ordering, spare placement, signal-integrity
-constraints, and repairability under concrete clustered faults remain open.
+This observation does not solve DART's full optimization problem. The current
+artifact now proves finite-boundary same-color connectivity with a local hop
+bound and an exact load ceiling for parameterized lattice-line defects. Simple
+chain ordering, total route length, strip/cluster defects, spare placement,
+signal-integrity constraints, and repairability under concrete fault models
+remain open.
 
 ## Lean artifact
 
@@ -52,7 +55,7 @@ t = (t mod M) + M * (t / M).
 
 The assumption `t < K ≤ M²` places both coordinates inside the window.
 
-Two small follow-on modules formalize the first routing bridge:
+Five small follow-on modules close route A's combinatorial proof package:
 
 - `WindowRouting.lean` proves that arbitrary representatives of horizontally
   or vertically adjacent `M × M` windows have squared grid distance at most
@@ -60,11 +63,24 @@ Two small follow-on modules formalize the first routing bridge:
   representative path;
 - `AffineWindowRouting.lean` combines that geometry with affine window
   surjectivity, selecting the requested chain color in each window along any
-  adjacent-window path.
+  adjacent-window path;
+- `FiniteGrid.lean` and `WindowOriginPath.lean` prove finite-boundary window
+  coverage and construct valid Manhattan paths between canonical window
+  origins;
+- `AffineFiniteConnectivity.lean` proves
+  `affineChainColor_finiteGrid_connected`: any two same-color bumps in an
+  `N × N` grid admit an endpoint-exact same-color path that stays in the grid,
+  with every squared hop at most `M² + (M - 1)²`;
+- `LineDefect.lean` proves the modular line progression, positive period
+  `T = K / gcd(K, a + M*b)`, periodicity, and the converse same-color index
+  congruence;
+- `LineDefectLoad.lean` proves that each color occurs at most `ceil(L/T)` times
+  in a length-`L` line prefix, with horizontal, vertical, coprime-step, and
+  finite-grid corollaries.
 
-This proves bounded hops between window representatives. It does not yet give
-a Hamiltonian ordering of every bump in a color class or a total-wire-length
-bound.
+The connectivity path may repeat vertices. The result therefore does not give
+a simple or Hamiltonian ordering of every bump in a color class, a
+total-wire-length bound, or an end-to-end repairability theorem.
 
 ## Executable audit
 
@@ -83,8 +99,9 @@ For `N = 25`, `M = 3`, and `K = 8`:
 The last item motivated the now-formal local representative bound. A sweep over
 7,350 tuples with `2 ≤ M ≤ 15`, `2 ≤ K ≤ M²`, and several grid sizes found no
 counterexample to finite color-class connectivity at radius
-`√(M² + (M - 1)²)`. The Lean theorem currently covers the core path of window
-representatives; boundary coverage of every colored bump remains to be lifted.
+`√(M² + (M - 1)²)`. The later Lean theorem now proves that finite-boundary
+connectivity statement for arbitrary same-color endpoints, independently of
+the executable sweep.
 
 ## Prior-art audit
 
@@ -118,12 +135,13 @@ Starting references:
 
 ## Next decision gates
 
-1. Freeze a parameterized line/strip and cluster-fault family plus the exact
-   DART spare/mux repair semantics.
-2. Prove a nontrivial worst-case per-chain fault-load certificate and audit it
-   against multidimensional burst-error/interleaving prior art.
-3. Lift the representative-path theorem to the finite-boundary color class,
-   then seek a sharp Hamiltonian or total-length guarantee beyond the classical
+1. Extend the now-certified lattice-line family to a parameterized strip or
+   cluster-fault family and freeze the exact DART spare/mux repair semantics.
+2. Audit the proved modular line-load certificate against multidimensional
+   burst-error/interleaving prior art; seek a stronger hardware-specific bound
+   before making a novelty claim.
+3. Strengthen the proved finite-boundary connectivity result to a sharp simple
+   ordering, Hamiltonian, or total-length guarantee beyond the classical
    generic `3R` baseline.
 4. Replace the random-start nearest-neighbor compactness proxy with a canonical
    chain-ordering objective and prove an approximation or exact special case.

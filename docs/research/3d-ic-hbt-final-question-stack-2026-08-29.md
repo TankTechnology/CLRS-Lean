@@ -2,8 +2,8 @@
 
 Date: 2026-08-29
 
-Status: research direction, not a claim that a recognized open problem has
-been solved
+Status: route A combinatorial core formally verified; not a claim that a
+recognized open problem has been solved
 
 ## Headline question
 
@@ -16,11 +16,12 @@ the DART architecture?
 ## Why this is the right main question
 
 The question starts from DART's real motivation--line and cluster faults--but
-replaces heuristic quality alone with a falsifiable certificate. It uses the
-verified affine window construction only as an exact dispersion baseline. The
-paper contribution must lie in nontrivial fault-load and routing guarantees and
-their ability to predict actual repairability, not in rediscovering a modular
-coloring.
+replaces heuristic quality alone with a falsifiable certificate. Route A now
+formally verifies perfect window dispersion, finite-grid same-color bounded-hop
+connectivity, and the exact modular ceiling bound for lattice-line load. These
+are certified baselines. A paper contribution must still add nontrivial
+hardware-specific load or routing guarantees and show that they predict actual
+repairability, not merely rediscover modular coloring and interleaving facts.
 
 ## Supporting sub-questions
 
@@ -32,10 +33,10 @@ coloring.
 
 ## Falsifiable hypotheses
 
-- **H1 -- certified load:** For a frozen family of line/strip and bounded-box
-  defects, a deterministic slope/color construction has an explicit worst-case
-  per-chain fault-load bound that is asymptotically or numerically tighter than
-  regular localized chains at the same spare ratio.
+- **H1 -- certified load:** The lattice-line subcase now has the proved bound
+  `ceil(L / (K / gcd(K, a + M*b)))`. The remaining hypothesis is that an
+  extension to line/strip or bounded-box defects is asymptotically or
+  numerically tighter than regular localized chains at the same spare ratio.
 - **H2 -- routability:** The same construction admits a chain ordering with a
   nontrivial, physically meaningful bound on maximum hop and total route length.
   The elementary window-connectivity radius and the classical generic `3R`
@@ -74,9 +75,11 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 
 ## Publication gate
 
-The current affine theorem plus local adjacent-window geometry is not enough
-for a paper. A credible short EDA paper requires Result 2 or a sharp Result 3
-and a faithful Result 4. A stronger DATE/ISPD/ICCAD/TCAD submission would need
-all three. A formal-methods venue additionally requires a substantially larger
+The completed route A proof package is still not enough by itself for a paper:
+its line-load theorem is elementary modular arithmetic until a prior-art audit
+and hardware-specific strengthening show otherwise, and its routing result is
+connectivity rather than a simple physical chain. A credible short EDA paper
+needs a stronger strip/cluster or routing result plus a faithful evaluation.
+A stronger DATE/ISPD/ICCAD/TCAD submission needs those results together with
+repairability evidence. A formal-methods venue additionally needs a larger
 verified refinement or executable routing artifact.
-
