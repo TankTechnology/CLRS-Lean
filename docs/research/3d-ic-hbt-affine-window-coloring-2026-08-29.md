@@ -55,7 +55,7 @@ t = (t mod M) + M * (t / M).
 
 The assumption `t < K ≤ M²` places both coordinates inside the window.
 
-Five small follow-on modules close route A's combinatorial proof package:
+Seven small follow-on modules close route A's combinatorial proof package:
 
 - `WindowRouting.lean` proves that arbitrary representatives of horizontally
   or vertically adjacent `M × M` windows have squared grid distance at most
