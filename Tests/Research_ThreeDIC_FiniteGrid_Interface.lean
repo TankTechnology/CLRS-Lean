@@ -12,4 +12,3 @@ open CLRS.Research.ThreeDIC
 #check inWindow_of_validWindowOrigin_inGrid
 #check inWindow_coverOrigin
 #check gridDistSq_same_window_le
-

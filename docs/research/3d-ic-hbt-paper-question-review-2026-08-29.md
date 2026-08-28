@@ -71,4 +71,3 @@ coloring constructions, including
   perfect local dispersion?
 - **Supporting question 2:** Do the certificates predict repairability and
   overhead under a faithful DART/YAP+ fault model?
-

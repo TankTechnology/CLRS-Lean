@@ -16,4 +16,3 @@ open CLRS.Research.ThreeDIC
 #check windowOriginPath_getLast?
 #check windowOriginPath_isChain
 #check windowOriginPath_mem_valid
-
