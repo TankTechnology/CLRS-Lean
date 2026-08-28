@@ -10,4 +10,3 @@ with the adjacent-window geometric routing bound.
 open CLRS.Research.ThreeDIC
 
 #check affineChainColor_windowPath_bounded
-
