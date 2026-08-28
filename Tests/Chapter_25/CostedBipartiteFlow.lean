@@ -14,4 +14,5 @@ augmentation, the returned maximum matching, and the `O(VE)` work bound.
 #check CLRS.Matchings.augmentMatchingAlong_work_le
 #check CLRS.Matchings.costedMatchingRun_maximum
 #check CLRS.Matchings.costedMatchingRun_work_le
+#check CLRS.Matchings.costedMatchingRun_work_le_product
 #check CLRS.Matchings.flowMethod_finds_maximum_matching_with_attached_cost
