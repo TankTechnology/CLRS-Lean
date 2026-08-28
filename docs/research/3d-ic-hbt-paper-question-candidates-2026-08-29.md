@@ -2,23 +2,28 @@
 
 Date: 2026-08-29
 
-Status: adversarial question audit; none of these questions is yet claimed as
-an open problem or a publication contribution
+Status: post-route-A adversarial question audit; proved baselines are separated
+from unresolved research questions, and none is claimed as a publication
+contribution
 
 Tracking issue: [#342](https://github.com/TankTechnology/CLRS-Lean/issues/342)
 
 ## Evidence boundary
 
-The current artifact proves one exact statement: for `0 < K <= M^2`, the
+The current artifact proves three related baselines. For `0 < K <= M^2`, the
 affine assignment
 
 ```text
 color(i, j) = (i + M * j) mod K
 ```
 
-puts all `K` repair-chain colors in every translated `M x M` window. This
-exactly minimizes DART's diversity term, but it says nothing by itself about
-the routing term or post-fault repairability.
+puts all `K` repair-chain colors in every translated `M x M` window. On a
+finite grid, any two bumps of one affine color have an endpoint-exact
+same-color path whose squared hops are at most `M^2 + (M-1)^2`. Along a
+lattice-line defect, each color receives at most
+`ceil(L / (K / gcd(K, a + M*b)))` points in a length-`L` prefix. These results
+close route A's combinatorial baseline but do not provide a simple physical
+chain, total route length, or post-fault repairability.
 
 This diversity theorem is not a safe novelty claim. In the language of
 polychromatic colorings, an `M x M` square tiles `Z^2`, and known theory relates
@@ -117,13 +122,13 @@ Mechanism question connecting local fault dispersion to global routability.
 
 ### Current evidence
 
-H1 has a short proof plan through the connected graph of sliding windows: pick
-a colored representative per window and compare representatives of adjacent
-windows. A 7,350-instance sweep found no counterexample. The tempting claim
-that a doubled spanning-tree traversal can be shortcut to `2R` is false in
-general: a shortcut may skip arbitrarily many tree edges. The safe generic
-Hamiltonian baseline is instead the classical result that the cube of every
-connected graph is Hamiltonian-connected.
+H1 is formally proved for arbitrary same-color endpoints on a finite grid,
+including exact endpoints, finite-grid membership, color preservation, and the
+stated hop bound. A 7,350-instance sweep had previously found no
+counterexample. The tempting claim that a doubled spanning-tree traversal can
+be shortcut to `2R` is false in general: a shortcut may skip arbitrarily many
+tree edges. The safe generic Hamiltonian baseline is instead the classical
+result that the cube of every connected graph is Hamiltonian-connected.
 
 ### Venue fit and risk
 
@@ -161,10 +166,10 @@ bounded routing guarantee.
 
 ### Current evidence
 
-Exact diversity is proved. The generic connectivity argument suggests an
-`O(M)` bottleneck guarantee for any perfectly diverse coloring, but total
-length, Hamiltonian ordering, finite boundaries, and DART's exact greedy
-fragmentation objective are not closed.
+Exact diversity and finite-grid `O(M)` bottleneck connectivity are formally
+proved for the affine construction. The witness is not required to be simple,
+so total length, Hamiltonian ordering, DART's exact greedy fragmentation
+objective, and physical mux/spare feasibility are not closed.
 
 ### Venue fit and risk
 
