@@ -14,6 +14,9 @@ open CLRS.Research.ThreeDIC
 #check stripColor_vertical_load_le_phase
 #check stripColor_finiteGrid_load_le_phase_periods
 
+example : stripAcrossColorPeriod 2 8 (0, 1) (1, 0) = 2 := by decide
+example : stripAcrossColorPeriod 3 8 (1, 0) (0, 1) = 1 := by decide
+
 example :
     (stripColorPoints 3 8 2 5 3 (0, 0) (1, 0) (0, 1)).card = 2 := by
   decide
