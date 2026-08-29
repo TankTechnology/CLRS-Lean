@@ -73,7 +73,7 @@ Run the module build and interface test, then commit with
 - Create: `Tests/Research_ThreeDIC_AffineLineDefectLoad_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/AffineLineDefectLoad.lean`
 
-- [ ] **Step 1: Write and run a failing interface**
+- [x] **Step 1: Write and run a failing interface**
 
 Freeze:
 
@@ -106,18 +106,18 @@ theorem affineLineColor_finiteGrid_load_le
 
 Verify RED before creating production code.
 
-- [ ] **Step 2: Prove the quotient injection bound**
+- [x] **Step 2: Prove the quotient injection bound**
 
 Reuse the existing proof shape: colored indices have one residue modulo the
 positive line period, quotient by that period is injective, and the quotient
 image lies below `ceil(L/T)`.
 
-- [ ] **Step 3: Add specialization and boundary regressions**
+- [x] **Step 3: Add specialization and boundary regressions**
 
 Test empty prefixes, invalid colors, zero direction, and equality with the old
 fixed-color index set at `(1,M,0)`.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run focused build/interface checks and commit with
 `research: certify generalized affine line load`.
