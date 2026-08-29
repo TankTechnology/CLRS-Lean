@@ -17,10 +17,10 @@ first Lean formalization of polychromatic coloring.
 
 The defensible contribution today is narrower: a kernel-checked,
 DART-motivated deterministic construction that simultaneously exposes local
-window diversity, finite-grid same-color connectivity, and exact line-defect
-period/load certificates. This is a useful verified baseline and a strong
-starting point, but not yet a standalone research result of the strength needed
-for an EDA or formal-methods paper.
+window diversity, exact floor/ceiling-balanced box load, finite-grid same-color
+connectivity, and exact line-defect period/load certificates. This is a useful
+verified baseline and a strong starting point, but not yet a standalone
+research result of the strength needed for an EDA or formal-methods paper.
 
 The most valuable next step is not a broader dimension-only generalization. It
 is an end-to-end *repairability certificate*: prove balanced per-chain load for
@@ -40,8 +40,9 @@ the same model as DART.
 - **Current defect families:** translated `M x M` boxes and finite nonnegative
   lattice-line prefixes. Arbitrary connected clusters, thick strips, and unions
   of lines are not currently covered.
-- **Certified outputs:** existential color coverage, bounded-hop connectivity,
-  exact line-color period, and a per-color ceiling load bound.
+- **Certified outputs:** existential color coverage, exact per-color
+  floor/ceiling window load, bounded-hop connectivity, exact line-color period,
+  and per-color box/line ceiling load bounds.
 - **Not certified:** simple/Hamiltonian repair-chain ordering, total wirelength,
   turns or congestion, spare placement, mux behavior, or end-to-end repair
   success.
@@ -67,6 +68,7 @@ the same model as DART.
 | Lean result | Exact content | Audit classification |
 |---|---|---|
 | `affineChainColor_window_surjective` | If `0 < K <= M^2`, every color occurs in every translated `M x M` window. | Explicit construction in known polychromatic/interleaving territory; useful baseline, not safe as mathematical novelty. |
+| `affineChainColor_window_count_eq_floor_or_ceil` and `affineChainColor_window_load_le_ceilDiv` | Every color occurs either `floor(M^2/K)` or `ceil(M^2/K)` times in every translated `M x M` window, hence never more than the ceiling. | Verified box-defect capacity certificate, but still an elementary consecutive-residue count rather than standalone novelty. |
 | `affineChainColor_finiteGrid_connected` | Same-color finite-grid endpoints admit a same-color path with squared hop at most `M^2 + (M-1)^2`; repetition is allowed. | Application-specific finite-boundary lemma. The exact formulation was not found in the audited sources, but it is elementary and should not carry the paper's novelty claim. |
 | `lineColorPeriod` and `lineColor_index_congruent` | Along a lattice line, the color sequence has period `K / gcd(K, dx + M*dy)`, and equal colors force congruent indices modulo that period. | Standard modular-arithmetic structure; not standalone novelty. |
 | `lineColor_load_le_ceilDiv_period` | A color occurs at most `ceil(L/T)` times in a length-`L` prefix, with the exact period above. | Direct counting corollary of the modular progression; useful certificate, not standalone novelty. |
@@ -92,8 +94,8 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 ### Safe now
 
 - “We formally verify a deterministic affine repair-chain baseline with
-  translated-window coverage, finite-grid bounded-hop connectivity, and exact
-  line-defect load certificates.”
+  translated-window coverage and balanced box load, finite-grid bounded-hop
+  connectivity, and exact line-defect load certificates.”
 - “The construction gives a closed-form certified alternative for a restricted
   subproblem motivated by DART.”
 - “To our knowledge, the audited literature does not combine these exact
@@ -120,7 +122,7 @@ high collision risk. These are screening estimates, not acceptance forecasts.
 | B | `d`-dimensional boxes with mixed-radix coloring. | 2 | 4 | 3 | 5 | Library extension; prior-art heavy. |
 | C | General finite translational tiles and group-homomorphism colorings. | 3 | 3 | 2 | 5 | Mathematical abstraction, not the paper headline. |
 | D | Characterize which `alpha*i + beta*j mod K` colorings are surjective on every `M x M` window. | 4 | 2 | 4 | 3 | Interesting algebra/additive-combinatorics direction; scope carefully. |
-| E | Prove exact floor/ceiling balance in every translated `M x M` window for the current construction. | 3 | 5 | 5 | 3 | Immediate next theorem and box-defect load certificate. |
+| E | Exact floor/ceiling balance in every translated `M x M` window for the current construction. | 3 | 5 | 5 | 3 | **Proved baseline:** `affineChainColor_window_count_eq_floor_or_ceil`; not a paper headline. |
 | F | Construct a simple/Hamiltonian same-color path with bottleneck, turns, and total-length bounds. | 5 | 2 | 5 | 3 | Major routing theorem; likely paper-critical. |
 | G | Prove tight per-chain load bounds for width-`w` strips rather than a single lattice line. | 4 | 4 | 5 | 3 | Best medium-sized mathematical extension. |
 | H | Bound per-chain discrepancy for arbitrary connected or bounded-box clusters by area plus a boundary term. | 5 | 2 | 5 | 4 | High value but strong interleaving/discrepancy collision risk. |
@@ -150,8 +152,9 @@ spares, protection windows, and second-adjacent mux shifts.
 
 ### Falsifiable hypotheses
 
-- **Balance:** every translated `M x M` box assigns each chain either
-  `floor(M^2/K)` or `ceil(M^2/K)` bumps under the current construction.
+- **Verified balance baseline:** every translated `M x M` box assigns each
+  chain either `floor(M^2/K)` or `ceil(M^2/K)` bumps under the current
+  construction.
 - **Strip extension:** a width-`w`, length-`L` lattice strip admits a per-chain
   bound that is materially tighter than the trivial sum of `w` independent
   line bounds for relevant DART parameters.
@@ -163,10 +166,10 @@ spares, protection windows, and second-adjacent mux shifts.
 
 ## Execution roadmap and gates
 
-1. **Balanced-window theorem (low risk, about 0.5--1 focused day).** Show that
-   an `M x M` window enumerates `M^2` consecutive integers before reduction,
-   then prove exact floor/ceiling residue counts. This strengthens diversity
-   into a box-defect capacity certificate but is not paper-sufficient alone.
+1. **Balanced-window theorem -- completed.** The canonical window enumeration
+   is proved bijective, and `affineChainColor_window_count_eq_floor_or_ceil`
+   gives exact floor/ceiling residue counts. This strengthens diversity into a
+   box-defect capacity certificate but is not paper-sufficient alone.
 2. **Strip load theorem (medium risk, about 2--4 focused days).** Define a
    finite strip as parallel line prefixes, prove a first compositional bound,
    then seek a sharper bound exploiting phase offsets. Include tight examples.
@@ -183,8 +186,8 @@ spares, protection windows, and second-adjacent mux shifts.
    and mux shifts. Prove a sufficient repair theorem and test whether its
    certificate predicts the original repair simulator's success/failure.
 
-The sensible next implementation is step 1, followed immediately by step 2.
-The publishable unit is likely steps 1--2 plus either step 4 or step 5 and a
+The sensible next implementation is now step 2. The publishable unit is likely
+the completed step 1 plus step 2 and either step 4 or step 5, together with a
 faithful evaluation. Dimension-only generalizations A--C should be added only
 when they support that unit.
 
@@ -208,8 +211,8 @@ follows:
 
 The review rejected A and C as paper headlines: A is a direct mixed-radix
 variant, while C is too broad, prior-art dense, and detached from the EDA
-semantics. It also emphasized that E is an immediate high-value lemma but not
-a standalone novelty contribution, and that arbitrary connected-cluster
+semantics. It also emphasized that E--now proved--is a high-value support lemma
+but not a standalone novelty contribution, and that arbitrary connected-cluster
 discrepancy may have no useful uniform bound without stronger shape
 restrictions.
 
