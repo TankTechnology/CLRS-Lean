@@ -289,19 +289,19 @@ membership/score examples in the two relevant interface tests.
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
 - Modify: `docs/research/3d-ic-affine-codesign-contract-2026-08-29.md`
 
-- [ ] **Step 1: Add trust assertions**
+- [x] **Step 1: Add trust assertions**
 
 Audit `affineStripColor_load_le_phase_periods` and
 `exists_affineCoefficients_minimizer` with `#assert_axioms`.
 
-- [ ] **Step 2: Update claim ledgers**
+- [x] **Step 2: Update claim ledgers**
 
 Record the generalized coefficient-sensitive certificate and finite-family
 minimizer as verified infrastructure. Retain explicit statements that window
 balance preservation, matching lower bounds, routing, and repairability are
 unproved.
 
-- [ ] **Step 3: Run focused audit and commit**
+- [x] **Step 3: Run focused audit and commit**
 
 Run all ThreeDIC interface/trust tests and a declaration-aware placeholder
 scan. Commit with `docs(research): audit affine direction codesign`.
