@@ -7,9 +7,16 @@ import Mathlib.Algebra.Order.Floor.Div
 
 A physical strip is sampled by first advancing across rows and then along each
 row.  The definitions below retain only the distinct physical points reached by
-those samples.  For any affine repair-chain color, the strip load is therefore
-bounded by the sum of the corresponding per-line ceiling bounds, even when
-different samples coincide physically.
+those samples.  Let {lit}`T = lineColorPeriod M K along` be the color period
+within a row and {lit}`R = stripAcrossColorPeriod M K along across` the residual
+row-index period after accounting for along-row color changes.  For any affine
+repair-chain color, this module proves both the baseline bound
+{lit}`W * ceil(L / T)` and the phase-aware bound
+{lit}`ceil(W / R) * ceil(L / T)`.
+
+These are upper bounds on the number of distinct physical color-{lit}`c`
+points: coincident strip samples are deduplicated before their load is counted.
+No tightness or end-to-end repairability claim is made.
 -/
 
 namespace CLRS.Research.ThreeDIC
