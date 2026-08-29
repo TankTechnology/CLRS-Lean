@@ -59,6 +59,7 @@ the same model as DART.
 ### Canonical local evidence
 
 - `CLRSLean/Research/ThreeDIC/WindowDiversity.lean`
+- `CLRSLean/Research/ThreeDIC/WindowLoad.lean`
 - `CLRSLean/Research/ThreeDIC/AffineFiniteConnectivity.lean`
 - `CLRSLean/Research/ThreeDIC/LineDefect.lean`
 - `CLRSLean/Research/ThreeDIC/LineDefectLoad.lean`
@@ -68,7 +69,7 @@ the same model as DART.
 | Lean result | Exact content | Audit classification |
 |---|---|---|
 | `affineChainColor_window_surjective` | If `0 < K <= M^2`, every color occurs in every translated `M x M` window. | Explicit construction in known polychromatic/interleaving territory; useful baseline, not safe as mathematical novelty. |
-| `affineChainColor_window_count_eq_floor_or_ceil` and `affineChainColor_window_load_le_ceilDiv` | Every color occurs either `floor(M^2/K)` or `ceil(M^2/K)` times in every translated `M x M` window, hence never more than the ceiling. | Verified box-defect capacity certificate, but still an elementary consecutive-residue count rather than standalone novelty. |
+| `affineChainColor_window_count_eq_floor_or_ceil` and `affineChainColor_window_load_le_ceilDiv` | If `0 < K <= M^2` and `c < K`, color `c` occurs either `floor(M^2/K)` or `ceil(M^2/K)` times in every translated `M x M` window, hence never more than the ceiling. | Verified full-window capacity certificate, but still an elementary consecutive-residue count rather than standalone novelty. A contained-defect corollary additionally needs an explicit subset/cardinality bridge. |
 | `affineChainColor_finiteGrid_connected` | Same-color finite-grid endpoints admit a same-color path with squared hop at most `M^2 + (M-1)^2`; repetition is allowed. | Application-specific finite-boundary lemma. The exact formulation was not found in the audited sources, but it is elementary and should not carry the paper's novelty claim. |
 | `lineColorPeriod` and `lineColor_index_congruent` | Along a lattice line, the color sequence has period `K / gcd(K, dx + M*dy)`, and equal colors force congruent indices modulo that period. | Standard modular-arithmetic structure; not standalone novelty. |
 | `lineColor_load_le_ceilDiv_period` | A color occurs at most `ceil(L/T)` times in a length-`L` prefix, with the exact period above. | Direct counting corollary of the modular progression; useful certificate, not standalone novelty. |

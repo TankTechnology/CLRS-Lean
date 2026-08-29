@@ -34,8 +34,9 @@ repairability, not merely rediscover modular coloring and interleaving facts.
 
 ## Falsifiable hypotheses
 
-- **H1 -- certified load:** Translated `M x M` boxes now have the proved bound
-  `ceil(M^2/K)`, and the lattice-line subcase has the proved bound
+- **H1 -- certified load:** For `0 < K <= M^2` and every valid color `c < K`,
+  full translated `M x M` windows now have the proved bound `ceil(M^2/K)`, and
+  the lattice-line subcase has the proved bound
   `ceil(L / (K / gcd(K, a + M*b)))`. The remaining hypothesis is that a tight
   strip or multi-direction extension is asymptotically or numerically better
   than regular localized chains at the same spare ratio.
