@@ -15,6 +15,9 @@ the DART architecture?
 
 ## Why this is the right main question
 
+For a lattice direction `v`, the formulas below use
+`lineColorStep M v = v.1 + M*v.2`.
+
 The question starts from DART's real motivation--line and cluster faults--but
 replaces heuristic quality alone with a falsifiable certificate. Route A now
 formally verifies perfect window dispersion, exact floor/ceiling-balanced
@@ -42,8 +45,10 @@ merely rediscover modular coloring and interleaving facts.
   lattice-line and finite-strip theorems the exact assumption is only `0 < K`:
   the line bound is `ceil(L/T)`, the physical unique-point strip baseline is
   `W * ceil(L/T)`, and the phase-aware strip upper certificate is
-  `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, alongStep)` and
-  `R = gcd(K, alongStep) / gcd(gcd(K, alongStep), acrossStep)`. These strip
+  `ceil(W/R) * ceil(L/T)`, where
+  `T = K / gcd(K, lineColorStep M along)` and
+  `R = gcd(K, lineColorStep M along) /
+  gcd(gcd(K, lineColorStep M along), lineColorStep M across)`. These strip
   theorems do not require `c < K`; invalid colors select no points. The phase
   certificate can be strictly better than the baseline when `R > 1`. The
   remaining hypothesis is a matching lower-bound/tightness result or a useful
@@ -94,8 +99,9 @@ connectivity rather than a simple physical chain. The next research gate is
 either a matching lower-bound/tightness result or affine coefficient/direction
 co-design. A credible short EDA paper additionally needs a faithful evaluation;
 the current package does not certify spare placement, mux reachability, routing
-delay/congestion, DART evaluation, arbitrary connected clusters, strip unions,
-or general repair success.
+delay/congestion, DART evaluation, arbitrary connected clusters, arbitrary or
+nonrectangular unions of finite strips or line prefixes, or general repair
+success.
 A stronger DATE/ISPD/ICCAD/TCAD submission needs those results together with
 repairability evidence. A formal-methods venue additionally needs a larger
 verified refinement or executable routing artifact.

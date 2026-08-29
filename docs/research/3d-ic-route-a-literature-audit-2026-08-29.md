@@ -37,14 +37,16 @@ resulting sufficient condition under the same model as DART.
 - **Phenomenon:** deterministic assignment of an `N x N` hybrid-bond bump grid
   to `K` repair chains under spatially correlated faults.
 - **Current construction:** `color(i,j) = (i + M*j) mod K`.
+- **Directional color step:** for a lattice direction `v`,
+  `lineColorStep M v = v.1 + M*v.2`.
 - **Units of analysis:** one translated window, one finite color class, one
   finite lattice-line prefix, one finite physical strip, and eventually one
   DART protection window.
 - **Current defect families:** translated `M x M` boxes, finite nonnegative
   lattice-line prefixes, and finite strips sampled as parallel line prefixes
-  with duplicate physical points removed. Arbitrary connected clusters, strip
-  unions, unions of lines, and general repair success are not currently
-  covered.
+  with duplicate physical points removed. Arbitrary connected clusters,
+  arbitrary or nonrectangular unions of finite strips or line prefixes, and
+  general repair success are not currently covered.
 - **Certified outputs:** existential color coverage, exact per-color
   floor/ceiling window load, bounded-hop connectivity, exact line-color period,
   per-color box/line ceiling load bounds, the physical unique-point strip
@@ -81,8 +83,8 @@ resulting sufficient condition under the same model as DART.
 | `affineChainColor_finiteGrid_connected` | Same-color finite-grid endpoints admit a same-color path with squared hop at most `M^2 + (M-1)^2`; repetition is allowed. | Application-specific finite-boundary lemma. The exact formulation was not found in the audited sources, but it is elementary and should not carry the paper's novelty claim. |
 | `lineColorPeriod` and `lineColor_index_congruent` | Along a lattice line, the color sequence has period `K / gcd(K, dx + M*dy)`, and equal colors force congruent indices modulo that period. | Standard modular-arithmetic structure; not standalone novelty. |
 | `lineColor_load_le_ceilDiv_period` | A color occurs at most `ceil(L/T)` times in a length-`L` prefix, with the exact period above. | Direct counting corollary of the modular progression; useful certificate, not standalone novelty. |
-| `stripColor_load_le_sum_lines` | For `0 < K`, the number of distinct physical color-`c` points in a width-`W`, length-`L` strip is at most `W * ceil(L/T)`, where `T = K / gcd(K, alongStep)`. Duplicate samples are removed before counting. No assumption `c < K` is needed; an invalid color selects no points. | Kernel-checked physical unique-point baseline obtained by composing the line certificate; not a claim about tightness or repair success. |
-| `stripColor_load_le_phase_periods` | For `0 < K`, the same physical load is at most `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, alongStep)` and `R = gcd(K, alongStep) / gcd(gcd(K, alongStep), acrossStep)`. No assumption `c < K` is needed; an invalid color selects no points. | Stronger direction-sensitive upper certificate. It can be strictly better than the sum-of-lines bound when `R > 1`, but no matching lower bound or optimality claim is proved. |
+| `stripColor_load_le_sum_lines` | For `0 < K`, the number of distinct physical color-`c` points in a width-`W`, length-`L` strip is at most `W * ceil(L/T)`, where `T = K / gcd(K, lineColorStep M along)`. Duplicate samples are removed before counting. No assumption `c < K` is needed; an invalid color selects no points. | Kernel-checked physical unique-point baseline obtained by composing the line certificate; not a claim about tightness or repair success. |
+| `stripColor_load_le_phase_periods` | For `0 < K`, the same physical load is at most `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, lineColorStep M along)` and `R = gcd(K, lineColorStep M along) / gcd(gcd(K, lineColorStep M along), lineColorStep M across)`. No assumption `c < K` is needed; an invalid color selects no points. | Stronger direction-sensitive upper certificate. It can be strictly better than the sum-of-lines bound when `R > 1`, but no matching lower bound or optimality claim is proved. |
 
 ## Primary-source prior-art matrix
 
@@ -91,13 +93,15 @@ resulting sufficient condition under the same model as DART.
 | [Blaum, Bruck, and Vardy, 1998](https://authors.library.caltech.edu/records/t4s49-2nn79) | Defines multidimensional `t`-interleaved arrays so every connected cluster of area/volume `t` has distinct labels; gives optimal two-dimensional schemes and lattice interleavers. | Strong collision with generic claims about grid coloring, connected clusters, optimal diversity, and lattice constructions. | It does not model DART spare blocks, mux semantics, finite repair-chain ordering, or our exact load-to-repairability implication. |
 | [Etzion and Yaakobi, 2007](https://arxiv.org/abs/0712.4096) | Uses multiple linear colorings of `D`-dimensional arrays to construct codes for box, Lee-sphere, and arbitrary cluster errors; explicitly identifies unresolved coding bounds. | Strong collision with broad claims that affine/linear multidimensional coloring for cluster faults is new. | Their coding objective differs from DART chain capacity and physical routing; a faithful bridge would itself need proof. |
 | [Axenovich et al., 2019](https://arxiv.org/abs/1704.00042) | Defines `S`-polychromatic colorings by requiring every translate of `S` to receive every color; studies integers and extensions to `Z^d`, homomorphic constructions, and tiling connections. | Direct conceptual home for translated-window surjectivity. | It does not provide DART-specific routing, spares, mux semantics, or repairability. |
-| [Bhoumik et al., DART, 2026](https://doi.org/10.1109/VTS69484.2026.11563352) and its [author-hosted PDF](https://nanocad.ee.ucla.edu/wp-content/papercite-data/pdf/c139.pdf) | Uses sliding-window color diversity plus a greedy traversal fragmentation penalty and edge-aware simulated annealing to form irregular repair chains; evaluates cluster and line faults under spare budgets. | It supplies the actual EDA problem and already treats diversity and compactness jointly. We cannot imply that route A invented the objective or the repair architecture. | DART is heuristic: the audited paper does not give our closed-form worst-case window/line certificates or a machine-checked end-to-end theorem. |
+| [Bhoumik et al., DART, 2026](https://doi.org/10.1109/VTS69484.2026.11563352) and its [author-hosted PDF](https://nanocad.ee.ucla.edu/wp-content/papercite-data/pdf/c139.pdf) | Uses sliding-window color diversity plus a greedy traversal fragmentation penalty and edge-aware simulated annealing to form irregular repair chains; evaluates cluster and line faults under spare budgets. | It supplies the actual EDA problem and already treats diversity and compactness jointly. We cannot imply that route A invented the objective or the repair architecture. | DART is heuristic: the audited paper does not give our closed-form worst-case window, line, or finite-strip upper certificates, nor a machine-checked end-to-end theorem. |
 | [Chuang and Marinissen, 2025](https://imec-publications.be/entities/publication/5ca38539-61f0-4a29-99d9-3f02c11b81cd) | Proposes clustered-defect repair with minimal propagation delay and improved repair rate relative to default UCIe. | Any claim about propagation-delay novelty needs a direct comparison with this architecture. | The accessible abstract does not establish a formal worst-case certificate for our coloring construction. |
 | [Mehta et al., Polychromatic Colourings in Lean](https://github.com/b-mehta/Polychromatic) | A substantial Lean formalization of polychromatic colorings of integers, including the four-integers/three-colors result and general infrastructure. | Rules out “first Lean formalization of polychromatic coloring.” | Its stated scope is integer polychromatic combinatorics, not DART-compatible repairability or our finite-grid hardware model. |
 
-The audit found no primary source that exactly combines all four route-A
-interfaces with DART's repair semantics. Absence from this search is not proof
-of novelty; a paper submission still needs a systematic database and citation
+The audit found no primary source that exactly combines the current route-A
+certificate surface--translated-window diversity and balance, finite-grid
+connectivity, line period and load, and finite-strip baseline and phase-aware
+load--with DART's repair semantics. Absence from this search is not proof of
+novelty; a paper submission still needs a systematic database and citation
 chaining pass, especially over TSV/chiplet repair and interleaver patents.
 
 ## Claim ledger
