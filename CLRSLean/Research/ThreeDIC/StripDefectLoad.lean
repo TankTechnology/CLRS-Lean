@@ -223,4 +223,110 @@ theorem stripColor_load_le_sum_lines
         Finset.card_product (Finset.range W)
           (Finset.range ((L + T - 1) / T))
 
+/-- The number of distinct color-{lit}`c` physical points in a strip is at
+most the product of the row- and along-index ceiling quotients determined by
+the two phase periods. -/
+theorem stripColor_load_le_phase_periods
+    (M K W L c : Nat) (base along across : Nat × Nat)
+    (hK : 0 < K) :
+    (stripColorPoints M K W L c base along across).card ≤
+      ((W + stripAcrossColorPeriod M K along across - 1) /
+          stripAcrossColorPeriod M K along across) *
+        ((L + lineColorPeriod M K along - 1) /
+          lineColorPeriod M K along) := by
+  rw [stripColorPoints_eq_image]
+  refine Finset.card_image_le.trans ?_
+  let R := stripAcrossColorPeriod M K along across
+  let T := lineColorPeriod M K along
+  change (stripColorIndexPairs M K W L c base along across).card ≤
+    ((W + R - 1) / R) * ((L + T - 1) / T)
+  have hR : 0 < R := stripAcrossColorPeriod_pos M K along across hK
+  have hT : 0 < T := lineColorPeriod_pos M K along hK
+  have hInjective : Set.InjOn
+      (fun rt : Nat × Nat => (rt.1 / R, rt.2 / T))
+      (stripColorIndexPairs M K W L c base along across) := by
+    intro a ha b hb hab
+    change (a.1 / R, a.2 / T) = (b.1 / R, b.2 / T) at hab
+    have hRowDiv := congrArg (fun p : Nat × Nat => p.1) hab
+    have hAlongDiv := congrArg (fun p : Nat × Nat => p.2) hab
+    obtain ⟨_haRange, haColor⟩ := Finset.mem_filter.mp ha
+    obtain ⟨_hbRange, hbColor⟩ := Finset.mem_filter.mp hb
+    have hRowMod : a.1 % R = b.1 % R :=
+      stripColor_row_index_congruent M K base along across hK
+        (haColor.trans hbColor.symm)
+    have hRow : a.1 = b.1 :=
+      eq_of_div_eq_of_mod_eq hRowDiv hRowMod
+    change affineChainColor M K
+      (linePoint (linePoint base across a.1) along a.2).1
+      (linePoint (linePoint base across a.1) along a.2).2 = c at haColor
+    change affineChainColor M K
+      (linePoint (linePoint base across b.1) along b.2).1
+      (linePoint (linePoint base across b.1) along b.2).2 = c at hbColor
+    rw [← hRow] at hbColor
+    have hAlongMod : a.2 % T = b.2 % T :=
+      lineColor_index_congruent M K (linePoint base across a.1) along hK
+        (haColor.trans hbColor.symm)
+    apply Prod.ext
+    · exact hRow
+    · exact eq_of_div_eq_of_mod_eq hAlongDiv hAlongMod
+  rw [← Finset.card_image_iff.mpr hInjective]
+  have hImageRange :
+      (stripColorIndexPairs M K W L c base along across).image
+          (fun rt : Nat × Nat => (rt.1 / R, rt.2 / T)) ⊆
+        (Finset.range ((W + R - 1) / R)).product
+          (Finset.range ((L + T - 1) / T)) := by
+    intro q hq
+    rw [Finset.mem_image] at hq
+    obtain ⟨rt, hrt, rfl⟩ := hq
+    obtain ⟨hrtRange, _hrtColor⟩ := Finset.mem_filter.mp hrt
+    obtain ⟨hr, ht⟩ := Finset.mem_product.mp hrtRange
+    exact Finset.mem_product.mpr
+      ⟨Finset.mem_range.mpr
+          (quotient_lt_add_pred_div hR (Finset.mem_range.mp hr)),
+        Finset.mem_range.mpr
+          (quotient_lt_add_pred_div hT (Finset.mem_range.mp ht))⟩
+  calc
+    ((stripColorIndexPairs M K W L c base along across).image
+        (fun rt : Nat × Nat => (rt.1 / R, rt.2 / T))).card ≤
+        ((Finset.range ((W + R - 1) / R)).product
+          (Finset.range ((L + T - 1) / T))).card :=
+      Finset.card_le_card hImageRange
+    _ = ((W + R - 1) / R) * ((L + T - 1) / T) := by
+      rw [Finset.product_eq_sprod]
+      simpa only [Finset.card_range] using
+        Finset.card_product (Finset.range ((W + R - 1) / R))
+          (Finset.range ((L + T - 1) / T))
+
+/-- A horizontal strip has one row phase and along-row period {lit}`K`. -/
+theorem stripColor_horizontal_load_le
+    (M K W L c : Nat) (base : Nat × Nat) (hK : 0 < K) :
+    (stripColorPoints M K W L c base (1, 0) (0, 1)).card ≤
+      W * ((L + K - 1) / K) := by
+  simpa [stripAcrossColorPeriod, lineColorPeriod, lineColorStep] using
+    stripColor_load_le_phase_periods M K W L c base (1, 0) (0, 1) hK
+
+/-- A vertical strip has row phase period {lit}`gcd(K, M)` and along-row
+period {lit}`K / gcd(K, M)`. -/
+theorem stripColor_vertical_load_le_phase
+    (M K W L c : Nat) (base : Nat × Nat) (hK : 0 < K) :
+    (stripColorPoints M K W L c base (0, 1) (1, 0)).card ≤
+      ((W + Nat.gcd K M - 1) / Nat.gcd K M) *
+        ((L + K / Nat.gcd K M - 1) / (K / Nat.gcd K M)) := by
+  simpa [stripAcrossColorPeriod, lineColorPeriod, lineColorStep] using
+    stripColor_load_le_phase_periods M K W L c base (0, 1) (1, 0) hK
+
+/-- The phase-aware strip bound with an explicit certificate that every
+sample lies inside an {lit}`N x N` bump grid. -/
+theorem stripColor_finiteGrid_load_le_phase_periods
+    (N M K W L c : Nat) (base along across : Nat × Nat)
+    (hK : 0 < K)
+    (_hGrid : ∀ r < W, ∀ t < L,
+      inGrid N (stripPoint base along across r t)) :
+    (stripColorPoints M K W L c base along across).card ≤
+      ((W + stripAcrossColorPeriod M K along across - 1) /
+          stripAcrossColorPeriod M K along across) *
+        ((L + lineColorPeriod M K along - 1) /
+          lineColorPeriod M K along) :=
+  stripColor_load_le_phase_periods M K W L c base along across hK
+
 end CLRS.Research.ThreeDIC
