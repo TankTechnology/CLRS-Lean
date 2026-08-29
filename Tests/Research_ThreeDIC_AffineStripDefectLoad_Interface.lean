@@ -9,6 +9,7 @@ open CLRS.Research.ThreeDIC
 #check affineStripColor_finiteGrid_load_le_phase_periods
 #check affineStripColorPoints_fixed_eq_stripColorPoints
 #check affineStripAcrossPeriod_fixed_eq_stripAcrossColorPeriod
+#check affineStripAcrossPeriod_mod_coefficients
 
 example
     (alpha beta gamma K W L c : Nat)
@@ -52,6 +53,12 @@ example
 
 example : affineStripAcrossPeriod 1 2 8 (0, 1) (1, 0) = 2 := by decide
 
+example
+    (alpha beta K : Nat) (along across : Nat × Nat) :
+    affineStripAcrossPeriod (alpha % K) (beta % K) K along across =
+      affineStripAcrossPeriod alpha beta K along across :=
+  affineStripAcrossPeriod_mod_coefficients alpha beta K along across
+
 example :
     (affineStripColorPoints 2 1 4 7 2 5 4
       (0, 0) (1, 0) (0, 1)).card = 2 := by
@@ -71,4 +78,3 @@ example :
     (affineStripColorPoints 0 0 4 7 3 4 4
       (2, 5) (0, 0) (0, 0)).card = 1 := by
   decide
-

@@ -273,4 +273,37 @@ theorem affineStripAcrossPeriod_fixed_eq_stripAcrossColorPeriod
   simp [affineStripAcrossPeriod, stripAcrossColorPeriod,
     affineDirectionStep_fixed_eq_lineColorStep]
 
+/-- The cross-row period is invariant under reducing both coefficients modulo
+the color modulus. -/
+theorem affineStripAcrossPeriod_mod_coefficients
+    (alpha beta K : Nat) (along across : Nat × Nat) :
+    affineStripAcrossPeriod (alpha % K) (beta % K) K along across =
+      affineStripAcrossPeriod alpha beta K along across := by
+  let g := Nat.gcd K (affineDirectionStep alpha beta along)
+  have hAlong :
+      Nat.gcd K
+          (affineDirectionStep (alpha % K) (beta % K) along) = g := by
+    simpa [g] using
+      affineDirectionStep_gcd_mod_coefficients alpha beta K along
+  have hAcrossMod :
+      affineDirectionStep (alpha % K) (beta % K) across ≡
+        affineDirectionStep alpha beta across [MOD g] :=
+    (affineDirectionStep_mod_coefficients alpha beta K across).of_dvd
+      (Nat.gcd_dvd_left K (affineDirectionStep alpha beta along))
+  have hAcrossGcd :
+      Nat.gcd g
+          (affineDirectionStep (alpha % K) (beta % K) across) =
+        Nat.gcd g (affineDirectionStep alpha beta across) := by
+    have hGcd := hAcrossMod.gcd_eq
+    simpa only [Nat.gcd_comm] using hGcd
+  unfold affineStripAcrossPeriod
+  change
+    Nat.gcd K (affineDirectionStep (alpha % K) (beta % K) along) /
+        Nat.gcd
+          (Nat.gcd K
+            (affineDirectionStep (alpha % K) (beta % K) along))
+          (affineDirectionStep (alpha % K) (beta % K) across) =
+      g / Nat.gcd g (affineDirectionStep alpha beta across)
+  rw [hAlong, hAcrossGcd]
+
 end CLRS.Research.ThreeDIC

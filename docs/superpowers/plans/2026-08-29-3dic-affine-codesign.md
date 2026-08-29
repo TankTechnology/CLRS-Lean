@@ -198,7 +198,7 @@ Run focused checks and commit with
 - Create: `Tests/Research_ThreeDIC_AffineDirectionCodesign_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/AffineDirectionCodesign.lean`
 
-- [ ] **Step 1: Write and run a failing interface**
+- [x] **Step 1: Write and run a failing interface**
 
 Freeze:
 
@@ -245,17 +245,17 @@ theorem exists_affineCoefficients_minimizer
 
 Verify the missing module/name RED failure.
 
-- [ ] **Step 2: Implement certificate and family score**
+- [x] **Step 2: Implement certificate and family score**
 
 Define the shape certificate with the generalized `R` and `T`, and define the
 family score as `family.sup (affineStripLoadCertificate K coeff)`.
 
-- [ ] **Step 3: Prove actual-load bridges**
+- [x] **Step 3: Prove actual-load bridges**
 
 Instantiate the generalized strip theorem for one shape, then compose with
 `Finset.le_sup hshape` for a family member.
 
-- [ ] **Step 4: Prove exact candidate-relative minimization**
+- [x] **Step 4: Prove exact candidate-relative minimization**
 
 Use `candidates.exists_min_image` on the family score to prove:
 
@@ -265,14 +265,14 @@ Use `candidates.exists_min_image` on the family score to prove:
     affineDefectFamilyScore K other family
 ```
 
-- [ ] **Step 5: Add executable examples and commit**
+- [x] **Step 5: Add executable examples and commit**
 
 Include an empty family score, a singleton shape, two coefficients with
 different directional scores, and one concrete nonempty candidate-set
 minimizer. Verify and commit with
 `research: certify finite affine direction codesign`.
 
-- [ ] **Step 6: Prove canonical residue-space sufficiency**
+- [x] **Step 6: Prove canonical residue-space sufficiency**
 
 Add coefficient-modulo-`K` invariance theorems for directional gcds, line
 periods, cross-row periods, shape certificates, and family scores. Define

@@ -134,4 +134,33 @@ theorem affineLinePeriod_fixed_eq_lineColorPeriod
   simp [affineLinePeriod, lineColorPeriod,
     affineDirectionStep_fixed_eq_lineColorStep]
 
+/-- Reducing both affine coefficients modulo the color modulus preserves the
+directional step modulo that modulus. -/
+theorem affineDirectionStep_mod_coefficients
+    (alpha beta K : Nat) (step : Nat × Nat) :
+    affineDirectionStep (alpha % K) (beta % K) step ≡
+      affineDirectionStep alpha beta step [MOD K] := by
+  unfold affineDirectionStep
+  exact ((Nat.mod_modEq alpha K).mul_right step.1).add
+    ((Nat.mod_modEq beta K).mul_right step.2)
+
+/-- The directional gcd, and hence every period derived from it, depends only
+on coefficient residues modulo {lit}`K`. -/
+theorem affineDirectionStep_gcd_mod_coefficients
+    (alpha beta K : Nat) (step : Nat × Nat) :
+    Nat.gcd K (affineDirectionStep (alpha % K) (beta % K) step) =
+      Nat.gcd K (affineDirectionStep alpha beta step) := by
+  have hGcd :=
+    (affineDirectionStep_mod_coefficients alpha beta K step).gcd_eq
+  simpa only [Nat.gcd_comm] using hGcd
+
+/-- The exact affine line period is invariant under coefficient reduction
+modulo {lit}`K`. -/
+theorem affineLinePeriod_mod_coefficients
+    (alpha beta K : Nat) (step : Nat × Nat) :
+    affineLinePeriod (alpha % K) (beta % K) K step =
+      affineLinePeriod alpha beta K step := by
+  unfold affineLinePeriod
+  rw [affineDirectionStep_gcd_mod_coefficients]
+
 end CLRS.Research.ThreeDIC

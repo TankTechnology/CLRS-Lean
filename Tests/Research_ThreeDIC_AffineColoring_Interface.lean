@@ -12,6 +12,9 @@ open CLRS.Research.ThreeDIC
 #check affineGridColor_fixed_eq_affineChainColor
 #check affineDirectionStep_fixed_eq_lineColorStep
 #check affineLinePeriod_fixed_eq_lineColorPeriod
+#check affineDirectionStep_mod_coefficients
+#check affineDirectionStep_gcd_mod_coefficients
+#check affineLinePeriod_mod_coefficients
 
 example
     (alpha beta gamma K : Nat) (base step : Nat × Nat) (t : Nat) :
@@ -52,3 +55,12 @@ example : affineGridColor 2 1 4 7 3 5 = 1 := by decide
 example : affineDirectionStep 2 1 (3, 4) = 10 := by decide
 example : affineLinePeriod 2 1 8 (3, 4) = 4 := by decide
 
+example (alpha beta K : Nat) (step : Nat × Nat) :
+    affineDirectionStep (alpha % K) (beta % K) step ≡
+      affineDirectionStep alpha beta step [MOD K] :=
+  affineDirectionStep_mod_coefficients alpha beta K step
+
+example (alpha beta K : Nat) (step : Nat × Nat) :
+    affineLinePeriod (alpha % K) (beta % K) K step =
+      affineLinePeriod alpha beta K step :=
+  affineLinePeriod_mod_coefficients alpha beta K step
