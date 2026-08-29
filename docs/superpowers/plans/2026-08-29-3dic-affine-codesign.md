@@ -128,7 +128,7 @@ Run focused build/interface checks and commit with
 - Create: `Tests/Research_ThreeDIC_AffineStripDefectLoad_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/AffineStripDefectLoad.lean`
 
-- [ ] **Step 1: Write and run a failing interface**
+- [x] **Step 1: Write and run a failing interface**
 
 Freeze:
 
@@ -170,24 +170,24 @@ theorem affineStripColor_finiteGrid_load_le_phase_periods
 The headline bound is exactly `ceil(W/R) * ceil(L/T)` with generalized
 periods. Verify RED.
 
-- [ ] **Step 2: Prove cross-row congruence**
+- [x] **Step 2: Prove cross-row congruence**
 
 Normalize a strip sample to
 `basePhase + acrossStep*r + alongStep*t mod K`, reduce equality modulo
 `gcd(K,alongStep)`, erase the along terms, and cancel the across step.
 
-- [ ] **Step 3: Prove the two-period quotient injection**
+- [x] **Step 3: Prove the two-period quotient injection**
 
 Map colored index pairs to `(r/R,t/T)`, reconstruct row and along indices from
 equal quotients and residues, bound the image by the product of two ceiling
 ranges, and transfer to the deduplicated physical-point image.
 
-- [ ] **Step 4: Add fixed specialization and geometry regressions**
+- [x] **Step 4: Add fixed specialization and geometry regressions**
 
 Check horizontal, vertical, zero width/length, repeated physical points, and
 equality with existing `stripColorPoints` at `(1,M,0)`.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run focused checks and commit with
 `research: certify generalized affine strip load`.
