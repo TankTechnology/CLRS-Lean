@@ -5,6 +5,8 @@ Date: 2026-08-29
 Status: route A combinatorial core and phase-aware strip upper certificate
 formally verified; not a claim that a recognized open problem has been solved
 
+Prior-art and claim basis: [route-A literature audit](./3d-ic-route-a-literature-audit-2026-08-29.md).
+
 ## Headline question
 
 For explicitly parameterized W2W line-shaped and clustered defects, can a
