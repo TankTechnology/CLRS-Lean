@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-30
 
-**Status:** approved mathematical direction; awaiting written-spec review
+**Status:** implemented, verified, and independently reviewed
 
 ## Goal
 
