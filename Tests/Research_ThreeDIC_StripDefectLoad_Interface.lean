@@ -18,6 +18,19 @@ example
     (M K W L c : Nat) (base along across : Nat × Nat)
     (hK : 0 < K) :
     (stripColorPoints M K W L c base along across).card ≤
+      W * ((L + lineColorPeriod M K along - 1) /
+        lineColorPeriod M K along) :=
+  stripColor_load_le_sum_lines M K W L c base along across hK
+
+example
+    (M K : Nat) (along across : Nat × Nat) (hK : 0 < K) :
+    0 < stripAcrossColorPeriod M K along across :=
+  stripAcrossColorPeriod_pos M K along across hK
+
+example
+    (M K W L c : Nat) (base along across : Nat × Nat)
+    (hK : 0 < K) :
+    (stripColorPoints M K W L c base along across).card ≤
       ((W + stripAcrossColorPeriod M K along across - 1) /
           stripAcrossColorPeriod M K along across) *
         ((L + lineColorPeriod M K along - 1) /
