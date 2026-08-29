@@ -136,9 +136,9 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 - “For the frozen finite strip-family upper-certificate objective, coefficient
   residues modulo `K` suffice and the canonical residue domain contains a
   global minimizer over all natural coefficient pairs.”
-- “When `K` divides `M`, the canonical coprime-coordinate family preserves
-  exact translated-window load and contains an exact score minimizer within
-  that certified family.”
+- “When `0 < K` and `K` divides `M`, the canonical coprime-coordinate family
+  preserves exact translated-window load and contains an exact score minimizer
+  within that certified family.”
 - “The construction gives a closed-form certified alternative for a restricted
   subproblem motivated by DART.”
 - “To our knowledge, the audited literature does not combine these exact
@@ -172,7 +172,7 @@ high collision risk. These are screening estimates, not acceptance forecasts.
 | F | Construct a simple/Hamiltonian same-color path with bottleneck, turns, and total-length bounds. | 5 | 2 | 5 | 3 | Major routing theorem; likely paper-critical. |
 | G | Match the proved phase-aware upper certificate with a lower-bound/tightness result for width-`w` strips. | 4 | 4 | 5 | 3 | Foundational strip theorem complete; matching evidence is the next strip gate. |
 | H | Bound per-chain discrepancy for arbitrary connected or bounded-box clusters by area plus a boundary term. | 5 | 2 | 5 | 4 | High value but strong interleaving/discrepancy collision risk. |
-| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | **Restricted sufficient family proved:** when `K ∣ M`, the coprime-coordinate residue family is exactly window balanced and has a certified score minimizer. Full admissibility classification, tightness, and comparison with the unconstrained optimum remain open. |
+| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | **Restricted sufficient family proved:** when `0 < K` and `K ∣ M`, the coprime-coordinate residue family is exactly window balanced and has a certified score minimizer. Full admissibility classification, tightness, and comparison with the unconstrained optimum remain open. |
 | J | Formalize DART protection windows/spares/mux shifts and prove that certified load plus routing conditions imply repairability. | 5 | 2 | 5 | 2 | Highest-value end-to-end contribution. |
 
 ## Recommended question stack
@@ -200,9 +200,9 @@ spares, protection windows, and second-adjacent mux shifts.
 
 - **Verified balance baseline:** every translated `M x M` box assigns each
   chain either `floor(M^2/K)` or `ceil(M^2/K)` bumps under the current
-  construction. More generally, when `K ∣ M`, every affine pair with a
-  coprime coordinate assigns each valid color exactly `M^2/K` bumps, and the
-  finite certified family contains a score minimizer.
+  construction. More generally, when `0 < K` and `K ∣ M`, every affine pair
+  with a coprime coordinate assigns each valid color exactly `M^2/K` bumps,
+  and the finite certified family contains a score minimizer.
 - **Verified strip upper certificate:** for `0 < K`, a width-`W`, length-`L`
   physical strip has load at most `ceil(W/R) * ceil(L/T)` with the periods
   above; when `R > 1`, this can be strictly better than the proved
@@ -230,11 +230,12 @@ spares, protection windows, and second-adjacent mux shifts.
    completed.** Arbitrary coefficients now have verified
    line/strip and family certificates; the objective is invariant under
    coefficient residues, and the canonical `K x K` domain contains a global
-   minimizer. Under `K ∣ M`, filtering to pairs with a coprime coordinate gives
-   a nonempty exact-window-balanced family with its own certified score
-   minimizer. The remaining research part is a complete admissibility
-   characterization, a structural optimizer or approximation bound, and a
-   comparison between constrained and unconstrained certificate optima.
+   minimizer. Under `0 < K` and `K ∣ M`, filtering to pairs with a coprime
+   coordinate gives a nonempty exact-window-balanced family with its own
+   certified score minimizer. The remaining research part is a complete
+   admissibility characterization, a structural optimizer or approximation
+   bound, and a comparison between constrained and unconstrained certificate
+   optima.
 4. **Simple physical chains (high risk, about 1--2 weeks).** Replace the
    repeat-permitting connectivity witness by a simple ordering and prove
    bottleneck/length/turn bounds; compare directly with minimal-delay repair

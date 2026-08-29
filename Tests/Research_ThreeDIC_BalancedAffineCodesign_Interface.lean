@@ -16,6 +16,24 @@ open CLRS.Research.ThreeDIC
 #check exists_balancedAffineCoefficients_score_minimizer
 #check exists_balancedAffineCoefficients_minimizer
 
+example (K : Nat) (coeff : AffineCoefficients) :
+    coeff ∈ balancedAffineCoefficientCandidates K ↔
+      coeff.alpha < K ∧ coeff.beta < K ∧
+        (Nat.Coprime K coeff.alpha ∨ Nat.Coprime K coeff.beta) :=
+  mem_balancedAffineCoefficientCandidates_iff K coeff
+
+example (K : Nat) (hK : 0 < K) :
+    (balancedAffineCoefficientCandidates K).Nonempty :=
+  balancedAffineCoefficientCandidates_nonempty K hK
+
+example
+    (K : Nat) (family : Finset StripDefectShape) (hK : 0 < K) :
+    ∃ coeff ∈ balancedAffineCoefficientCandidates K,
+      ∀ other ∈ balancedAffineCoefficientCandidates K,
+        affineDefectFamilyScore K coeff family ≤
+          affineDefectFamilyScore K other family :=
+  exists_balancedAffineCoefficients_score_minimizer K family hK
+
 example
     (M K gamma p q c : Nat) (coeff : AffineCoefficients)
     (hK : 0 < K) (hKM : K ∣ M) (hc : c < K)
