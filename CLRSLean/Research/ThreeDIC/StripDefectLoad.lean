@@ -41,6 +41,87 @@ def stripColorPoints
   (stripPoints W L base along across).filter
     (fun p => affineChainColor M K p.1 p.2 = c)
 
+/-- Fundamental row-index period remaining after quotienting out the color
+change available along each row. -/
+def stripAcrossColorPeriod
+    (M K : Nat) (along across : Nat × Nat) : Nat :=
+  let g := Nat.gcd K (lineColorStep M along)
+  g / Nat.gcd g (lineColorStep M across)
+
+/-- A nonzero color modulus gives a positive cross-line color period. -/
+theorem stripAcrossColorPeriod_pos
+    (M K : Nat) (along across : Nat × Nat) (hK : 0 < K) :
+    0 < stripAcrossColorPeriod M K along across := by
+  let g := Nat.gcd K (lineColorStep M along)
+  change 0 < g / Nat.gcd g (lineColorStep M across)
+  have hg : 0 < g :=
+    Nat.gcd_pos_of_pos_left (lineColorStep M along) hK
+  exact Nat.div_pos
+    (Nat.le_of_dvd hg (Nat.gcd_dvd_left g (lineColorStep M across)))
+    (Nat.gcd_pos_of_pos_left (lineColorStep M across) hg)
+
+/-- Affine strip colors form a two-dimensional modular arithmetic
+progression. -/
+private theorem affineChainColor_stripPoint
+    (M K : Nat) (base along across : Nat × Nat) (r t : Nat) :
+    affineChainColor M K (stripPoint base along across r t).1
+      (stripPoint base along across r t).2 =
+        (base.1 + M * base.2 + lineColorStep M across * r +
+          lineColorStep M along * t) % K := by
+  unfold affineChainColor stripPoint linePoint lineColorStep
+  congr 1
+  ring
+
+/-- Equal strip colors force row indices to agree modulo the cross-line color
+period, regardless of their positions along the two rows. -/
+private theorem stripColor_row_index_congruent
+    (M K : Nat) (base along across : Nat × Nat) (hK : 0 < K)
+    {r s t u : Nat}
+    (hColor :
+      affineChainColor M K (stripPoint base along across r t).1
+          (stripPoint base along across r t).2 =
+        affineChainColor M K (stripPoint base along across s u).1
+          (stripPoint base along across s u).2) :
+    r % stripAcrossColorPeriod M K along across =
+      s % stripAcrossColorPeriod M K along across := by
+  rw [affineChainColor_stripPoint, affineChainColor_stripPoint] at hColor
+  let g := Nat.gcd K (lineColorStep M along)
+  have hg : 0 < g :=
+    Nat.gcd_pos_of_pos_left (lineColorStep M along) hK
+  have hColorG :
+      base.1 + M * base.2 + lineColorStep M across * r +
+          lineColorStep M along * t ≡
+        base.1 + M * base.2 + lineColorStep M across * s +
+          lineColorStep M along * u [MOD g] :=
+    Nat.ModEq.of_dvd (Nat.gcd_dvd_left K (lineColorStep M along)) hColor
+  have hAlongDvd : g ∣ lineColorStep M along :=
+    Nat.gcd_dvd_right K (lineColorStep M along)
+  have hEraseT :
+      base.1 + M * base.2 + lineColorStep M across * r +
+          lineColorStep M along * t ≡
+        base.1 + M * base.2 + lineColorStep M across * r [MOD g] := by
+    simpa using
+      (Nat.ModEq.add_left
+        (base.1 + M * base.2 + lineColorStep M across * r)
+        ((hAlongDvd.trans
+          (Nat.dvd_mul_right (lineColorStep M along) t)).modEq_zero_nat))
+  have hEraseU :
+      base.1 + M * base.2 + lineColorStep M across * s +
+          lineColorStep M along * u ≡
+        base.1 + M * base.2 + lineColorStep M across * s [MOD g] := by
+    simpa using
+      (Nat.ModEq.add_left
+        (base.1 + M * base.2 + lineColorStep M across * s)
+        ((hAlongDvd.trans
+          (Nat.dvd_mul_right (lineColorStep M along) u)).modEq_zero_nat))
+  have hAcross :
+      lineColorStep M across * r ≡ lineColorStep M across * s [MOD g] :=
+    Nat.ModEq.add_left_cancel' (base.1 + M * base.2)
+      (hEraseT.symm.trans (hColorG.trans hEraseU))
+  change r ≡ s [MOD stripAcrossColorPeriod M K along across]
+  simpa [stripAcrossColorPeriod, g] using
+    hAcross.cancel_left_div_gcd hg
+
 /-- Index pairs whose sampled physical point has affine color {lit}`c`. -/
 private def stripColorIndexPairs
     (M K W L c : Nat) (base along across : Nat × Nat) :
