@@ -74,7 +74,7 @@ def windowColorCount (M K p q c : Nat) : Nat :=
 
 /-- The affine colors in the canonical window enumeration are consecutive
 modular residues. -/
-theorem affineChainColor_windowIndexPoint
+private theorem affineChainColor_windowIndexPoint
     (M K p q t : Nat) :
     affineChainColor M K (windowIndexPoint M p q t).1
       (windowIndexPoint M p q t).2 =
@@ -164,8 +164,9 @@ theorem affineChainColor_window_count_eq_floor_or_ceil
     rw [Nat.count_modEq_card (b := M * M) hK d, Nat.mod_eq_of_lt hdK,
       if_neg hrem, Nat.add_zero]
 
-/-- A box defect contained in one translated target window charges no color
-more than {lit}`ceil(M^2 / K)` times. -/
+/-- The full translated target window charges no valid color more than
+{lit}`ceil(M^2 / K)` times.  Bounds for a defect contained in the window follow
+after a separate subset/cardinality argument. -/
 theorem affineChainColor_window_load_le_ceilDiv
     (M K p q c : Nat) (hK : 0 < K) (hKM : K ≤ M * M) (hc : c < K) :
     windowColorCount M K p q c ≤ (M * M) ⌈/⌉ K := by

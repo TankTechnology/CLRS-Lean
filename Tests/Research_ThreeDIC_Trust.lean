@@ -6,7 +6,7 @@ import CLRSLean.Research.ThreeDIC.WindowLoad
 /-!
 # Trust audit: 3D-IC affine route A
 
-The two route A headline theorems may depend only on the repository's accepted
+The three route A headline theorems may depend only on the repository's accepted
 Lean/Mathlib logical foundations (`propext`, `Classical.choice`, and
 `Quot.sound`).
 -/
