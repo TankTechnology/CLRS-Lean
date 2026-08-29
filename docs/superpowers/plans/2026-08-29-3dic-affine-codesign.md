@@ -16,7 +16,7 @@
 - Create: `Tests/Research_ThreeDIC_AffineColoring_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/AffineColoring.lean`
 
-- [ ] **Step 1: Write the failing interface test**
+- [x] **Step 1: Write the failing interface test**
 
 Freeze these names and exact applications:
 
@@ -36,12 +36,12 @@ Freeze these names and exact applications:
 Include concrete evaluations for `(alpha,beta,gamma,K) = (1,3,0,8)` and a
 nontrivial `(2,1,4,7)` case.
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run `lake env lean Tests/Research_ThreeDIC_AffineColoring_Interface.lean` and
 confirm failure is the missing module/name, not syntax.
 
-- [ ] **Step 3: Implement the algebraic module**
+- [x] **Step 3: Implement the algebraic module**
 
 Define:
 
@@ -62,7 +62,7 @@ Prove positivity under `0 < K`, the line-point normal form, periodicity, equal
 color index congruence modulo the exact period, and all three fixed-color
 specializations.
 
-- [ ] **Step 4: Verify GREEN and commit**
+- [x] **Step 4: Verify GREEN and commit**
 
 Run the module build and interface test, then commit with
 `research: generalize affine grid coloring`.
