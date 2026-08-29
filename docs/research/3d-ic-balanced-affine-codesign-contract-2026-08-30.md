@@ -39,7 +39,7 @@
 
 | RQ | Question | Unit | Evidence | Allowed claim |
 |---|---|---|---|---|
-| RQ1 | Which easy-to-check affine coefficients guarantee exact full-window balance when `K ∣ M`? | coefficient/window/color | `AffineWindowLoad.lean` | the coprime-coordinate condition is sufficient |
+| RQ1 | Which easy-to-check affine coefficients guarantee exact full-window balance when `0 < K` and `K ∣ M`? | coefficient/window/color | `AffineWindowLoad.lean` | the coprime-coordinate condition is sufficient |
 | RQ2 | Can the directional certificate be optimized without leaving that family? | candidate set/defect family | `BalancedAffineCodesign.lean` | a finite exact certificate minimizer exists in the certified family |
 
 ## Canonical artifacts
@@ -55,7 +55,7 @@
 
 | Claim | Status | Evidence | Caveat | Forbidden wording |
 |---|---|---|---|---|
-| coprime-coordinate pairs are exactly window balanced when `K ∣ M` | supported | `affineGridColor_window_count_eq_of_coprime_coefficient` | sufficient condition only | complete classification |
+| coprime-coordinate pairs are exactly window balanced when `0 < K` and `K ∣ M` | supported | `affineGridColor_window_count_eq_of_coprime_coefficient` | sufficient condition only | complete classification |
 | a balanced-family score minimizer exists | supported | `exists_balancedAffineCoefficients_minimizer` | optimizes the upper certificate inside the certified family | globally optimal repair architecture |
 | the result improves practical DART yield | unsupported | none | requires a model and experiments | demonstrated yield improvement |
 

@@ -32,9 +32,10 @@ by the direction-sensitive upper bound `ceil(W/R) * ceil(L/T)`. The latter now
 holds for arbitrary affine coefficients. For a finite strip family, the
 verified worst-case score is invariant under reducing coefficients modulo `K`,
 and the canonical `K x K` domain contains a global minimizer for that frozen
-score. When `K ∣ M`, the canonical pairs with a coprime coordinate form a
-nonempty family in which every translated window has exact load `M^2/K`; this
-family also contains an exact score minimizer. These are certified baselines.
+score. When `0 < K` and `K ∣ M`, the canonical pairs with a coprime coordinate
+form a nonempty family in which every translated window has exact load
+`M^2/K`; this family also contains an exact score minimizer. These are
+certified baselines.
 A paper contribution must still add a matching strip lower-bound/tightness
 result, a stronger admissibility or constrained-performance theorem, or a
 physical routing guarantee and show that it predicts actual repairability, not
@@ -64,11 +65,11 @@ merely rediscover modular coloring and interleaving facts.
   generalized theorem replaces the baseline step by
   `alpha*v.1 + beta*v.2`. The finite-family score has a proved global minimizer
   over all natural coefficient pairs after canonical residue reduction. Under
-  `K ∣ M`, the coprime-coordinate candidate family has exact load `M^2/K` for
-  every valid color and contains its own exact score minimizer. The remaining
-  hypothesis is a matching lower-bound/tightness result, a complete balanced-
-  coefficient characterization, or a useful bound against the unconstrained
-  optimum.
+  `0 < K` and `K ∣ M`, the coprime-coordinate candidate family has exact load
+  `M^2/K` for every valid color and contains its own exact score minimizer. The
+  remaining hypothesis is a matching lower-bound/tightness result, a complete
+  balanced-coefficient characterization, or a useful bound against the
+  unconstrained optimum.
 - **H2 -- routability:** The same construction admits a chain ordering with a
   nontrivial, physically meaningful bound on maximum hop and total route length.
   The elementary window-connectivity radius and the classical generic `3R`
@@ -113,10 +114,10 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 The expanded route A proof package is still not enough by itself for a paper.
 The foundational strip theorem, general affine upper certificate, and global
 optimizer for the frozen family-score objective are complete. Constrained
-co-design is also complete for the `K ∣ M` coprime-coordinate sufficient
-family, but this is neither a complete balanced-coefficient classification nor
-a load-tightness or hardware-optimality result, and the routing result is
-connectivity rather than a simple physical chain. The next research gate is a
+co-design is also complete for the `0 < K`, `K ∣ M` coprime-coordinate
+sufficient family, but this is neither a complete balanced-coefficient
+classification nor a load-tightness or hardware-optimality result, and the
+routing result is connectivity rather than a simple physical chain. The next research gate is a
 matching lower-bound/tightness result or a stronger structural theorem beyond
 the sufficient family. A credible short EDA paper additionally needs a
 faithful evaluation;
