@@ -17,10 +17,11 @@ the DART architecture?
 
 The question starts from DART's real motivation--line and cluster faults--but
 replaces heuristic quality alone with a falsifiable certificate. Route A now
-formally verifies perfect window dispersion, finite-grid same-color bounded-hop
-connectivity, and the exact modular ceiling bound for lattice-line load. These
-are certified baselines. A paper contribution must still add nontrivial
-hardware-specific load or routing guarantees and show that they predict actual
+formally verifies perfect window dispersion, exact floor/ceiling-balanced
+per-chain box load, finite-grid same-color bounded-hop connectivity, and the
+exact modular ceiling bound for lattice-line load. These are certified
+baselines. A paper contribution must still add nontrivial hardware-specific
+strip load or routing guarantees and show that they predict actual
 repairability, not merely rediscover modular coloring and interleaving facts.
 
 ## Supporting sub-questions
@@ -33,10 +34,11 @@ repairability, not merely rediscover modular coloring and interleaving facts.
 
 ## Falsifiable hypotheses
 
-- **H1 -- certified load:** The lattice-line subcase now has the proved bound
-  `ceil(L / (K / gcd(K, a + M*b)))`. The remaining hypothesis is that an
-  extension to line/strip or bounded-box defects is asymptotically or
-  numerically tighter than regular localized chains at the same spare ratio.
+- **H1 -- certified load:** Translated `M x M` boxes now have the proved bound
+  `ceil(M^2/K)`, and the lattice-line subcase has the proved bound
+  `ceil(L / (K / gcd(K, a + M*b)))`. The remaining hypothesis is that a tight
+  strip or multi-direction extension is asymptotically or numerically better
+  than regular localized chains at the same spare ratio.
 - **H2 -- routability:** The same construction admits a chain ordering with a
   nontrivial, physically meaningful bound on maximum hop and total route length.
   The elementary window-connectivity radius and the classical generic `3R`
@@ -58,9 +60,9 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
   formation lacks worst-case guarantees; precise claim boundary.
 - **Model:** DART-compatible bump grid, chains, spares, mux/reroute semantics,
   defect families, and physical routing metrics.
-- **Result 1 -- exact baseline:** formally verified perfect window dispersion;
-  explicit acknowledgement that the construction belongs to known
-  polychromatic/tiling territory.
+- **Result 1 -- exact baseline:** formally verified perfect window dispersion
+  and floor/ceiling-balanced window load; explicit acknowledgement that the
+  construction belongs to known polychromatic/tiling territory.
 - **Result 2 -- certificate:** worst-case per-chain load bounds for the frozen
   line/cluster family, including lower bounds or adversarial tight examples.
 - **Result 3 -- routing:** sharp bottleneck/length/capacity guarantee and a
@@ -75,11 +77,12 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 
 ## Publication gate
 
-The completed route A proof package is still not enough by itself for a paper:
-its line-load theorem is elementary modular arithmetic until a prior-art audit
-and hardware-specific strengthening show otherwise, and its routing result is
+The expanded route A proof package is still not enough by itself for a paper:
+its box and line-load theorems are elementary modular counting until a
+hardware-specific strengthening shows otherwise, and its routing result is
 connectivity rather than a simple physical chain. A credible short EDA paper
-needs a stronger strip/cluster or routing result plus a faithful evaluation.
+needs a stronger strip/multi-direction or routing result plus a faithful
+evaluation.
 A stronger DATE/ISPD/ICCAD/TCAD submission needs those results together with
 repairability evidence. A formal-methods venue additionally needs a larger
 verified refinement or executable routing artifact.
