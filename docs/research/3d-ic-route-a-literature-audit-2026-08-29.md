@@ -18,14 +18,20 @@ first Lean formalization of polychromatic coloring.
 The defensible contribution today is narrower: a kernel-checked,
 DART-motivated deterministic construction that simultaneously exposes local
 window diversity, exact floor/ceiling-balanced box load, finite-grid same-color
-connectivity, exact line-defect period/load certificates, and two upper
-certificates for finite physical strips. This is a useful verified baseline
-and a strong starting point, but not yet a standalone research result of the
-strength needed for an EDA or formal-methods paper.
+connectivity, exact line-defect period/load certificates, two upper
+certificates for finite physical strips, and coefficient-sensitive certificates
+over finite defect families. Coefficient residues modulo `K` are proved
+sufficient for the frozen family-score objective, so a canonical `K x K`
+domain contains a global score minimizer over all natural coefficient pairs.
+This is a useful verified baseline and a strong starting point, but not yet a
+standalone research result of the strength needed for an EDA or formal-methods
+paper.
 
-The foundational finite-strip theorem and phase-aware upper certificate are
-complete. The next research gate is either a matching lower-bound/tightness
-result or affine coefficient/direction co-design. An end-to-end
+The foundational finite-strip theorem, general affine phase certificate, and
+canonical-domain minimizer for the frozen upper-bound objective are complete.
+The next research gate is either a matching lower-bound/tightness result or a
+characterization of coefficients that preserve the required translated-window
+balance while optimizing the direction-family score. An end-to-end
 *repairability certificate* remains a later goal: connect certified load to
 spare/protection-window capacity and a simple physical chain, then validate the
 resulting sufficient condition under the same model as DART.
@@ -36,8 +42,11 @@ resulting sufficient condition under the same model as DART.
 
 - **Phenomenon:** deterministic assignment of an `N x N` hybrid-bond bump grid
   to `K` repair chains under spatially correlated faults.
-- **Current construction:** `color(i,j) = (i + M*j) mod K`.
-- **Directional color step:** for a lattice direction `v`,
+- **Current constructions:** the balanced baseline
+  `color(i,j) = (i + M*j) mod K` and the load-analysis family
+  `color(i,j) = (alpha*i + beta*j + gamma) mod K`.
+- **Directional color step:** for a lattice direction `v`, the generalized
+  step is `alpha*v.1 + beta*v.2`; the baseline specializes to
   `lineColorStep M v = v.1 + M*v.2`.
 - **Units of analysis:** one translated window, one finite color class, one
   finite lattice-line prefix, one finite physical strip, and eventually one
@@ -51,7 +60,9 @@ resulting sufficient condition under the same model as DART.
   floor/ceiling window load, bounded-hop connectivity, exact line-color period,
   per-color box/line ceiling load bounds, the physical unique-point strip
   baseline `W * ceil(L/T)`, and the phase-aware strip upper certificate
-  `ceil(W/R) * ceil(L/T)`.
+  `ceil(W/R) * ceil(L/T)`, coefficient-sensitive finite-family worst-case
+  scores, residue-space invariance, and existence of a global score minimizer
+  in the canonical `K x K` coefficient domain.
 - **Not certified:** simple/Hamiltonian repair-chain ordering, total wirelength,
   turns, routing delay or congestion, spare placement, mux reachability, DART
   evaluation, or end-to-end repair success.
@@ -73,6 +84,10 @@ resulting sufficient condition under the same model as DART.
 - `CLRSLean/Research/ThreeDIC/LineDefect.lean`
 - `CLRSLean/Research/ThreeDIC/LineDefectLoad.lean`
 - `CLRSLean/Research/ThreeDIC/StripDefectLoad.lean`
+- `CLRSLean/Research/ThreeDIC/AffineColoring.lean`
+- `CLRSLean/Research/ThreeDIC/AffineLineDefectLoad.lean`
+- `CLRSLean/Research/ThreeDIC/AffineStripDefectLoad.lean`
+- `CLRSLean/Research/ThreeDIC/AffineDirectionCodesign.lean`
 
 ## Exact theorem surface and classification
 
@@ -85,6 +100,8 @@ resulting sufficient condition under the same model as DART.
 | `lineColor_load_le_ceilDiv_period` | A color occurs at most `ceil(L/T)` times in a length-`L` prefix, with the exact period above. | Direct counting corollary of the modular progression; useful certificate, not standalone novelty. |
 | `stripColor_load_le_sum_lines` | For `0 < K`, the number of distinct physical color-`c` points in a width-`W`, length-`L` strip is at most `W * ceil(L/T)`, where `T = K / gcd(K, lineColorStep M along)`. Duplicate samples are removed before counting. No assumption `c < K` is needed; an invalid color selects no points. | Kernel-checked physical unique-point baseline obtained by composing the line certificate; not a claim about tightness or repair success. |
 | `stripColor_load_le_phase_periods` | For `0 < K`, the same physical load is at most `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, lineColorStep M along)` and `R = gcd(K, lineColorStep M along) / gcd(gcd(K, lineColorStep M along), lineColorStep M across)`. No assumption `c < K` is needed; an invalid color selects no points. | Stronger direction-sensitive upper certificate. It can be strictly better than the sum-of-lines bound when `R > 1`, but no matching lower bound or optimality claim is proved. |
+| `affineStripColor_load_le_phase_periods` and `affineStripColor_load_le_familyScore` | For arbitrary natural `alpha`, `beta`, and `gamma` with `0 < K`, the same unique-physical-point strip bound uses coefficient-sensitive periods; the finite-family score simultaneously bounds every listed shape. | Kernel-checked generalization and EDA-facing certificate interface. It does not prove window balance, tightness, or repair success. |
+| `affineDefectFamilyScore_canonical` and `exists_canonicalAffineCoefficients_minimizer` | Reducing `alpha` and `beta` modulo `K` preserves every shape certificate and finite-family score. The canonical `K x K` residue domain therefore contains a score minimizer no worse than every natural coefficient pair. | Structural finite-quotient and exact optimization theorem for the frozen upper-certificate objective. It is not a balance-preserving or end-to-end hardware optimum. |
 
 ## Primary-source prior-art matrix
 
@@ -112,6 +129,9 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
   translated-window coverage and balanced box load, finite-grid bounded-hop
   connectivity, exact line-defect load certificates, and physical finite-strip
   upper certificates.”
+- “For the frozen finite strip-family upper-certificate objective, coefficient
+  residues modulo `K` suffice and the canonical residue domain contains a
+  global minimizer over all natural coefficient pairs.”
 - “The construction gives a closed-form certified alternative for a restricted
   subproblem motivated by DART.”
 - “To our knowledge, the audited literature does not combine these exact
@@ -126,6 +146,8 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 - “The construction guarantees DART repairability.”
 - “The bounded-hop witness is a physical repair chain” or “has bounded total
   wirelength.”
+- “The canonical score minimizer preserves translated-window balance” or “is
+  globally optimal for DART repairability.”
 
 ## Generalization ladder
 
@@ -142,7 +164,7 @@ high collision risk. These are screening estimates, not acceptance forecasts.
 | F | Construct a simple/Hamiltonian same-color path with bottleneck, turns, and total-length bounds. | 5 | 2 | 5 | 3 | Major routing theorem; likely paper-critical. |
 | G | Match the proved phase-aware upper certificate with a lower-bound/tightness result for width-`w` strips. | 4 | 4 | 5 | 3 | Foundational strip theorem complete; matching evidence is the next strip gate. |
 | H | Bound per-chain discrepancy for arbitrary connected or bounded-box clusters by area plus a boundary term. | 5 | 2 | 5 | 4 | High value but strong interleaving/discrepancy collision risk. |
-| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | Strong co-design question; avoid reducing it to constant search. |
+| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | **Partially proved:** exact optimization of the frozen certificate objective reduces structurally to the canonical residue domain; preservation/classification of window balance remains open. |
 | J | Formalize DART protection windows/spares/mux shifts and prove that certified load plus routing conditions imply repairability. | 5 | 2 | 5 | 2 | Highest-value end-to-end contribution. |
 
 ## Recommended question stack
@@ -194,10 +216,13 @@ spares, protection windows, and second-adjacent mux shifts.
    `stripColor_load_le_phase_periods` certifies the direction-sensitive upper
    bound `ceil(W/R) * ceil(L/T)` under exactly `0 < K`. The latter can be
    strictly smaller when `R > 1`; no matching lower bound is yet proved.
-3. **Coefficient/direction co-design (medium/high risk, about 1--2 weeks).**
-   Freeze the admissible affine family and prove a non-enumerative existence or
-   approximation result. Stop if the result collapses to a small constant
-   search with no structural statement.
+3. **Coefficient/direction co-design -- certificate objective completed,
+   admissibility still open.** Arbitrary coefficients now have verified
+   line/strip and family certificates; the objective is invariant under
+   coefficient residues, and the canonical `K x K` domain contains a global
+   minimizer. The remaining research part is to characterize or approximate
+   the translated-window-balanced feasible family and determine whether its
+   constrained optimum has a useful structural form.
 4. **Simple physical chains (high risk, about 1--2 weeks).** Replace the
    repeat-permitting connectivity witness by a simple ordering and prove
    bottleneck/length/turn bounds; compare directly with minimal-delay repair
@@ -208,8 +233,9 @@ spares, protection windows, and second-adjacent mux shifts.
    certificate predicts the original repair simulator's success/failure.
 
 The next research gate is either a matching lower-bound/tightness result for
-step 2 or the affine coefficient/direction co-design of step 3. The publishable
-unit still needs a faithful evaluation and likely either step 4 or step 5.
+step 2 or the balance-preserving constrained co-design remainder of step 3.
+The publishable unit still needs a faithful evaluation and likely either step
+4 or step 5.
 Dimension-only generalizations A--C should be added only when they support that
 unit.
 

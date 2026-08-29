@@ -17,8 +17,9 @@ Date: 2026-08-29
 
 - **Primary unit:** one finite `StripDefectShape` with width, length, along
   direction, and cross direction.
-- **Formal universe:** finite `Finset` families of such shapes and finite
-  nonempty `Finset` sets of natural coefficient pairs.
+- **Formal universe:** finite `Finset` families of such shapes and all natural
+  coefficient pairs, quotiented without loss for the score objective to the
+  finite canonical residue domain `range K x range K` when `0 < K`.
 - **Load denominator:** distinct physical bumps assigned one requested color;
   repeated samples are counted once.
 - **Excluded:** arbitrary connected clusters, probabilistic fault samples,
@@ -31,7 +32,7 @@ Date: 2026-08-29
 | actual load | cardinality of distinct sampled physical points of one color | sample-index count |
 | shape certificate | `ceil(W/R) * ceil(L/T)` | an exact load formula |
 | family score | maximum shape certificate over a finite family | observed repair failure rate |
-| minimizer | least family score inside an explicit finite candidate set | global optimum under all hardware constraints |
+| minimizer | least family score inside candidates, or globally for the frozen score after residue reduction | optimum under window-balance or hardware constraints |
 
 ## Evidence map
 
@@ -47,10 +48,10 @@ Date: 2026-08-29
 
 | Claim | Status | Evidence | Caveat | Forbidden wording |
 |---|---|---|---|---|
-| arbitrary coefficients admit line/strip upper certificates | target | kernel-checked theorems | natural nonnegative lattice model | “tight” |
-| family score bounds every member | target | load-to-`Finset.sup` theorem | only explicitly listed shapes | “all cluster faults” |
-| a candidate minimizer exists | target | finite-order theorem | candidate-relative | “solves global co-design” |
-| the canonical residue domain contains a global score minimizer | target | residue-invariance plus finite minimization | only the frozen upper-certificate objective | “globally optimal repair coloring” |
+| arbitrary coefficients admit line/strip upper certificates | verified | kernel-checked theorems | natural nonnegative lattice model | “tight” |
+| family score bounds every member | verified | load-to-`Finset.sup` theorem | only explicitly listed shapes | “all cluster faults” |
+| a candidate minimizer exists | verified | finite-order theorem | candidate-relative | “solves global co-design” |
+| the canonical residue domain contains a global score minimizer | verified | residue-invariance plus finite minimization | only the frozen upper-certificate objective | “globally optimal repair coloring” |
 | coefficients preserve window balance | unsupported | none in this phase | requires a feasible-family theorem | “balance-preserving optimizer” |
 | certificates predict repairability | unsupported | no simulator bridge | requires DART evaluation | “guarantees repair” |
 
@@ -59,6 +60,7 @@ Date: 2026-08-29
 - A useful coefficient may reduce directional load while destroying local
   translated-window balance.
 - The upper certificate may be loose without a matching lower-bound theorem.
-- Finite candidate minimization is infrastructure, not by itself research
-  novelty; a structural admissibility or approximation theorem remains needed.
+- The structural residue reduction removes the arbitrary finite-candidate
+  restriction for the frozen score, but a window-balance admissibility or
+  constrained-approximation theorem remains needed.
 - Physical routing and repair semantics may dominate the modular load score.
