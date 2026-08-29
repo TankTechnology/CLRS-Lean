@@ -434,7 +434,7 @@ git diff --check
 Expected: the placeholder scan has no findings and the remaining commands exit
 zero.
 
-- [ ] **Step 5: Request independent semantic review**
+- [x] **Step 5: Request independent semantic review**
 
 Ask the reviewer to check:
 
@@ -447,7 +447,7 @@ Ask the reviewer to check:
 
 Resolve every Critical or Important issue and rerun the affected gates.
 
-- [ ] **Step 6: Close the reviewed plan and record the final state**
+- [x] **Step 6: Close the reviewed plan and record the final state**
 
 After the independent reviewer accepts the audit fixes and the post-review
 gates pass, mark Steps 5 and 6 complete, then commit that final plan state:
