@@ -16,7 +16,7 @@
 - Create: `Tests/Research_ThreeDIC_AffineWindowLoad_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/AffineWindowLoad.lean`
 
-- [ ] **Step 1: Write the failing public-interface test**
+- [x] **Step 1: Write the failing public-interface test**
 
 Create the test with the intended names and exact applications:
 
@@ -52,7 +52,7 @@ example : affineWindowColorCount 4 2 1 0 3 5 7 0 = 8 := by decide
 example : affineWindowColorCount 4 2 0 1 3 5 7 1 = 8 := by decide
 ```
 
-- [ ] **Step 2: Run RED and confirm the missing module is the reason**
+- [x] **Step 2: Run RED and confirm the missing module is the reason**
 
 Run:
 
@@ -63,7 +63,7 @@ lake env lean Tests/Research_ThreeDIC_AffineWindowLoad_Interface.lean
 Expected: nonzero exit reporting that
 `CLRSLean.Research.ThreeDIC.AffineWindowLoad` does not exist.
 
-- [ ] **Step 3: Define the physical-offset count**
+- [x] **Step 3: Define the physical-offset count**
 
 Create the production module importing `AffineColoring`, `Mathlib.Data.Fintype.Card`,
 `Mathlib.Data.Int.CardIntervalMod`, and the required Finset big-operator module.
@@ -80,7 +80,7 @@ def affineWindowColorCount
 Document that the product elements are distinct physical offsets in the full
 translated window.
 
-- [ ] **Step 4: Prove the one-dimensional exact-count kernel**
+- [x] **Step 4: Prove the one-dimensional exact-count kernel**
 
 Add private helpers with these complete semantic contracts:
 
@@ -109,7 +109,7 @@ coprime multiplier with `Nat.ModEq.cancel_left_of_coprime`, then use
 using the `ModEq` characterization and simplify `Nat.count_modEq_card` with
 `n % K = 0` from `hKn`.
 
-- [ ] **Step 5: Lift the kernel row-wise and column-wise**
+- [x] **Step 5: Lift the kernel row-wise and column-wise**
 
 Add a private cardinality decomposition for a filtered product:
 
@@ -139,7 +139,7 @@ theorem affineGridColor_window_count_eq_of_coprime_coefficient
 
 by cases on `hunit` and applying the corresponding truth-source theorem.
 
-- [ ] **Step 6: Verify GREEN and commit the first theorem family**
+- [x] **Step 6: Verify GREEN and commit the first theorem family**
 
 Run:
 
@@ -162,7 +162,7 @@ git commit -m "research: certify balanced affine window load"
 - Create: `Tests/Research_ThreeDIC_BalancedAffineCodesign_Interface.lean`
 - Create: `CLRSLean/Research/ThreeDIC/BalancedAffineCodesign.lean`
 
-- [ ] **Step 1: Write the failing co-design interface**
+- [x] **Step 1: Write the failing co-design interface**
 
 Freeze:
 
@@ -191,11 +191,11 @@ example
   exists_balancedAffineCoefficients_minimizer M K family hK hKM
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 Run the new interface test and confirm failure is the missing module.
 
-- [ ] **Step 3: Define and characterize the certified feasible domain**
+- [x] **Step 3: Define and characterize the certified feasible domain**
 
 Import `AffineWindowLoad` and `AffineDirectionCodesign`, then define:
 
@@ -220,7 +220,7 @@ Derive the canonical-domain portion by unfolding
 `canonicalAffineCoefficientCandidates`, eliminating `Finset.mem_image`, and
 using `AffineCoefficients.ext` on the witness pair.
 
-- [ ] **Step 4: Prove nonemptiness and candidate admissibility**
+- [x] **Step 4: Prove nonemptiness and candidate admissibility**
 
 Use `canonicalAffineCoefficients K { alpha := 1, beta := 0 }` as the witness.
 Its first coefficient is `1 % K`; obtain coprimality from
@@ -242,7 +242,7 @@ theorem balancedAffineCoefficient_window_count_eq
 The second theorem extracts the coprime disjunction from membership and calls
 the window truth source directly.
 
-- [ ] **Step 5: Prove finite balanced minimization and the headline wrapper**
+- [x] **Step 5: Prove finite balanced minimization and the headline wrapper**
 
 Instantiate `exists_affineCoefficients_minimizer` with the certified candidate
 set and its nonemptiness theorem:
@@ -271,7 +271,7 @@ theorem exists_balancedAffineCoefficients_minimizer
           affineDefectFamilyScore K other family)
 ```
 
-- [ ] **Step 6: Add executable boundary regressions, verify, and commit**
+- [x] **Step 6: Add executable boundary regressions, verify, and commit**
 
 Add `by decide` examples for `K = 1`, inclusion of a unit-coordinate pair,
 exclusion of `{alpha := 2, beta := 4}` at `K = 6`, and the zero score of an
@@ -291,7 +291,7 @@ git commit -m "research: optimize over balanced affine coefficients"
 - Modify: `docs/research/3d-ic-route-a-literature-audit-2026-08-29.md`
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
 
-- [ ] **Step 1: Audit the two headline theorems**
+- [x] **Step 1: Audit the two headline theorems**
 
 Import `BalancedAffineCodesign` in the trust test and add:
 
@@ -300,7 +300,7 @@ Import `BalancedAffineCodesign` in the trust test and add:
 #assert_axioms CLRS.Research.ThreeDIC.exists_balancedAffineCoefficients_minimizer
 ```
 
-- [ ] **Step 2: Update the research contracts and claim ledgers**
+- [x] **Step 2: Update the research contracts and claim ledgers**
 
 Change the new contract's two target claims to supported and cite their exact
 Lean theorem names.  In the earlier affine contract, replace the unsupported
@@ -309,7 +309,7 @@ blanket statement with the bounded result: balance is now proved only for
 question stack to mark the constrained balanced-family minimization as proved
 while retaining all forbidden claims from the design.
 
-- [ ] **Step 3: Run focused trust and documentation gates**
+- [x] **Step 3: Run focused trust and documentation gates**
 
 Run:
 
@@ -332,7 +332,7 @@ git commit -m "docs(research): audit balanced affine codesign"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-30-3dic-balanced-affine-codesign.md`
 
-- [ ] **Step 1: Run all ThreeDIC interfaces and trust tests**
+- [x] **Step 1: Run all ThreeDIC interfaces and trust tests**
 
 ```bash
 for test_file in Tests/Research_ThreeDIC_*_Interface.lean Tests/Research_ThreeDIC_Trust.lean; do
@@ -342,7 +342,7 @@ done
 
 Expected: every file exits zero.
 
-- [ ] **Step 2: Run the full repository gates**
+- [x] **Step 2: Run the full repository gates**
 
 ```bash
 lake build CLRSLean
@@ -359,7 +359,7 @@ git diff --check
 Expected: builds and checkers exit zero; the declaration-aware scan has no
 production placeholders or new axioms.
 
-- [ ] **Step 3: Perform a mathematical and claim-boundary review**
+- [x] **Step 3: Perform a mathematical and claim-boundary review**
 
 Check that the public theorem retains `0 < K`, `K ∣ M`, `c < K`, and the
 coprime-coordinate hypothesis; that the count is over unique offset pairs;
@@ -367,7 +367,7 @@ that minimization is only over `balancedAffineCoefficientCandidates`; and that
 no document claims full classification, tightness, repairability, or a solved
 traditional EDA open problem.
 
-- [ ] **Step 4: Close the plan and commit**
+- [x] **Step 4: Close the plan and commit**
 
 Mark only genuinely completed checkboxes, rerun `git diff --check`, and commit:
 
