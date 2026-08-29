@@ -272,6 +272,15 @@ different directional scores, and one concrete nonempty candidate-set
 minimizer. Verify and commit with
 `research: certify finite affine direction codesign`.
 
+- [ ] **Step 6: Prove canonical residue-space sufficiency**
+
+Add coefficient-modulo-`K` invariance theorems for directional gcds, line
+periods, cross-row periods, shape certificates, and family scores. Define
+`canonicalAffineCoefficientCandidates K` from `range K × range K` and prove
+that for `0 < K` it contains a score minimizer no worse than every natural
+coefficient pair. Freeze full theorem applications and concrete canonical
+membership/score examples in the two relevant interface tests.
+
 ### Task 5: Audit documentation and trust surface
 
 **Files:**

@@ -122,6 +122,35 @@ The second theorem is exact over the explicitly supplied candidate universe.
 Documentation must call it a certified finite-family synthesis interface, not
 a non-enumerative characterization of every window-balanced affine coloring.
 
+### Canonical residue-space strengthening
+
+The candidate-relative theorem is infrastructure, not the structural
+headline.  Also prove that every period, strip certificate, and family score
+is unchanged when the coefficient pair is replaced by
+
+```text
+(alpha mod K, beta mod K).
+```
+
+Define the canonical candidate domain as all coefficient pairs in
+`range K × range K`.  Under `0 < K`, every natural coefficient pair has one
+representative in this domain.  Combining score invariance with finite
+minimization yields:
+
+```lean
+theorem exists_canonicalAffineCoefficients_minimizer
+    (K : Nat) (family : Finset StripDefectShape) (hK : 0 < K) :
+    ∃ coeff ∈ canonicalAffineCoefficientCandidates K,
+      ∀ other : AffineCoefficients,
+        affineDefectFamilyScore K coeff family ≤
+          affineDefectFamilyScore K other family
+```
+
+This is a global minimum over all natural coefficient pairs for the frozen
+certificate objective, obtained by a proved finite quotient rather than an
+arbitrary hand-picked constant set.  It is still not a theorem that the
+minimizer preserves translated-window balance or optimizes repairability.
+
 ## Testing and trust contract
 
 Each module gets a separate interface test.  Tests freeze full theorem
@@ -133,6 +162,8 @@ applications rather than only bare `#check` names, and include:
 - empty and singleton defect families;
 - degenerate/repeated physical samples;
 - a concrete candidate set where the certified minimizer score is evaluated.
+- canonicalization and global score minimization over all natural coefficient
+  pairs through the finite residue domain.
 
 The trust audit adds the generalized strip theorem and the finite-candidate
 minimizer theorem.  Completion requires focused module/interface checks, all
@@ -146,6 +177,8 @@ Allowed:
 - the load theorem is valid for arbitrary natural affine coefficients;
 - the family score simultaneously upper-bounds every listed defect shape;
 - a nonempty finite candidate set has an exact score minimizer;
+- coefficient residues modulo `K` suffice for the certificate objective, and
+  the canonical `K × K` domain contains a global minimizer of that objective;
 - the old fixed coloring is a specialization of the general model.
 
 Not allowed without later results:
@@ -153,5 +186,6 @@ Not allowed without later results:
 - the selected coefficients preserve translated-window balance;
 - the certificate is tight or optimal for actual physical failures;
 - finite minimization is a new algorithmic open-problem solution;
+- the canonical score minimizer automatically satisfies window balance;
 - the score captures spare placement, mux reachability, routing congestion,
   delay, or DART repair success.

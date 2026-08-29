@@ -40,6 +40,7 @@ Date: 2026-08-29
 | Does the general affine strip obey the period certificate? | Lean generalized strip theorem | deterministic upper bound under `0 < K` |
 | Does one score cover a listed defect family? | Lean `Finset.sup` bridge | simultaneous upper certificate for family members |
 | Can coefficients be selected exactly from candidates? | Lean finite minimizer theorem | exact minimum inside the supplied nonempty set |
+| Can the natural coefficient universe be reduced structurally? | Lean residue-invariance and canonical-domain minimizer theorems | global optimum for the frozen family-score objective over all natural coefficient pairs |
 | Is the selection better in DART? | no evidence in this phase | no claim |
 
 ## Claim ledger
@@ -49,6 +50,7 @@ Date: 2026-08-29
 | arbitrary coefficients admit line/strip upper certificates | target | kernel-checked theorems | natural nonnegative lattice model | “tight” |
 | family score bounds every member | target | load-to-`Finset.sup` theorem | only explicitly listed shapes | “all cluster faults” |
 | a candidate minimizer exists | target | finite-order theorem | candidate-relative | “solves global co-design” |
+| the canonical residue domain contains a global score minimizer | target | residue-invariance plus finite minimization | only the frozen upper-certificate objective | “globally optimal repair coloring” |
 | coefficients preserve window balance | unsupported | none in this phase | requires a feasible-family theorem | “balance-preserving optimizer” |
 | certificates predict repairability | unsupported | no simulator bridge | requires DART evaluation | “guarantees repair” |
 
@@ -60,4 +62,3 @@ Date: 2026-08-29
 - Finite candidate minimization is infrastructure, not by itself research
   novelty; a structural admissibility or approximation theorem remains needed.
 - Physical routing and repair semantics may dominate the modular load score.
-
