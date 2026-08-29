@@ -2,9 +2,10 @@
 
 Date: 2026-08-29
 
-Status: route A combinatorial core, general affine strip certificates, and the
-canonical coefficient-domain optimizer for the frozen family-score objective
-formally verified; not a claim that a recognized open problem has been solved
+Status: route A combinatorial core, general affine strip certificates, the
+canonical coefficient-domain optimizer, and constrained optimization over a
+proved balanced affine family formally verified; not a claim that a recognized
+open problem has been solved
 
 Prior-art and claim basis: [route-A literature audit](./3d-ic-route-a-literature-audit-2026-08-29.md).
 
@@ -31,11 +32,13 @@ by the direction-sensitive upper bound `ceil(W/R) * ceil(L/T)`. The latter now
 holds for arbitrary affine coefficients. For a finite strip family, the
 verified worst-case score is invariant under reducing coefficients modulo `K`,
 and the canonical `K x K` domain contains a global minimizer for that frozen
-score. These are certified baselines. A paper contribution must still add a
-matching strip lower-bound/tightness result, a balance-preserving constrained
-co-design theorem, or a physical routing guarantee and show that it predicts
-actual repairability, not merely rediscover modular coloring and interleaving
-facts.
+score. When `K ∣ M`, the canonical pairs with a coprime coordinate form a
+nonempty family in which every translated window has exact load `M^2/K`; this
+family also contains an exact score minimizer. These are certified baselines.
+A paper contribution must still add a matching strip lower-bound/tightness
+result, a stronger admissibility or constrained-performance theorem, or a
+physical routing guarantee and show that it predicts actual repairability, not
+merely rediscover modular coloring and interleaving facts.
 
 ## Supporting sub-questions
 
@@ -60,9 +63,12 @@ facts.
   certificate can be strictly better than the baseline when `R > 1`. The
   generalized theorem replaces the baseline step by
   `alpha*v.1 + beta*v.2`. The finite-family score has a proved global minimizer
-  over all natural coefficient pairs after canonical residue reduction. The
-  remaining hypothesis is a matching lower-bound/tightness result or a useful
-  characterization of the window-balanced constrained coefficient family.
+  over all natural coefficient pairs after canonical residue reduction. Under
+  `K ∣ M`, the coprime-coordinate candidate family has exact load `M^2/K` for
+  every valid color and contains its own exact score minimizer. The remaining
+  hypothesis is a matching lower-bound/tightness result, a complete balanced-
+  coefficient characterization, or a useful bound against the unconstrained
+  optimum.
 - **H2 -- routability:** The same construction admits a chain ordering with a
   nontrivial, physically meaningful bound on maximum hop and total route length.
   The elementary window-connectivity radius and the classical generic `3R`
@@ -88,9 +94,10 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
   and floor/ceiling-balanced window load; explicit acknowledgement that the
   construction belongs to known polychromatic/tiling territory.
 - **Result 2 -- certificate:** the proved general affine physical-strip and
-  finite-family upper certificates, canonical-domain optimization, followed by
-  a matching lower bound or adversarial tightness characterization for the
-  frozen line/strip family.
+  finite-family upper certificates, canonical-domain optimization, and exact
+  constrained optimization over the proved balanced sufficient family,
+  followed by a matching lower bound or adversarial tightness characterization
+  for the frozen line/strip family.
 - **Result 3 -- routing:** sharp bottleneck/length/capacity guarantee and a
   deterministic synthesis algorithm.
 - **Result 4 -- evaluation:** identical-model comparison against DART simulated
@@ -105,12 +112,14 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 
 The expanded route A proof package is still not enough by itself for a paper.
 The foundational strip theorem, general affine upper certificate, and global
-optimizer for the frozen family-score objective are complete, but they are not
-a load-tightness or balance-preserving hardware-optimality result, and the
-routing result is connectivity rather than a simple physical chain. The next
-research gate is either a matching lower-bound/tightness result or constrained
-co-design over a proved window-balanced affine family. A credible short EDA
-paper additionally needs a faithful evaluation;
+optimizer for the frozen family-score objective are complete. Constrained
+co-design is also complete for the `K ∣ M` coprime-coordinate sufficient
+family, but this is neither a complete balanced-coefficient classification nor
+a load-tightness or hardware-optimality result, and the routing result is
+connectivity rather than a simple physical chain. The next research gate is a
+matching lower-bound/tightness result or a stronger structural theorem beyond
+the sufficient family. A credible short EDA paper additionally needs a
+faithful evaluation;
 the current package does not certify spare placement, mux reachability, routing
 delay/congestion, DART evaluation, arbitrary connected clusters, arbitrary or
 nonrectangular unions of finite strips or line prefixes, or general repair

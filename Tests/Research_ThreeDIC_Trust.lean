@@ -1,6 +1,7 @@
 import CLRSLean.Audit.Axioms
 import CLRSLean.Research.ThreeDIC.AffineDirectionCodesign
 import CLRSLean.Research.ThreeDIC.AffineFiniteConnectivity
+import CLRSLean.Research.ThreeDIC.BalancedAffineCodesign
 import CLRSLean.Research.ThreeDIC.LineDefectLoad
 import CLRSLean.Research.ThreeDIC.StripDefectLoad
 import CLRSLean.Research.ThreeDIC.WindowLoad
@@ -20,3 +21,5 @@ Lean/Mathlib logical foundations (`propext`, `Classical.choice`, and
 #assert_axioms CLRS.Research.ThreeDIC.affineStripColor_load_le_phase_periods
 #assert_axioms CLRS.Research.ThreeDIC.affineStripColor_load_le_familyScore
 #assert_axioms CLRS.Research.ThreeDIC.exists_canonicalAffineCoefficients_minimizer
+#assert_axioms CLRS.Research.ThreeDIC.affineGridColor_window_count_eq_of_coprime_coefficient
+#assert_axioms CLRS.Research.ThreeDIC.exists_balancedAffineCoefficients_minimizer

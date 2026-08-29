@@ -88,6 +88,8 @@ resulting sufficient condition under the same model as DART.
 - `CLRSLean/Research/ThreeDIC/AffineLineDefectLoad.lean`
 - `CLRSLean/Research/ThreeDIC/AffineStripDefectLoad.lean`
 - `CLRSLean/Research/ThreeDIC/AffineDirectionCodesign.lean`
+- `CLRSLean/Research/ThreeDIC/AffineWindowLoad.lean`
+- `CLRSLean/Research/ThreeDIC/BalancedAffineCodesign.lean`
 
 ## Exact theorem surface and classification
 
@@ -102,6 +104,8 @@ resulting sufficient condition under the same model as DART.
 | `stripColor_load_le_phase_periods` | For `0 < K`, the same physical load is at most `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, lineColorStep M along)` and `R = gcd(K, lineColorStep M along) / gcd(gcd(K, lineColorStep M along), lineColorStep M across)`. No assumption `c < K` is needed; an invalid color selects no points. | Stronger direction-sensitive upper certificate. It can be strictly better than the sum-of-lines bound when `R > 1`, but no matching lower bound or optimality claim is proved. |
 | `affineStripColor_load_le_phase_periods` and `affineStripColor_load_le_familyScore` | For arbitrary natural `alpha`, `beta`, and `gamma` with `0 < K`, the same unique-physical-point strip bound uses coefficient-sensitive periods; the finite-family score simultaneously bounds every listed shape. | Kernel-checked generalization and EDA-facing certificate interface. It does not prove window balance, tightness, or repair success. |
 | `affineDefectFamilyScore_canonical` and `exists_canonicalAffineCoefficients_minimizer` | Reducing `alpha` and `beta` modulo `K` preserves every shape certificate and finite-family score. The canonical `K x K` residue domain therefore contains a score minimizer no worse than every natural coefficient pair. | Structural finite-quotient and exact optimization theorem for the frozen upper-certificate objective. It is not a balance-preserving or end-to-end hardware optimum. |
+| `affineGridColor_window_count_eq_of_coprime_coefficient` | If `0 < K`, `K ∣ M`, `c < K`, and `alpha` or `beta` is coprime to `K`, color `c` occurs exactly `M^2/K` times in every translated `M x M` window. | Kernel-checked sufficient admissibility theorem. It does not classify all balanced affine coefficients or cover arbitrary `M`. |
+| `exists_balancedAffineCoefficients_minimizer` | For `0 < K` and `K ∣ M`, the canonical coprime-coordinate residue family is nonempty and contains a family-score minimizer; the selected pair also has exact window load for every offset and valid color. | Exact constrained optimization for an explicit certified family. It is not a closed-form optimizer, a tight-load theorem, or a global DART repair optimum. |
 
 ## Primary-source prior-art matrix
 
@@ -132,6 +136,9 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 - “For the frozen finite strip-family upper-certificate objective, coefficient
   residues modulo `K` suffice and the canonical residue domain contains a
   global minimizer over all natural coefficient pairs.”
+- “When `K` divides `M`, the canonical coprime-coordinate family preserves
+  exact translated-window load and contains an exact score minimizer within
+  that certified family.”
 - “The construction gives a closed-form certified alternative for a restricted
   subproblem motivated by DART.”
 - “To our knowledge, the audited literature does not combine these exact
@@ -146,8 +153,9 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 - “The construction guarantees DART repairability.”
 - “The bounded-hop witness is a physical repair chain” or “has bounded total
   wirelength.”
-- “The canonical score minimizer preserves translated-window balance” or “is
-  globally optimal for DART repairability.”
+- “The unconstrained canonical score minimizer preserves translated-window
+  balance” or “the balanced-family minimizer is globally optimal for DART
+  repairability.”
 
 ## Generalization ladder
 
@@ -164,7 +172,7 @@ high collision risk. These are screening estimates, not acceptance forecasts.
 | F | Construct a simple/Hamiltonian same-color path with bottleneck, turns, and total-length bounds. | 5 | 2 | 5 | 3 | Major routing theorem; likely paper-critical. |
 | G | Match the proved phase-aware upper certificate with a lower-bound/tightness result for width-`w` strips. | 4 | 4 | 5 | 3 | Foundational strip theorem complete; matching evidence is the next strip gate. |
 | H | Bound per-chain discrepancy for arbitrary connected or bounded-box clusters by area plus a boundary term. | 5 | 2 | 5 | 4 | High value but strong interleaving/discrepancy collision risk. |
-| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | **Partially proved:** exact optimization of the frozen certificate objective reduces structurally to the canonical residue domain; preservation/classification of window balance remains open. |
+| I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | **Restricted sufficient family proved:** when `K ∣ M`, the coprime-coordinate residue family is exactly window balanced and has a certified score minimizer. Full admissibility classification, tightness, and comparison with the unconstrained optimum remain open. |
 | J | Formalize DART protection windows/spares/mux shifts and prove that certified load plus routing conditions imply repairability. | 5 | 2 | 5 | 2 | Highest-value end-to-end contribution. |
 
 ## Recommended question stack
@@ -192,7 +200,9 @@ spares, protection windows, and second-adjacent mux shifts.
 
 - **Verified balance baseline:** every translated `M x M` box assigns each
   chain either `floor(M^2/K)` or `ceil(M^2/K)` bumps under the current
-  construction.
+  construction. More generally, when `K ∣ M`, every affine pair with a
+  coprime coordinate assigns each valid color exactly `M^2/K` bumps, and the
+  finite certified family contains a score minimizer.
 - **Verified strip upper certificate:** for `0 < K`, a width-`W`, length-`L`
   physical strip has load at most `ceil(W/R) * ceil(L/T)` with the periods
   above; when `R > 1`, this can be strictly better than the proved
@@ -216,13 +226,15 @@ spares, protection windows, and second-adjacent mux shifts.
    `stripColor_load_le_phase_periods` certifies the direction-sensitive upper
    bound `ceil(W/R) * ceil(L/T)` under exactly `0 < K`. The latter can be
    strictly smaller when `R > 1`; no matching lower bound is yet proved.
-3. **Coefficient/direction co-design -- certificate objective completed,
-   admissibility still open.** Arbitrary coefficients now have verified
+3. **Coefficient/direction co-design -- sufficient constrained family
+   completed.** Arbitrary coefficients now have verified
    line/strip and family certificates; the objective is invariant under
    coefficient residues, and the canonical `K x K` domain contains a global
-   minimizer. The remaining research part is to characterize or approximate
-   the translated-window-balanced feasible family and determine whether its
-   constrained optimum has a useful structural form.
+   minimizer. Under `K ∣ M`, filtering to pairs with a coprime coordinate gives
+   a nonempty exact-window-balanced family with its own certified score
+   minimizer. The remaining research part is a complete admissibility
+   characterization, a structural optimizer or approximation bound, and a
+   comparison between constrained and unconstrained certificate optima.
 4. **Simple physical chains (high risk, about 1--2 weeks).** Replace the
    repeat-permitting connectivity witness by a simple ordering and prove
    bottleneck/length/turn bounds; compare directly with minimal-delay repair
@@ -233,7 +245,8 @@ spares, protection windows, and second-adjacent mux shifts.
    certificate predicts the original repair simulator's success/failure.
 
 The next research gate is either a matching lower-bound/tightness result for
-step 2 or the balance-preserving constrained co-design remainder of step 3.
+step 2 or a stronger classification/performance theorem beyond the sufficient
+constrained family in step 3.
 The publishable unit still needs a faithful evaluation and likely either step
 4 or step 5.
 Dimension-only generalizations A--C should be added only when they support that
@@ -269,9 +282,9 @@ restrictions.
 
 - **Current package alone:** suitable as an artifact/demo or a documented
   verified case study, not yet a convincing full research paper.
-- **With a matching strip lower-bound/tightness result or coefficient co-design,
-  plus DART evaluation:** plausible short EDA/test/reliability paper, subject
-  to novelty and experimental results.
+- **With a matching strip lower-bound/tightness result or a stronger structural
+  coefficient theorem, plus DART evaluation:** plausible short
+  EDA/test/reliability paper, subject to novelty and experimental results.
 - **With an analytic coefficient co-design theorem or strong physical-chain
   bound plus end-to-end semantics:** potentially a stronger EDA or
   formal-methods paper.

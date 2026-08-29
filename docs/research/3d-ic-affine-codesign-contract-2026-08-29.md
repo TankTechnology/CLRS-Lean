@@ -42,6 +42,7 @@ Date: 2026-08-29
 | Does one score cover a listed defect family? | Lean `Finset.sup` bridge | simultaneous upper certificate for family members |
 | Can coefficients be selected exactly from candidates? | Lean finite minimizer theorem | exact minimum inside the supplied nonempty set |
 | Can the natural coefficient universe be reduced structurally? | Lean residue-invariance and canonical-domain minimizer theorems | global optimum for the frozen family-score objective over all natural coefficient pairs |
+| Can score minimization retain exact translated-window balance? | Lean `affineGridColor_window_count_eq_of_coprime_coefficient` and `exists_balancedAffineCoefficients_minimizer` | exact constrained minimum for `K ∣ M` inside the coprime-coordinate sufficient family |
 | Is the selection better in DART? | no evidence in this phase | no claim |
 
 ## Claim ledger
@@ -52,15 +53,16 @@ Date: 2026-08-29
 | family score bounds every member | verified | load-to-`Finset.sup` theorem | only explicitly listed shapes | “all cluster faults” |
 | a candidate minimizer exists | verified | finite-order theorem | candidate-relative | “solves global co-design” |
 | the canonical residue domain contains a global score minimizer | verified | residue-invariance plus finite minimization | only the frozen upper-certificate objective | “globally optimal repair coloring” |
-| coefficients preserve window balance | unsupported | none in this phase | requires a feasible-family theorem | “balance-preserving optimizer” |
+| the coprime-coordinate candidate family preserves exact window balance when `K ∣ M` | verified | kernel-checked window-count and constrained-minimizer theorems | sufficient family, not a full classification | “every score minimizer is balanced” |
 | certificates predict repairability | unsupported | no simulator bridge | requires DART evaluation | “guarantees repair” |
 
 ## Open risks
 
-- A useful coefficient may reduce directional load while destroying local
-  translated-window balance.
+- The unconstrained canonical score minimizer may still destroy local
+  translated-window balance; only the new filtered candidate minimizer carries
+  the balance certificate.
 - The upper certificate may be loose without a matching lower-bound theorem.
-- The structural residue reduction removes the arbitrary finite-candidate
-  restriction for the frozen score, but a window-balance admissibility or
-  constrained-approximation theorem remains needed.
+- The structural residue reduction and filtered minimizer close one sufficient
+  constrained family, but a complete admissibility classification or a bound
+  against the unconstrained optimum remains open.
 - Physical routing and repair semantics may dominate the modular load score.

@@ -55,14 +55,14 @@
 
 | Claim | Status | Evidence | Caveat | Forbidden wording |
 |---|---|---|---|---|
-| coprime-coordinate pairs are exactly window balanced when `K ∣ M` | target | Lean theorem | sufficient condition only | complete classification |
-| a balanced-family score minimizer exists | target | finite Lean minimization | optimizes the upper certificate | globally optimal repair architecture |
+| coprime-coordinate pairs are exactly window balanced when `K ∣ M` | supported | `affineGridColor_window_count_eq_of_coprime_coefficient` | sufficient condition only | complete classification |
+| a balanced-family score minimizer exists | supported | `exists_balancedAffineCoefficients_minimizer` | optimizes the upper certificate inside the certified family | globally optimal repair architecture |
 | the result improves practical DART yield | unsupported | none | requires a model and experiments | demonstrated yield improvement |
 
 ## Open risks
 
-- Division/modulo normalization may require a stronger reusable one-dimensional
-  residue-count lemma than the current window proof exposes.
+- The verified modular-permutation proof establishes the sufficient family but
+  does not characterize all coefficient pairs with exact or near-exact load.
 - The candidate family may be conservative for composite `K`.
 - Tightness, arbitrary `M`, physical routing, spare/mux semantics, and repair
   success remain separate research gates.
