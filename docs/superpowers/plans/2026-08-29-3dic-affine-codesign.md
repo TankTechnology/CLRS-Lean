@@ -311,7 +311,7 @@ scan. Commit with `docs(research): audit affine direction codesign`.
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-29-3dic-affine-codesign.md`
 
-- [ ] **Step 1: Run fresh full verification**
+- [x] **Step 1: Run fresh full verification**
 
 Run:
 
@@ -328,13 +328,13 @@ git diff --check
 Scan changed production/test files for `sorry`, `admit`, and declaration-level
 `axiom`.
 
-- [ ] **Step 2: Review design and claims line by line**
+- [x] **Step 2: Review design and claims line by line**
 
 Check every public name against the design, ensure actual-load theorems count
 unique physical points, and ensure documentation never upgrades the finite
 candidate minimizer into global/window-balanced optimality.
 
-- [ ] **Step 3: Close the plan and commit**
+- [x] **Step 3: Close the plan and commit**
 
 Mark all genuinely completed steps, rerun `git diff --check`, and commit with
 `docs(research): close affine codesign plan`.
