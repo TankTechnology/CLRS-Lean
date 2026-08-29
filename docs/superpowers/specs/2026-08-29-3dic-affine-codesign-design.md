@@ -103,8 +103,12 @@ score with `Finset.sup`.  Expose:
 
 ```lean
 theorem affineStripColor_load_le_familyScore
-    ... (hshape : shape ∈ family) :
-    actualLoad ... shape ≤ affineDefectFamilyScore K coeff family
+    (K gamma c : Nat) (coeff : AffineCoefficients)
+    (shape : StripDefectShape) (family : Finset StripDefectShape)
+    (base : Nat × Nat) (hK : 0 < K) (hshape : shape ∈ family) :
+    (affineStripColorPoints coeff.alpha coeff.beta gamma K
+      shape.width shape.length c base shape.along shape.across).card ≤
+        affineDefectFamilyScore K coeff family
 
 theorem exists_affineCoefficients_minimizer
     (candidates : Finset AffineCoefficients)
@@ -151,4 +155,3 @@ Not allowed without later results:
 - finite minimization is a new algorithmic open-problem solution;
 - the score captures spare placement, mux reachability, routing congestion,
   delay, or DART repair success.
-
