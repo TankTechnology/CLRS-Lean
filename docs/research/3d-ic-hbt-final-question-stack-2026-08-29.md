@@ -2,8 +2,8 @@
 
 Date: 2026-08-29
 
-Status: route A combinatorial core formally verified; not a claim that a
-recognized open problem has been solved
+Status: route A combinatorial core and phase-aware strip upper certificate
+formally verified; not a claim that a recognized open problem has been solved
 
 ## Headline question
 
@@ -19,10 +19,13 @@ The question starts from DART's real motivation--line and cluster faults--but
 replaces heuristic quality alone with a falsifiable certificate. Route A now
 formally verifies perfect window dispersion, exact floor/ceiling-balanced
 per-chain box load, finite-grid same-color bounded-hop connectivity, and the
-exact modular ceiling bound for lattice-line load. These are certified
-baselines. A paper contribution must still add nontrivial hardware-specific
-strip load or routing guarantees and show that they predict actual
-repairability, not merely rediscover modular coloring and interleaving facts.
+exact modular ceiling bound for lattice-line load. It also certifies finite
+physical-strip load first by the unique-point baseline `W * ceil(L/T)` and then
+by the direction-sensitive upper bound `ceil(W/R) * ceil(L/T)`. These are
+certified baselines. A paper contribution must still add a matching strip
+lower-bound/tightness result, affine coefficient/direction co-design, or a
+physical routing guarantee and show that it predicts actual repairability, not
+merely rediscover modular coloring and interleaving facts.
 
 ## Supporting sub-questions
 
@@ -35,11 +38,16 @@ repairability, not merely rediscover modular coloring and interleaving facts.
 ## Falsifiable hypotheses
 
 - **H1 -- certified load:** For `0 < K <= M^2` and every valid color `c < K`,
-  full translated `M x M` windows now have the proved bound `ceil(M^2/K)`, and
-  the lattice-line subcase has the proved bound
-  `ceil(L / (K / gcd(K, a + M*b)))`. The remaining hypothesis is that a tight
-  strip or multi-direction extension is asymptotically or numerically better
-  than regular localized chains at the same spare ratio.
+  full translated `M x M` windows have the proved bound `ceil(M^2/K)`. For the
+  lattice-line and finite-strip theorems the exact assumption is only `0 < K`:
+  the line bound is `ceil(L/T)`, the physical unique-point strip baseline is
+  `W * ceil(L/T)`, and the phase-aware strip upper certificate is
+  `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, alongStep)` and
+  `R = gcd(K, alongStep) / gcd(gcd(K, alongStep), acrossStep)`. These strip
+  theorems do not require `c < K`; invalid colors select no points. The phase
+  certificate can be strictly better than the baseline when `R > 1`. The
+  remaining hypothesis is a matching lower-bound/tightness result or a useful
+  affine coefficient/direction co-design result.
 - **H2 -- routability:** The same construction admits a chain ordering with a
   nontrivial, physically meaningful bound on maximum hop and total route length.
   The elementary window-connectivity radius and the classical generic `3R`
@@ -64,8 +72,9 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 - **Result 1 -- exact baseline:** formally verified perfect window dispersion
   and floor/ceiling-balanced window load; explicit acknowledgement that the
   construction belongs to known polychromatic/tiling territory.
-- **Result 2 -- certificate:** worst-case per-chain load bounds for the frozen
-  line/cluster family, including lower bounds or adversarial tight examples.
+- **Result 2 -- certificate:** the proved physical-strip upper certificates,
+  followed by a matching lower bound or adversarial tightness characterization
+  for the frozen line/strip family.
 - **Result 3 -- routing:** sharp bottleneck/length/capacity guarantee and a
   deterministic synthesis algorithm.
 - **Result 4 -- evaluation:** identical-model comparison against DART simulated
@@ -78,12 +87,15 @@ H4 is a mandatory literature gate rather than an empirical hypothesis.
 
 ## Publication gate
 
-The expanded route A proof package is still not enough by itself for a paper:
-its box and line-load theorems are elementary modular counting until a
-hardware-specific strengthening shows otherwise, and its routing result is
-connectivity rather than a simple physical chain. A credible short EDA paper
-needs a stronger strip/multi-direction or routing result plus a faithful
-evaluation.
+The expanded route A proof package is still not enough by itself for a paper.
+The foundational strip theorem and phase-aware upper certificate are complete,
+but they are not a tightness or optimality result, and the routing result is
+connectivity rather than a simple physical chain. The next research gate is
+either a matching lower-bound/tightness result or affine coefficient/direction
+co-design. A credible short EDA paper additionally needs a faithful evaluation;
+the current package does not certify spare placement, mux reachability, routing
+delay/congestion, DART evaluation, arbitrary connected clusters, strip unions,
+or general repair success.
 A stronger DATE/ISPD/ICCAD/TCAD submission needs those results together with
 repairability evidence. A formal-methods venue additionally needs a larger
 verified refinement or executable routing artifact.

@@ -18,15 +18,17 @@ first Lean formalization of polychromatic coloring.
 The defensible contribution today is narrower: a kernel-checked,
 DART-motivated deterministic construction that simultaneously exposes local
 window diversity, exact floor/ceiling-balanced box load, finite-grid same-color
-connectivity, and exact line-defect period/load certificates. This is a useful
-verified baseline and a strong starting point, but not yet a standalone
-research result of the strength needed for an EDA or formal-methods paper.
+connectivity, exact line-defect period/load certificates, and two upper
+certificates for finite physical strips. This is a useful verified baseline
+and a strong starting point, but not yet a standalone research result of the
+strength needed for an EDA or formal-methods paper.
 
-The most valuable next step is not a broader dimension-only generalization. It
-is an end-to-end *repairability certificate*: prove balanced per-chain load for
-box/strip defects, connect that load to spare/protection-window capacity and a
-simple physical chain, and validate the resulting sufficient condition under
-the same model as DART.
+The foundational finite-strip theorem and phase-aware upper certificate are
+complete. The next research gate is either a matching lower-bound/tightness
+result or affine coefficient/direction co-design. An end-to-end
+*repairability certificate* remains a later goal: connect certified load to
+spare/protection-window capacity and a simple physical chain, then validate the
+resulting sufficient condition under the same model as DART.
 
 ## Frozen research contract
 
@@ -36,16 +38,21 @@ the same model as DART.
   to `K` repair chains under spatially correlated faults.
 - **Current construction:** `color(i,j) = (i + M*j) mod K`.
 - **Units of analysis:** one translated window, one finite color class, one
-  finite lattice-line prefix, and eventually one DART protection window.
-- **Current defect families:** translated `M x M` boxes and finite nonnegative
-  lattice-line prefixes. Arbitrary connected clusters, thick strips, and unions
-  of lines are not currently covered.
+  finite lattice-line prefix, one finite physical strip, and eventually one
+  DART protection window.
+- **Current defect families:** translated `M x M` boxes, finite nonnegative
+  lattice-line prefixes, and finite strips sampled as parallel line prefixes
+  with duplicate physical points removed. Arbitrary connected clusters, strip
+  unions, unions of lines, and general repair success are not currently
+  covered.
 - **Certified outputs:** existential color coverage, exact per-color
   floor/ceiling window load, bounded-hop connectivity, exact line-color period,
-  and per-color box/line ceiling load bounds.
+  per-color box/line ceiling load bounds, the physical unique-point strip
+  baseline `W * ceil(L/T)`, and the phase-aware strip upper certificate
+  `ceil(W/R) * ceil(L/T)`.
 - **Not certified:** simple/Hamiltonian repair-chain ordering, total wirelength,
-  turns or congestion, spare placement, mux behavior, or end-to-end repair
-  success.
+  turns, routing delay or congestion, spare placement, mux reachability, DART
+  evaluation, or end-to-end repair success.
 
 ### Evidence labels
 
@@ -63,6 +70,7 @@ the same model as DART.
 - `CLRSLean/Research/ThreeDIC/AffineFiniteConnectivity.lean`
 - `CLRSLean/Research/ThreeDIC/LineDefect.lean`
 - `CLRSLean/Research/ThreeDIC/LineDefectLoad.lean`
+- `CLRSLean/Research/ThreeDIC/StripDefectLoad.lean`
 
 ## Exact theorem surface and classification
 
@@ -73,6 +81,8 @@ the same model as DART.
 | `affineChainColor_finiteGrid_connected` | Same-color finite-grid endpoints admit a same-color path with squared hop at most `M^2 + (M-1)^2`; repetition is allowed. | Application-specific finite-boundary lemma. The exact formulation was not found in the audited sources, but it is elementary and should not carry the paper's novelty claim. |
 | `lineColorPeriod` and `lineColor_index_congruent` | Along a lattice line, the color sequence has period `K / gcd(K, dx + M*dy)`, and equal colors force congruent indices modulo that period. | Standard modular-arithmetic structure; not standalone novelty. |
 | `lineColor_load_le_ceilDiv_period` | A color occurs at most `ceil(L/T)` times in a length-`L` prefix, with the exact period above. | Direct counting corollary of the modular progression; useful certificate, not standalone novelty. |
+| `stripColor_load_le_sum_lines` | For `0 < K`, the number of distinct physical color-`c` points in a width-`W`, length-`L` strip is at most `W * ceil(L/T)`, where `T = K / gcd(K, alongStep)`. Duplicate samples are removed before counting. No assumption `c < K` is needed; an invalid color selects no points. | Kernel-checked physical unique-point baseline obtained by composing the line certificate; not a claim about tightness or repair success. |
+| `stripColor_load_le_phase_periods` | For `0 < K`, the same physical load is at most `ceil(W/R) * ceil(L/T)`, where `T = K / gcd(K, alongStep)` and `R = gcd(K, alongStep) / gcd(gcd(K, alongStep), acrossStep)`. No assumption `c < K` is needed; an invalid color selects no points. | Stronger direction-sensitive upper certificate. It can be strictly better than the sum-of-lines bound when `R > 1`, but no matching lower bound or optimality claim is proved. |
 
 ## Primary-source prior-art matrix
 
@@ -96,7 +106,8 @@ chaining pass, especially over TSV/chiplet repair and interleaver patents.
 
 - “We formally verify a deterministic affine repair-chain baseline with
   translated-window coverage and balanced box load, finite-grid bounded-hop
-  connectivity, and exact line-defect load certificates.”
+  connectivity, exact line-defect load certificates, and physical finite-strip
+  upper certificates.”
 - “The construction gives a closed-form certified alternative for a restricted
   subproblem motivated by DART.”
 - “To our knowledge, the audited literature does not combine these exact
@@ -125,7 +136,7 @@ high collision risk. These are screening estimates, not acceptance forecasts.
 | D | Characterize which `alpha*i + beta*j mod K` colorings are surjective on every `M x M` window. | 4 | 2 | 4 | 3 | Interesting algebra/additive-combinatorics direction; scope carefully. |
 | E | Exact floor/ceiling balance in every translated `M x M` window for the current construction. | 3 | 5 | 5 | 3 | **Proved baseline:** `affineChainColor_window_count_eq_floor_or_ceil`; not a paper headline. |
 | F | Construct a simple/Hamiltonian same-color path with bottleneck, turns, and total-length bounds. | 5 | 2 | 5 | 3 | Major routing theorem; likely paper-critical. |
-| G | Prove tight per-chain load bounds for width-`w` strips rather than a single lattice line. | 4 | 4 | 5 | 3 | Best medium-sized mathematical extension. |
+| G | Match the proved phase-aware upper certificate with a lower-bound/tightness result for width-`w` strips. | 4 | 4 | 5 | 3 | Foundational strip theorem complete; matching evidence is the next strip gate. |
 | H | Bound per-chain discrepancy for arbitrary connected or bounded-box clusters by area plus a boundary term. | 5 | 2 | 5 | 4 | High value but strong interleaving/discrepancy collision risk. |
 | I | For a finite family of defect directions, choose affine coefficients with provably good worst-direction period while preserving window balance. | 5 | 3 | 5 | 3 | Strong co-design question; avoid reducing it to constant search. |
 | J | Formalize DART protection windows/spares/mux shifts and prove that certified load plus routing conditions imply repairability. | 5 | 2 | 5 | 2 | Highest-value end-to-end contribution. |
@@ -156,9 +167,12 @@ spares, protection windows, and second-adjacent mux shifts.
 - **Verified balance baseline:** every translated `M x M` box assigns each
   chain either `floor(M^2/K)` or `ceil(M^2/K)` bumps under the current
   construction.
-- **Strip extension:** a width-`w`, length-`L` lattice strip admits a per-chain
-  bound that is materially tighter than the trivial sum of `w` independent
-  line bounds for relevant DART parameters.
+- **Verified strip upper certificate:** for `0 < K`, a width-`W`, length-`L`
+  physical strip has load at most `ceil(W/R) * ceil(L/T)` with the periods
+  above; when `R > 1`, this can be strictly better than the proved
+  `W * ceil(L/T)` baseline. The remaining hypothesis is that a matching lower
+  bound or useful tightness characterization holds for relevant DART
+  parameters.
 - **Repair implication:** under explicit healthy-spare and nonconflicting-shift
   assumptions, no protection window whose certified per-subchain fault load is
   within capacity causes repair failure.
@@ -171,9 +185,11 @@ spares, protection windows, and second-adjacent mux shifts.
    is proved bijective, and `affineChainColor_window_count_eq_floor_or_ceil`
    gives exact floor/ceiling residue counts. This strengthens diversity into a
    box-defect capacity certificate but is not paper-sufficient alone.
-2. **Strip load theorem (medium risk, about 2--4 focused days).** Define a
-   finite strip as parallel line prefixes, prove a first compositional bound,
-   then seek a sharper bound exploiting phase offsets. Include tight examples.
+2. **Foundational strip load theorem -- completed.** `stripColor_load_le_sum_lines`
+   certifies the unique-physical-point baseline `W * ceil(L/T)`, and
+   `stripColor_load_le_phase_periods` certifies the direction-sensitive upper
+   bound `ceil(W/R) * ceil(L/T)` under exactly `0 < K`. The latter can be
+   strictly smaller when `R > 1`; no matching lower bound is yet proved.
 3. **Coefficient/direction co-design (medium/high risk, about 1--2 weeks).**
    Freeze the admissible affine family and prove a non-enumerative existence or
    approximation result. Stop if the result collapses to a small constant
@@ -187,10 +203,11 @@ spares, protection windows, and second-adjacent mux shifts.
    and mux shifts. Prove a sufficient repair theorem and test whether its
    certificate predicts the original repair simulator's success/failure.
 
-The sensible next implementation is now step 2. The publishable unit is likely
-the completed step 1 plus step 2 and either step 4 or step 5, together with a
-faithful evaluation. Dimension-only generalizations A--C should be added only
-when they support that unit.
+The next research gate is either a matching lower-bound/tightness result for
+step 2 or the affine coefficient/direction co-design of step 3. The publishable
+unit still needs a faithful evaluation and likely either step 4 or step 5.
+Dimension-only generalizations A--C should be added only when they support that
+unit.
 
 ## Independent question review
 
@@ -202,8 +219,9 @@ follows:
    headline problem, provided it includes a structural existence,
    lower-bound, optimality, or approximation theorem rather than finite
    enumeration.
-2. **G -- tight strip-defect load** is the best near-term research theorem and
-   the natural bridge from the existing line result to I.
+2. **G -- strip-defect lower bound/tightness characterization** is the best
+   near-term follow-up to the completed phase-aware upper certificate and the
+   natural bridge from the existing line result to I.
 3. **D -- general affine-window classification** has theoretical height, but
    finite-window surjectivity is a restricted sumset question and is unlikely
    to reduce to a gcd condition alone.
@@ -221,8 +239,9 @@ restrictions.
 
 - **Current package alone:** suitable as an artifact/demo or a documented
   verified case study, not yet a convincing full research paper.
-- **With balanced box/strip loads and DART evaluation:** plausible short
-  EDA/test/reliability paper, subject to novelty and experimental results.
+- **With a matching strip lower-bound/tightness result or coefficient co-design,
+  plus DART evaluation:** plausible short EDA/test/reliability paper, subject
+  to novelty and experimental results.
 - **With an analytic coefficient co-design theorem or strong physical-chain
   bound plus end-to-end semantics:** potentially a stronger EDA or
   formal-methods paper.

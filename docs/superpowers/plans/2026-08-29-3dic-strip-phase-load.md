@@ -15,7 +15,7 @@
 **Files:**
 - Create: `Tests/Research_ThreeDIC_StripDefectLoad_Interface.lean`
 
-- [ ] **Step 1: Write the failing interface test**
+- [x] **Step 1: Write the failing interface test**
 
 ```lean
 import CLRSLean.Research.ThreeDIC.StripDefectLoad
@@ -51,7 +51,7 @@ example :
   decide
 ```
 
-- [ ] **Step 2: Run the narrow test and verify the expected failure**
+- [x] **Step 2: Run the narrow test and verify the expected failure**
 
 Run:
 
@@ -63,7 +63,7 @@ Expected: nonzero exit because
 `CLRSLean.Research.ThreeDIC.StripDefectLoad` does not exist.  A syntax failure
 or an unrelated import failure does not count as RED.
 
-- [ ] **Step 3: Commit the RED interface**
+- [x] **Step 3: Commit the RED interface**
 
 ```bash
 git add Tests/Research_ThreeDIC_StripDefectLoad_Interface.lean
@@ -76,7 +76,7 @@ git commit -m "test(research): specify strip-defect load interface"
 - Create: `CLRSLean/Research/ThreeDIC/StripDefectLoad.lean`
 - Test: `Tests/Research_ThreeDIC_StripDefectLoad_Interface.lean`
 
-- [ ] **Step 1: Add physical geometry and unique-point definitions**
+- [x] **Step 1: Add physical geometry and unique-point definitions**
 
 Create the module with these imports and definitions:
 
@@ -128,7 +128,7 @@ private theorem stripColorPoints_eq_image_indexPairs
     Finset.filter_image]
 ```
 
-- [ ] **Step 2: Add stable quotient-range and reconstruction helpers**
+- [x] **Step 2: Add stable quotient-range and reconstruction helpers**
 
 Keep these private:
 
@@ -148,7 +148,7 @@ private theorem eq_of_div_eq_of_mod_eq
     _ = b := Nat.mod_add_div b d
 ```
 
-- [ ] **Step 3: Prove the sum-of-lines bound with a quotient-pair injection**
+- [x] **Step 3: Prove the sum-of-lines bound with a quotient-pair injection**
 
 For `T = lineColorPeriod M K along`, map a colored sample `(r,t)` to
 `(r,t/T)`.  Membership supplies `r < W` and `t < L`.  If two images agree,
@@ -174,7 +174,7 @@ theorem stripColor_load_le_sum_lines
 The final proof must use the unique physical-point bridge; proving only a
 bound for `stripColorIndexPairs.card` is not sufficient.
 
-- [ ] **Step 4: Verify the source module independently**
+- [x] **Step 4: Verify the source module independently**
 
 Run:
 
@@ -185,7 +185,7 @@ lake build CLRSLean.Research.ThreeDIC.StripDefectLoad
 Expected: exit zero.  The interface test may still fail on phase-aware names,
 which are added in the next tasks.
 
-- [ ] **Step 5: Commit the physical model and baseline theorem**
+- [x] **Step 5: Commit the physical model and baseline theorem**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/StripDefectLoad.lean
@@ -197,7 +197,7 @@ git commit -m "research: certify compositional strip load"
 **Files:**
 - Modify: `CLRSLean/Research/ThreeDIC/StripDefectLoad.lean`
 
-- [ ] **Step 1: Define and prove positivity of the cross period**
+- [x] **Step 1: Define and prove positivity of the cross period**
 
 Add:
 
@@ -217,7 +217,7 @@ theorem stripAcrossColorPeriod_pos
     (Nat.gcd_pos_of_pos_left (lineColorStep M across) hg)
 ```
 
-- [ ] **Step 2: Normalize the affine color of a strip sample**
+- [x] **Step 2: Normalize the affine color of a strip sample**
 
 Prove privately:
 
@@ -235,7 +235,7 @@ private theorem affineChainColor_stripPoint
   ring
 ```
 
-- [ ] **Step 3: Prove cross-row residue congruence**
+- [x] **Step 3: Prove cross-row residue congruence**
 
 Keep the structural lemma private until a downstream consumer needs it:
 
@@ -261,7 +261,7 @@ private theorem stripColor_row_index_congruent
 Do not replace this lemma with an assumption.  It is the mathematical bridge
 that makes the phase theorem stronger than the sum-of-lines theorem.
 
-- [ ] **Step 4: Add a concrete period regression check**
+- [x] **Step 4: Add a concrete period regression check**
 
 Extend the interface test:
 
@@ -270,7 +270,7 @@ example : stripAcrossColorPeriod 2 8 (0, 1) (1, 0) = 2 := by decide
 example : stripAcrossColorPeriod 3 8 (1, 0) (0, 1) = 1 := by decide
 ```
 
-- [ ] **Step 5: Build and commit**
+- [x] **Step 5: Build and commit**
 
 Run:
 
@@ -292,7 +292,7 @@ git commit -m "research: expose strip color phase period"
 - Modify: `CLRSLean/Research/ThreeDIC/StripDefectLoad.lean`
 - Modify: `Tests/Research_ThreeDIC_StripDefectLoad_Interface.lean`
 
-- [ ] **Step 1: Prove injectivity of the two-period quotient map**
+- [x] **Step 1: Prove injectivity of the two-period quotient map**
 
 For
 
@@ -315,7 +315,7 @@ The image lies in:
 
 by `quotient_lt_add_pred_div` and positivity of both periods.
 
-- [ ] **Step 2: Expose the phase-aware theorem**
+- [x] **Step 2: Expose the phase-aware theorem**
 
 Implement the exact approved signature:
 
@@ -333,7 +333,7 @@ theorem stripColor_load_le_phase_periods
   -- Bound colored index pairs by the quotient-pair image and its product range.
 ```
 
-- [ ] **Step 3: Add the axis-aligned and finite-grid wrappers**
+- [x] **Step 3: Add the axis-aligned and finite-grid wrappers**
 
 Implement:
 
@@ -365,7 +365,7 @@ Use `simpa [stripAcrossColorPeriod, lineColorPeriod, lineColorStep]` for the
 axis-aligned wrappers.  The finite-grid theorem calls the phase theorem and
 retains `_hGrid` solely to expose the physical-domain contract.
 
-- [ ] **Step 4: Verify GREEN at the public interface**
+- [x] **Step 4: Verify GREEN at the public interface**
 
 Run:
 
@@ -376,7 +376,7 @@ lake env lean Tests/Research_ThreeDIC_StripDefectLoad_Interface.lean
 
 Expected: both exit zero, including all concrete `by decide` examples.
 
-- [ ] **Step 5: Commit the headline theorem**
+- [x] **Step 5: Commit the headline theorem**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/StripDefectLoad.lean \
@@ -392,7 +392,7 @@ git commit -m "research: certify phase-aware strip load"
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
 - Modify: `docs/superpowers/plans/2026-08-29-3dic-strip-phase-load.md`
 
-- [ ] **Step 1: Extend the trust audit**
+- [x] **Step 1: Extend the trust audit**
 
 Import `StripDefectLoad`, update the audited-theorem count, and add:
 
@@ -400,7 +400,7 @@ Import `StripDefectLoad`, update the audited-theorem count, and add:
 #assert_axioms CLRS.Research.ThreeDIC.stripColor_load_le_phase_periods
 ```
 
-- [ ] **Step 2: Synchronize research documentation**
+- [x] **Step 2: Synchronize research documentation**
 
 Record both theorem levels and the exact assumptions.  State that the phase
 bound can be strictly smaller when `R > 1`, but do not call it tight, optimal,
@@ -408,7 +408,7 @@ an open-problem solution, or end-to-end repairability.  Change the roadmap so
 the next research gate is either a matching lower-bound/tightness result or
 affine coefficient/direction co-design.
 
-- [ ] **Step 3: Run focused verification**
+- [x] **Step 3: Run focused verification**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.StripDefectLoad
@@ -420,10 +420,10 @@ done
 
 Expected: every command exits zero.
 
-- [ ] **Step 4: Run trust, placeholder, and repository gates**
+- [x] **Step 4: Run trust, placeholder, and repository gates**
 
 ```bash
-rg -n "\bsorry\b|\badmit\b|\baxiom\b" \
+rg -n '\b(sorry|admit)\b|^[[:space:]]*axiom[[:space:]]' \
   CLRSLean/Research/ThreeDIC \
   Tests/Research_ThreeDIC_*Interface.lean \
   Tests/Research_ThreeDIC_Trust.lean
