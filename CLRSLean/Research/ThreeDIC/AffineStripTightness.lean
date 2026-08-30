@@ -20,6 +20,56 @@ def affineStripSamplingInjective
     (fun rt : Nat × Nat => stripPoint base along across rt.1 rt.2)
     ((Finset.range W).product (Finset.range L))
 
+/-- Axis-aligned strip sampling is injective for every width and length: the
+physical first coordinate recovers the along index, and the physical second
+coordinate recovers the across-row index. -/
+theorem affineStripSamplingInjective_axisAligned
+    (W L : Nat) (base : Nat × Nat) :
+    affineStripSamplingInjective W L base (1, 0) (0, 1) := by
+  intro ⟨r, t⟩ _ ⟨s, u⟩ _ hPoint
+  unfold stripPoint linePoint at hPoint
+  simp only [zero_mul, one_mul, Nat.add_zero] at hPoint
+  apply Prod.ext
+  · exact Nat.add_left_cancel (congrArg Prod.snd hPoint)
+  · exact Nat.add_left_cancel (congrArg Prod.fst hPoint)
+
+/-- Swapped axis-aligned strip sampling is injective for every width and
+length: the physical first coordinate recovers the across-row index, and the
+physical second coordinate recovers the along index. -/
+theorem affineStripSamplingInjective_axisAlignedSwapped
+    (W L : Nat) (base : Nat × Nat) :
+    affineStripSamplingInjective W L base (0, 1) (1, 0) := by
+  intro ⟨r, t⟩ _ ⟨s, u⟩ _ hPoint
+  unfold stripPoint linePoint at hPoint
+  simp only [zero_mul, one_mul, Nat.add_zero] at hPoint
+  apply Prod.ext
+  · exact Nat.add_left_cancel (congrArg Prod.fst hPoint)
+  · exact Nat.add_left_cancel (congrArg Prod.snd hPoint)
+
+/-- A unit affine coefficient gives the full color period for the standard
+axis-aligned strip orientation. -/
+private theorem affineStripFullColorPeriod_axisAligned
+    (alpha beta K : Nat)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta) :
+    affineStripFullColorPeriod alpha beta K (1, 0) (0, 1) := by
+  rcases hUnit with hAlpha | hBeta
+  · simp [affineStripFullColorPeriod, affineDirectionStep, hAlpha]
+  · unfold affineStripFullColorPeriod
+    simpa [affineDirectionStep] using
+      (Nat.Coprime.of_dvd_left (Nat.gcd_dvd_left K alpha) hBeta)
+
+/-- A unit affine coefficient gives the full color period for the swapped
+axis-aligned strip orientation. -/
+private theorem affineStripFullColorPeriod_axisAlignedSwapped
+    (alpha beta K : Nat)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta) :
+    affineStripFullColorPeriod alpha beta K (0, 1) (1, 0) := by
+  rcases hUnit with hAlpha | hBeta
+  · unfold affineStripFullColorPeriod
+    simpa [affineDirectionStep] using
+      (Nat.Coprime.of_dvd_left (Nat.gcd_dvd_left K beta) hAlpha)
+  · simp [affineStripFullColorPeriod, affineDirectionStep, hBeta]
+
 private theorem affineStripColorPoints_eq_tightness_image
     (alpha beta gamma K W L c : Nat)
     (base along across : Nat × Nat) :
@@ -81,6 +131,84 @@ theorem affineStripColor_load_eq_of_period_dvd
       affineStripColorIndexCount_eq_of_period_dvd
         alpha beta gamma K W L c base along across
           hK hc hFull hRW hTL
+
+/-- For axis-aligned sampling, if the positive modulus has a valid requested
+color and at least one affine coefficient is coprime to the modulus, then
+width divisibility by the across period and length divisibility by the line
+period give the exact physical quotient-block load. Axis alignment discharges
+sampling injectivity; this theorem does not cover partial-period or
+self-intersecting strips. -/
+theorem affineStripColor_axisAligned_load_eq_phase_periods
+    (alpha beta gamma K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta)
+    (hRW : affineStripAcrossPeriod alpha beta K (1, 0) (0, 1) ∣ W)
+    (hTL : affineLinePeriod alpha beta K (1, 0) ∣ L) :
+    (affineStripColorPoints alpha beta gamma K W L c
+      base (1, 0) (0, 1)).card =
+      (W / affineStripAcrossPeriod alpha beta K (1, 0) (0, 1)) *
+        (L / affineLinePeriod alpha beta K (1, 0)) :=
+  affineStripColor_load_eq_of_period_dvd
+    alpha beta gamma K W L c base (1, 0) (0, 1)
+      hK hc (affineStripFullColorPeriod_axisAligned alpha beta K hUnit)
+      hRW hTL (affineStripSamplingInjective_axisAligned W L base)
+
+/-- For swapped axis-aligned sampling, if the positive modulus has a valid
+requested color and at least one affine coefficient is coprime to the modulus,
+then width divisibility by the across period and length divisibility by the
+line period give the exact physical quotient-block load. Swapped axis
+alignment discharges sampling injectivity; this theorem does not cover
+partial-period or self-intersecting strips. -/
+theorem affineStripColor_axisAlignedSwapped_load_eq_phase_periods
+    (alpha beta gamma K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta)
+    (hRW : affineStripAcrossPeriod alpha beta K (0, 1) (1, 0) ∣ W)
+    (hTL : affineLinePeriod alpha beta K (0, 1) ∣ L) :
+    (affineStripColorPoints alpha beta gamma K W L c
+      base (0, 1) (1, 0)).card =
+      (W / affineStripAcrossPeriod alpha beta K (0, 1) (1, 0)) *
+        (L / affineLinePeriod alpha beta K (0, 1)) :=
+  affineStripColor_load_eq_of_period_dvd
+    alpha beta gamma K W L c base (0, 1) (1, 0)
+      hK hc (affineStripFullColorPeriod_axisAlignedSwapped alpha beta K hUnit)
+      hRW hTL (affineStripSamplingInjective_axisAlignedSwapped W L base)
+
+/-- For the fixed coloring on a horizontal axis-aligned strip, a positive
+modulus, valid color, and exact divisibility {lit}`K ∣ L` give physical load
+{lit}`W * (L / K)`. This aligned result includes zero width but does not cover
+partial-period lengths or self-intersecting sampling directions. -/
+theorem stripColor_horizontal_load_eq
+    (M K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K) (hKL : K ∣ L) :
+    (stripColorPoints M K W L c base (1, 0) (0, 1)).card =
+      W * (L / K) := by
+  rw [← affineStripColorPoints_fixed_eq_stripColorPoints]
+  simpa [affineStripAcrossPeriod, affineLinePeriod, affineDirectionStep] using
+    (affineStripColor_axisAligned_load_eq_phase_periods
+      1 M 0 K W L c base hK hc (Or.inl (Nat.coprime_one_right K))
+      (by simp [affineStripAcrossPeriod, affineDirectionStep])
+      (by simpa [affineLinePeriod, affineDirectionStep] using hKL))
+
+/-- For the fixed coloring on a vertical swapped-axis strip, a positive
+modulus, valid color, width divisibility by {lit}`gcd K M`, and length
+divisibility by {lit}`K / gcd K M` give the exact physical phase-period load.
+This aligned result includes zero dimensions but does not cover partial-period
+or self-intersecting sampling directions. -/
+theorem stripColor_vertical_load_eq_phase
+    (M K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hRW : Nat.gcd K M ∣ W)
+    (hTL : K / Nat.gcd K M ∣ L) :
+    (stripColorPoints M K W L c base (0, 1) (1, 0)).card =
+      (W / Nat.gcd K M) * (L / (K / Nat.gcd K M)) := by
+  rw [← affineStripColorPoints_fixed_eq_stripColorPoints]
+  simpa [affineStripAcrossPeriod, affineLinePeriod, affineDirectionStep] using
+    (affineStripColor_axisAlignedSwapped_load_eq_phase_periods
+      1 M 0 K W L c base hK hc (Or.inl (Nat.coprime_one_right K))
+      (by
+        simpa [affineStripAcrossPeriod, affineDirectionStep] using hRW)
+      (by simpa [affineLinePeriod, affineDirectionStep] using hTL))
 
 /-- Under the same positive-modulus, valid-color, full-period, aligned-window,
 and no-overlap assumptions as {name}`affineStripColor_load_eq_of_period_dvd`,
