@@ -31,10 +31,10 @@ per-chain box load, finite-grid same-color bounded-hop connectivity, and the
 exact modular ceiling bound for lattice-line load. It also certifies finite
 physical-strip load first by the unique-point baseline `W * ceil(L/T)` and then
 by the direction-sensitive upper bound `ceil(W/R) * ceil(L/T)`. The latter now
-holds for arbitrary affine coefficients. When `0 < K` and `c < K`, it is
-attained exactly when the two steps generate the full color period, `R ∣ W`,
-`T ∣ L`, and physical strip sampling is injective; axis-aligned wrappers prove
-that injectivity automatically. For a finite strip family, the
+holds for arbitrary affine coefficients. Under `0 < K`, `c < K`, the
+full-color-period condition, `R ∣ W`, `T ∣ L`, and injective physical strip
+sampling, the phase-aware certificate is attained exactly; axis-aligned
+wrappers prove that injectivity automatically. For a finite strip family, the
 verified worst-case score is invariant under reducing coefficients modulo `K`,
 and the canonical `K x K` domain contains a global minimizer for that frozen
 score. When `0 < K` and `K ∣ M`, the canonical pairs with a coprime coordinate
