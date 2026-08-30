@@ -1,6 +1,7 @@
 import CLRSLean.Audit.Axioms
 import CLRSLean.Research.ThreeDIC.AffineDirectionCodesign
 import CLRSLean.Research.ThreeDIC.AffineFiniteConnectivity
+import CLRSLean.Research.ThreeDIC.AffineStripTightness
 import CLRSLean.Research.ThreeDIC.BalancedAffineCodesign
 import CLRSLean.Research.ThreeDIC.LineDefectLoad
 import CLRSLean.Research.ThreeDIC.StripDefectLoad
@@ -9,9 +10,9 @@ import CLRSLean.Research.ThreeDIC.WindowLoad
 /-!
 # Trust audit: 3D-IC affine route A
 
-The route A headline theorems may depend only on the repository's accepted
-Lean/Mathlib logical foundations (`propext`, `Classical.choice`, and
-`Quot.sound`).
+The eleven audited route A headline and affine-strip tightness declarations
+may depend only on the repository's accepted Lean/Mathlib logical foundations
+(`propext`, `Classical.choice`, and `Quot.sound`).
 -/
 
 #assert_axioms CLRS.Research.ThreeDIC.affineChainColor_finiteGrid_connected
@@ -23,3 +24,5 @@ Lean/Mathlib logical foundations (`propext`, `Classical.choice`, and
 #assert_axioms CLRS.Research.ThreeDIC.exists_canonicalAffineCoefficients_minimizer
 #assert_axioms CLRS.Research.ThreeDIC.affineGridColor_window_count_eq_of_coprime_coefficient
 #assert_axioms CLRS.Research.ThreeDIC.exists_balancedAffineCoefficients_minimizer
+#assert_axioms CLRS.Research.ThreeDIC.affineStripFundamentalColor_image_eq_range
+#assert_axioms CLRS.Research.ThreeDIC.affineStripColor_load_eq_phase_periods

@@ -28,7 +28,7 @@
 **Files:**
 - Create: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Add the intended interface before production modules exist**
+- [x] **Step 1: Add the intended interface before production modules exist**
 
 Create the test with the following declarations and exact theorem applications:
 
@@ -86,7 +86,7 @@ example
     M K W L c base hK hc hRW hTL
 ```
 
-- [ ] **Step 2: Run the narrow interface and verify the expected missing-module RED**
+- [x] **Step 2: Run the narrow interface and verify the expected missing-module RED**
 
 Run:
 
@@ -98,7 +98,7 @@ Expected: failure because
 `CLRSLean.Research.ThreeDIC.AffineStripTightness` does not exist.  A parser,
 unrelated import, or environment failure is not an acceptable RED.
 
-- [ ] **Step 3: Commit the RED interface**
+- [x] **Step 3: Commit the RED interface**
 
 ```bash
 git add Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
@@ -111,7 +111,7 @@ git commit -m "test(research): freeze affine strip tightness interface"
 - Create: `CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean`
 - Test: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Add the core definitions**
+- [x] **Step 1: Add the core definitions**
 
 Create the module header, explicit claim boundary, and these definitions:
 
@@ -148,7 +148,7 @@ Use a private abbreviation `g` only inside proofs; do not add another public
 period definition alongside the established `affineLinePeriod` and
 `affineStripAcrossPeriod`.
 
-- [ ] **Step 2: Prove the exact period-product theorem**
+- [x] **Step 2: Prove the exact period-product theorem**
 
 Add:
 
@@ -176,7 +176,7 @@ theorem affineStripPeriod_product_eq
 The pinned Mathlib theorem `Nat.mul_div_cancel' hgK` has conclusion
 `g * (K / g) = K`, so no alternative period statement is permitted.
 
-- [ ] **Step 3: Build the core module and keep the interface RED focused on later declarations**
+- [x] **Step 3: Build the core module and keep the interface RED focused on later declarations**
 
 Run:
 
@@ -188,7 +188,7 @@ lake env lean Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
 Expected: the core build passes; the interface still fails only because the
 physical headline module or later public declarations are absent.
 
-- [ ] **Step 4: Commit the full-period foundation**
+- [x] **Step 4: Commit the full-period foundation**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean
@@ -201,7 +201,7 @@ git commit -m "research: define affine strip full periods"
 - Modify: `CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean`
 - Test: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Add private modular-normalization and residue-injectivity lemmas**
+- [x] **Step 1: Add private modular-normalization and residue-injectivity lemmas**
 
 Add a private color normal form:
 
@@ -226,7 +226,7 @@ the row indices are equal, their along indices agree modulo `T`.  Its proof
 must use `Nat.ModEq.of_dvd`, `cancel_left_div_gcd`, and the public
 `affineGridColor_line_index_congruent`; it must not use bounded enumeration.
 
-- [ ] **Step 2: Define the fundamental phase cell and prove color injectivity**
+- [x] **Step 2: Define the fundamental phase cell and prove color injectivity**
 
 Add:
 
@@ -267,7 +267,7 @@ private theorem affineStripFundamentalColor_injOn
 Use the pinned method form `hRowMod.eq_of_lt_of_lt` and
 `hAlongMod.eq_of_lt_of_lt` with the two `Finset.mem_range` bounds.
 
-- [ ] **Step 3: Prove the fundamental-cell image is exactly `range K`**
+- [x] **Step 3: Prove the fundamental-cell image is exactly `range K`**
 
 Add the public theorem:
 
@@ -298,7 +298,7 @@ theorem affineStripFundamentalColor_image_eq_range
 Check the orientation of `Finset.eq_of_subset_of_card_le`; if it expects the
 reverse card inequality, use `.le` instead of `.ge` while preserving equality.
 
-- [ ] **Step 4: Add an exact interface application for the fundamental image and run GREEN**
+- [x] **Step 4: Add an exact interface application for the fundamental image and run GREEN**
 
 Append to the interface test:
 
@@ -327,7 +327,7 @@ lake build CLRSLean.Research.ThreeDIC.AffineStripTightnessCore
 
 Expected: success.
 
-- [ ] **Step 5: Commit the fundamental-cell bijection**
+- [x] **Step 5: Commit the fundamental-cell bijection**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
@@ -340,7 +340,7 @@ git commit -m "research: certify affine strip phase cells"
 - Modify: `CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean`
 - Test: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Add quotient-block reconstruction helpers**
+- [x] **Step 1: Add quotient-block reconstruction helpers**
 
 Add private lemmas with these exact logical jobs:
 
@@ -361,7 +361,7 @@ private theorem mul_add_lt_of_lt_div
 
 Do not introduce stronger positivity assumptions on `W` or `L`.
 
-- [ ] **Step 2: Prove the quotient-block map is injective on one color**
+- [x] **Step 2: Prove the quotient-block map is injective on one color**
 
 For
 
@@ -375,7 +375,7 @@ prove `Set.InjOn` over `affineStripColorIndexPairs`.  Reuse the row and along
 congruence lemmas from Task 3 and reconstruct each coordinate from equal
 quotient and equal remainder using `Nat.mod_add_div`.
 
-- [ ] **Step 3: Prove every quotient block has one color witness**
+- [x] **Step 3: Prove every quotient block has one color witness**
 
 Given
 
@@ -404,7 +404,7 @@ prove that it lies in the original `W x L` index rectangle, prove its color is
 using `Nat.add_mul_div_left`/`Nat.add_mul_mod_self_left` after normalizing
 addition order.
 
-- [ ] **Step 4: Prove the exact index-count theorem**
+- [x] **Step 4: Prove the exact index-count theorem**
 
 Add:
 
@@ -446,7 +446,7 @@ theorem affineStripColorIndexCount_eq_of_period_dvd
 The three named block lemmas in this proof are private declarations created by
 Steps 2 and 3.  Keep the public surface limited to the exact count theorem.
 
-- [ ] **Step 5: Build the core and run its exact interface application**
+- [x] **Step 5: Build the core and run its exact interface application**
 
 Run:
 
@@ -456,7 +456,7 @@ lake build CLRSLean.Research.ThreeDIC.AffineStripTightnessCore
 
 Expected: success without `sorry`, `admit`, or a new `axiom`.
 
-- [ ] **Step 6: Commit the exact index count**
+- [x] **Step 6: Commit the exact index count**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/AffineStripTightnessCore.lean Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
@@ -469,7 +469,7 @@ git commit -m "research: count aligned affine strip phases exactly"
 - Create: `CLRSLean/Research/ThreeDIC/AffineStripTightness.lean`
 - Modify: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Define the explicit sampling-injectivity predicate**
+- [x] **Step 1: Define the explicit sampling-injectivity predicate**
 
 Create the module and add:
 
@@ -485,7 +485,7 @@ def affineStripSamplingInjective
     ((Finset.range W).product (Finset.range L))
 ```
 
-- [ ] **Step 2: Prove the image representation and cardinality bridge**
+- [x] **Step 2: Prove the image representation and cardinality bridge**
 
 Add:
 
@@ -518,7 +518,7 @@ theorem affineStripColorPoints_card_eq_indexCount
   · exact hxy
 ```
 
-- [ ] **Step 3: Prove exact quotient and matching-ceiling headlines**
+- [x] **Step 3: Prove exact quotient and matching-ceiling headlines**
 
 Add `affineStripColor_load_eq_of_period_dvd` with the signature frozen in the
 interface and prove it by rewriting the physical/index bridge followed by
@@ -530,7 +530,7 @@ quotient theorem plus `Nat.ceilDiv_eq_add_pred_div` and the standard fact that
 `d ∣ n` and `0 < d` imply `n ⌈/⌉ d = n/d`; use the established positivity
 theorems for `R` and `T`.
 
-- [ ] **Step 4: Run the focused module and interface GREEN**
+- [x] **Step 4: Run the focused module and interface GREEN**
 
 Run:
 
@@ -541,7 +541,7 @@ lake env lean Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
 
 Expected: both commands succeed.
 
-- [ ] **Step 5: Commit the physical equality**
+- [x] **Step 5: Commit the physical equality**
 
 ```bash
 git add CLRSLean/Research/ThreeDIC/AffineStripTightness.lean Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean
@@ -554,7 +554,7 @@ git commit -m "research: certify exact physical affine strip load"
 - Modify: `CLRSLean/Research/ThreeDIC/AffineStripTightness.lean`
 - Modify: `Tests/Research_ThreeDIC_AffineStripTightness_Interface.lean`
 
-- [ ] **Step 1: Prove both axis-aligned sampling maps are injective**
+- [x] **Step 1: Prove both axis-aligned sampling maps are injective**
 
 Add public wrappers:
 
@@ -584,7 +584,7 @@ The unswapped proof recovers row indices from physical second coordinates and
 along indices from physical first coordinates.  The swapped proof recovers
 them from physical first and second coordinates respectively.
 
-- [ ] **Step 2: Derive full-period conditions from a coprime coefficient**
+- [x] **Step 2: Derive full-period conditions from a coprime coefficient**
 
 Add a private lemma for
 
@@ -598,7 +598,7 @@ use `Nat.Coprime.of_dvd_left (Nat.gcd_dvd_left K alpha) hBeta` to show that
 `gcd(K,alpha)` is coprime to `beta`, then unfold `Nat.Coprime`.  Do not use a
 prime-factor argument.
 
-- [ ] **Step 3: Add general affine axis-aligned wrappers**
+- [x] **Step 3: Add general affine axis-aligned wrappers**
 
 Add:
 
@@ -621,7 +621,7 @@ theorem affineStripColor_axisAligned_load_eq_phase_periods
 
 Add the swapped wrapper analogously.
 
-- [ ] **Step 4: Add fixed-color horizontal and vertical exact-load wrappers**
+- [x] **Step 4: Add fixed-color horizontal and vertical exact-load wrappers**
 
 Add the two statements frozen by Task 1.  Horizontal simplification uses
 
@@ -640,7 +640,7 @@ Use `affineStripColorPoints_fixed_eq_stripColorPoints` and `simpa` with
 `affineDirectionStep`, `affineLinePeriod`, and `affineStripAcrossPeriod`; do
 not restate a second counting proof.
 
-- [ ] **Step 5: Add concrete boundary and necessity regressions**
+- [x] **Step 5: Add concrete boundary and necessity regressions**
 
 Append:
 
@@ -659,7 +659,7 @@ example :
 
 example :
     (stripColorPoints 2 8 4 4 0
-      (0, 0) (0, 1) (1, 0)).card = 8 := by decide
+      (0, 0) (0, 1) (1, 0)).card = 2 := by decide
 
 example :
     (affineStripColorIndexCount 1 0 0 2 2 2 1
@@ -673,7 +673,7 @@ example :
 The last pair is the frozen counterexample showing that index tightness does
 not imply physical tightness when along and across coincide.
 
-- [ ] **Step 6: Run all new interface tests and commit wrappers**
+- [x] **Step 6: Run all new interface tests and commit wrappers**
 
 Run:
 
@@ -701,7 +701,7 @@ git commit -m "research: specialize affine strip tightness"
 - Modify: `docs/superpowers/specs/2026-08-30-3dic-affine-strip-tightness-design.md`
 - Modify: `docs/superpowers/plans/2026-08-30-3dic-affine-strip-tightness.md`
 
-- [ ] **Step 1: Freeze the trust surface**
+- [x] **Step 1: Freeze the trust surface**
 
 Import `CLRSLean.Research.ThreeDIC.AffineStripTightness` and append:
 
@@ -710,14 +710,14 @@ Import `CLRSLean.Research.ThreeDIC.AffineStripTightness` and append:
 #assert_axioms CLRS.Research.ThreeDIC.affineStripColor_load_eq_phase_periods
 ```
 
-- [ ] **Step 2: Update the research contract from pending to supported**
+- [x] **Step 2: Update the research contract from pending to supported**
 
 Change only claims that the completed Lean surface proves.  Record exact
 hypotheses `0 < K`, `c < K`, full color generation, both period divisibilities,
 and physical sampling injectivity.  Retain `fail` for measured DART
 repairability and retain routing/spare/mux exclusions.
 
-- [ ] **Step 3: Update the prior-art audit and final question stack**
+- [x] **Step 3: Update the prior-art audit and final question stack**
 
 Replace “no matching lower-bound/tightness result” with the bounded claim:
 
@@ -731,13 +731,13 @@ Do not claim a recognized open problem has been solved.  Keep DART evaluation,
 physical routing, spare placement, mux reachability, delay, and congestion in
 the uncertified list.
 
-- [ ] **Step 4: Mark the design implemented and close completed plan boxes**
+- [x] **Step 4: Mark the design implemented and close completed plan boxes**
 
 Set the spec status to `implemented and verified` only after all Lean and trust
 commands pass.  Check plan boxes as each command and commit actually completes;
 do not pre-check the independent-review or final-clean-tree steps.
 
-- [ ] **Step 5: Run focused production, interface, and trust gates**
+- [x] **Step 5: Run focused production, interface, and trust gates**
 
 ```bash
 lake build CLRSLean.Research.ThreeDIC.AffineStripTightnessCore
@@ -748,7 +748,7 @@ lake env lean Tests/Research_ThreeDIC_Trust.lean
 
 Expected: all commands exit zero.
 
-- [ ] **Step 6: Run the complete verification gates**
+- [x] **Step 6: Run the complete verification gates**
 
 ```bash
 lake build CLRSLean
@@ -764,7 +764,7 @@ git diff --check
 Expected: builds and repository checker pass; placeholder scan has no matches;
 diff check exits zero.
 
-- [ ] **Step 7: Commit the audit package**
+- [x] **Step 7: Commit the audit package**
 
 ```bash
 git add Tests/Research_ThreeDIC_Trust.lean \

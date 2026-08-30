@@ -2,7 +2,8 @@
 
 Date: 2026-08-30
 
-Status: design frozen; proof not yet implemented
+Status: implemented and kernel-checked; independent final workflow review is
+still pending at this commit
 
 ## Phenomenon
 
@@ -57,16 +58,17 @@ Status: design frozen; proof not yet implemented
 
 | Claim | Status | Evidence | Caveat | Forbidden wording |
 |---|---|---|---|---|
-| fundamental phase cells contain every color exactly once | pending | planned core bijection theorem | requires full color generation | arbitrary coefficients always cover all colors |
-| aligned nonoverlapping strips attain the phase upper bound | pending | planned physical equality theorem | requires both divisibilities and physical injectivity | the upper bound is universally tight |
+| fundamental phase cells contain every color exactly once | support | `affineStripFundamentalColor_image_eq_range` under `hK : 0 < K` and `hFull : affineStripFullColorPeriod ...` | requires positive modulus and full color generation | arbitrary coefficients always cover all colors |
+| aligned nonoverlapping strips attain the phase upper bound | support | `affineStripColor_load_eq_of_period_dvd` and `affineStripColor_load_eq_phase_periods` under `hK : 0 < K`, `hc : c < K`, `hFull : affineStripFullColorPeriod ...`, `hRW : R ∣ W`, `hTL : T ∣ L`, and `hInjective : affineStripSamplingInjective ...` | requires a valid color, full color generation, both period divisibilities, and physical sampling injectivity | the upper bound is universally tight |
 | the result improves measured DART repairability | fail | none | requires hardware semantics and experiments | demonstrated yield improvement |
 
 ## Open risks
 
-- The finite-cell bijection is mathematically sound but its quotient/remainder
-  transport may require careful theorem-interface shaping in Lean.
-- A theorem stated only for axis-aligned strips would be too narrow; the
-  general physical theorem and axis-aligned wrappers are both required.
+- The finite-cell image, aligned index count, and injective physical bridge are
+  kernel-checked; an independent mathematical and claim-boundary review is
+  still pending at this commit.
+- The general physical theorem retains explicit sampling injectivity, while
+  the axis-aligned wrappers discharge that hypothesis automatically.
 - The no-overlap hypothesis must remain visible in the general headline and
   must not be hidden by documentation wording.
-- Tight load is not yet an end-to-end repairability or routing theorem.
+- Tight aligned load is not an end-to-end repairability or routing theorem.
