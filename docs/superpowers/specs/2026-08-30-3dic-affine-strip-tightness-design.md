@@ -2,7 +2,7 @@
 
 Date: 2026-08-30
 
-Status: approved design awaiting written-spec review
+Status: implemented and verified; independent workflow review pending
 
 ## Goal
 
@@ -171,8 +171,8 @@ removing the injectivity hypothesis would make the physical equality false.
 
 ## Verification
 
-New public interfaces will be frozen before production code and observed RED
-for a missing module or missing declaration.  Completion requires:
+The public interfaces were frozen before production code and observed RED for
+a missing module or declaration.  Implementation verification includes:
 
 - focused builds of both new modules;
 - exact theorem-application examples in a new interface test;
@@ -183,7 +183,7 @@ for a missing module or missing declaration.  Completion requires:
 - `lake build CLRSLean`;
 - `uv run python scripts/check_repository.py`;
 - `git diff --check` and clean worktree;
-- independent mathematical and claim-boundary review.
+- independent mathematical and claim-boundary review, which remains pending.
 
 ## Claim boundary
 
