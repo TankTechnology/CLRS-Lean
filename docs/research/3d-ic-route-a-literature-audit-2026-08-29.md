@@ -29,13 +29,13 @@ paper.
 
 The foundational finite-strip theorem, general affine phase certificate,
 aligned tightness theorem, and canonical-domain minimizer for the frozen
-upper-bound objective are complete. The phase-aware certificate is attained
-exactly on full-color-period, period-aligned, non-self-overlapping strips. The
-next paper-level gate is a stronger arbitrary-boundary or structural result,
-or faithful DART evaluation. An end-to-end *repairability certificate* remains
-a later goal: connect certified load to spare/protection-window capacity and a
-simple physical chain, then validate the resulting sufficient condition under
-the same model as DART.
+upper-bound objective are complete. Under the full-color-period,
+period-alignment, and non-self-overlap sufficient conditions, the phase-aware
+certificate is attained exactly. The next paper-level gate is a stronger
+arbitrary-boundary or structural result, or faithful DART evaluation. An
+end-to-end *repairability certificate* remains a later goal: connect certified
+load to spare/protection-window capacity and a simple physical chain, then
+validate the resulting sufficient condition under the same model as DART.
 
 ## Frozen research contract
 
@@ -128,7 +128,7 @@ repair-success guarantees.
 | [Blaum, Bruck, and Vardy, 1998](https://authors.library.caltech.edu/records/t4s49-2nn79) | Defines multidimensional `t`-interleaved arrays so every connected cluster of area/volume `t` has distinct labels; gives optimal two-dimensional schemes and lattice interleavers. | Strong collision with generic claims about grid coloring, connected clusters, optimal diversity, and lattice constructions. | It does not model DART spare blocks, mux semantics, finite repair-chain ordering, or our exact load-to-repairability implication. |
 | [Etzion and Yaakobi, 2007](https://arxiv.org/abs/0712.4096) | Uses multiple linear colorings of `D`-dimensional arrays to construct codes for box, Lee-sphere, and arbitrary cluster errors; explicitly identifies unresolved coding bounds. | Strong collision with broad claims that affine/linear multidimensional coloring for cluster faults is new. | Their coding objective differs from DART chain capacity and physical routing; a faithful bridge would itself need proof. |
 | [Axenovich et al., 2019](https://arxiv.org/abs/1704.00042) | Defines `S`-polychromatic colorings by requiring every translate of `S` to receive every color; studies integers and extensions to `Z^d`, homomorphic constructions, and tiling connections. | Direct conceptual home for translated-window surjectivity. | It does not provide DART-specific routing, spares, mux semantics, or repairability. |
-| [Bhoumik et al., DART, 2026](https://doi.org/10.1109/VTS69484.2026.11563352) and its [author-hosted PDF](https://nanocad.ee.ucla.edu/wp-content/papercite-data/pdf/c139.pdf) | Uses sliding-window color diversity plus a greedy traversal fragmentation penalty and edge-aware simulated annealing to form irregular repair chains; evaluates cluster and line faults under spare budgets. | It supplies the actual EDA problem and already treats diversity and compactness jointly. We cannot imply that route A invented the objective or the repair architecture. | DART is heuristic: the audited paper does not give our closed-form worst-case window, line, or finite-strip upper certificates, nor a machine-checked end-to-end theorem. |
+| [Bhoumik et al., DART, 2026](https://doi.org/10.1109/VTS69484.2026.11563352) | Uses sliding-window color diversity plus a greedy traversal fragmentation penalty and edge-aware simulated annealing to form irregular repair chains; evaluates cluster and line faults under spare budgets. | It supplies the actual EDA problem and already treats diversity and compactness jointly. We cannot imply that route A invented the objective or the repair architecture. | DART is heuristic: the audited paper does not give our closed-form worst-case window, line, or finite-strip upper certificates, nor a machine-checked end-to-end theorem. |
 | [Chuang and Marinissen, 2025](https://imec-publications.be/entities/publication/5ca38539-61f0-4a29-99d9-3f02c11b81cd) | Proposes clustered-defect repair with minimal propagation delay and improved repair rate relative to default UCIe. | Any claim about propagation-delay novelty needs a direct comparison with this architecture. | The accessible abstract does not establish a formal worst-case certificate for our coloring construction. |
 | [Mehta et al., Polychromatic Colourings in Lean](https://github.com/b-mehta/Polychromatic) | A substantial Lean formalization of polychromatic colorings of integers, including the four-integers/three-colors result and general infrastructure. | Rules out “first Lean formalization of polychromatic coloring.” | Its stated scope is integer polychromatic combinatorics, not DART-compatible repairability or our finite-grid hardware model. |
 

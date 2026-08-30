@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Prove that the existing phase-aware affine-strip load certificate is attained exactly on full-period, period-aligned, non-self-overlapping strips, and expose axis-aligned fixed-color corollaries.
+**Goal:** Prove that, under the full-color-period, period-alignment, and non-self-overlap sufficient conditions, the existing phase-aware affine-strip load certificate is attained exactly, and expose axis-aligned fixed-color corollaries.
 
 **Architecture:** `AffineStripTightnessCore.lean` contains modular phase-cell and exact index-count results; `AffineStripTightness.lean` contains only the injective physical-point bridge and axis-aligned wrappers.  The implementation follows a strict RED/GREEN interface loop and does not add proof material to the existing large strip modules.
 
@@ -722,9 +722,10 @@ repairability and retain routing/spare/mux exclusions.
 Replace “no matching lower-bound/tightness result” with the bounded claim:
 
 ```text
-The phase-aware certificate is attained exactly on full-color-period,
-period-aligned, non-self-overlapping strips.  Tightness for partial periods,
-self-overlapping geometries, and the end-to-end repair model remains open.
+Under the full-color-period, period-alignment, and non-self-overlap sufficient
+conditions, the phase-aware certificate is attained exactly. Tightness for
+partial periods, self-overlapping geometries, and the end-to-end repair model
+remains open.
 ```
 
 Do not claim a recognized open problem has been solved.  Keep DART evaluation,
