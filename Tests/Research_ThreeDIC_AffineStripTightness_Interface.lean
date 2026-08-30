@@ -6,6 +6,7 @@ open CLRS.Research.ThreeDIC
 #check affineStripColorIndexPairs
 #check affineStripColorIndexCount
 #check affineStripPeriod_product_eq
+#check affineStripFundamentalIndexPairs
 #check affineStripFundamentalColor_image_eq_range
 #check affineStripColorIndexCount_eq_of_period_dvd
 #check affineStripSamplingInjective
@@ -16,6 +17,18 @@ open CLRS.Research.ThreeDIC
 #check affineStripColor_axisAlignedSwapped_load_eq_phase_periods
 #check stripColor_horizontal_load_eq
 #check stripColor_vertical_load_eq_phase
+
+example
+    (alpha beta gamma K : Nat) (base along across : Nat × Nat)
+    (hK : 0 < K)
+    (hFull : affineStripFullColorPeriod alpha beta K along across) :
+    (affineStripFundamentalIndexPairs alpha beta K along across).image
+        (fun rt => affineGridColor alpha beta gamma K
+          (stripPoint base along across rt.1 rt.2).1
+          (stripPoint base along across rt.1 rt.2).2) =
+      Finset.range K :=
+  affineStripFundamentalColor_image_eq_range
+    alpha beta gamma K base along across hK hFull
 
 example
     (alpha beta gamma K W L c : Nat)
