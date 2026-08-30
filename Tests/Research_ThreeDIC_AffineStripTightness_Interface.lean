@@ -36,6 +36,20 @@ example
     (hK : 0 < K) (hc : c < K)
     (hFull : affineStripFullColorPeriod alpha beta K along across)
     (hRW : affineStripAcrossPeriod alpha beta K along across ∣ W)
+    (hTL : affineLinePeriod alpha beta K along ∣ L) :
+    affineStripColorIndexCount alpha beta gamma K W L c
+        base along across =
+      (W / affineStripAcrossPeriod alpha beta K along across) *
+        (L / affineLinePeriod alpha beta K along) :=
+  affineStripColorIndexCount_eq_of_period_dvd
+    alpha beta gamma K W L c base along across hK hc hFull hRW hTL
+
+example
+    (alpha beta gamma K W L c : Nat)
+    (base along across : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hFull : affineStripFullColorPeriod alpha beta K along across)
+    (hRW : affineStripAcrossPeriod alpha beta K along across ∣ W)
     (hTL : affineLinePeriod alpha beta K along ∣ L)
     (hInjective : affineStripSamplingInjective W L base along across) :
     (affineStripColorPoints alpha beta gamma K W L c base along across).card =
