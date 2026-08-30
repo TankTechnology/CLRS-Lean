@@ -10,6 +10,8 @@ open CLRS.Research.ThreeDIC
 #check affineStripFundamentalColor_image_eq_range
 #check affineStripColorIndexCount_eq_of_period_dvd
 #check affineStripSamplingInjective
+#check affineStripSamplingInjective_axisAligned
+#check affineStripSamplingInjective_axisAlignedSwapped
 #check affineStripColorPoints_card_eq_indexCount
 #check affineStripColor_load_eq_of_period_dvd
 #check affineStripColor_load_eq_phase_periods
@@ -60,6 +62,32 @@ example
       hK hc hFull hRW hTL hInjective
 
 example
+    (alpha beta gamma K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta)
+    (hRW : affineStripAcrossPeriod alpha beta K (1, 0) (0, 1) ∣ W)
+    (hTL : affineLinePeriod alpha beta K (1, 0) ∣ L) :
+    (affineStripColorPoints alpha beta gamma K W L c
+      base (1, 0) (0, 1)).card =
+      (W / affineStripAcrossPeriod alpha beta K (1, 0) (0, 1)) *
+        (L / affineLinePeriod alpha beta K (1, 0)) :=
+  affineStripColor_axisAligned_load_eq_phase_periods
+    alpha beta gamma K W L c base hK hc hUnit hRW hTL
+
+example
+    (alpha beta gamma K W L c : Nat) (base : Nat × Nat)
+    (hK : 0 < K) (hc : c < K)
+    (hUnit : Nat.Coprime K alpha ∨ Nat.Coprime K beta)
+    (hRW : affineStripAcrossPeriod alpha beta K (0, 1) (1, 0) ∣ W)
+    (hTL : affineLinePeriod alpha beta K (0, 1) ∣ L) :
+    (affineStripColorPoints alpha beta gamma K W L c
+      base (0, 1) (1, 0)).card =
+      (W / affineStripAcrossPeriod alpha beta K (0, 1) (1, 0)) *
+        (L / affineLinePeriod alpha beta K (0, 1)) :=
+  affineStripColor_axisAlignedSwapped_load_eq_phase_periods
+    alpha beta gamma K W L c base hK hc hUnit hRW hTL
+
+example
     (M K W L c : Nat) (base : Nat × Nat)
     (hK : 0 < K) (hc : c < K) (hKL : K ∣ L) :
     (stripColorPoints M K W L c base (1, 0) (0, 1)).card =
@@ -74,3 +102,29 @@ example
     (stripColorPoints M K W L c base (0, 1) (1, 0)).card =
       (W / Nat.gcd K M) * (L / (K / Nat.gcd K M)) :=
   stripColor_vertical_load_eq_phase M K W L c base hK hc hRW hTL
+
+example :
+    (stripColorPoints 3 1 4 5 0 (0, 0) (1, 0) (0, 1)).card = 20 := by
+  decide
+
+example :
+    (stripColorPoints 3 7 0 5 0 (0, 0) (1, 0) (0, 1)).card = 0 := by
+  decide
+
+example :
+    (stripColorPoints 2 8 4 0 0 (0, 0) (0, 1) (1, 0)).card = 0 := by
+  decide
+
+example :
+    (stripColorPoints 2 8 4 4 0 (0, 0) (0, 1) (1, 0)).card = 2 := by
+  decide
+
+example :
+    affineStripColorIndexCount 1 0 0 2 2 2 1
+        (0, 0) (1, 0) (1, 0) = 2 := by
+  decide
+
+example :
+    (affineStripColorPoints 1 0 0 2 2 2 1
+      (0, 0) (1, 0) (1, 0)).card = 1 := by
+  decide
