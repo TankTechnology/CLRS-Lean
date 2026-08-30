@@ -777,7 +777,7 @@ git add Tests/Research_ThreeDIC_Trust.lean \
 git commit -m "docs(research): audit affine strip tightness"
 ```
 
-- [ ] **Step 8: Request independent mathematical and claim-boundary review**
+- [x] **Step 8: Request independent mathematical and claim-boundary review**
 
 Review must check:
 
@@ -790,14 +790,14 @@ Review must check:
 - wrappers have the documented directions and divisibility hypotheses;
 - docs do not generalize aligned tightness to arbitrary strips or DART repair.
 
-- [ ] **Step 9: Address review findings and rerun affected gates**
+- [x] **Step 9: Address review findings and rerun affected gates**
 
 Every Critical or Important finding must be fixed and rechecked.  Minor
 interface findings should be fixed when they can be addressed without
 expanding the theorem claim.  Commit review-driven fixes separately with a
 message naming the corrected boundary.
 
-- [ ] **Step 10: Close the plan and verify a clean worktree**
+- [x] **Step 10: Close the plan and verify a clean worktree**
 
 After independent review is clear, check the final boxes, commit the plan-only
 closure if needed, then run:
