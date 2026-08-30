@@ -2,7 +2,8 @@
 
 Date: 2026-08-30
 
-Status: design approved in conversation; implementation has not started
+Status: open target frozen; first global reduction rejected by topological
+counterexample; replacement route under mathematical audit
 
 ## Research target
 
@@ -51,34 +52,65 @@ resolution.
 
 ## Approaches considered
 
-### A. A parameterized color-lifting reduction (recommended)
+### A. A uniform direct reduction from traceable planar 3-colorability
+(rejected)
 
-Construct a plane transformation
+For each fixed `k >= 5`, reduce from `TRACEABLE PLANAR 3-COLOURABILITY`: the
+input is a plane graph together with a Hamilton path and the question is
+whether it is properly 3-colorable.  Lemma 26 of Havet, King, Liedloff, and
+Todinca, *(Circular) Backbone Colouring: Forest Backbones in Planar Graphs*,
+Discrete Applied Mathematics 169 (2014), proves this problem NP-complete
+(<https://doi.org/10.1016/j.dam.2014.01.011>).
 
-```text
-Lift(k) : PLANE-POLY-k -> PLANE-POLY-(k+1)
-```
+The Hamilton path gives a nonbranching plane route through every source vertex.
+Along a thin regular neighborhood of that path, `k - 3` serial equality lanes
+propagate a common set of forbidden colors.  A facial `k`-cycle at every source
+vertex contains the local lane terminals, the source vertex, and two fresh
+vertices.  It therefore restricts every source vertex to the same three-color
+complement.  A facial `k`-cycle in a thin lens around every source edge forces
+its endpoints to receive distinct colors.
 
-with extension and restriction in both directions.  The known NP-complete
-`k = 4` case would then imply every fixed `k >= 5` by induction.  This is the
-only route among those considered that naturally resolves the whole open
-problem with one mathematical mechanism.
+The remaining obstacle is not color semantics but exact face control.  After
+the constraint skeleton is complete, every nonconstraint face is neutralized
+by placing a fresh `k`-cycle inside it and joining that cycle to the old face
+boundary by one bridge.  The new inner face forces the cycle to contain all
+colors; the modified old face is incident with that same cycle and is therefore
+automatically polychromatic.  This includes the unbounded face.
 
-The main obstacle is a plane palette-propagation gadget.  A face with exactly
-`k` distinct boundary vertices acts as an `AllDifferent(k)` constraint.  Two
-such constraints sharing `k - 1` terminals semantically force their remaining
-terminals to have the same color.  However, a graph drawing that realizes the
-two intended faces usually creates another face.  The construction is valid
-only if every unintended and exterior face is also polychromatic and the
-gadget remains composable inside a plane disk.
+Independent review found a fatal obstruction.  For any one equality-lane
+coordinate, the lane chain gives a fresh path between the two Hamilton-path
+end stations.  Together with the source Hamilton path as realized by the edge
+lenses, this creates a cycle through every source vertex.  Contracting the
+fresh paths would therefore give a plane embedding after adding the edge
+between the Hamilton-path endpoints.  Traceable planar graphs do not satisfy
+that promise: a maximal planar non-Hamiltonian graph with a Hamilton path is a
+counterexample.  Hence this route cannot reduce all legal source instances and
+must not be implemented or described as a solution.
 
-### B. A direct reduction for `k = 5`
+### A2. A Hamiltonian-cycle source (under audit)
 
-Generalize the published `k = 4` reduction from plane proper 3-colorability.
-This lowers the first mathematical target and may reveal the missing palette
-gadget.  It can settle the first unknown case, but without a parameterized
-argument it leaves all `k >= 6` open.  It is therefore a fallback and a
-feasibility milestone inside Approach A, not a replacement final objective.
+Cavallaro and Fluschnik prove that 3-coloring remains NP-hard for planar
+Hamiltonian graphs even when a Hamiltonian cycle is supplied with the input
+(*3-Coloring on Regular, Planar, and Ordered Hamiltonian Graphs*, 2021,
+<https://arxiv.org/abs/2104.08470>).  Replacing the path by its already present
+Hamiltonian cycle removes the endpoint-augmentation counterexample: a closed
+palette lane can be homotopic to the supplied cycle instead of forcing a new
+edge.
+
+This is only a replacement candidate, not yet a valid reduction.  A
+Hamiltonian cycle separates the plane into two disks, and non-cycle edges may
+occur on both sides.  The next feasibility obligation is an explicit annular
+station patch whose source vertex and edge-lens ports remain accessible from
+both sides while all palette coordinates propagate around the cycle and every
+constraint cycle remains facial.  No semantic or Lean implementation begins
+until a rotation system for that patch is exhibited and checked.
+
+### B. A parameterized color-lifting reduction
+
+Construct `PLANE-POLY-k <=p PLANE-POLY-(k+1)` and induct from the known
+`k = 4` case.  This remains a fallback if the direct Hamilton-path embedding
+fails.  It requires a more difficult palette-copy construction around every
+source face and currently has no comparably explicit global embedding.
 
 ### C. Determine the extremal number `p(5)`
 
@@ -124,59 +156,95 @@ vertices, disconnected input encodings, and the unbounded face explicitly.
 The reduction may first normalize to connected loopless source instances, but
 that restriction must be proved semantics-preserving.
 
-### Gadget contracts
+### Candidate gadget contracts
 
-Gadgets are specified by behavior, not by a drawing alone.
+Gadgets are specified by behavior, not by a drawing alone.  The feasibility
+audit produced the following explicit parameterized candidates.
 
-An equality gadget for fixed `k` has two boundary terminals `x` and `y` and
-must prove:
+The equality gadget `Eq(k, x, y)` is a theta graph.  Let `P` be a path from
+`a` to `b` containing exactly `k - 1` distinct vertices.  Add the two length-two
+paths `a-x-b` and `a-y-b`, embedded on opposite sides of `P`.  The cycles
+`P + x` and `P + y` are facial `k`-cycles.  Hence:
 
 ```text
-force:   every valid internal coloring has color(x) = color(y)
-extend:  every choice of one terminal color extends with color(x) = color(y)
+force:   every polychromatic coloring has color(x) = color(y), because both
+         terminals are the unique color missing from the shared rainbow P;
+extend:  if color(x) = color(y), assign every other color bijectively to P.
 ```
 
-A palette gadget has ordered boundary terminals `p[0], ..., p[k-1]` and must
-prove that every valid coloring assigns all `k` colors bijectively, and that
-every permutation of the palette extends.  Palette propagation must preserve
-the same palette roles across adjacent source faces without using a single
-nonplanar global palette vertex set.
+External edges at `x` and `y` must be placed only in their outer-face angles,
+so the two intended faces survive composition.  The third theta face is not
+assumed valid; it is neutralized after the entire skeleton is embedded.
 
-A lift gadget must additionally prove:
+For Hamilton-path vertex `v_i`, introduce lane terminals
+`a_i^1, ..., a_i^(k-3)` and fresh vertices `s_i,t_i`.  Make
 
 ```text
-extension:   every k-polychromatic source coloring extends to k+1 colors
-restriction: every (k+1)-polychromatic target coloring determines a
-             k-polychromatic source coloring, modulo a global color permutation
+(a_i^1, ..., a_i^(k-3), v_i, s_i, t_i)
 ```
 
-All contracts quantify over every coloring.  SAT or exhaustive enumeration
-may discover a candidate and may certify one fixed finite truth table, but the
-structural proof must explain why a parameterized family satisfies the
-contract.
+a facial `k`-cycle.  Equality gadgets join `a_i^j` to `a_(i+1)^j` for every
+consecutive path position and lane `j`.  Every station palette is therefore
+the same ordered set of `k - 3` distinct colors, and every source vertex uses
+one of the common three remaining colors.
 
-### Global reduction theorem
+For every source edge `uv`, a thin facial lens has boundary `u`, `v`, and
+`k - 2` fresh vertices.  Its exact `k` vertices force `color(u) != color(v)`
+and can be extended by assigning the other `k - 2` colors to the fresh
+vertices.
 
-Given a valid connected plane source map, replace each selected face/edge by a
-copy of the disk gadget, glue copies along their declared boundary walks, and
-prove:
+For every residual face `f`, the face-neutralizer places a disjoint fresh
+`k`-cycle `C_f` in `f` and adds one bridge from a boundary vertex of `f` to one
+vertex of `C_f`.  The interior of `C_f` is a facial `k`-cycle.  The other side
+of `C_f` remains part of the modified `f`, so both new faces see every color.
+This gadget imposes no constraint on the old boundary coloring.
+
+All contracts quantify over every coloring.  Finite enumeration may check
+small instances, but the final proof uses the exact-`k` face argument for
+arbitrary `k`.
+
+### Rejected path-based global theorem
+
+Let `(G,P)` be a connected simple plane graph with a supplied Hamilton path
+`P = v_1,...,v_n`.  Construct the station cycles and equality lanes in a thin
+regular neighborhood of `P`.  Put every edge lens in a disjoint thin
+neighborhood of its source edge, reserving the opposite substrip for the lanes
+on path edges.  Equality-gadget attachments occur only through their outer
+angles.  After the complete constraint skeleton is embedded, insert one
+neutralizer into every residual face.
+
+The proposed theorem was
 
 ```text
-source is k-polychromatically colorable
+G is properly 3-colorable
   iff
-Lift(k, source) is (k+1)-polychromatically colorable.
+planePoly(k, reduce(k,G,P))
 ```
 
-The construction proof is split into:
+for every fixed `k >= 5`.  Its coloring argument remains conditionally valid,
+but its plane construction is false for the reason above, so this is not an
+available theorem target.
+
+Forward, choose any three target colors for the source coloring, put the other
+`k - 3` colors on every station palette in one fixed order, fill each equality
+path with the remaining colors, fill edge lenses with all colors missing from
+their two endpoints, and color every neutralizer cycle bijectively.
+
+Reverse, station faces make each local palette pairwise distinct; the equality
+lanes make all palettes coordinatewise equal.  Thus all source vertices use
+one common set of at most three colors.  Every source edge is a pair of
+vertices on an exact facial `k`-cycle, hence its endpoints differ.  Renaming
+the common complement yields a proper `Fin 3` coloring of `G`.
+
+Any replacement construction must still supply:
 
 1. finite well-formedness and fresh-name disjointness;
-2. gluing and exact face enumeration;
-3. coloring extension;
-4. palette synchronization and coloring restriction;
-5. linear or polynomial vertex/dart/face size bounds.
-
-The induction from the published `k = 4` base case is performed only after the
-single-step theorem is complete.
+2. a rotation-level tubular-neighborhood embedding theorem;
+3. preservation and exact enumeration of all intended faces;
+4. exhaustive enumeration and neutralization of all residual faces;
+5. coloring extension and restriction;
+6. `O(k^2 |V| + k |E|)` skeleton size and linear neutralization overhead for
+   each fixed `k`.
 
 ## Complexity and Chapter 34 integration
 
@@ -208,8 +276,12 @@ CLRSLean/Research/PlanePoly/
   Coloring/Semantics.lean
   Gadget/Contract.lean
   Gadget/Equality.lean
-  Gadget/Palette.lean
-  Reduction/LiftConstruction.lean
+  Gadget/Station.lean
+  Gadget/EdgeLens.lean
+  Gadget/FaceNeutralizer.lean
+  Reduction/HamiltonianCycleSource.lean
+  Reduction/ConstraintSkeleton.lean
+  Reduction/TubularEmbedding.lean
   Reduction/FaceCorrectness.lean
   Reduction/ColoringExtension.lean
   Reduction/ColoringRestriction.lean
@@ -234,19 +306,24 @@ reserved for milestone completion.
 The first sprint is mathematical and must not prematurely build the entire NP
 encoding stack.  It will:
 
-1. formalize the disk-gadget contract on paper and in a small executable model;
-2. test the shared-`k-1` all-different equality idea against all faces;
-3. search for or construct a five-color palette propagation gadget;
-4. independently enumerate every coloring of any finite candidate;
-5. either produce a checked `4 -> 5` semantic lift or a concrete obstruction
-   explaining why the candidate family fails.
+1. prove the equality, station, edge-lens, and neutralizer contracts as abstract
+   exact-face lemmas;
+2. record the Hamilton-path augmentation counterexample as a rejected route;
+3. construct and exhaustively enumerate an annular station patch with ports on
+   both sides of a supplied Hamiltonian cycle, or reject this replacement;
+4. only after that patch exists, attempt the full semantic `iff` for arbitrary
+   fixed `k >= 5`;
+5. obtain independent review of the source NP-hardness, embedding, both
+   coloring directions, and the status of the 2009 question;
+6. only then begin the serialized language and concrete runtime layers.
 
 The approach is rejected or redesigned if any of these occurs:
 
 - an alleged gadget ignores its outer face;
 - two intended faces cannot coexist in the claimed plane embedding;
-- palette copies choose inconsistent filler-color sets;
-- original vertices can use filler colors in a reverse coloring;
+- palette lanes cannot be embedded without destroying an intended face;
+- station palettes can differ despite the equality-lane hypotheses;
+- original vertices can use a forbidden color in a reverse coloring;
 - the result is only an abstract hypergraph CSP;
 - the reduction works only under an unproved promise on the source embedding;
 - a later literature audit finds the exact result already published.
