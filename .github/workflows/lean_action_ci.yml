@@ -11,6 +11,24 @@ jobs:
       - uses: actions/checkout@v5
       - name: Check repository metadata
         run: python3 scripts/check_repository.py
+      - name: Restore CLRSLean build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            .lake/build/lib/lean/CLRSLean
+            .lake/build/lib/lean/CLRSLean.*
+          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+          restore-keys: |
+            clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
       - uses: leanprover/lean-action@v1
+      - name: Save CLRSLean build cache
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            .lake/build/lib/lean/CLRSLean
+            .lake/build/lib/lean/CLRSLean.*
+          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
       - name: Check v1 theorem trust gate
         run: python3 scripts/check_v1_trust_gate.py
