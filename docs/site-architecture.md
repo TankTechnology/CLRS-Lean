@@ -21,15 +21,15 @@ sidebar.
 ## Information Architecture
 
 ```text
-CLRSLean.lean                         project landing page
-CLRSLean/FourthEdition.lean           canonical fourth-edition index
-CLRSLean/FourthEdition/Chapter_19.lean fourth-edition Chapter 19 facade
-CLRSLean/OnlineMaterial.lean          moved and third-edition-only material
-CLRSLean/ProofPatterns.lean           reusable proof-pattern guide
-CLRSLean/Progress.lean                generated progress dashboard
-CLRSLean/Status.lean                  web-facing proof status ledger
-CLRSLean/Workflow.lean                contributor workflow
-CLRSLean/Chapter_xx/Section_xx_y.lean section-level literate proof
+src/CLRSLean.lean                          project landing page
+src/CLRSLean/FourthEdition.lean            canonical fourth-edition index
+src/CLRSLean/FourthEdition/Chapter_19.lean fourth-edition Chapter 19 facade
+src/CLRSLean/OnlineMaterial.lean           moved and third-edition-only material
+src/CLRSLean/ProofPatterns.lean            reusable proof-pattern guide
+src/CLRSLean/Progress.lean                 generated progress dashboard
+src/CLRSLean/Status.lean                   web-facing proof status ledger
+src/CLRSLean/Workflow.lean                 contributor workflow
+src/CLRSLean/Chapter_xx/Section_xx_y.lean  section-level literate proof
 docs/scope.md                         stable advertised-boundary statement
 docs/clrs-proof-progress.csv          chapter-level status source
 docs/clrs-online-material.csv         disjoint supplementary-count source
@@ -178,7 +178,7 @@ When a new CLRS section is added, update these files together:
 
 - the section `.lean` file;
 - its chapter guide page;
-- `CLRSLean/Status.lean` if the proof status changes;
+- `src/CLRSLean/Status.lean` if the proof status changes;
 - `literate.toml` if it should appear in navigation;
 - a focused interface test for any newly advertised declaration;
 - `docs/scope.md` only when the project-wide claim boundary changes.
