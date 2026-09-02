@@ -16,7 +16,7 @@ from online_material import online_tracked_total
 ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = ROOT / "docs" / "clrs-proof-progress.csv"
 MAP_PATH = ROOT / "docs" / "clrs-fourth-edition-map.csv"
-DASHBOARD_PATH = ROOT / "CLRSLean" / "Progress.lean"
+DASHBOARD_PATH = ROOT / "src" / "CLRSLean" / "Progress.lean"
 ONLINE_MATERIAL_TRACKED_THEOREMS = online_tracked_total()
 
 HEADER = [
@@ -177,10 +177,24 @@ def chapter_contracts(
             "represented_sections": represented_sections,
             "required_status": required_status,
             "required_edition_gap_units": required_edition_gap_units,
-            "guide": Path(f"CLRSLean/FourthEdition/Chapter_{chapter_no:02d}.lean"),
+            "guide": Path(f"src/CLRSLean/FourthEdition/Chapter_{chapter_no:02d}.lean"),
             "source_modules": source_modules,
         }
     return contracts
+
+
+def evidence_path(source: str) -> Path:
+    """Resolve a ledger evidence path against the ``src``/``tests`` layout.
+
+    The CSV records logical locations (``CLRSLean/...`` for library sources,
+    ``Tests/...`` for test files); the library lives under ``src/`` and tests
+    under lowercase ``tests/``.
+    """
+    if source.startswith("CLRSLean/"):
+        return ROOT / "src" / source
+    if source.startswith("Tests/"):
+        return ROOT / "tests" / source.removeprefix("Tests/")
+    return ROOT / source
 
 
 def require(condition: bool, message: str) -> None:
@@ -227,7 +241,7 @@ def validate(rows: list[dict[str, str]]) -> None:
         )
 
         for source_module in contract["source_modules"]:
-            source_path = ROOT / (str(source_module).replace(".", "/") + ".lean")
+            source_path = ROOT / "src" / (str(source_module).replace(".", "/") + ".lean")
             require(
                 source_path.is_file(),
                 f"Chapter {chapter_no}: mapped source module does not exist: "
@@ -254,7 +268,7 @@ def validate(rows: list[dict[str, str]]) -> None:
             if source == "CLRSLean file tree":
                 continue
             require(
-                (ROOT / source).is_file(),
+                evidence_path(source).is_file(),
                 f"Chapter {chapter_no}: evidence source does not exist: {source}",
             )
 
@@ -474,12 +488,12 @@ def main() -> int:
     output_mode.add_argument(
         "--write-dashboard",
         action="store_true",
-        help="regenerate CLRSLean/Progress.lean from the CSV after validation",
+        help="regenerate src/CLRSLean/Progress.lean from the CSV after validation",
     )
     output_mode.add_argument(
         "--check-dashboard",
         action="store_true",
-        help="exit nonzero when CLRSLean/Progress.lean is stale",
+        help="exit nonzero when src/CLRSLean/Progress.lean is stale",
     )
     args = parser.parse_args()
 
