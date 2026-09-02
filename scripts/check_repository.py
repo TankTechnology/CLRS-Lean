@@ -118,7 +118,7 @@ def check_lean_placeholders() -> None:
     print("==> Lean placeholder policy", flush=True)
     pattern = re.compile(r"\b(sorry|admit|axiom)\b")
     errors: list[str] = []
-    for source_root in (ROOT / "CLRSLean", ROOT / "Tests"):
+    for source_root in (ROOT / "src" / "CLRSLean", ROOT / "tests"):
         for path in sorted(source_root.rglob("*.lean")):
             code = strip_lean_comments_and_strings(path.read_text(encoding="utf-8"))
             for match in pattern.finditer(code):

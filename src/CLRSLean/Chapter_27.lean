@@ -220,7 +220,6 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   {lit}`CLRS.Chapter27.strassenSpan_allInput_bigTheta`.
 
 The filesystem name {lit}`Section_27_2_4_Algorithms` is retained solely for
-import compatibility with existing clients.  The represented Chapter 27 main
 text ends at Section 27.3; the Strassen recurrences above are a named extension,
 not a fabricated Section 27.4.
 

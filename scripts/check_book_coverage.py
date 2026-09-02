@@ -88,11 +88,14 @@ SECTION_REF_RE = re.compile(r"\b(\d{1,2})\.(\d{1,2})\b")
 
 
 def module_source(root: Path, module: str) -> Path:
-    """Translate a Lean module name to its source file under ``root``."""
+    """Translate a Lean module name to its source file under ``root``.
+
+    The ``CLRSLean`` library lives under ``src/`` (``srcDir := "src"``).
+    """
     parts = module.split(".")
     if parts == ["CLRSLean"]:
-        return root / "CLRSLean.lean"
-    return root.joinpath(*parts[:-1], f"{parts[-1]}.lean")
+        return root / "src" / "CLRSLean.lean"
+    return root.joinpath("src", *parts[:-1], f"{parts[-1]}.lean")
 
 
 def strip_lean_comments_and_strings(text: str) -> str:
@@ -221,14 +224,15 @@ def build_module_index(root: Path) -> dict[str, tuple[int, frozenset[str]]]:
     """Index every ``CLRSLean`` module to (declared heads, internal imports)."""
     index: dict[str, tuple[int, frozenset[str]]] = {}
     paths: list[Path] = []
-    root_file = root / "CLRSLean.lean"
+    src_root = root / "src"
+    root_file = src_root / "CLRSLean.lean"
     if root_file.is_file():
         paths.append(root_file)
-    library = root / "CLRSLean"
+    library = src_root / "CLRSLean"
     if library.is_dir():
         paths.extend(sorted(library.rglob("*.lean")))
     for path in paths:
-        module = ".".join(path.relative_to(root).with_suffix("").parts)
+        module = ".".join(path.relative_to(src_root).with_suffix("").parts)
         code = strip_lean_comments_and_strings(path.read_text(encoding="utf-8"))
         declared = len(THEOREM_RE.findall(code))
         imports = frozenset(

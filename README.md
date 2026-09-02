@@ -136,18 +136,18 @@ See the generated progress dashboard for chapter-level coverage, the
 ## Repository Architecture
 
 ```text
-CLRSLean.lean                     library root and website landing page
-CLRSLean/FourthEdition/Chapter_XX.lean
+src/CLRSLean.lean                                    library root and website landing page
+src/CLRSLean/FourthEdition/Chapter_XX.lean
                                   canonical fourth-edition chapter guide
-CLRSLean/Chapter_XX.lean          compatibility source guide and aggregator
-CLRSLean/Chapter_XX/Section_*.lean
+src/CLRSLean/Chapter_XX.lean          compatibility source guide and aggregator
+src/CLRSLean/Chapter_XX/Section_*.lean
                                   current theorem-bearing compatibility sources
-CLRSLean/OnlineMaterial.lean      retained online/supplementary content
-CLRSLean/ProofPatterns/           small reusable cross-chapter proof APIs
-CLRSLean/Progress.lean            generated public progress dashboard
-CLRSLean/Status.lean              concise reader-facing status page
-CLRSLean/Workflow.lean            public contribution workflow
-Tests/                            stable interface and closure checks
+src/CLRSLean/OnlineMaterial.lean      retained online/supplementary content
+src/CLRSLean/ProofPatterns/           small reusable cross-chapter proof APIs
+src/CLRSLean/Progress.lean            generated public progress dashboard
+src/CLRSLean/Status.lean              concise reader-facing status page
+src/CLRSLean/Workflow.lean            public contribution workflow
+tests/                            stable interface and closure checks
 docs/                             scope, coverage ledgers, proof patterns, and audits
 scripts/                          metadata, site, and repository checks
 literate.toml                    Verso navigation and page titles
@@ -160,15 +160,15 @@ The detailed dependency and ownership rules are in
 
 | Question | Canonical source |
 | --- | --- |
-| What Lean modules exist? | `CLRSLean/`, checked against `literate.toml` |
+| What Lean modules exist? | `src/CLRSLean/`, checked against `literate.toml` |
 | What does a chapter number mean? | `docs/clrs-fourth-edition-map.csv` |
-| What is the public theorem interface? | Section `.lean` files and `Tests/` |
+| What is the public theorem interface? | Section `.lean` files and `tests/` |
 | What is the chapter-level progress snapshot? | `docs/clrs-proof-progress.csv` |
 | What boundary does the project advertise? | `docs/scope.md` |
 | What should be worked on next? | GitHub issues |
 | What appears on the website? | `CLRSLean.lean`, chapter guides, and `literate.toml` |
 
-`CLRSLean/Progress.lean` is generated from the CSV.  It should never be edited
+`src/CLRSLean/Progress.lean` is generated from the CSV.  It should never be edited
 as an independent status ledger.
 
 New code should import `CLRSLean.FourthEdition.Chapter_NN`.  Existing
@@ -257,7 +257,7 @@ A theorem-producing change should update code and status together:
 
 1. Change the relevant section module and its focused interface test.
 2. Consult `docs/clrs-fourth-edition-map.csv` and update the canonical
-   `CLRSLean/FourthEdition/Chapter_NN.lean` guide when the advertised boundary
+   `src/CLRSLean/FourthEdition/Chapter_NN.lean` guide when the advertised boundary
    changes.
 3. Update `docs/clrs-proof-progress.csv`, the chapter guide, and the relevant
    interface test when the advertised coverage changes.

@@ -27,11 +27,11 @@ class EditionMapTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
         (root / "docs").mkdir()
-        (root / "CLRSLean" / "FourthEdition").mkdir(parents=True)
-        (root / "CLRSLean" / "Legacy.lean").write_text(
+        (root / "src" / "CLRSLean" / "FourthEdition").mkdir(parents=True)
+        (root / "src" / "CLRSLean" / "Legacy.lean").write_text(
             "/-! Legacy online material. -/\n", encoding="utf-8"
         )
-        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+        (root / "src" / "CLRSLean" / "OnlineMaterial.lean").write_text(
             "import CLRSLean.Legacy\n", encoding="utf-8"
         )
 
@@ -54,7 +54,7 @@ class EditionMapTests(unittest.TestCase):
                         "coverage_note": "No canonical theorem module yet.",
                     }
                 )
-                (root / "CLRSLean" / "FourthEdition" / f"Chapter_{chapter:02d}.lean").write_text(
+                (root / "src" / "CLRSLean" / "FourthEdition" / f"Chapter_{chapter:02d}.lean").write_text(
                     f"/-! # Chapter {chapter} — {title}\n-/\n", encoding="utf-8"
                 )
             writer.writerow(
@@ -190,10 +190,10 @@ class EditionMapTests(unittest.TestCase):
 
     def test_online_material_import_must_be_machine_cataloged(self) -> None:
         root = self.make_repo()
-        (root / "CLRSLean" / "Extra.lean").write_text(
+        (root / "src" / "CLRSLean" / "Extra.lean").write_text(
             "/-! Extra material. -/\n", encoding="utf-8"
         )
-        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+        (root / "src" / "CLRSLean" / "OnlineMaterial.lean").write_text(
             "import CLRSLean.Legacy\nimport CLRSLean.Extra\n", encoding="utf-8"
         )
 
@@ -253,10 +253,10 @@ class EditionMapTests(unittest.TestCase):
 
     def test_online_source_modules_must_match_their_topic_not_only_global_set(self) -> None:
         root = self.make_repo()
-        (root / "CLRSLean" / "Extra.lean").write_text(
+        (root / "src" / "CLRSLean" / "Extra.lean").write_text(
             "/-! Extra online material. -/\n", encoding="utf-8"
         )
-        (root / "CLRSLean" / "OnlineMaterial.lean").write_text(
+        (root / "src" / "CLRSLean" / "OnlineMaterial.lean").write_text(
             "import CLRSLean.Legacy\nimport CLRSLean.Extra\n", encoding="utf-8"
         )
 
