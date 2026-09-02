@@ -61,15 +61,6 @@ jobs:
       - name: Build immutable literate JSON inputs
         run: lake build :literate
 
-      - name: Save CLRSLean build cache
-        if: steps.restore-build-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
-        with:
-          path: |
-            .lake/build/lib/lean/CLRSLean
-            .lake/build/lib/lean/CLRSLean.*
-          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
-
       - name: Plan four balanced chapter-affine shards
         run: |
           python3 scripts/prepare_literate_module_map.py \
@@ -91,6 +82,15 @@ jobs:
         with:
           path: .lake/build/literate
           key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+
+      - name: Save CLRSLean build cache
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            .lake/build/lib/lean/CLRSLean
+            .lake/build/lib/lean/CLRSLean.*
+          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
 
       - name: Pack immutable renderer inputs
         run: |
