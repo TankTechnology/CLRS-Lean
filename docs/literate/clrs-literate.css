@@ -230,6 +230,23 @@ a {
     font-weight: 700;
 }
 
+/* The brand header links to the landing page; when the landing page is
+   current it would otherwise turn into a full-width accent band. */
+.module-tree .nav-title.current {
+    background: none;
+    box-shadow: none;
+}
+
+.module-tree .nav-title.current a {
+    color: var(--clrs-sidebar-text);
+}
+
+/* The imports capsule is developer noise on the reader-facing landing page;
+   the root module page is identifiable by its section id. */
+#CLRSLean > .imports-list {
+    display: none;
+}
+
 .module-tree summary::before {
     color: var(--clrs-sidebar-muted);
     opacity: 0.9;
