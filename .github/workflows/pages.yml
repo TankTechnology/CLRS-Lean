@@ -35,17 +35,40 @@ jobs:
       - name: Apply pinned Verso renderer patches
         run: python3 scripts/apply_verso_patch.py
 
+      - name: Build the sharded renderer once
+        run: lake build verso-literate-html
+
+      - name: Restore CLRSLean build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            .lake/build/lib/lean/CLRSLean
+            .lake/build/lib/lean/CLRSLean.*
+          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
+          restore-keys: |
+            clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
+
       - name: Restore Verso literate JSON cache
         id: restore-verso-cache
         uses: actions/cache/restore@v5
         with:
           path: .lake/build/literate
-          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-${{ github.sha }}
+          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
           restore-keys: |
-            verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-
+            verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
 
       - name: Build immutable literate JSON inputs
         run: lake build :literate
+
+      - name: Save CLRSLean build cache
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            .lake/build/lib/lean/CLRSLean
+            .lake/build/lib/lean/CLRSLean.*
+          key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
 
       - name: Plan four balanced chapter-affine shards
         run: |
@@ -67,14 +90,15 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: .lake/build/literate
-          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml') }}-${{ github.sha }}
+          key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
 
       - name: Pack immutable renderer inputs
         run: |
           tar --zstd -cf literate-inputs.tar.zst \
             .lake/build/literate \
             "$MODULE_MAP" \
-            "$SHARD_PLAN"
+            "$SHARD_PLAN" \
+            "$VERSO_EXE"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,18 +123,15 @@ jobs:
           test: false
           use-mathlib-cache: true
 
-      - name: Apply and build the sharded renderer
-        run: |
-          python3 scripts/apply_verso_patch.py
-          lake build verso-literate-html
-
       - uses: actions/download-artifact@v4
         with:
           name: literate-inputs
           path: .
 
       - name: Restore immutable renderer inputs
-        run: tar --zstd -xf literate-inputs.tar.zst
+        run: |
+          tar --zstd -xf literate-inputs.tar.zst
+          chmod +x "$VERSO_EXE"
 
       - name: Render one full-context shard
         run: |
