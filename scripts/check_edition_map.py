@@ -28,11 +28,14 @@ VALID_STATES = {"native", "facade", "partial", "not-started", "online-material"}
 
 
 def module_source(root: Path, module: str) -> Path:
-    """Translate a Lean module name to its source file under ``root``."""
+    """Translate a Lean module name to its source file under ``root``.
+
+    The ``CLRSLean`` library lives under ``src/`` (``srcDir := "src"``).
+    """
     parts = module.split(".")
     if parts == ["CLRSLean"]:
-        return root / "CLRSLean.lean"
-    return root.joinpath(*parts[:-1], f"{parts[-1]}.lean")
+        return root / "src" / "CLRSLean.lean"
+    return root.joinpath("src", *parts[:-1], f"{parts[-1]}.lean")
 
 
 def validate_repository(root: Path) -> list[str]:
@@ -184,9 +187,9 @@ def validate_repository(root: Path) -> list[str]:
                 f"online topic {topic_id} source_modules differs between edition map and online ledger"
             )
 
-    online_umbrella = root / "CLRSLean" / "OnlineMaterial.lean"
+    online_umbrella = root / "src" / "CLRSLean" / "OnlineMaterial.lean"
     if not online_umbrella.is_file():
-        errors.append("missing file: CLRSLean/OnlineMaterial.lean")
+        errors.append("missing file: src/CLRSLean/OnlineMaterial.lean")
     else:
         umbrella_imports = set(
             re.findall(
@@ -238,7 +241,7 @@ def validate_repository(root: Path) -> list[str]:
                             f"chapter {chapter} is not-started but tracks {tracked} theorems"
                         )
 
-        guide = root / "CLRSLean" / "FourthEdition" / f"Chapter_{chapter:02d}.lean"
+        guide = root / "src" / "CLRSLean" / "FourthEdition" / f"Chapter_{chapter:02d}.lean"
         if not guide.is_file():
             errors.append(f"missing fourth-edition guide: {guide.relative_to(root)}")
             continue

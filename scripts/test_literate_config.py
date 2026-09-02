@@ -32,8 +32,8 @@ LINK_EXEMPT_MODULES = COMPATIBILITY_MODULES | {
 def _module_source(module: str) -> Path:
     parts = module.split(".")
     if parts == ["CLRSLean"]:
-        return ROOT / "CLRSLean.lean"
-    return ROOT / Path(*parts[:-1]) / f"{parts[-1]}.lean"
+        return ROOT / "src" / "CLRSLean.lean"
+    return ROOT / "src" / Path(*parts[:-1]) / f"{parts[-1]}.lean"
 
 
 def _ordered_descendants(
@@ -75,7 +75,7 @@ class LiterateConfigTest(unittest.TestCase):
         ]
         imported_modules = re.findall(
             rf"^import\s+({re.escape(parent)}\.Chapter_[^\s]+)",
-            (ROOT / "CLRSLean" / "FourthEdition.lean").read_text(),
+            (ROOT / "src" / "CLRSLean" / "FourthEdition.lean").read_text(),
             re.MULTILINE,
         )
 
@@ -94,7 +94,7 @@ class LiterateConfigTest(unittest.TestCase):
         )
 
     def test_fourth_edition_landing_links_every_reader_route(self) -> None:
-        source = (ROOT / "CLRSLean" / "FourthEdition.lean").read_text(
+        source = (ROOT / "src" / "CLRSLean" / "FourthEdition.lean").read_text(
             encoding="utf-8"
         )
         modules = [
@@ -182,7 +182,7 @@ class LiterateConfigTest(unittest.TestCase):
         titled_modules = parse_module_titles(text)
         imported_legacy_guides = re.findall(
             r"^import\s+(CLRSLean\.Chapter_[0-9][0-9])$",
-            (ROOT / "CLRSLean.lean").read_text(),
+            (ROOT / "src" / "CLRSLean.lean").read_text(),
             re.MULTILINE,
         )
 
@@ -191,11 +191,11 @@ class LiterateConfigTest(unittest.TestCase):
         self.assertTrue(
             all(module not in order_children["CLRSLean"] for module in imported_legacy_guides)
         )
-        reader_catalog_text = (ROOT / "CLRSLean" / "OnlineMaterial.lean").read_text()
+        reader_catalog_text = (ROOT / "src" / "CLRSLean" / "OnlineMaterial.lean").read_text()
         reader_catalog_text += "".join(
             chapter_file.read_text()
             for chapter_file in sorted(
-                (ROOT / "CLRSLean" / "FourthEdition").glob("Chapter_[0-9][0-9].lean")
+                (ROOT / "src" / "CLRSLean" / "FourthEdition").glob("Chapter_[0-9][0-9].lean")
             )
         )
         self.assertTrue(
@@ -207,7 +207,7 @@ class LiterateConfigTest(unittest.TestCase):
         order_children = parse_order_children(text)
         titled_modules = parse_module_titles(text)
 
-        for chapter_file in sorted((ROOT / "CLRSLean").glob("Chapter_[0-9][0-9].lean")):
+        for chapter_file in sorted((ROOT / "src" / "CLRSLean").glob("Chapter_[0-9][0-9].lean")):
             chapter = chapter_file.stem
             chapter_module = f"CLRSLean.{chapter}"
             if chapter_module not in order_children:
@@ -315,7 +315,7 @@ class LiterateConfigTest(unittest.TestCase):
 
         imported_modules = re.findall(
             r"^import\s+(CLRSLean\.ProofPatterns\.[^\s]+)",
-            (ROOT / "CLRSLean" / "ProofPatterns.lean").read_text(),
+            (ROOT / "src" / "CLRSLean" / "ProofPatterns.lean").read_text(),
             re.MULTILINE,
         )
 
@@ -328,7 +328,7 @@ class LiterateConfigCheckerTest(unittest.TestCase):
     def _validate_config(self, text: str) -> list[str]:
         return validate_config(
             text,
-            (ROOT / "CLRSLean" / "FourthEdition.lean").read_text(),
+            (ROOT / "src" / "CLRSLean" / "FourthEdition.lean").read_text(),
         )
 
     def test_accepts_fourth_edition_primary_config(self) -> None:

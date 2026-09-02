@@ -112,7 +112,7 @@ class SectionCoverageTest(unittest.TestCase):
     def test_flags_missing_mapped_source(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "CLRSLean" / "FourthEdition").mkdir(parents=True)
+            (root / "src" / "CLRSLean" / "FourthEdition").mkdir(parents=True)
             rows = [map_row("2", "2.1", source="CLRSLean.FourthEdition.Chapter_02.Section_02_1_Missing")]
             errors = check_section_coverage(root, rows, {})
             self.assertTrue(any("mapped source module does not exist" in e for e in errors))

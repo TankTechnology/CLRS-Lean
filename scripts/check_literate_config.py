@@ -132,16 +132,17 @@ def validate_config(config_text: str, fourth_edition_source: str) -> list[str]:
 
 
 def _module_source(root: Path, module: str) -> Path:
+    """The ``CLRSLean`` library lives under ``src/`` (``srcDir := "src"``)."""
     parts = module.split(".")
     if parts == ["CLRSLean"]:
-        return root / "CLRSLean.lean"
-    return root / Path(*parts[:-1]) / f"{parts[-1]}.lean"
+        return root / "src" / "CLRSLean.lean"
+    return root / "src" / Path(*parts[:-1]) / f"{parts[-1]}.lean"
 
 
 def validate_repository(root: Path) -> list[str]:
     """Validate navigation metadata and the public module files it names."""
     config_path = root / "literate.toml"
-    fourth_edition_path = root / "CLRSLean" / "FourthEdition.lean"
+    fourth_edition_path = root / "src" / "CLRSLean" / "FourthEdition.lean"
     missing_inputs = [
         path for path in (config_path, fourth_edition_path) if not path.is_file()
     ]
@@ -157,7 +158,7 @@ def validate_repository(root: Path) -> list[str]:
         if not _module_source(root, module).is_file():
             errors.append(f"configured reader module has no source file: {module}")
 
-    landing_path = root / "CLRSLean.lean"
+    landing_path = root / "src" / "CLRSLean.lean"
     if landing_path.is_file():
         legacy_guides = re.findall(
             r"^import\s+(CLRSLean\.Chapter_[0-9][0-9])$",

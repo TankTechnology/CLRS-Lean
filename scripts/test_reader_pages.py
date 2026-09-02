@@ -20,7 +20,7 @@ def selected_theorem_total() -> str:
 
 class ReaderPageSourceTests(unittest.TestCase):
     def test_landing_page_states_the_qualified_whole_book_snapshot(self) -> None:
-        landing = (ROOT / "CLRSLean.lean").read_text(encoding="utf-8")
+        landing = (ROOT / "src" / "CLRSLean.lean").read_text(encoding="utf-8")
 
         self.assertIn("## Whole-Book Snapshot", landing)
         self.assertIn("35 fourth-edition chapters", landing)
@@ -29,7 +29,7 @@ class ReaderPageSourceTests(unittest.TestCase):
         self.assertIn("Lean-native trust gate", landing)
 
     def test_status_leads_with_the_book_before_chapter_34_detail(self) -> None:
-        status = (ROOT / "CLRSLean" / "Status.lean").read_text(encoding="utf-8")
+        status = (ROOT / "src" / "CLRSLean" / "Status.lean").read_text(encoding="utf-8")
 
         snapshot = status.index("## Whole-Book Snapshot")
         flagship = status.index("## Chapter 34 Flagship")

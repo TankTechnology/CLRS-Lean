@@ -60,6 +60,87 @@ book-quality web page.
 The public project name is `CLRS-Lean`.  The Lean library root remains
 `CLRSLean`, because Lean import paths use identifier-like module names.
 
+## Whole-Book Snapshot
+
+The current reviewed ledger represents all 35 fourth-edition chapters.  Of
+these, 34 chapters are {lit}`main-proof-complete` for their advertised Lean
+models and Chapter 1 is an {lit}`expository` project guide.  All 1,689 selected
+reader-facing theorem entries are proved, with zero edition-coverage gap units;
+470 separately tracked entries belong to online or supplementary material.
+
+The Lean-native trust gate audits a flagship declaration for every chapter and
+permits only Lean's standard {lit}`propext`, {lit}`Classical.choice`, and
+{lit}`Quot.sound` axioms.  These counts describe the reviewed theorem inventory:
+they do not claim every exercise, end-of-chapter problem, RAM implementation,
+or low-level refinement.  Open **Progress Dashboard** for the chapter matrix and
+**Proof Status** for the exact interpretation.
+
+## Project Aim
+
+The first target is the mathematical content of CLRS: loop invariants,
+sortedness and permutation arguments, exchange proofs, cut properties,
+recurrences, optimal substructure, and graph-algorithm correctness.  Pointer
+mutation, RAM costs, and line-by-line pseudocode refinement are separate layers
+unless a chapter's main theorem depends on them.
+
+This distinction lets a chapter be complete for its advertised model without
+claiming that every implementation detail or exercise has been formalized.
+
+## Start Here
+
+There are four useful reading routes:
+
+1. **Algorithms:** choose a fourth-edition chapter guide, read its scope, then
+   follow its current source link to a represented section.
+2. **Progress:** open **Progress Dashboard** for the generated chapter matrix.
+3. **Planning:** open **Proof Status** for completed, partial, and missing proof
+   groups.
+4. **Contributing:** open **Workflow**, then use the relevant chapter guide and
+   focused interface test.
+
+The **Reusable CLRS proof patterns** page collects the small cross-chapter APIs
+for boundary shifts, exchange certificates, fibers, and interval geometry.
+
+## Fourth-Edition Primary View
+
+The canonical public chapter sequence is CLRS fourth edition, Chapters 1--35.
+{lit}`docs/clrs-fourth-edition-map.csv` owns the section-level bridge from that
+sequence to current theorem-bearing sources.  All 35 chapter guides now point
+to represented source.  Chapter 34 is main-proof-complete at its advertised
+textbook boundary: the checked chain reaches Cook--Levin, GeneralCircuitSAT,
+SAT, 3-CNF-SAT, general CLIQUE, VERTEX-COVER, HAM-CYCLE, decision-TSP, and
+SUBSET-SUM.  Third-edition-only Fibonacci heaps, van Emde Boas trees,
+computational geometry, and moved section material live under
+{lit}`CLRSLean.OnlineMaterial`.  Progress counts are
+selected theorem inventories rather than counts of every fourth-edition
+textbook obligation.
+
+Existing {lit}`CLRSLean.Chapter_NN` imports and declarations keep their current
+meanings through all {lit}`1.x` releases and for at least six months after the
+facade release.  They may be removed only in {lit}`2.0` or later, after both
+gates pass.  See {lit}`docs/migrations/clrs4.md` for shifted chapter imports,
+current declaration namespaces, and the cleanup policy.
+
+## Status Meaning
+
+* {lit}`main-proof-complete`: the advertised theorem stack is complete for its
+  current model.
+* {lit}`main-proof-complete-for-correctness`: correctness is complete, while
+  explicit work or RAM refinement remains.
+* {lit}`selected-section-complete`: represented sections are complete; the
+  entire textbook chapter is not claimed.
+* {lit}`partial`: useful proofs exist, but a central theorem or refinement
+  target remains.
+* {lit}`not-started`: no represented section exists on the current main branch.
+* {lit}`expository`: the chapter is a guide with no theorem target.
+
+The machine-readable source for chapter rows is
+{lit}`docs/clrs-proof-progress.csv`, interpreted through
+{lit}`docs/clrs-fourth-edition-map.csv`.  The public **Progress Dashboard** is
+generated from the progress CSV.  Exact theorem names and boundaries live in
+the section modules and their focused interface tests; {lit}`docs/scope.md`
+states the project-wide claim boundary.
+
 ## Repository shape
 
 - `CLRSLean.lean` — top-level entry + Verso landing page
