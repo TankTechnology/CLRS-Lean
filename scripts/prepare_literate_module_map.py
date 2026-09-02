@@ -64,7 +64,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("literate_root", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--source-dir", type=Path, default=Path("."))
+    parser.add_argument("--source-dir", type=Path, default=Path("src"))
     parser.add_argument(
         "--prune-orphans",
         action="store_true",
