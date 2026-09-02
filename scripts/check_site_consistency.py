@@ -26,9 +26,9 @@ if str(ROOT) not in sys.path:
 
 from scripts.check_literate_config import validate_config
 
-CLRSLEAN = ROOT / "CLRSLean"
+CLRSLEAN = ROOT / "src" / "CLRSLean"
 LITERATE = ROOT / "literate.toml"
-LANDING = ROOT / "CLRSLean.lean"
+LANDING = ROOT / "src" / "CLRSLean.lean"
 
 
 def parse_literate(path: Path):

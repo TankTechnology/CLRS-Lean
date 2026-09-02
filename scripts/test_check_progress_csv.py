@@ -63,7 +63,7 @@ class FourthEditionContractTest(unittest.TestCase):
         self.assertIsNone(contracts[25]["required_status"])
         self.assertEqual(
             contracts[25]["guide"],
-            Path("CLRSLean/FourthEdition/Chapter_25.lean"),
+            Path("src/CLRSLean/FourthEdition/Chapter_25.lean"),
         )
 
     def test_contract_counts_unresolved_sections_for_represented_chapter(self) -> None:

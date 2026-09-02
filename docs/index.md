@@ -11,7 +11,7 @@ techniques instead of duplicating theorem declarations.
 | --- | --- |
 | What does the project claim to cover? | [`scope.md`](scope.md) |
 | Which chapters and sections are represented? | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) and [`clrs-online-material.csv`](clrs-online-material.csv) |
-| What is the current high-level status? | [`../CLRSLean/Status.lean`](../CLRSLean/Status.lean) and the generated [`../CLRSLean/Progress.lean`](../CLRSLean/Progress.lean) |
+| What is the current high-level status? | [`../src/CLRSLean/Status.lean`](../src/CLRSLean/Status.lean) and the generated [`../src/CLRSLean/Progress.lean`](../src/CLRSLean/Progress.lean) |
 | Where are exact theorem names checked? | The relevant `CLRSLean/Chapter_*` modules and `Tests/*_Interface.lean` |
 | What remains to be done? | [Open GitHub issues](https://github.com/TankTechnology/CLRS-Lean/issues) |
 

@@ -16,7 +16,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TRUST_DIR = Path("Tests") / "Trust"
+TRUST_DIR = Path("tests") / "Trust"
 CHAPTER_NAME_RE = re.compile(r"Chapter_(\d{2})\.lean")
 CHAPTER_RANGE_RE = re.compile(r"(\d+)-(\d+)")
 

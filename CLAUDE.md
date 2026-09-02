@@ -20,8 +20,8 @@ The public project name is `CLRS-Lean`.  The Lean library root remains
 ## Repository shape
 
 ```
-CLRSLean.lean                 ← top-level entry + Verso landing page
-CLRSLean/
+src/CLRSLean.lean             ← top-level entry + Verso landing page
+src/CLRSLean/
   FourthEdition.lean          ← canonical fourth-edition chapter tree
   FourthEdition/Chapter_02.lean
                               ← canonical guide/facade
@@ -35,7 +35,7 @@ CLRSLean/
   Chapter_23/
     Section_23_1_Growing_Minimum_Spanning_Trees.lean
     Section_23_2_Kruskal_And_Prim.lean
-lakefile.lean                 ← Lake build config (Lean DSL)
+lakefile.lean                 ← Lake build config (Lean DSL, srcDir := "src")
 literate.toml                 ← Verso module ordering + titles
 lean-toolchain                ← Lean version pin
 CLAUDE.md                     ← this file
@@ -45,7 +45,7 @@ docs/
   scope.md                    ← advertised project boundary
   migrations/clrs4.md         ← import and deprecation policy
   proof-patterns/             ← reusable proof-engineering lessons
-Tests/                        ← interface and closure tests
+tests/                        ← interface and closure tests
 scripts/check_repository.py  ← fast repository-wide checks
 ```
 
@@ -109,7 +109,7 @@ that keep it fast and non-destructive:
   build is *not* sorry-proof): `grep` for `sorry`/`admit`; `#print axioms` on the
   headline theorem must show only `propext/Classical.choice/Quot.sound` (no
   `sorryAx`); check no public declaration was removed/weakened; regenerate
-  `CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
+  `src/CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
   rather than hand-merging it.
 - **GitHub hygiene:** create labels before issues; have agents commit early/often.
 - Recover a corrupted `.lake` with `scripts/refresh-golden.sh`.
@@ -218,11 +218,11 @@ end CLRS
 ## How to add a new section
 
 1. Start from `docs/clrs-fourth-edition-map.csv` and the canonical
-   `CLRSLean/FourthEdition/Chapter_NN.lean` guide.  Do not infer a
+   `src/CLRSLean/FourthEdition/Chapter_NN.lean` guide.  Do not infer a
    fourth-edition number from a legacy filename.
 2. Create the `.lean` file under the current theorem-bearing source path named
    by the map.  Until its source migration lands, this can be a legacy
-   `CLRSLean/Chapter_MM/` path and declaration namespace.
+   `src/CLRSLean/Chapter_MM/` path and declaration namespace.
 3. Follow the skeleton above.
 4. Import the section from its source aggregator and update the canonical
    fourth-edition guide's coverage boundary.
@@ -288,4 +288,4 @@ Verso reads:
   module-level `/-!` block.
 - **Status synchronization**: consult the edition map, update the progress CSV
   and proof map with public theorem changes, and regenerate
-  `CLRSLean/Progress.lean` from the CSV.
+  `src/CLRSLean/Progress.lean` from the CSV.

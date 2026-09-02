@@ -11,7 +11,7 @@ from check_v1_trust_gate import TrustGateError, run_audits, validate_chapter_fil
 
 
 def write_chapter(root: Path, chapter: int) -> Path:
-    trust_dir = root / "Tests" / "Trust"
+    trust_dir = root / "tests" / "Trust"
     trust_dir.mkdir(parents=True, exist_ok=True)
     path = trust_dir / f"Chapter_{chapter:02d}.lean"
     path.write_text("example : True := by trivial\n", encoding="utf-8")
@@ -31,7 +31,7 @@ class ChapterFileValidationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             write_chapter(root, 1)
-            bad = root / "Tests" / "Trust" / "Chapter_1.lean"
+            bad = root / "tests" / "Trust" / "Chapter_1.lean"
             bad.write_text("example : True := by trivial\n", encoding="utf-8")
 
             with self.assertRaisesRegex(TrustGateError, r"Chapter_1\.lean"):
@@ -56,7 +56,7 @@ class LeanInvocationTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             chapter = write_chapter(root, 1)
-            (root / "Tests" / "Trust" / "AxiomAudit.lean").write_text(
+            (root / "tests" / "Trust" / "AxiomAudit.lean").write_text(
                 "example : True := by trivial\n", encoding="utf-8"
             )
             calls: list[tuple[str, ...]] = []
@@ -68,7 +68,7 @@ class LeanInvocationTest(unittest.TestCase):
             with self.assertRaisesRegex(TrustGateError, r"Chapter_01\.lean.*exit 9"):
                 run_audits(root, [chapter], command_runner=fail_chapter)
 
-            self.assertEqual(calls[-1][-1], "Tests/Trust/Chapter_01.lean")
+            self.assertEqual(calls[-1][-1], "tests/Trust/Chapter_01.lean")
 
 
 if __name__ == "__main__":

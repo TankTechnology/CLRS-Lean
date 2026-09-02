@@ -58,7 +58,7 @@ def is_reader_sidebar_module(module_name: str) -> bool:
 def load_reader_parent_routes(root: Path = ROOT) -> dict[str, str]:
     """Map hidden legacy module prefixes to their visible reader page."""
     routes: dict[str, str] = {}
-    fourth_edition_dir = root / "CLRSLean" / "FourthEdition"
+    fourth_edition_dir = root / "src" / "CLRSLean" / "FourthEdition"
     for guide in sorted(fourth_edition_dir.glob("Chapter_[0-9][0-9].lean")):
         canonical = f"CLRSLean.FourthEdition.{guide.stem}"
         for source in re.findall(
@@ -68,7 +68,7 @@ def load_reader_parent_routes(root: Path = ROOT) -> dict[str, str]:
         ):
             routes[source] = canonical
 
-    online_material = root / "CLRSLean" / "OnlineMaterial.lean"
+    online_material = root / "src" / "CLRSLean" / "OnlineMaterial.lean"
     if online_material.is_file():
         for source in re.findall(
             r"^import\s+(CLRSLean\.Chapter_[^\s]+)",

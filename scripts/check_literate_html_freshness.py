@@ -9,13 +9,14 @@ from pathlib import Path
 
 
 def expected_source(root: Path, rel_parts: tuple[str, ...]) -> Path | None:
+    """The ``CLRSLean`` library lives under ``src/`` (``srcDir := "src"``)."""
     if not rel_parts:
-        return root / "CLRSLean.lean"
+        return root / "src" / "CLRSLean.lean"
 
     if len(rel_parts) == 1:
-        return root / "CLRSLean" / f"{rel_parts[0]}.lean"
+        return root / "src" / "CLRSLean" / f"{rel_parts[0]}.lean"
 
-    return root / "CLRSLean" / Path(*rel_parts[:-1]) / f"{rel_parts[-1]}.lean"
+    return root / "src" / "CLRSLean" / Path(*rel_parts[:-1]) / f"{rel_parts[-1]}.lean"
 
 
 def stale_pages(root: Path, site_root: Path) -> list[tuple[Path, Path]]:
