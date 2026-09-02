@@ -144,12 +144,12 @@ states the project-wide claim boundary.
 ## Repository shape
 
 - `CLRSLean.lean` — top-level entry + Verso landing page
-- `CLRSLean/FourthEdition.lean` — canonical fourth-edition chapter tree
-- `CLRSLean/FourthEdition/Chapter_02.lean` — canonical guide/facade
-- `CLRSLean/OnlineMaterial.lean` — retained online/supplementary catalog
-- `CLRSLean/ProofPatterns/` — reusable cross-chapter proof APIs
-- `CLRSLean/Chapter_02.lean` — compatibility source guide/aggregator
-- `CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean` — section module
+- `src/CLRSLean/FourthEdition.lean` — canonical fourth-edition chapter tree
+- `src/CLRSLean/FourthEdition/Chapter_02.lean` — canonical guide/facade
+- `src/CLRSLean/OnlineMaterial.lean` — retained online/supplementary catalog
+- `src/CLRSLean/ProofPatterns/` — reusable cross-chapter proof APIs
+- `src/CLRSLean/Chapter_02.lean` — compatibility source guide/aggregator
+- `src/CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean` — section module
 - `lakefile.lean` — Lake build config (Lean DSL)
 - `literate.toml` — Verso module ordering + titles
 - `lean-toolchain` — Lean version pin
@@ -158,7 +158,7 @@ states the project-wide claim boundary.
 - `docs/scope.md` — advertised project boundary
 - `docs/migrations/clrs4.md` — import and deprecation policy
 - `docs/proof-patterns/` — reusable proof-engineering lessons
-- `Tests/` — interface and closure tests
+- `tests/` — interface and closure tests
 - `scripts/check_repository.py` — fast repository-wide checks
 
 ## Build commands
@@ -171,16 +171,15 @@ states the project-wide claim boundary.
 Use the lightest command that answers your question.  Full details in
 `docs/build-and-agents.md`.
 
-| Situation | Command |
-|---|---|
-| Checking a single proof compiles | `lake lean <file>` |
-| Checking + caching olean | `lake build +<Module.Path>` |
-| Quick re-check after small edit | `lake build --old CLRSLean` |
-| Full check before committing | `lake build CLRSLean` |
-| Lakefile / dependency changes | `lake build --reconfigure CLRSLean` |
-| Suspect stale trace / weird error | `lake build --rehash CLRSLean` |
-| Build Verso website (publishing tasks only) | four-shard runbook in `docs/site-architecture.md` |
-| Build doc-gen4 API docs | `lake -R -Kenv=dev build CLRSLean:docs` |
+- Checking a single proof compiles: `lake lean <file>`
+- Checking + caching olean: `lake build +<Module.Path>`
+- Quick re-check after small edit: `lake build --old CLRSLean`
+- Full check before committing: `lake build CLRSLean`
+- Lakefile / dependency changes: `lake build --reconfigure CLRSLean`
+- Suspect stale trace / weird error: `lake build --rehash CLRSLean`
+- Build Verso website (publishing tasks only): four-shard runbook in
+  `docs/site-architecture.md`
+- Build doc-gen4 API docs: `lake -R -Kenv=dev build CLRSLean:docs`
 
 **Typical latency** (warm build, single-file edit): `lake lean <file>` ≈ 5 s,
 `lake build --old` ≈ 3 s, full `lake build` ≈ 6 s.
@@ -213,32 +212,31 @@ that keep it fast and non-destructive:
   build is *not* sorry-proof): `grep` for `sorry`/`admit`; `#print axioms` on the
   headline theorem must show only `propext/Classical.choice/Quot.sound` (no
   `sorryAx`); check no public declaration was removed/weakened; regenerate
-  `CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
+  `src/CLRSLean/Progress.lean` from the CSV (`check_progress_csv.py --write-dashboard`)
   rather than hand-merging it.
 - **GitHub hygiene:** create labels before issues; have agents commit early/often.
 - Recover a corrupted `.lake` with `scripts/refresh-golden.sh`.
 
 ## Sources of Truth
 
-| Question | Canonical source |
-| --- | --- |
-| What Lean modules exist? | `CLRSLean/`, checked against `literate.toml` |
-| What does a chapter number mean? | `docs/clrs-fourth-edition-map.csv` |
-| What is the public theorem interface? | Section `.lean` files and `Tests/` |
-| What is the chapter-level progress snapshot? | `docs/clrs-proof-progress.csv` |
-| What boundary does the project advertise? | `docs/scope.md` |
-| What should be worked on next? | GitHub issues |
-| What appears on the website? | `CLRSLean.lean`, chapter guides, and `literate.toml` |
+- What Lean modules exist? `src/CLRSLean/`, checked against `literate.toml`
+- What does a chapter number mean? `docs/clrs-fourth-edition-map.csv`
+- What is the public theorem interface? Section `.lean` files and `tests/`
+- What is the chapter-level progress snapshot? `docs/clrs-proof-progress.csv`
+- What boundary does the project advertise? `docs/scope.md`
+- What should be worked on next? GitHub issues
+- What appears on the website? `src/CLRSLean.lean`, chapter guides, and
+  `literate.toml`
 
 ## Navigation
 
-* {lit}`CLRSLean/FourthEdition.lean`: canonical fourth-edition chapter tree.
-* {lit}`CLRSLean/Chapter_NN.lean`: third-edition compatibility guides.
-* {lit}`CLRSLean/Chapter_NN/Section_NN_NN_*.lean`: theorem-bearing sources.
-* {lit}`CLRSLean/Progress.lean`: generated progress dashboard.
-* {lit}`CLRSLean/Status.lean`: reader-facing proof status.
-* {lit}`CLRSLean/Workflow.lean`: contributor workflow.
-* {lit}`Tests/Chapter_XX_Interface.lean`: public interface checks.
+* {lit}`src/CLRSLean/FourthEdition.lean`: canonical fourth-edition chapter tree.
+* {lit}`src/CLRSLean/Chapter_NN.lean`: third-edition compatibility guides.
+* {lit}`src/CLRSLean/Chapter_NN/Section_NN_NN_*.lean`: theorem-bearing sources.
+* {lit}`src/CLRSLean/Progress.lean`: generated progress dashboard.
+* {lit}`src/CLRSLean/Status.lean`: reader-facing proof status.
+* {lit}`src/CLRSLean/Workflow.lean`: contributor workflow.
+* {lit}`tests/Chapter_XX_Interface.lean`: public interface checks.
 
 Chapter guides aggregate section modules.  Section modules own formal facts.
 Interface tests protect the public surface.  Progress prose never replaces a
