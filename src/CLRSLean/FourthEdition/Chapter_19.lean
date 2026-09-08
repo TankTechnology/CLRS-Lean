@@ -1,3 +1,4 @@
+import CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation.WeightedExecution
 import CLRSLean.Chapter_21
 import CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations
 import CLRSLean.FourthEdition.Chapter_19.Section_19_2_Linked_List_Representation
@@ -40,6 +41,15 @@ The supporting implementation pages remain available outside the main sidebar:
 The native sections supply all represented fourth-edition disjoint-set
 sections.  The namespace migration `CLRS.Chapter21` → `CLRS.Chapter19` is
 tracked chapter by chapter.
+
+The weighted-list companion runs mixed UNION/FIND commands from actual head-table
+states and constructs the per-element rewrite ledger from pre/post representative
+changes. Singleton initialization and preserved size/cardinality invariants yield
+at most {lit}`n log₂ n` actual head changes, with no caller-supplied move events.
+The final partition refines the operation specification and FIND outputs identify
+the representative reached after the preceding commands. Adding one abstract
+command event gives {lit}`m + n log₂ n`; this is a pointer-change charge, not the
+runtime of enumerating the audit ledger or a concrete linked-list allocator.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
