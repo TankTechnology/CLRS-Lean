@@ -37,3 +37,8 @@ import CLRSLean.Chapter_02.Section_02_3_Designing_Algorithms.Merge_Sort_Recurren
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo
 #check CLRS.Chapter02.mergeSortRecurrenceOnPowersOfTwo_closedForm
 #check CLRS.Chapter02.MergeSortRecurrence.theta_n_log_n_all_inputs
+
+#check CLRS.Chapter02.insertionSortComparisons_le_worst
+#check CLRS.Chapter02.insertionSortComparisons_worst_input
+#check CLRS.Chapter02.insertionSortWorstComparisons_isGreatest
+#check CLRS.Chapter02.insertionSortComparisons_worst_case_theta
