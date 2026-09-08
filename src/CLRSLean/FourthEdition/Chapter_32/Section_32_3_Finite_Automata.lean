@@ -33,8 +33,10 @@ shift is recorded whenever the state reaches `|P|`.
   with `transitionLookup_eq_delta` (lookup is exactly `δ`).
 - `dfaMatcherTable` — the table-driven matcher, refining `dfaMatcher`
   (`dfaMatcherTable_correct`).
-- `transitionTableBuildCost_eq`/`dfaMatcherCost_eq` — preprocessing is
-  `(|P| + 1)·|Σ|` and matching is `Θ(|T|)`.
+- {lit}`transitionTableBuildCost_eq` / {lit}`dfaMatcherCost_eq` count table
+  cells and transition requests. They do not count suffix-search construction
+  or list/alphabet lookup runtime. {lit}`CachedScan` passes one constructed
+  table explicitly and counts the actual transition requests.
 
 Notation conventions used in this section:
 
@@ -645,9 +647,8 @@ theorem dfaMatcher_complete (P T : Text α) (s : ℕ) (h : matchesAt T P s) : s 
   rw [dfaMatcher_correct]
   exact naiveMatcher_complete T P s h
 
-/-- The deterministic matching-time work of the finite-automaton matcher: one
-transition per text character, so the matching phase runs in time `Θ(|T|)` after
-the transition table has been precomputed. -/
+/-- Transition-request budget: one per text character. This does not count
+transition computation, alphabet indexing or list-table access. -/
 def dfaMatcherCost (P T : Text α) : ℕ := T.length
 
 /-- The automaton matcher scans each character once. -/
@@ -700,7 +701,9 @@ theorem transitionLookup_eq_delta (alphabet : List α) (P : Text α) (q : ℕ) (
 
 /--
 The table-driven scan: the same left-to-right scan as `dfaScan`, but each
-transition is read from the precomputed table rather than recomputed as `δ`.
+transition uses a table expression. This legacy definition contains table
+construction inside each recursive call; {lit}`CachedScan` instead accepts a
+previously constructed table as an explicit parameter.
 -/
 def dfaScanTable (alphabet : List α) (P : Text α) (m : ℕ) (scanned : Text α) (q : ℕ) : Text α → List ℕ
   | [] => if q == m then [scanned.length - m] else []
@@ -716,7 +719,8 @@ lemma dfaScanTable_cons (alphabet : List α) (P : Text α) (m : ℕ) (scanned : 
   by_cases h : q == m <;> simp [dfaScanTable, h]
 
 /-- The table-driven matcher (CLRS `FINITE-AUTOMATON-MATCHER` with precomputed
-`δ`): scan `T` using the transition table for `alphabet`, in O(1) per character. -/
+{lit}`δ`): the reference scan over a table expression. List lookup and
+alphabet indexing do not provide constant-time transitions. -/
 def dfaMatcherTable (alphabet : List α) (P T : Text α) : List ℕ :=
   dfaScanTable alphabet P P.length [] 0 T
 
@@ -751,14 +755,14 @@ theorem dfaMatcherTable_eq_naive (alphabet : List α) (P T : Text α) (hT : ∀ 
     dfaMatcherTable alphabet P T = naiveMatcher T P := by
   rw [dfaMatcherTable_correct alphabet P T hT, dfaMatcher_correct]
 
-/-- The deterministic preprocessing work: the total number of table cells, one
-unit per precomputed transition. -/
+/-- Table-cell count, excluding the suffix-search work used to compute each
+transition and excluding allocation costs. -/
 def transitionTableBuildCost (alphabet : List α) (P : Text α) : ℕ :=
   ((transitionTable alphabet P).map List.length).sum
 
 /--
-The preprocessing cost equals `(|P| + 1) · |alphabet|`: the transition table has
-one cell per state-symbol pair, matching the textbook `O(m·|Σ|)` construction.
+The table has {lit}`(|P| + 1) * |alphabet|` cells, one per state/symbol pair.
+This does not prove that the suffix-search builder runs in that many operations.
 -/
 theorem transitionTableBuildCost_eq (alphabet : List α) (P : Text α) :
     transitionTableBuildCost alphabet P = (P.length + 1) * alphabet.length := by
@@ -768,7 +772,7 @@ theorem transitionTableBuildCost_eq (alphabet : List α) (P : Text α) :
       = (P.length + 1) * alphabet.length
   simp [List.length_map, List.length_range, List.sum_replicate]
 
-/-- The total deterministic work: preprocessing plus the Θ(|T|) scan. -/
+/-- Sum of the table-cell and transition-request budgets, not total runtime. -/
 theorem dfaTotalCost_eq (alphabet : List α) (P T : Text α) :
     transitionTableBuildCost alphabet P + dfaMatcherCost P T = (P.length + 1) * alphabet.length + T.length := by
   rw [transitionTableBuildCost_eq, dfaMatcherCost_eq]
