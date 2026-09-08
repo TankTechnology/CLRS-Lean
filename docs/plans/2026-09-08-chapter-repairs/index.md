@@ -6,43 +6,44 @@
 覆盖全部 54 个非 MATCH 主判定节，并含部分 MATCH 章节的文档修正；第 7、9、33、34 章
 没有本次新增的确定性修复项，保留审查范围限制。历史审计文件不因修复而改写。
 
-| 章 | 严重度 | Issue | 本地修复状态 |
+| 章 | 严重度 | Issue | 集成状态 |
 | --- | --- | --- | --- |
-| 1 | MINOR | [#345](https://github.com/TankTechnology/CLRS-Lean/issues/345) | 已提交，待合并 |
-| 2 | UNCERTAIN | [#346](https://github.com/TankTechnology/CLRS-Lean/issues/346) | 已提交，待合并 |
-| 3 | MINOR | [#347](https://github.com/TankTechnology/CLRS-Lean/issues/347) | 已提交，待合并 |
-| 4 | UNCERTAIN | [#348](https://github.com/TankTechnology/CLRS-Lean/issues/348) | 已提交，待合并 |
-| 5 | MINOR | [#349](https://github.com/TankTechnology/CLRS-Lean/issues/349) | 已提交，待合并 |
-| 6 | MINOR | [#350](https://github.com/TankTechnology/CLRS-Lean/issues/350) | 已提交，待合并 |
-| 8 | MAJOR | [#351](https://github.com/TankTechnology/CLRS-Lean/issues/351) | 已提交，待合并 |
-| 10 | MINOR | [#352](https://github.com/TankTechnology/CLRS-Lean/issues/352) | 已提交，待合并 |
-| 11 | MAJOR | [#353](https://github.com/TankTechnology/CLRS-Lean/issues/353) | 已提交，待合并 |
-| 12 | MINOR | [#354](https://github.com/TankTechnology/CLRS-Lean/issues/354) | 已提交，待合并 |
-| 13 | MAJOR | [#355](https://github.com/TankTechnology/CLRS-Lean/issues/355) | 已提交，待合并 |
-| 14 | MAJOR | [#356](https://github.com/TankTechnology/CLRS-Lean/issues/356) | 已提交，待合并 |
-| 15 | MINOR | [#357](https://github.com/TankTechnology/CLRS-Lean/issues/357) | 已提交，待合并 |
-| 16 | MINOR | [#358](https://github.com/TankTechnology/CLRS-Lean/issues/358) | 已提交，待合并 |
-| 17 | MAJOR | [#359](https://github.com/TankTechnology/CLRS-Lean/issues/359) | 已提交，待合并 |
-| 18 | MINOR | [#360](https://github.com/TankTechnology/CLRS-Lean/issues/360) | 已提交，待合并 |
-| 19 | MINOR | [#361](https://github.com/TankTechnology/CLRS-Lean/issues/361) | 已提交，待合并 |
-| 20 | MINOR | [#362](https://github.com/TankTechnology/CLRS-Lean/issues/362) | 已提交，待合并 |
-| 21 | MAJOR | [#363](https://github.com/TankTechnology/CLRS-Lean/issues/363) | 已提交，待合并 |
-| 22 | MAJOR | [#364](https://github.com/TankTechnology/CLRS-Lean/issues/364) | 已提交，待合并 |
-| 23 | MAJOR | [#365](https://github.com/TankTechnology/CLRS-Lean/issues/365) | 已提交，待合并 |
-| 24 | MAJOR | [#366](https://github.com/TankTechnology/CLRS-Lean/issues/366) | 已提交，待合并 |
-| 25 | MINOR | [#367](https://github.com/TankTechnology/CLRS-Lean/issues/367) | 已提交，待合并 |
-| 26 | MINOR | [#368](https://github.com/TankTechnology/CLRS-Lean/issues/368) | 已提交，待合并 |
-| 27 | CRITICAL | [#369](https://github.com/TankTechnology/CLRS-Lean/issues/369) | 已提交，待合并 |
-| 28 | MINOR | [#370](https://github.com/TankTechnology/CLRS-Lean/issues/370) | 已提交，待合并 |
-| 29 | MINOR | [#371](https://github.com/TankTechnology/CLRS-Lean/issues/371) | 已提交，待合并 |
-| 30 | MINOR | [#372](https://github.com/TankTechnology/CLRS-Lean/issues/372) | 已提交，待合并 |
-| 31 | MAJOR | [#373](https://github.com/TankTechnology/CLRS-Lean/issues/373) | 已提交，待合并 |
-| 32 | MAJOR | [#374](https://github.com/TankTechnology/CLRS-Lean/issues/374) | 已提交，待合并 |
-| 35 | MINOR | [#375](https://github.com/TankTechnology/CLRS-Lean/issues/375) | 已提交，待合并 |
+| 1 | MINOR | [#345](https://github.com/TankTechnology/CLRS-Lean/issues/345) | 已合并，issue 已关闭 |
+| 2 | UNCERTAIN | [#346](https://github.com/TankTechnology/CLRS-Lean/issues/346) | 已合并，issue 已关闭 |
+| 3 | MINOR | [#347](https://github.com/TankTechnology/CLRS-Lean/issues/347) | 已合并，issue 已关闭 |
+| 4 | UNCERTAIN | [#348](https://github.com/TankTechnology/CLRS-Lean/issues/348) | 已合并，issue 已关闭 |
+| 5 | MINOR | [#349](https://github.com/TankTechnology/CLRS-Lean/issues/349) | 已合并，issue 已关闭 |
+| 6 | MINOR | [#350](https://github.com/TankTechnology/CLRS-Lean/issues/350) | 已合并，issue 已关闭 |
+| 8 | MAJOR | [#351](https://github.com/TankTechnology/CLRS-Lean/issues/351) | 已合并，issue 已关闭 |
+| 10 | MINOR | [#352](https://github.com/TankTechnology/CLRS-Lean/issues/352) | 已合并，issue 已关闭 |
+| 11 | MAJOR | [#353](https://github.com/TankTechnology/CLRS-Lean/issues/353) | 已合并，issue 已关闭 |
+| 12 | MINOR | [#354](https://github.com/TankTechnology/CLRS-Lean/issues/354) | 已合并，issue 已关闭 |
+| 13 | MAJOR | [#355](https://github.com/TankTechnology/CLRS-Lean/issues/355) | 已合并，issue 已关闭 |
+| 14 | MAJOR | [#356](https://github.com/TankTechnology/CLRS-Lean/issues/356) | 已合并，issue 已关闭 |
+| 15 | MINOR | [#357](https://github.com/TankTechnology/CLRS-Lean/issues/357) | 已合并，issue 已关闭 |
+| 16 | MINOR | [#358](https://github.com/TankTechnology/CLRS-Lean/issues/358) | 已合并，issue 已关闭 |
+| 17 | MAJOR | [#359](https://github.com/TankTechnology/CLRS-Lean/issues/359) | 已合并，issue 已关闭 |
+| 18 | MINOR | [#360](https://github.com/TankTechnology/CLRS-Lean/issues/360) | 已合并，issue 已关闭 |
+| 19 | MINOR | [#361](https://github.com/TankTechnology/CLRS-Lean/issues/361) | 已合并，issue 已关闭 |
+| 20 | MINOR | [#362](https://github.com/TankTechnology/CLRS-Lean/issues/362) | 已合并，issue 已关闭 |
+| 21 | MAJOR | [#363](https://github.com/TankTechnology/CLRS-Lean/issues/363) | 已合并，issue 已关闭 |
+| 22 | MAJOR | [#364](https://github.com/TankTechnology/CLRS-Lean/issues/364) | 已合并，issue 已关闭 |
+| 23 | MAJOR | [#365](https://github.com/TankTechnology/CLRS-Lean/issues/365) | 已合并，issue 已关闭 |
+| 24 | MAJOR | [#366](https://github.com/TankTechnology/CLRS-Lean/issues/366) | 已合并，issue 已关闭 |
+| 25 | MINOR | [#367](https://github.com/TankTechnology/CLRS-Lean/issues/367) | 已合并，issue 已关闭 |
+| 26 | MINOR | [#368](https://github.com/TankTechnology/CLRS-Lean/issues/368) | 已合并，issue 已关闭 |
+| 27 | CRITICAL | [#369](https://github.com/TankTechnology/CLRS-Lean/issues/369) | 已合并，issue 已关闭 |
+| 28 | MINOR | [#370](https://github.com/TankTechnology/CLRS-Lean/issues/370) | 已合并，issue 已关闭 |
+| 29 | MINOR | [#371](https://github.com/TankTechnology/CLRS-Lean/issues/371) | 已合并，issue 已关闭 |
+| 30 | MINOR | [#372](https://github.com/TankTechnology/CLRS-Lean/issues/372) | 已合并，issue 已关闭 |
+| 31 | MAJOR | [#373](https://github.com/TankTechnology/CLRS-Lean/issues/373) | 已合并，issue 已关闭 |
+| 32 | MAJOR | [#374](https://github.com/TankTechnology/CLRS-Lean/issues/374) | 已合并，issue 已关闭 |
+| 35 | MINOR | [#375](https://github.com/TankTechnology/CLRS-Lean/issues/375) | 已合并，issue 已关闭 |
 
-31 个章节分别提交，逐章 SHA 见 [提交映射](commits.csv)。修复位于
-`codex/chapter-audit-repairs-2026-09-08` 分支，等待 PR 审查与合并；章节 issue
-在合并前保持开放。早期批次记录的“本地待提交”是阶段状态。
+31 个章节分别提交，逐章 SHA 见 [提交映射](commits.csv)。修复经
+[PR #377](https://github.com/TankTechnology/CLRS-Lean/pull/377) 合并到
+`main`（merge commit `fadc6b6f`）；31 个章节 issue 及总跟踪 issue #376
+随合并关闭。早期批次记录的“本地待提交”是阶段状态。
 修复记录：[第 1–3 章](first-batch.md)、[第 4–6 章](chapters-04-06.md)、
 [第 8 章](chapter-08-results.md)、[第 10–12 章](chapters-10-12.md)。
 
@@ -54,4 +55,4 @@
 [第 21–30、32 章修复记录](chapters-21-32.md)、[第 31 章专项记录](chapter-31.md)、
 [第 35 章专项记录](chapter-35.md) 已补齐其余章节。31 个章节 issue 的当前验收项均已完成本地修复与验证；没有新增修复项的第 7、9、33、34 章不被改称为全面审计通过。
 
-[统一验收记录](verification.md)：最终全库构建 10,768 项通过，35 章信任门及第 31 章最终扩展信任表面通过，新增针对性回归和仓库校验通过。章节独立提交记录在 [commits.csv](commits.csv)；是否已合并以关联 PR 和远端 issue 为准。
+[统一验收记录](verification.md)：最终全库构建 10,768 项通过，35 章信任门及第 31 章最终扩展信任表面通过，新增针对性回归和仓库校验通过。章节独立提交记录在 [commits.csv](commits.csv)，并已随 PR #377 集成。

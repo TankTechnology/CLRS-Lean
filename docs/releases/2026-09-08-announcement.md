@@ -46,17 +46,23 @@ fidelity. The textbook correspondence remains NOT-INDEPENDENTLY-VERIFIED.
 
 ## Release validation
 
-Use the final verification results in the repair record. Before describing the
-public website as updated, deploy and validate that checkout using the
-[site build and preview runbook](../site-architecture.md#local-preview).
+PR #377 is merged as `fadc6b6f`. On that merged checkout, the library build
+passed 10,768 jobs, the repository checks and all 35 chapter trust surfaces
+passed, and the GitHub Pages-equivalent four-shard pipeline built 2,188 modules
+into 2,190 optimized HTML pages and sitemap URLs. Raw-page weight, source
+freshness and final rendering checks passed.
 
-The earlier local website cleanup passed repository checks, library build
-(10,700 jobs), all 35 chapter trust surfaces, Verso build/four-shard rendering
-(2,120 modules), and 2,122 prepared HTML pages/sitemap entries. Chromium checks
-covered navigation, 161 internal links, and mobile width. The fourth-edition
-chapter index was then checked with all 35 names expanded, including saved
-collapsed state and JavaScript disabled; third-edition compatibility chapters
-were absent from the default sidebar. Those site checks predate the Lean
-repairs and do not certify a freshly rendered repair checkout.
+The optimized `_site` was served locally and inspected with Chromium. The
+homepage, all 35 fourth-edition chapter links, Chapter 35 and the progress page
+loaded successfully; the fourth-edition chapter index remained fully visible
+with JavaScript disabled, while third-edition compatibility chapters remained
+outside default navigation. Desktop and 390px mobile pages had no horizontal
+overflow, browser console errors or page exceptions. Desktop/mobile homepage
+and Chapter 35 screenshots were visually checked.
+
+Before describing the public website as updated, dispatch the manual GitHub
+Pages workflow from `main`, wait for its deployment environment to succeed,
+then repeat the public URL smoke checks from the
+[site build and preview runbook](../site-architecture.md#local-preview).
 
 No tweet has been posted and no website deployment is recorded by this work.

@@ -1,32 +1,32 @@
 chapter_no,severity,issue_no,url,title,repair_state
-1,MINOR,345,https://github.com/TankTechnology/CLRS-Lean/issues/345,audit(ch01): 更新第四版导读编号与失败接口约定,implemented-awaiting-merge
-2,UNCERTAIN,346,https://github.com/TankTechnology/CLRS-Lean/issues/346,audit(ch02): 连接插入排序实际比较计数与最坏情况界,implemented-awaiting-merge
-3,MINOR,347,https://github.com/TankTechnology/CLRS-Lean/issues/347,audit(ch03): 统一辅助模块中的第四版节编号,implemented-awaiting-merge
-4,UNCERTAIN,348,https://github.com/TankTechnology/CLRS-Lean/issues/348,audit(ch04): 补齐矩阵成本及递推定理的公开连接,implemented-awaiting-merge
-5,MINOR,349,https://github.com/TankTechnology/CLRS-Lean/issues/349,audit(ch05): 更新概率分析导读以呈现已有最长连续段结果,implemented-awaiting-merge
-6,MINOR,350,https://github.com/TankTechnology/CLRS-Lean/issues/350,audit(ch06): 准确说明 heapify 的修复前提与控制步成本,implemented-awaiting-merge
-8,MAJOR,351,https://github.com/TankTechnology/CLRS-Lean/issues/351,audit(ch08): 修复线性排序的分配执行与成本对应,implemented-awaiting-merge
-10,MINOR,352,https://github.com/TankTechnology/CLRS-Lean/issues/352,audit(ch10): 补齐数组状态与链表查询的公开契约,implemented-awaiting-merge
-11,MAJOR,353,https://github.com/TankTechnology/CLRS-Lean/issues/353,audit(ch11): 修正完全散列单射量词与构造成本声明,implemented-awaiting-merge
-12,MINOR,354,https://github.com/TankTechnology/CLRS-Lean/issues/354,audit(ch12): 澄清集合 BST 与补充期望高度的展示范围,implemented-awaiting-merge
-13,MAJOR,355,https://github.com/TankTechnology/CLRS-Lean/issues/355,audit(ch13): 修复红黑树指针旋转、表示关系与更新成本,implemented-awaiting-merge
-14,MAJOR,356,https://github.com/TankTechnology/CLRS-Lean/issues/356,audit(ch14): 实现与表格成本一致的动态规划执行,implemented-awaiting-merge
-15,MINOR,357,https://github.com/TankTechnology/CLRS-Lean/issues/357,audit(ch15): 明确离线缓存任意容量的空缓存启动边界,implemented-awaiting-merge
-16,MINOR,358,https://github.com/TankTechnology/CLRS-Lean/issues/358,audit(ch16): 补齐混合栈操作序列的摊还分析,implemented-awaiting-merge
-17,MAJOR,359,https://github.com/TankTechnology/CLRS-Lean/issues/359,audit(ch17): 修复同左端点区间插入及增强成本桥接,implemented-awaiting-merge
-18,MINOR,360,https://github.com/TankTechnology/CLRS-Lean/issues/360,audit(ch18): 连接 B 树递归下降预算与页面访问解释,implemented-awaiting-merge
-19,MINOR,361,https://github.com/TankTechnology/CLRS-Lean/issues/361,audit(ch19): 从加权链表并查集执行构造总改写计数,implemented-awaiting-merge
-20,MINOR,362,https://github.com/TankTechnology/CLRS-Lean/issues/362,audit(ch20): 说明拓扑排序与 SCC 的结束时间排序成本,implemented-awaiting-merge
-21,MAJOR,363,https://github.com/TankTechnology/CLRS-Lean/issues/363,audit(ch21): 从 Prim 执行构造最终生成树及实际成本,implemented-awaiting-merge
-22,MAJOR,364,https://github.com/TankTechnology/CLRS-Lean/issues/364,audit(ch22): 补齐前驱树构造与最短路检测范围,implemented-awaiting-merge
-23,MAJOR,365,https://github.com/TankTechnology/CLRS-Lean/issues/365,audit(ch23): 补齐负环检测完备性并连接 APSP 执行成本,implemented-awaiting-merge
-24,MAJOR,366,https://github.com/TankTechnology/CLRS-Lean/issues/366,audit(ch24): 完成 Edmonds–Karp 稀疏界及 relabel-to-front 调度执行,implemented-awaiting-merge
-25,MINOR,367,https://github.com/TankTechnology/CLRS-Lean/issues/367,audit(ch25): 修正匹配章节的过期缺口及女性最差性注释,implemented-awaiting-merge
-26,MINOR,368,https://github.com/TankTechnology/CLRS-Lean/issues/368,audit(ch26): 明确并行矩阵执行的维度范围,implemented-awaiting-merge
-27,CRITICAL,369,https://github.com/TankTechnology/CLRS-Lean/issues/369,audit(ch27): 修复不可满足的缓存接口及在线下界量词,implemented-awaiting-merge
-28,MINOR,370,https://github.com/TankTechnology/CLRS-Lean/issues/370,audit(ch28): 对齐矩阵运算旧 Θ 措辞与已闭合 LUP 成本,implemented-awaiting-merge
-29,MINOR,371,https://github.com/TankTechnology/CLRS-Lean/issues/371,audit(ch29): 修正线性规划导读对已导入求解器的范围描述,implemented-awaiting-merge
-30,MINOR,372,https://github.com/TankTechnology/CLRS-Lean/issues/372,audit(ch30): 明确 FFT 精确乘法计数中的根准备与共享假设,implemented-awaiting-merge
-31,MAJOR,373,https://github.com/TankTechnology/CLRS-Lean/issues/373,audit(ch31): 绑定 Miller–Rabin 计数与实际测试及多轮概率,implemented-awaiting-merge
-32,MAJOR,374,https://github.com/TankTechnology/CLRS-Lean/issues/374,audit(ch32): 修复 DFA 构造计数与 Rabin–Karp 常数更新声明,implemented-awaiting-merge
-35,MINOR,375,https://github.com/TankTechnology/CLRS-Lean/issues/375,audit(ch35): 补近似算法组合接口与输出规模连接,implemented-awaiting-merge
+1,MINOR,345,https://github.com/TankTechnology/CLRS-Lean/issues/345,audit(ch01): 更新第四版导读编号与失败接口约定,merged-closed
+2,UNCERTAIN,346,https://github.com/TankTechnology/CLRS-Lean/issues/346,audit(ch02): 连接插入排序实际比较计数与最坏情况界,merged-closed
+3,MINOR,347,https://github.com/TankTechnology/CLRS-Lean/issues/347,audit(ch03): 统一辅助模块中的第四版节编号,merged-closed
+4,UNCERTAIN,348,https://github.com/TankTechnology/CLRS-Lean/issues/348,audit(ch04): 补齐矩阵成本及递推定理的公开连接,merged-closed
+5,MINOR,349,https://github.com/TankTechnology/CLRS-Lean/issues/349,audit(ch05): 更新概率分析导读以呈现已有最长连续段结果,merged-closed
+6,MINOR,350,https://github.com/TankTechnology/CLRS-Lean/issues/350,audit(ch06): 准确说明 heapify 的修复前提与控制步成本,merged-closed
+8,MAJOR,351,https://github.com/TankTechnology/CLRS-Lean/issues/351,audit(ch08): 修复线性排序的分配执行与成本对应,merged-closed
+10,MINOR,352,https://github.com/TankTechnology/CLRS-Lean/issues/352,audit(ch10): 补齐数组状态与链表查询的公开契约,merged-closed
+11,MAJOR,353,https://github.com/TankTechnology/CLRS-Lean/issues/353,audit(ch11): 修正完全散列单射量词与构造成本声明,merged-closed
+12,MINOR,354,https://github.com/TankTechnology/CLRS-Lean/issues/354,audit(ch12): 澄清集合 BST 与补充期望高度的展示范围,merged-closed
+13,MAJOR,355,https://github.com/TankTechnology/CLRS-Lean/issues/355,audit(ch13): 修复红黑树指针旋转、表示关系与更新成本,merged-closed
+14,MAJOR,356,https://github.com/TankTechnology/CLRS-Lean/issues/356,audit(ch14): 实现与表格成本一致的动态规划执行,merged-closed
+15,MINOR,357,https://github.com/TankTechnology/CLRS-Lean/issues/357,audit(ch15): 明确离线缓存任意容量的空缓存启动边界,merged-closed
+16,MINOR,358,https://github.com/TankTechnology/CLRS-Lean/issues/358,audit(ch16): 补齐混合栈操作序列的摊还分析,merged-closed
+17,MAJOR,359,https://github.com/TankTechnology/CLRS-Lean/issues/359,audit(ch17): 修复同左端点区间插入及增强成本桥接,merged-closed
+18,MINOR,360,https://github.com/TankTechnology/CLRS-Lean/issues/360,audit(ch18): 连接 B 树递归下降预算与页面访问解释,merged-closed
+19,MINOR,361,https://github.com/TankTechnology/CLRS-Lean/issues/361,audit(ch19): 从加权链表并查集执行构造总改写计数,merged-closed
+20,MINOR,362,https://github.com/TankTechnology/CLRS-Lean/issues/362,audit(ch20): 说明拓扑排序与 SCC 的结束时间排序成本,merged-closed
+21,MAJOR,363,https://github.com/TankTechnology/CLRS-Lean/issues/363,audit(ch21): 从 Prim 执行构造最终生成树及实际成本,merged-closed
+22,MAJOR,364,https://github.com/TankTechnology/CLRS-Lean/issues/364,audit(ch22): 补齐前驱树构造与最短路检测范围,merged-closed
+23,MAJOR,365,https://github.com/TankTechnology/CLRS-Lean/issues/365,audit(ch23): 补齐负环检测完备性并连接 APSP 执行成本,merged-closed
+24,MAJOR,366,https://github.com/TankTechnology/CLRS-Lean/issues/366,audit(ch24): 完成 Edmonds–Karp 稀疏界及 relabel-to-front 调度执行,merged-closed
+25,MINOR,367,https://github.com/TankTechnology/CLRS-Lean/issues/367,audit(ch25): 修正匹配章节的过期缺口及女性最差性注释,merged-closed
+26,MINOR,368,https://github.com/TankTechnology/CLRS-Lean/issues/368,audit(ch26): 明确并行矩阵执行的维度范围,merged-closed
+27,CRITICAL,369,https://github.com/TankTechnology/CLRS-Lean/issues/369,audit(ch27): 修复不可满足的缓存接口及在线下界量词,merged-closed
+28,MINOR,370,https://github.com/TankTechnology/CLRS-Lean/issues/370,audit(ch28): 对齐矩阵运算旧 Θ 措辞与已闭合 LUP 成本,merged-closed
+29,MINOR,371,https://github.com/TankTechnology/CLRS-Lean/issues/371,audit(ch29): 修正线性规划导读对已导入求解器的范围描述,merged-closed
+30,MINOR,372,https://github.com/TankTechnology/CLRS-Lean/issues/372,audit(ch30): 明确 FFT 精确乘法计数中的根准备与共享假设,merged-closed
+31,MAJOR,373,https://github.com/TankTechnology/CLRS-Lean/issues/373,audit(ch31): 绑定 Miller–Rabin 计数与实际测试及多轮概率,merged-closed
+32,MAJOR,374,https://github.com/TankTechnology/CLRS-Lean/issues/374,audit(ch32): 修复 DFA 构造计数与 Rabin–Karp 常数更新声明,merged-closed
+35,MINOR,375,https://github.com/TankTechnology/CLRS-Lean/issues/375,audit(ch35): 补近似算法组合接口与输出规模连接,merged-closed
