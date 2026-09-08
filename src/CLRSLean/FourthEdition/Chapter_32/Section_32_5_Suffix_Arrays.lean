@@ -34,6 +34,12 @@ Main results:
 
 ## Complexity
 
+The stored suffix positions are {lit}`0,...,n-1`. For an empty pattern the
+range query returns those positions and omits the terminal boundary {lit}`n`
+that the naive matcher includes. The fast construction counts whole-suffix
+comparisons; one such comparison may inspect linearly many characters.
+Query bounds exclude construction, list-index lookup and range materialization.
+
 The baseline construction sorts `n` positions by insertion sort (`O(n³)`
 worst-case work) and the scan search costs `O(n · |p|)`.  This section also
 adds the textbook-complexity layers:
