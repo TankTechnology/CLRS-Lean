@@ -15,6 +15,13 @@ The representation and Master-theorem infrastructure are shared with §4.2
 {lit}`2^k × 2^k` block matrix and the recursive runtime analysis discharges the
 floor/ceiling Master-theorem case 1 wrapper.
 
+The companion {lit}`MatrixExecution` module, exported by the chapter guide,
+computes both value and scalar work in one recursion. Its
+{lit}`MatrixExecution.mulWithCost_work_eq` identifies that count with this budget
+on side lengths {lit}`2^k`, and {lit}`MatrixExecution.mulWithCost_theta` proves
+cubic scalar work for arbitrary input families. {lit}`padOne` is only a
+one-level embedding of a power-of-two square.
+
 Main results:
 
 - Definition {lit}`mulRec`: the recursive eight-product multiplication on

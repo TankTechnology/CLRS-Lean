@@ -70,7 +70,8 @@ Main results:
   minus the total increment.
 - Theorem {lit}`akraBazzi_T_nonneg`: a solution is nonnegative.
 - Theorem {lit}`akraBazzi_T_ge_g`: above the base threshold, {lit}`g n ≤ T n`.
-- Theorem {lit}`akraBazzi_upper_bound`: the solution is
+- Theorems {lit}`akraBazzi_upper_bound_nonneg` and {lit}`akraBazzi_upper_bound`:
+  the solution is
   {lit}`O(n^p (1 + I n))`, the upper recurrence-to-integral comparison.
 - Theorem {lit}`akraBazzi_lower_bound`: the solution is
   {lit}`Ω(n^p (1 + I n))` when {lit}`p + 1 ≤ q`, the lower comparison in the
@@ -98,11 +99,17 @@ Status: `proved` for the root equation, the single-branch corollary (which
 recovers the master theorem), the multi-branch root uniqueness/nonnegativity,
 the scale-invariance bridge, the integral machinery, the two-sided increment
 bounds, and the recurrence-to-integral comparison in both directions — the
-upper bound {lit}`T(n) = O(n^p(1+I n))` for arbitrary {lit}`p > 0`,
+upper bound {lit}`T(n) = O(n^p(1+I n))` for arbitrary {lit}`p ≥ 0`,
 {lit}`q ≥ 0`, and the matching lower bound {lit}`T(n) = Ω(n^p(1+I n))` (hence
 {lit}`T(n) = Θ(n^p(1+I n))`) in the forcing-dominated regime {lit}`p + 1 ≤ q`,
 the critical regime {lit}`q = p`, and the deep leaf-dominated regime
-{lit}`0 ≤ q < p` (established by the smoothing-function argument).
+{lit}`0 ≤ q < p` (established by the smoothing-function argument). The companion module
+{lit}`Section_04_7_Akra_Bazzi.Generalized` closes the remaining exponent regimes,
+including {lit}`p = 0` and {lit}`p < q < p + 1`, under the same
+{lit}`PolynomialGrowth` predicate. Its public
+{lit}`akraBazzi_bigTheta_nonneg` theorem is exported by the chapter guide.
+The predicate requires monotonicity and a positive two-sided monomial sandwich;
+children are explicit floors, not unrestricted perturbations.
 
 Notation conventions used in this section:
 
@@ -1034,13 +1041,13 @@ upper half of the recurrence-to-integral comparison: the forcing {lit}`g` is
 absorbed by the per-level increment {name}`akraBazziIncrement`, which is bounded
 below by {name}`akraBazzi_increment_lower_multi`.
 -/
-theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
+theorem akraBazzi_upper_bound_nonneg {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
     (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
-    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hq : 0 ≤ q)
+    (hroot : IsAkraBazziRoot branches p) (hp : 0 ≤ p) (hq : 0 ≤ q)
     (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
     Chapter03.isBigO T (akraBazziScale p g) := by
   have hgnonneg : ∀ n, 0 ≤ g n := hsmooth.1
-  rcases akraBazzi_increment_lower_multi hvalid hnonempty hp.le hq hsmooth with
+  rcases akraBazzi_increment_lower_multi hvalid hnonempty hp hq hsmooth with
     ⟨ε, hε, n₁, hinc⟩
   have hT_nonneg : ∀ n, 0 ≤ T n := akraBazzi_T_nonneg hvalid hgnonneg hsat
   let Tsum : ℝ := ∑ m ∈ Finset.range (n₁ + 1), T m
@@ -1072,17 +1079,12 @@ theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
         by_cases hn0 : n = 0
         · subst n
           rw [hsat.1]
-          have hF0 : akraBazziScale p g 0 = 0 := by
-            unfold akraBazziScale akraBazziIntegral
-            have h0pow : (0 : ℝ) ^ p = 0 := Real.zero_rpow (ne_of_gt hp)
-            simp [h0pow]
-          rw [hF0]
-          norm_num
+          exact mul_nonneg hC_pos.le (akraBazziScale_nonneg hp hgnonneg 0)
         · have hn_pos : 0 < n := Nat.pos_of_ne_zero hn0
           have hn_pos' : 1 ≤ n := Nat.succ_le_iff.mpr hn_pos
           by_cases hle : n ≤ n₀
           · -- base case
-            have hF1 : 1 ≤ akraBazziScale p g n := akraBazzi_scale_ge_one hp.le hgnonneg hn_pos'
+            have hF1 : 1 ≤ akraBazziScale p g n := akraBazzi_scale_ge_one hp hgnonneg hn_pos'
             calc
               T n = 1 := hsat.2.1 n hn_pos' hle
               _ ≤ C := hC_ge_one
@@ -1103,7 +1105,7 @@ theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
                 have hε_inv_nonneg : 0 ≤ ε⁻¹ := le_of_lt (inv_pos.mpr hε)
                 dsimp [C]
                 linarith
-              have hF1 : 1 ≤ akraBazziScale p g n := akraBazzi_scale_ge_one hp.le hgnonneg hn_pos'
+              have hF1 : 1 ≤ akraBazziScale p g n := akraBazzi_scale_ge_one hp hgnonneg hn_pos'
               calc
                 T n ≤ C := hTn_le
                 _ ≤ C * akraBazziScale p g n := by
@@ -1146,7 +1148,7 @@ theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
                           Nat.floor_le (le_of_lt (div_pos (by exact_mod_cast hn_pos)
                             (lt_trans (by norm_num : (0 : ℝ) < 1) hvalid_ab.2)))
                         have hpow : (⌊(n : ℝ) / ab.2⌋₊ : ℝ) ^ p ≤ ((n : ℝ) / ab.2) ^ p :=
-                          Real.rpow_le_rpow (by positivity) hfloor hp.le
+                          Real.rpow_le_rpow (by positivity) hfloor hp
                         have hnonneg : 0 ≤ 1 + akraBazziIntegral p g (⌊(n : ℝ) / ab.2⌋₊) :=
                           add_nonneg (by norm_num) (akraBazziIntegral_nonneg hgnonneg _)
                         simpa [mul_assoc] using
@@ -1182,8 +1184,16 @@ theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ}
   refine ⟨C, hC_pos, 0, ?_⟩
   intro n hn
   rw [abs_of_nonneg (hT_nonneg n)]
-  rw [abs_of_nonneg (akraBazziScale_nonneg hp.le hgnonneg n)]
+  rw [abs_of_nonneg (akraBazziScale_nonneg hp hgnonneg n)]
   exact hmain n
+
+/-- The positive-root specialization of the upper recurrence comparison. -/
+theorem akraBazzi_upper_bound {branches : List (ℕ × ℝ)} {g T : ℕ → ℝ} {n₀ : ℕ} {p q : ℝ}
+    (hvalid : BranchesValid branches) (hnonempty : branches ≠ [])
+    (hroot : IsAkraBazziRoot branches p) (hp : 0 < p) (hq : 0 ≤ q)
+    (hsmooth : PolynomialGrowth g q) (hsat : SatisfiesAkraBazzi branches g T n₀) :
+    Chapter03.isBigO T (akraBazziScale p g) :=
+  akraBazzi_upper_bound_nonneg hvalid hnonempty hroot hp.le hq hsmooth hsat
 
 /-! ## The lower comparison -/
 

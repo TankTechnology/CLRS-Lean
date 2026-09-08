@@ -36,6 +36,14 @@ theorem case-1 wrapper
 {lit}`CLRS.Chapter04.strassen_runtime_bigTheta`:
 {lit}`T = Θ(n^(log₂ 7))`, the textbook {lit}`Θ(n^(lg 7))` bound.
 
+The companion {lit}`MatrixExecution` module, exported by the chapter guide,
+counts all ten preparation and eight reassembly block sums/differences by
+visiting their scalar entries. {lit}`MatrixExecution.strassenWithCost_work_bounds`
+places this actual count between one and five times the budget on dimensions
+{lit}`2^k`; {lit}`MatrixExecution.strassenWithCost_theta` proves its exponent.
+The budget is not an exact scalar count. Padding here is a one-level embedding
+of an already power-of-two square, not an arbitrary-dimension interface.
+
 Main results:
 
 - Theorem `strassen2x2_correct`: the 2 by 2 block algebra core.
@@ -210,7 +218,7 @@ theorem strassenRec_correct (R : Type u) [Ring R] (k : ℕ) (A B : SqMat R k) :
     strassenRec R k A B = A * B :=
   strassenRec_eq_mul R k A B
 
-/-! ## Padding to the next power of two -/
+/-! ## One-level zero-padding of power-of-two squares -/
 
 /--
 Zero-padding: embed a depth-`k` square into the top-left block of a depth-`(k+1)`
