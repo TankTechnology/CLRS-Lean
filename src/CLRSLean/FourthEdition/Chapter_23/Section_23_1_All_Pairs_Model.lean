@@ -15,12 +15,14 @@ Main results:
 - {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_L`: FASTER-APSP equals `L^(|V|-1)` under `NoNegCycle`.
 - {lit}`CLRS.Chapter24.WeightedGraph.fasterAPSP_eq_shortestDist`: FASTER-APSP correctness.
 
-* `minPlusMulCost`, `fasterAPSPCost` — work-count cost model bound to `G` (`|V|³` per squaring).
+* {lit}`minPlusMulCost`, {lit}`fasterAPSPCost` — min-plus candidate budgets.
+  The separate {lit}`MatrixExecution` companion realizes them with stored tables.
 * `numSquarings_le_log2_add_one` — the iteration count is `O(log |V|)`.
 * `fasterAPSPCost_le_n_cubed_log` — **O(V³ log V)** repeated-squaring work.
 * `fasterAPSPCost_le_n_four` — trivial O(V⁴) corollary.
 
-**Remaining gaps:** none (core mathematical results complete).
+The recursive function-valued specification does not itself establish
+shared table evaluation. Stored execution and counts are in the matrix companion.
 -/
 
 namespace CLRS
@@ -429,17 +431,18 @@ Each squaring of an `n × n` matrix computes `n²` entries, each entry taking
 the minimum over `n` intermediate vertices, giving `n³` scalar operations
 per squaring.  The total is `numSquarings × n³`, which is `O(n³ log n)`.
 
-The cost functions are bound to the actual graph `G` (via `Fintype.card V`)
-and to the actual iteration count `numSquarings` used by `fasterAPSP`,
-rather than a free parameter `n`. -/
+These formulas describe candidate budgets; the function-valued recursive
+specification does not guarantee cached intermediate tables. The separate
+{lit}`MatrixExecution.fasterOn_visits_eq_budget` theorem connects this budget
+to actual stored min-plus scans. Table writes are counted separately. -/
 
-/-- Cost (number of scalar operations) of one min-plus matrix squaring
+/-- Candidate-visit budget of one min-plus matrix squaring
 on the actual `|V| × |V|` matrix:  `|V|²` entries × `|V|` intermediate
 vertices = `|V|³`. -/
 def minPlusMulCost (G : WeightedGraph V) : ℕ :=
   Fintype.card V * Fintype.card V * Fintype.card V
 
-/-- Total work of FASTER-APSP on graph `G`: `numSquarings` iterations of
+/-- Candidate-visit budget of FASTER-APSP on graph `G`: `numSquarings` iterations of
 `minPlusMulCost G`. -/
 def fasterAPSPCost (G : WeightedGraph V) : ℕ :=
   numSquarings (V := V) * G.minPlusMulCost

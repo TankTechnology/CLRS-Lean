@@ -10,7 +10,8 @@ graph with no negative-weight cycles.  It works in three stages:
 
 1. **Potential via Bellman-Ford**: add a new source vertex `s` with zero-weight
    edges to every vertex, run Bellman-Ford from `s`, and set `h(v) = delta(s, v)`.
-   The Bellman-Ford run also detects (and aborts for) any negative-weight cycle.
+   This construction assumes global {lit}`NoNegCycle`; it does not return a
+   negative-cycle failure or implement an abort branch.
 
 2. **Reweighting**: define a new weight function `w^(u,v) = w(u,v) + h(u) - h(v)`.
    By the triangle inequality of shortest paths, `w^ >= 0` for every edge,
@@ -34,8 +35,9 @@ Main results:
   end-to-end correctness of Johnson's algorithm: `johnsonDist` computes
   the exact all-pairs shortest-path distances.
 - Lemma `johnsonAugmentedGraph_edges_card`: the augmented graph has `|V| + |E|` edges.
-- Theorem `johnsonCost_eq`: Johnson runs in `|V|·(|V| + |E|)·(log₂|V| + 2)`,
-  i.e. **O(V² log V + V E log V)**.
+- Theorem {lit}`johnsonCost_eq`: an independent heap-backend budget
+  {lit}`|V|·(|V| + |E|)·(log₂|V| + 2)`. This formula alone does not count
+  a concrete queue or stored distance table.
 - Theorem `johnsonCost_le`: the `2·|V|·(|V| + |E|)·(log₂|V| + 1)` O-bound corollary.
 
 The section is **complete**: the augmented-graph potential construction,

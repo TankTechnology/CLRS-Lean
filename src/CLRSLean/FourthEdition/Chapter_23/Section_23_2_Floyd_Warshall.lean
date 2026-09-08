@@ -17,9 +17,11 @@ set_option linter.unusedSectionVars false
 * `Pi` — predecessor matrix Π (parallel recurrence alongside `D`).
 * `Pi_adj` — every predecessor points along a real graph edge.
 * `fwReconstructPath` — fuel-based shortest-path reconstruction from Π.
-* `floydWarshall_nonneg_diag` — soundness of the diagonal test.
-* `negative_diagonal_implies_negative_cycle` — completeness of the diagonal
-  test (**CLRS Theorem 23.3**).
+* {lit}`floydWarshall_nonneg_diag` and
+  {lit}`negative_diagonal_implies_negative_cycle` are contrapositives,
+  establishing only the absence/soundness direction for the legacy initializer.
+  The {lit}`NegativeCycle` companion preserves negative self-edges and proves
+  both directions via {lit}`cycleFloydWarshall_negative_iff`.
 
 * `Pi_D_ge` — optimal-substructure lower bound for the predecessor matrix.
 * `floydWarshallPi_D_eq` — `floydWarshall i j = floydWarshall i k + w(k,j)`
@@ -30,10 +32,11 @@ set_option linter.unusedSectionVars false
 
 * `transitiveClosure` — boolean reachability matrix from Floyd-Warshall.
 * `transitiveClosure_iff_exists_walk` — correctness of transitive closure.
-* `fwStepCost`, `floydWarshallCost`, `floydWarshall_O_cubed` — **O(V³)** work bound
-  tied to the actual `D`/`floydWarshall` recursion over `Finset.univ.toList`.
-
-**Remaining gaps:** none (core mathematical results and the O(V³) cost bound are complete).
+* {lit}`fwStepCost`, {lit}`floydWarshallCost`, {lit}`floydWarshall_O_cubed`
+  describe the cubic table-update budget. The function-valued recurrence
+  does not cache intermediate matrices. The {lit}`MatrixExecution` companion
+  supplies stored evaluation and proves its actual update count equals this
+  budget; initialization writes and diagonal scanning are counted separately.
 -/
 
 namespace CLRS
@@ -892,7 +895,7 @@ addition) for each ordered pair `(i, j)` and each intermediate vertex in
 /-- Cost of one Floyd-Warshall intermediate vertex: `|V|²` entry updates. -/
 def fwStepCost (G : WeightedGraph V) : ℕ := Fintype.card V * Fintype.card V
 
-/-- Total Floyd-Warshall work: the length of the intermediate-vertex list
+/-- Floyd-Warshall table-update budget: the length of the intermediate-vertex list
 `Finset.univ.toList` (exactly the list `floydWarshall` recurses over) times
 `fwStepCost G`.  Noncomputable only because `Finset.univ.toList` is. -/
 noncomputable def floydWarshallCost (G : WeightedGraph V) : ℕ :=
