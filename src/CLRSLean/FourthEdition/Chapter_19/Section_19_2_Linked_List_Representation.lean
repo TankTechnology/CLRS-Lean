@@ -6,7 +6,11 @@ import CLRSLean.FourthEdition.Chapter_19.Section_19_1_Disjoint_Set_Operations
 The CLRS linked-list representation stores, for every element, the head of its
 set and stores a set size at each head.  The executable model below makes that
 table-level behavior explicit.  A weighted union redirects every head pointer
-in the smaller class and records the number of rewritten pointers as its cost.
+in the class with the smaller recorded size. The returned cost uses that size;
+it equals actual changed pointers only when recorded sizes equal the cardinality
+of the represented classes. The {lit}`WeightedExecution` companion proves this
+invariant from singleton initialization and derives the whole-trace rewrite bound
+from the actual changed representatives.
 
 Main results:
 
@@ -19,7 +23,10 @@ Main results:
   least doubles.
 - Theorems {lit}`LinkedList.move_count_le_log2` and
   {lit}`LinkedList.total_rewrites_le_n_mul_log2`: the standard CLRS aggregate
-  bound extracted from the doubling argument.
+  conditional arithmetic bound extracted from supplied doubling events.
+- The {lit}`WeightedExecution` companion constructs those move counts from a
+  mixed UNION/FIND execution, maintains class-size cardinality, and proves the
+  initialized total-rewrite and query-output contracts.
 -/
 
 namespace CLRS
@@ -89,8 +96,11 @@ def mergeToward (s : State n) (src dst : Fin n) : State n where
     else s.size z
 
 /--
-Weighted union redirects the smaller class.  The second component is exactly
-the number of representative pointers charged by the table-level model.
+Weighted union redirects the class with the smaller recorded size. The second
+component is that recorded-size charge; equality with actual pointer changes
+requires the companion's {lit}`WeightedExecution.Sized` invariant and is proved
+by {lit}`WeightedExecution.union_changes_cost`. Arbitrary malformed size fields
+do not have this interpretation.
 -/
 def weightedUnion (s : State n) (x y : Fin n) : State n × Nat :=
   if s.head x = s.head y then

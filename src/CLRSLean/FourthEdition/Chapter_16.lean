@@ -1,3 +1,4 @@
+import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter.StackExecution
 import CLRSLean.Chapter_17
 import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework
 import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter
@@ -34,7 +35,14 @@ The supporting implementation pages remain available outside the main sidebar:
 
 The native sections supply the fourth-edition amortized-analysis facade
 (§16.1 aggregate analysis, §16.2 the accounting method, §16.3 the potential
-method, §16.4 dynamic tables).  §16.4 includes the sharper load-factor
+method, §16.4 dynamic tables). The mixed stack executor returns the final
+stack, removed values per command, and actual successful PUSH/POP counts.
+Its exact conservation law proves that from empty, total popped cells cannot
+exceed pushed cells, even with arbitrary interleaved MULTIPOP requests. Counting
+one event per command and per pushed/popped cell gives at most `3n` charged
+work. This excludes allocation and element-representation internals.
+
+§16.4 includes the sharper load-factor
 potential with constant `≤ 3` insert/delete amortized bounds and the
 interleaved insert/delete trace amortized analysis (`≤ 3n` total cost from the
 empty table).  The namespace migration `CLRS.Chapter17` → `CLRS.Chapter16` is

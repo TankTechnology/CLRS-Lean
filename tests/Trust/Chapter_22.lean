@@ -13,3 +13,8 @@ import CLRSLean.FourthEdition.Chapter_22
 
 example : CLRS.Chapter24.WeightedGraph.dijkstraWork 4 5 = 27 := by
   decide
+
+#check CLRS.Chapter24.WeightedGraph.shortestPathTree_correct
+#assert_axioms CLRS.Chapter24.WeightedGraph.shortestPathTree_correct
+#assert_axioms CLRS.Chapter24.WeightedGraph.shortestPathTree_acyclic
+#assert_axioms CLRS.Chapter24.WeightedGraph.tightGraph_reachable_iff

@@ -28,12 +28,15 @@ Main results:
 - Theorem `SearchList.mtf_four_competitive` (Theorem 27.2): MOVE-TO-FRONT is
   `4`-competitive against any list-update strategy.
 
-The model is a pure functional one: a list is treated as a permutation of a
-fixed set, the requests must all lie in the list, costs are natural numbers,
-and a strategy is a function `List α → α → List α`.  The competing strategy `A`
-is arbitrary except that it must keep its list a permutation of the initial
-set; the initial potential is zero when both strategies start from the same
-list.
+The core theorem uses equality of resident key sets via {lit}`toFinset`,
+not {lit}`List.Perm` or a no-duplicates invariant. Its counters remain defined
+on lists with duplicate keys, but then distinct preceding keys need not equal
+physical indices, and inversion counts are not minimum adjacent-swap costs.
+The textbook list interpretation requires distinct-key lists preserved as
+permutations. Requests must lie in the list. The competing strategy is a
+function {lit}`List α → α → List α`; arbitrary offline traces or auxiliary
+strategy state are not represented by this interface. Initial potential is
+zero when both strategies start from the same list.
 
 Notation conventions used in this section:
 
@@ -58,13 +61,14 @@ def before (a b : α) (L : List α) : Prop :=
 instance before_decidable (a b : α) (L : List α) : Decidable (before a b L) :=
   inferInstanceAs (Decidable (b ∈ L ∧ a ∈ L.takeWhile (fun c => decide (c ≠ b))))
 
-/-- 0-based position of `x` in `L`: the number of elements strictly before it. -/
+/-- Number of distinct keys strictly before the first occurrence of {lit}`x`.
+This is its 0-based index only for a duplicate-free list containing the key. -/
 def position (x : α) (L : List α) : ℕ :=
   (L.toFinset.filter (fun y => before y x L)).card
 
 /-- Inversion distance: the number of unordered element pairs whose relative order
-    differs between the two lists.  Equivalently, the minimum number of adjacent
-    swaps needed to reorder one list into the other. -/
+    differs between the two lists. The minimum adjacent-swap interpretation
+    requires duplicate-free permutations; equal key sets alone do not suffice. -/
 def invDist (L₁ L₂ : List α) : ℕ :=
   (L₁.toFinset.sum fun a =>
     (L₁.toFinset.filter (fun b => before a b L₁ ∧ before b a L₂)).card)
@@ -386,7 +390,7 @@ lemma position_moveToFront (x : α) (L : List α) : position x (moveToFront x L)
   unfold position
   simp [not_before_x_front]
 
-/-- `position` is the number of elements of `L` strictly before `x`. -/
+/-- {lit}`position` counts distinct keys preceding {lit}`x`. -/
 lemma position_eq_card {x : α} {L : List α} :
     position x L = (L.toFinset.filter (fun y => before y x L)).card := rfl
 

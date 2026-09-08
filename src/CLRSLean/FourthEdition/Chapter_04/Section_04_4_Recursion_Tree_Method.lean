@@ -31,13 +31,16 @@ Main results:
 - Theorems {lit}`CLRS.Chapter04.balancedIntegerTree_totalCost_eq` and
   {lit}`CLRS.Chapter04.unbalancedIntegerTree_totalCost_eq`: arbitrary-input
   integer instances of the two detailed textbook examples.
+- Theorems {lit}`CLRS.Chapter04.balancedIntegerCost_isBigTheta` and
+  {lit}`CLRS.Chapter04.unbalancedIntegerCost_isBigTheta`: actual rounded-tree
+  total costs are {lit}`Θ(n²)` and {lit}`Θ(n log n)` for positive local-cost
+  coefficients and nonnegative base costs.
 
 Status: {lit}`proved` for the finite-sum core, the fixed-depth level-sum model,
 and the explicit unequal-depth integer floor/ceiling trees.  The exact tree
-semantics equal independently stated rounded recurrences.  The existing
-Master and Akra--Bazzi interfaces prove related asymptotic results, but a
-direct theorem transporting these two rounded tree executions into those
-interfaces remains separate work.
+semantics equal independently stated rounded recurrences.  Strong induction on these recurrences
+proves the two actual execution bounds, including unequal child depths. This
+does not claim a general theorem for arbitrary rounded branching recurrences.
 -/
 
 namespace CLRS

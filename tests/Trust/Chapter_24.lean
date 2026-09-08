@@ -26,3 +26,16 @@ example :
         hconservation := by simp }
     φ.value = 0 := by
   simp [CLRS.Chapter26.Flow.value]
+
+#assert_axioms CLRS.Chapter26.SparseEK.execute_maximal
+#assert_axioms CLRS.Chapter26.SparseEK.execute_augmentations_le
+#assert_axioms CLRS.Chapter26.SparseEK.execute_work_bound
+#assert_axioms CLRS.Chapter26.SparseEK.execute_work_empty
+
+#assert_axioms CLRS.Chapter26.RelabelExecution.initial_valid
+#assert_axioms CLRS.Chapter26.RelabelExecution.Trace.toRelabelToFrontRun
+#assert_axioms CLRS.Chapter26.RelabelExecution.execute_terminal
+#assert_axioms CLRS.Chapter26.RelabelExecution.initialized_maximum_flow
+#assert_axioms CLRS.Chapter26.RelabelExecution.initialized_work_le_cubic
+#assert_axioms CLRS.Chapter26.RelabelExecution.initialized_correct_and_cost
+#assert_axioms CLRS.Chapter26.SparseEK.execute_work_uniform

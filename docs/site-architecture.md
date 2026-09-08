@@ -153,24 +153,24 @@ requests do not start Lean or Pages builds automatically; a maintainer manually
 dispatches the appropriate workflow for an explicit verification or publishing
 run.
 
-All chapter disclosures still start open.  A small navigation-state script
-persists sidebar scroll and manual chapter collapse/expand choices across page
-loads.  New navigation-state versions intentionally start from an all-expanded
-tree so stale browser storage cannot hide chapters after a redesign.  The
-script stores disclosure state under stable normalized page paths, not raw
-relative `href` values, so the same chapter remains open or closed after moving
-between shallow chapter pages and deep section pages.  Chapter-title links
-inside the sidebar must navigate without also toggling their parent disclosure
-row; otherwise a click can accidentally save a collapsed state immediately
-before the next page loads.
+The fourth-edition chapter index is a permanent, non-collapsible container.
+All 35 chapter names are visible in the sidebar without opening a parent group,
+including on the homepage and in browsers with an old saved collapse state.
+Third-edition compatibility chapter rows are excluded from the reader sidebar.
+
+Individual chapters may still disclose their section lists. The navigation
+script restores those choices and sidebar scroll across page loads, and opens
+the ancestors of the current section. Without saved state, section lists start
+collapsed so readers can scan the 35 chapter names. Chapter-title links navigate
+without toggling the chapter's disclosure.
 
 ## Reader Flow
 
 Readers should be able to move in three ways:
 
 1. Project overview: homepage -> chapter guide -> section proof.
-2. Audit path: homepage -> Proof Status -> source module or open issue.
-3. Contributor path: homepage -> Workflow -> chapter guide -> section file.
+2. Audit path: homepage -> Progress Dashboard / Proof Status -> source proof.
+3. Contributor path: homepage -> Contributor Guide -> chapter guide -> section file.
 
 ## Update Rule
 
@@ -182,3 +182,18 @@ When a new CLRS section is added, update these files together:
 - `literate.toml` if it should appear in navigation;
 - a focused interface test for any newly advertised declaration;
 - `docs/scope.md` only when the project-wide claim boundary changes.
+
+## Public entry pages
+
+The homepage introduces the project, its qualified completion milestone, and
+three paths: read the chapters, inspect proof coverage, or contribute. Detailed
+build instructions belong in this runbook and the contributor documents.
+
+The chapter index groups Chapters 1–35 into foundations, sorting, data
+structures, design techniques, advanced data structures, graph algorithms, and
+selected topics. Every chapter link includes its number and textbook title.
+
+The top-level sidebar orders the chapter tree first, then Progress Dashboard
+and Proof Status, followed by online material, reusable tools, research
+extensions, and Contributor Guide. The contributor page retains its stable
+`CLRSLean/Workflow/` URL. Internal source names do not need to be reader titles.

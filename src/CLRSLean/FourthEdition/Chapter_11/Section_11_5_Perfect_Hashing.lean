@@ -27,13 +27,17 @@ Main results:
 - Theorem `perfectHash_expected_trials_le_two`: in a truncated model of `t`
   independent trials, the expected number of trials until a collision-free
   secondary hash is at most `2` (geometric bound with success probability ≥ 1/2).
-- Theorem `perfectHash_expected_construction_time_le_const_n`: the expected total
-  construction time for both levels is less than `5n` (hence `O(n)`).
+- Theorem `perfectHash_expected_construction_time_le_const_n`: the expected
+  abstract budget {lit}`constructionCost` is less than `5n`. This formula is not
+  itself a counter attached to a table constructor.
 
-Status: `proved`.  All acceptance criteria are met: a two-level model with
-deterministic search correctness, the secondary collision-free probability bound,
-the expected linear-space bound, and the expected linear construction time with
-its geometric expected-trials argument.  RAM cost semantics are future work.
+The {lit}`Construction` companion supplies an executed finite-trial constructor
+with a guaranteed collision-free terminal fallback, array initialization and
+placement, and a separate expected-work refinement to this abstract budget.
+Secondary injectivity is required only for stored keys in the relevant bucket.
+The sampling model uses all local-index hash assignments under SUHA, not a
+constructed family of constant-time hash programs on arbitrary original keys.
+RAM, hash-code generation, and arithmetic implementation costs are excluded.
 
 Notation conventions used in this section:
 
@@ -62,7 +66,8 @@ assigned to that bucket.  The deterministic two-level lookup completes in `O(1)`
 worst-case time (two table lookups, independent of `n`).
 
 The fields `sec` and `table` are per-bucket; the invariant `sec_inj` ensures no two
-keys in the same primary bucket share a secondary slot, so
+stored keys in the same primary bucket share a secondary slot. Nonmembers may
+collide with stored keys; lookup checks the stored value, so
 `table j (sec j x) = some x` identifies `x` uniquely.
 -/
 structure PerfectHashTable (K : Type) [DecidableEq K] (m : ℕ) : Type where
@@ -80,7 +85,7 @@ structure PerfectHashTable (K : Type) [DecidableEq K] (m : ℕ) : Type where
       if `x` and `y` are both in `keys`, map to the same primary bucket, and get the
       same secondary slot, then `x = y`. -/
   sec_inj : ∀ (j : Fin m) (x y : K),
-    prim x = j → prim y = j → sec j x = sec j y → x = y
+    x ∈ keys → y ∈ keys → prim x = j → prim y = j → sec j x = sec j y → x = y
   /-- Every key is stored in the table at the slot determined by its primary and
       secondary hash. -/
   table_stores_keys : ∀ x ∈ keys, table (prim x) (sec (prim x) x) = some x
@@ -859,8 +864,10 @@ theorem perfectHash_expected_failedTrials_le_one {n t : ℕ} (hn : 2 ≤ n) :
 /-- The number of trials performed until a collision-free secondary hash is
 obtained, in a truncated model of `t` independent trials: the failed trials
 before the first collision-free trial, plus the successful trial itself.  If
-none of the `t` trials is collision-free, the value is `t + 1`, an overestimate
-of the unbounded process's trial count. -/
+none of the {lit}`t` trials is collision-free, the value is {lit}`t + 1`.
+This is a lower truncation of an unbounded waiting time, not an upper estimate.
+A constructor using a guaranteed terminal fallback may instead interpret the
+last unit as its successful fallback attempt; that requires a separate bridge. -/
 noncomputable def trialsUntilCollisionFree {n t : ℕ} (A : Fin t → (Fin n → Fin (n^2))) : ℕ :=
   failedTrials A + 1
 
@@ -869,9 +876,8 @@ noncomputable def trialsUntilCollisionFree {n t : ℕ} (A : Fin t → (Fin n →
 the truncated model of `t` independent trials — each trial hashes `n ≥ 2` keys
 into `n²` slots and is collision-free with probability at least `1/2` (Theorem
 11.9) — the expected number of trials performed up to and including the first
-collision-free trial is at most `2` (CLRS §11.5).  For the unbounded geometric
-process this is the standard bound `E[T] = 1/p ≤ 2` for success probability
-`p ≥ 1/2`; the same bound holds here for every truncation `t`.
+collision-free trial is at most `2` (CLRS §11.5).  This theorem bounds each finite truncation. It does not by itself supply
+an infinite trial process or a limit theorem for its expectation.
 -/
 theorem perfectHash_expected_trials_le_two {n t : ℕ} (hn : 2 ≤ n) :
     fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) => (trialsUntilCollisionFree A : ℝ)) ≤ 2 := by
@@ -918,24 +924,21 @@ theorem exists_collision_free_secondary {n : ℕ} (hn : 2 ≤ n) :
   have hcf := perfectHash_collision_free_prob_ge_half (n := n) hn
   linarith
 
-/-! ## Construction time: expected total construction time is O(n) -/
+/-! ## Abstract construction budget and its finite expectation -/
 
 /--
-The expected construction cost of the two-level perfect-hash table on a
-primary hash assignment `a`: `n` unit operations to insert all `n` keys into
-the `n` primary buckets, plus the expected secondary construction cost
-`2 · Σ_j n_j²` — each bucket `j` of `n_j` keys needs at most `2` trials in
-expectation (expected-trials bound) and each trial hashes the `n_j` bucket
-keys into `n_j²` slots, costing `n_j²` (CLRS §11.5).
+Historical abstract two-level budget: primary size plus twice the sum of
+squared bucket sizes. This is an analysis expression, not measured execution.
+The companion {lit}`Construction` module supplies a counted constructor and a
+constant-factor conditional-expectation bridge to this expression.
 -/
 noncomputable def constructionCost {n : ℕ} (a : Fin n → Fin n) : ℝ :=
   (n : ℝ) + 2 * totalSecondarySpace a
 
 /--
-**Expected secondary construction cost of a single bucket.**  For a bucket of
-`n ≥ 2` keys whose secondary hash is drawn into `n²` slots until it is
-collision-free, the expected construction cost — `trialsUntilCollisionFree`
-trials of `n²` work each — is at most `2 · n²`, by the expected-trials bound.
+Expected finite trial-count budget times squared bucket size, for at least
+two keys. The expression charges a supplied square cost per trial; actual
+collision checking, initialization, and placement are counted in the companion.
 -/
 theorem perfectHash_expected_bucket_cost_le {n t : ℕ} (hn : 2 ≤ n) :
     fintypeExpect (fun A : Fin t → (Fin n → Fin (n^2)) =>
@@ -960,12 +963,9 @@ theorem perfectHash_expected_bucket_cost_le {n t : ℕ} (hn : 2 ≤ n) :
           ring
 
 /--
-**Expected construction time is O(n).**  The expected total time to build the
-two-level perfect-hash table — hashing all `n` keys into the `n` primary
-buckets and, for each bucket `j`, spending at most `2` trials in expectation
-of cost `n_j²` each on the secondary hash — is less than `5n` (CLRS §11.5):
-by Theorem 11.10, `E[Σ_j n_j²] < 2n`, and the expected trials per bucket are
-at most `2`, so `E[T] < n + 2 · 2n = 5n`.
+The historical abstract construction budget has expectation below `5n`
+under uniform primary assignment. The theorem name is retained for compatibility;
+executed construction costs require the companion's refinement theorem.
 -/
 theorem perfectHash_expected_construction_time_le_const_n {n : ℕ} (hn : 0 < n) :
     fintypeExpect (fun a : Fin n → Fin n => constructionCost a) < 5 * (n : ℝ) := by

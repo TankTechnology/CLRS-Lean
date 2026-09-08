@@ -5,7 +5,9 @@ import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework
 
 This section records two compact textbook amortized-analysis examples.  The
 stack model uses the real operation cost for {lit}`MULTIPOP`: at most one unit
-per popped element.  The counter model includes the executable little-endian
+per popped element. Its {lit}`StackExecution` companion runs mixed PUSH, POP,
+and MULTIPOP commands, proves exact cell conservation, and derives a linear
+whole-trace bound from an empty stack. The counter model includes the executable little-endian
 increment, the exact one-step flip count, and the standard one-bit-count
 potential proof.
 

@@ -55,7 +55,7 @@ variable {α : Type} [BEq α] [DecidableEq α] [LawfulBEq α]
 The base-`d` modular hash of `w` over the numeric values `val c`, computed by
 Horner's rule modulo `q` (CLRS §32.2).  For `w = [a₀, …, a_{k-1}]` this is
 `((⋯((val a₀ · d + val a₁) · d + …) · d + val a_{k-1}) mod q`.  The function
-is total (`x % 0 = 0`); CLRS assumes a modulus `0 < q`.
+is total (`x % 0 = x`); CLRS assumes a modulus `0 < q`.
 -/
 def hash (d q : ℕ) (val : α → ℕ) (w : Text α) : ℕ :=
   w.foldl (fun acc c => (acc * d + val c) % q) 0
@@ -197,7 +197,7 @@ theorem rabinKarp_correct (T P : Text α) (d q : ℕ) (val : α → ℕ) :
 
 /-
 The rolling-window recurrence and its proof.  This section adds the executable
-`O(1)` slide (CLRS eq. (32.3)) on top of the hash-and-confirm matcher above,
+rolling recurrence (CLRS eq. (32.3)) on top of the hash-and-confirm matcher above,
 plus the rolling matcher that uses it and the deterministic work bound.
 -/
 section Rolling
@@ -298,7 +298,7 @@ lemma zmod_natCast_mod (q x : ℕ) : ((x % q : ℕ) : ZMod q) = (x : ZMod q) :=
   (ZMod.natCast_eq_natCast_iff (x % q) x q).2 (Nat.mod_mod x q)
 
 /--
-The O(1) rolling update (CLRS eq. (32.3)): given the hash `h` of a nonempty
+The rolling recurrence (CLRS eq. (32.3)): given the hash `h` of a nonempty
 window `w` and the incoming character `c`, the hash of `w.drop 1 ++ [c]` is
 `(d·h + val c − val w[0]·d^|w|) mod q`, with the subtraction normalized into
 `ℕ` by the `+ q` term (valid for `0 < q`).
@@ -341,8 +341,10 @@ lemma hash_snoc_zmod (d q : ℕ) (val : α → ℕ) (w : Text α) (c : α) :
 /--
 **Rabin–Karp rolling recurrence (CLRS eq. (32.3)).**  Sliding a nonempty window
 by one position — dropping the leading character and appending a new one —
-updates the hash in `O(1)`: one multiplication, one addition, one subtraction
-and one modulus, rather than a full re-hash of the window.
+satisfies the hash recurrence below. The legacy {lit}`slideHash` recomputes
+{lit}`d ^ w.length`, so this definition does not itself give a constant-cost
+slide. The {lit}`CachedPower` companion prepares the power once and uses seven
+fixed scalar arithmetic operations per update.
 -/
 theorem hash_slide (d q : ℕ) (val : α → ℕ) (w : Text α) (c : α) (hq : 0 < q)
     (hw : w ≠ []) :
@@ -529,9 +531,10 @@ def rabinKarpRolling (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ �
 def rabinKarpRollingMatches (T P : Text α) (d q : ℕ) (val : α → ℕ) : List ℕ :=
   (rabinKarpRolling T P d q val).1
 
-/-- The deterministic work of the rolling matcher: `m` operations to seed the
-first hash, one O(1) rolling update per shift, and an `m`-step character
-confirmation at every hash hit (real or spurious). -/
+/-- Selected shift/confirmation budget: a legacy {lit}`m` seed charge, one
+charge per shift and {lit}`m` per hash hit. It does not count power preparation,
+all seed arithmetic or list-window movement; the cached-power companion adds
+actual power and both seed-hash counters. -/
 def rabinKarpRollingCost (T P : Text α) (d q : ℕ) (val : α → ℕ) : ℕ :=
   (rabinKarpRolling T P d q val).2
 
@@ -551,8 +554,8 @@ lemma rollingGo_top (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) 
 /--
 **Correctness of the rolling Rabin-Karp matcher.**  The rolling matcher returns
 exactly the shifts returned by `naiveMatcher` (and hence by the hash-and-confirm
-`rabinKarpMatcher`): it refines the hash-and-confirm matcher to a genuine O(1)
-window update without changing the set of matches.
+{lit}`rabinKarpMatcher`): rolling hashes preserve exactly the set of matches.
+The separate cached-power implementation supplies a fixed-operation slide.
 -/
 theorem rabinKarpRollingMatches_correct (T P : Text α) (d q : ℕ) (val : α → ℕ) (hq : 0 < q) :
     rabinKarpRollingMatches T P d q val = naiveMatcher T P := by

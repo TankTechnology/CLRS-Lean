@@ -64,42 +64,27 @@ Section 25.2 defines the Floyd-Warshall DP recurrence `D` and the
 `floydWarshall` algorithm, and proves its correctness (Lemma 25.7,
 Theorem 25.8, CLRS Theorem 25.3).  The predecessor matrix `Pi`,
 path reconstruction `fwReconstructPath` (walk validity and **weight
-equality**), and the negative-cycle detection diagonal test are all
-complete.
+equality**), and valid-input distance results are proved. The legacy
+zero diagonal masks negative self-edges. The canonical fourth-edition chapter
+adds a cycle-safe initializer and a complete negative-diagonal equivalence.
 
 Section 25.3 defines Johnson's augmented graph and reweighted graph,
 constructs the Bellman-Ford potential `h(v) = δ(none, some v)`, proves
 the triangle inequality `h(v) ≤ h(u) + w(u, v)`, proves reweighted
 edge-weight nonnegativity, packages the end-to-end Johnson
 correctness theorem `johnsonDist_isShortestDist` (CLRS Theorem 25.5),
-and records the `O(V² log V + V E log V)` binary-heap work bound
-(`johnsonCost_eq` / `johnsonCost_le`).
+under global {lit}`NoNegCycle`. There is no negative-cycle failure branch.
+The {lit}`johnsonCost_eq` / {lit}`johnsonCost_le` binary-heap expressions are
+independent backend budgets.
 
 ## Running-time layer
 
-All three algorithms now carry explicit, reader-facing running-time theorems
-bound to their real executable constructions:
-
-* Section 25.1: `minPlusMulCost` / `fasterAPSPCost` bound to the actual graph
-  `G` and iteration count `numSquarings`; `fasterAPSPCost_le_n_cubed_log`
-  proves the `O(V³ log V)` repeated-squaring bound, with the trivial `O(V⁴)`
-  corollary `fasterAPSPCost_le_n_four`.
-* Section 25.2: `fwStepCost` / `floydWarshallCost` count the actual
-  `D` recurrence over `Finset.univ.toList`, and `floydWarshall_O_cubed`
-  proves the exact `O(V³)` bound.
-* Section 25.3: `johnsonAugmentedGraph_edges_card` proves the augmented graph
-  has `|V| + |E|` edges; `johnsonCost_eq` / `johnsonCost_le` prove the
-  `O(V² log V + V E log V)` binary-heap bound.
-
-## Deferred Work
-
-* Lower-level RAM / mutable-array machine-arithmetic accounting for the cost
-  models; the reader-facing asymptotic bounds above are proved, and concrete
-  word-level constants remain an optional refinement.
+The legacy formulas count table-update or backend budgets; the recursive
+function-valued specifications alone do not establish cached evaluation.
+The canonical fourth-edition chapter imports stored matrix execution with
+actual Floyd/min-plus counters, separate initialization writes and diagonal
+scan. Johnson's stored scan-queue companion retains potentials, reweighted
+edges and source rows and supplies its own cubic scalar-operation bound.
+Its queue is not a binary heap. Exact-real arithmetic, graph/index access and
+selected queue operations are primitives; allocation and bit costs are excluded.
 -/
-
-namespace CLRS
-namespace Chapter25
-
-end Chapter25
-end CLRS

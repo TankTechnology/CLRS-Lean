@@ -34,6 +34,19 @@ well-foundedness of the adjacency relation on any finite subset of a DAG.
 For the DFS algorithm, edge classification shows that a DAG has no back edge
 and that every edge {lit}`u → v` satisfies {lit}`f[v] < f[u]`.  Sorting by
 decreasing finish time therefore places every edge source before its target.
+
+## Cost boundary
+
+The finish order is obtained with {lit}`List.mergeSort`, not accumulated online
+at DFS exit. The proved BFS/DFS controller count does not include this sorting
+phase, its comparison evaluations, or the representation cost of obtaining
+finish timestamps. No end-to-end {lit}`O(V + E)` execution bound for this
+finish-sorted algorithm follows from the standalone DFS counter.
+
+The results here establish the returned order/partition semantics. A counted
+sort or an online reverse-finish list, together with its execution refinement,
+is required for a stronger total-runtime claim.
+
 -/
 
 namespace CLRS
@@ -470,8 +483,9 @@ theorem dfsFinishLe_iff_le {G : Graph V} {u v : V} :
     dfsFinishLe G u v ↔ finishTime (G.dfs) v ≤ finishTime (G.dfs) u := by
   simp [dfsFinishLe]
 
-/-- The CLRS topological-sort algorithm: run DFS and list vertices in
-decreasing order of finish time. -/
+/-- Finish-time topological order obtained by merge sorting. This semantic
+entry point has no attached end-to-end execution counter; DFS's controller
+bound excludes the extra sort and timestamp-comparison work. -/
 noncomputable def dfsTopologicalSort (G : Graph V) : List V :=
   G.vertices.toList.mergeSort (dfsFinishLe G)
 

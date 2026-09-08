@@ -5,7 +5,11 @@ import Mathlib.Tactic
 /-! # Chapter 30.3: Iterative FFT costs
 
 All counts below are projections of the value-producing bit-reversal and stage
-executions.  Data movement is kept separate from field arithmetic.
+executions in their stated charge model. Data movement is separate from
+field arithmetic. Nonfinal-stage child-root squaring is excluded setup work.
+Each butterfly counts a product once under shared arithmetic even though the
+function-valued output mentions it in both sum and difference. These are not
+counts of every operation in the literal Lean evaluator.
 -/
 
 namespace CLRS
@@ -20,7 +24,8 @@ def IterativeFFTExecution.arithmeticWork
     (r : IterativeFFTExecution K k) : Nat :=
   r.addSubtractions + r.multiplications
 
-/-- Total iterative work including bit-reversal data movement. -/
+/-- Charged iterative work including bit-reversal movement, excluding child-root
+setup and assuming shared butterfly products. -/
 def IterativeFFTExecution.totalWork
     (r : IterativeFFTExecution K k) : Nat :=
   r.bitReversalMoves + r.arithmeticWork

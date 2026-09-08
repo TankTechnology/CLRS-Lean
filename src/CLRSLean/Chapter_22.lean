@@ -140,6 +140,9 @@ returned components form an SCC partition of the vertex set.
 
 ## Deferred Work
 
+* Topological-sort/SCC finish-order construction uses merge sort. The additional
+  sort/comparison work is not included in the proved standalone BFS/DFS
+  controller counts; no linear total execution bound is claimed for those entry points.
 * Algorithm-cost refinements: explicit work measures for the fuelled and
   classically selected functional implementations.
 

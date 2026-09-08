@@ -35,63 +35,85 @@ import CLRSLean.FourthEdition.Chapter_34
 import CLRSLean.FourthEdition.Chapter_35
 
 /-!
-# CLRS fourth edition
+# Chapters 1–35 · CLRS Fourth Edition
 
-This is the canonical reader tree for CLRS-Lean. Each chapter guide states its
-formal model, proof boundary, current source modules, and focused verification
-entry points.
+Choose a chapter to read its formalization scope, section proofs, and public
+theorem interfaces. Chapter numbers follow the fourth edition throughout this
+index.
 
-## Start reading
+Start with [Getting Started](CLRSLean/FourthEdition/Chapter_02/) for sorting
+correctness and cost. The [Progress Dashboard](CLRSLean/Progress/) gives the
+chapter matrix; [Proof Status](CLRSLean/Status/) explains the completion labels.
 
-Begin with [Chapter 1](CLRSLean/FourthEdition/Chapter_01/) for the project model,
-then [Chapter 2](CLRSLean/FourthEdition/Chapter_02/) for the first complete
-algorithm-correctness and cost story. Use the
-[Progress Dashboard](CLRSLean/Progress/) for the generated chapter matrix and
-[Proof Status](CLRSLean/Status/) for the meaning of completion claims.
+## Foundations · Chapters 1–5
 
-## Foundations and sorting — Chapters 1--9
+* [1. The Role of Algorithms in Computing](CLRSLean/FourthEdition/Chapter_01/)
+* [2. Getting Started](CLRSLean/FourthEdition/Chapter_02/)
+* [3. Characterizing Running Times](CLRSLean/FourthEdition/Chapter_03/)
+* [4. Divide-and-Conquer](CLRSLean/FourthEdition/Chapter_04/)
+* [5. Probabilistic Analysis and Randomized Algorithms](CLRSLean/FourthEdition/Chapter_05/)
 
-* [1](CLRSLean/FourthEdition/Chapter_01/), [2](CLRSLean/FourthEdition/Chapter_02/),
-  [3](CLRSLean/FourthEdition/Chapter_03/), [4](CLRSLean/FourthEdition/Chapter_04/),
-  [5](CLRSLean/FourthEdition/Chapter_05/), [6](CLRSLean/FourthEdition/Chapter_06/),
-  [7](CLRSLean/FourthEdition/Chapter_07/), [8](CLRSLean/FourthEdition/Chapter_08/),
-  [9](CLRSLean/FourthEdition/Chapter_09/).
+## Sorting and Order Statistics · Chapters 6–9
 
-## Data structures and design — Chapters 10--19
+* [6. Heapsort](CLRSLean/FourthEdition/Chapter_06/)
+* [7. Quicksort](CLRSLean/FourthEdition/Chapter_07/)
+* [8. Sorting in Linear Time](CLRSLean/FourthEdition/Chapter_08/)
+* [9. Medians and Order Statistics](CLRSLean/FourthEdition/Chapter_09/)
 
-* [10](CLRSLean/FourthEdition/Chapter_10/), [11](CLRSLean/FourthEdition/Chapter_11/),
-  [12](CLRSLean/FourthEdition/Chapter_12/), [13](CLRSLean/FourthEdition/Chapter_13/),
-  [14](CLRSLean/FourthEdition/Chapter_14/), [15](CLRSLean/FourthEdition/Chapter_15/),
-  [16](CLRSLean/FourthEdition/Chapter_16/), [17](CLRSLean/FourthEdition/Chapter_17/),
-  [18](CLRSLean/FourthEdition/Chapter_18/), [19](CLRSLean/FourthEdition/Chapter_19/).
+## Data Structures · Chapters 10–13
 
-## Graphs and optimization — Chapters 20--29
+* [10. Elementary Data Structures](CLRSLean/FourthEdition/Chapter_10/)
+* [11. Hash Tables](CLRSLean/FourthEdition/Chapter_11/)
+* [12. Binary Search Trees](CLRSLean/FourthEdition/Chapter_12/)
+* [13. Red-Black Trees](CLRSLean/FourthEdition/Chapter_13/)
 
-* [20](CLRSLean/FourthEdition/Chapter_20/), [21](CLRSLean/FourthEdition/Chapter_21/),
-  [22](CLRSLean/FourthEdition/Chapter_22/), [23](CLRSLean/FourthEdition/Chapter_23/),
-  [24](CLRSLean/FourthEdition/Chapter_24/), [25](CLRSLean/FourthEdition/Chapter_25/),
-  [26](CLRSLean/FourthEdition/Chapter_26/), [27](CLRSLean/FourthEdition/Chapter_27/),
-  [28](CLRSLean/FourthEdition/Chapter_28/), [29](CLRSLean/FourthEdition/Chapter_29/).
+## Design and Analysis Techniques · Chapters 14–16
 
-## Advanced topics — Chapters 30--35
+* [14. Dynamic Programming](CLRSLean/FourthEdition/Chapter_14/)
+* [15. Greedy Algorithms](CLRSLean/FourthEdition/Chapter_15/)
+* [16. Amortized Analysis](CLRSLean/FourthEdition/Chapter_16/)
 
-* [30](CLRSLean/FourthEdition/Chapter_30/), [31](CLRSLean/FourthEdition/Chapter_31/),
-  [32](CLRSLean/FourthEdition/Chapter_32/), [33](CLRSLean/FourthEdition/Chapter_33/),
-  [34](CLRSLean/FourthEdition/Chapter_34/), [35](CLRSLean/FourthEdition/Chapter_35/).
+## Advanced Data Structures · Chapters 17–19
 
-## Material outside the main text
+* [17. Augmenting Data Structures](CLRSLean/FourthEdition/Chapter_17/)
+* [18. B-Trees](CLRSLean/FourthEdition/Chapter_18/)
+* [19. Data Structures for Disjoint Sets](CLRSLean/FourthEdition/Chapter_19/)
 
-[Online Material](CLRSLean/OnlineMaterial/) catalogs theorem-bearing topics
-that moved out of the fourth-edition main text or are retained as project
-supplements.
+## Graph Algorithms · Chapters 20–25
 
-## Maintainer compatibility note
+* [20. Elementary Graph Algorithms](CLRSLean/FourthEdition/Chapter_20/)
+* [21. Minimum Spanning Trees](CLRSLean/FourthEdition/Chapter_21/)
+* [22. Single-Source Shortest Paths](CLRSLean/FourthEdition/Chapter_22/)
+* [23. All-Pairs Shortest Paths](CLRSLean/FourthEdition/Chapter_23/)
+* [24. Maximum Flow](CLRSLean/FourthEdition/Chapter_24/)
+* [25. Matchings in Bipartite Graphs](CLRSLean/FourthEdition/Chapter_25/)
 
-The {lit}`FourthEdition` prefix is transitional. During the compatibility
-period, guides reuse theorem-bearing modules whose paths follow the third
-edition. New work starts from a
-{lit}`CLRSLean.FourthEdition.Chapter_NN` guide and consults
-{lit}`docs/clrs-fourth-edition-map.csv`; unqualified
-{lit}`CLRSLean.Chapter_NN` paths change meaning only under the documented
-major-release policy.
+## Selected Topics · Chapters 26–35
+
+* [26. Parallel Algorithms](CLRSLean/FourthEdition/Chapter_26/)
+* [27. Online Algorithms](CLRSLean/FourthEdition/Chapter_27/)
+* [28. Matrix Operations](CLRSLean/FourthEdition/Chapter_28/)
+* [29. Linear Programming](CLRSLean/FourthEdition/Chapter_29/)
+* [30. Polynomials and the FFT](CLRSLean/FourthEdition/Chapter_30/)
+* [31. Number-Theoretic Algorithms](CLRSLean/FourthEdition/Chapter_31/)
+* [32. String Matching](CLRSLean/FourthEdition/Chapter_32/)
+* [33. Machine-Learning Algorithms](CLRSLean/FourthEdition/Chapter_33/)
+* [34. NP-Completeness](CLRSLean/FourthEdition/Chapter_34/)
+* [35. Approximation Algorithms](CLRSLean/FourthEdition/Chapter_35/)
+
+## Online Material and Extensions
+
+[Online Material](CLRSLean/OnlineMaterial/) collects topics retained outside
+the fourth-edition main text. [Research Extensions](CLRSLean/Extensions/)
+contains work beyond the book. Neither is counted twice in the chapter ledger.
+
+## Source Names and Imports
+
+Use {lit}`CLRSLean.FourthEdition.Chapter_NN` for new imports. Some section proofs
+reuse source paths and declaration namespaces numbered for the third edition;
+the chapter guide links to the correct source. Existing unqualified
+{lit}`CLRSLean.Chapter_NN` imports retain their documented meaning during the
+compatibility period. The
+[migration guide](https://github.com/TankTechnology/CLRS-Lean/blob/main/docs/migrations/clrs4.md)
+records the mapping and compatibility policy.
 -/

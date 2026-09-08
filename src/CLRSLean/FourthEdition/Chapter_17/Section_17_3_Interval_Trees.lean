@@ -1,38 +1,29 @@
 import Mathlib
-import CLRSLean.Chapter_14.Section_14_3_Interval_Trees
+import CLRSLean.FourthEdition.Chapter_17.Section_17_3_Interval_Trees.Insertion
 
 /-!
-# Section 17.3 - Interval trees
+# Section 17.3 — Interval trees
 
-This section closes the fourth-edition §17.3 boundary.  The legacy
-{lit}`CLRSLean.Chapter_14` development proves the static interval-search model —
-{lit}`IntervalTree.intervalSearch?_spec` — and threads the max-high augmentation
-through executable red-black insertion
-({lit}`AugmentedRBTree.maxHighAug_wellAugmented_insert`).  What remains is the
-**bridge** connecting the dynamic augmented red-black representation to the
-static search spec, together with the search's logarithmic-cost foundation.
+Interval insertion compares both endpoints lexicographically, retaining distinct
+intervals with equal low endpoints. The generic insertion companion proves
+complete-key membership and preservation of compatible transitive orderings.
+Its interval instance preserves strict lexicographic BST order and the weaker
+low-endpoint ordering used by the static search algorithm.
 
-Main results:
+Color erasure preserves keys, max-high augmentation, and the static BST
+predicate. {lit}`intervalSearch_insert_spec` derives both post-insertion
+invariants from the input and proves complete search over the enlarged interval
+set: a failed search means neither the inserted interval nor any old interval
+overlaps the query. A successful search returns an old or newly inserted key
+that overlaps. {lit}`intervalSearch_insert_finds` guarantees success whenever
+the newly inserted interval overlaps the query.
 
-- Definition {lit}`IntervalTree.intervalSearchCost`: the pointer cost of
-  {lit}`IntervalSearch`.
-- Theorem {lit}`IntervalTree.intervalSearchCost_le_height`: the search cost is
-  bounded by the tree height (the logarithmic-cost foundation).
-- Definition {lit}`AugmentedRBTree.toIntervalTree`: erasure of the dynamic
-  augmented red-black tree to the static interval tree.
-- Theorem {lit}`AugmentedRBTree.wellAugmented_toIntervalTree`: erasure preserves
-  the max-high augmentation, bridging the dynamic and static representations.
-- Theorem {lit}`intervalSearch_after_update`: **search-after-update** — the
-  erasure of a max-high-augmented dynamic tree is well-augmented, so the static
-  search specification {lit}`IntervalTree.intervalSearch?_spec` remains
-  applicable after an update.
-- Definition {lit}`AugmentedRBTree.toRB_low`: erasure of the dynamic
-  {lit}`Interval`-keyed augmented red-black tree to the Chapter 13 red-black
-  tree, projecting each interval key to its low endpoint.
-- Theorem {lit}`intervalSearchCost_log_bound`: **interval search runs in
-  {lit}`O(log n)`** — composing {lit}`intervalSearchCost_le_height` with the
-  red-black height bound ({lit}`RBTree.height_log_bound`) through the
-  height-erasure equality {lit}`AugmentedRBTree.intervalHeight_eq_toRB_height`.
+The historical {lit}`intervalSearch_after_update` theorem remains the
+augmentation-only part of that bridge. The search-height analysis uses a
+conservative descent budget, which continues its accounting after a root match;
+its logarithmic bound assumes the supplied red-black shape invariant. These
+search results do not constitute a new red-black shape-preservation theorem for
+the interval insertion pipeline.
 -/
 
 namespace CLRS
@@ -45,14 +36,14 @@ def intervalHeight : IntervalTree → Nat
   | AugmentedTree.empty => 0
   | AugmentedTree.node l _ _ r => 1 + max (intervalHeight l) (intervalHeight r)
 
-/-- The pointer-operation cost of {lit}`intervalSearch?`: one node visit per
-level of the root-to-leaf descent. -/
+/-- Conservative descent budget for {lit}`intervalSearch?`: one node per
+level, continuing the accounting even when a matching interval stops search. -/
 def intervalSearchCost : IntervalTree → Interval → Nat
   | AugmentedTree.empty, _ => 0
   | AugmentedTree.node l _ _ r, q =>
       1 + if goLeft l q then intervalSearchCost l q else intervalSearchCost r q
 
-/-- The interval-search cost is bounded by the tree height plus one. -/
+/-- The conservative interval-search descent budget is bounded by height plus one. -/
 theorem intervalSearchCost_le_height (t : IntervalTree) (q : Interval) :
     intervalSearchCost t q ≤ intervalHeight t + 1 := by
   induction t generalizing q with
@@ -111,10 +102,9 @@ end AugmentedRBTree
 
 /-! ## The dynamic/static bridge and search-after-update -/
 
-/-- **Search-after-update.**  Inserting an interval into a well-augmented dynamic
-interval tree yields a tree whose erasure is still well-augmented, so the static
-search specification {lit}`IntervalTree.intervalSearch?_spec` remains applicable
-after the update. -/
+/-- The augmentation part of the insertion bridge. The stronger
+{lit}`intervalSearch_insert_spec` below also derives BST preservation and
+search correctness from the input invariants. -/
 theorem intervalSearch_after_update (q : Interval) {t : AugmentedRBTree Interval Nat}
     (h : AugmentedRBTree.WellAugmented IntervalTree.maxHighAug t) :
     IntervalTree.WellAugmented
@@ -149,8 +139,8 @@ theorem intervalHeight_eq_toRB_height (t : AugmentedRBTree Interval Nat) :
 end AugmentedRBTree
 
 /-- **Interval search runs in {lit}`O(log n)`.**  On an {lit}`Interval`-keyed
-augmented red-black tree with {lit}`n` nodes, interval search performs at most
-{lit}`2 log₂(n+1) + 1` pointer operations, composing
+augmented red-black tree with {lit}`n` nodes, the conservative search descent budget is at most
+{lit}`2 log₂(n+1) + 1` node visits, composing
 {lit}`intervalSearchCost_le_height` with the red-black height bound
 ({lit}`RBTree.height_log_bound`) via {lit}`AugmentedRBTree.intervalHeight_eq_toRB_height`. -/
 theorem intervalSearchCost_log_bound (t : AugmentedRBTree Interval Nat) (q : Interval)
@@ -161,6 +151,92 @@ theorem intervalSearchCost_log_bound (t : AugmentedRBTree Interval Nat) (q : Int
   have hc := IntervalTree.intervalSearchCost_le_height (AugmentedRBTree.toIntervalTree t) q
   rw [AugmentedRBTree.intervalHeight_eq_toRB_height t] at hc
   omega
+
+namespace AugmentedRBTree
+
+/-- Color erasure preserves every complete interval key. -/
+theorem keys_toIntervalTree (t : AugmentedRBTree Interval Nat) :
+    IntervalTree.keys (toIntervalTree t) = keys t := by
+  induction t with
+  | empty => rfl
+  | node c l k a r ihl ihr =>
+    simp only [toIntervalTree, IntervalTree.keys_node, keys, ihl, ihr]
+
+/-- The static search BST predicate is exactly weak inorder low ordering. -/
+theorem isBST_toIntervalTree_iff (t : AugmentedRBTree Interval Nat) :
+    IntervalTree.IsBST (toIntervalTree t) ↔ LowOrdered t := by
+  induction t with
+  | empty => simp [toIntervalTree, IntervalTree.IsBST, LowOrdered, Ordered, keys]
+  | node c l k a r ihl ihr =>
+    rw [show LowOrdered (.node c l k a r) ↔
+      LowOrdered l ∧ LowOrdered r ∧ (∀ i ∈ keys l, i.low ≤ k.low) ∧
+      (∀ i ∈ keys r, k.low ≤ i.low) from
+      ordered_node (fun i j : Interval => i.low ≤ j.low) (fun _ _ _ => le_trans) c l k a r]
+    simp only [toIntervalTree, IntervalTree.IsBST, ihl, ihr, IntervalTree.allLowLE,
+      IntervalTree.allLowGE, keys_toIntervalTree]
+
+/-- Insertion preserves the precise BST premise needed by static interval search. -/
+theorem isBST_toIntervalTree_insert (q : Interval) {t : AugmentedRBTree Interval Nat}
+    (h : IntervalTree.IsBST (toIntervalTree t)) :
+    IntervalTree.IsBST (toIntervalTree (insert IntervalTree.maxHighAug intervalLt q t)) :=
+  (isBST_toIntervalTree_iff _).mpr (lowOrdered_insert q ((isBST_toIntervalTree_iff t).mp h))
+
+/-- Strict lexicographic interval BSTs satisfy the static search ordering. -/
+theorem IntervalBST.toIntervalTree {t : AugmentedRBTree Interval Nat} (h : IntervalBST t) :
+    IntervalTree.IsBST (toIntervalTree t) :=
+  (isBST_toIntervalTree_iff t).mpr h.lowOrdered
+
+/-- Overlaps after insertion are exactly the new interval's overlaps plus old ones. -/
+theorem hasOverlap_interval_insert (q query : Interval) (t : AugmentedRBTree Interval Nat) :
+    IntervalTree.hasOverlap (toIntervalTree (insert IntervalTree.maxHighAug intervalLt q t)) query ↔
+      Interval.overlaps q query = true ∨ IntervalTree.hasOverlap (toIntervalTree t) query := by
+  simp only [IntervalTree.hasOverlap, keys_toIntervalTree, mem_keys_interval_insert]
+  constructor
+  · rintro ⟨i, hi, hov⟩
+    rcases hi with rfl | hi
+    · exact Or.inl hov
+    · exact Or.inr ⟨i, hi, hov⟩
+  · rintro (hq | ⟨i, hi, hov⟩)
+    · exact ⟨q, Or.inl rfl, hq⟩
+    · exact ⟨i, Or.inr hi, hov⟩
+
+end AugmentedRBTree
+
+/-- Search after actual insertion is complete for the enlarged interval set
+and returns only a stored overlapping interval. Both input invariants are
+explicit, and their postconditions are derived from the insertion execution. -/
+theorem intervalSearch_insert_spec (q query : Interval) {t : AugmentedRBTree Interval Nat}
+    (hB : IntervalTree.IsBST (AugmentedRBTree.toIntervalTree t))
+    (hW : AugmentedRBTree.WellAugmented IntervalTree.maxHighAug t) :
+    let updated := AugmentedRBTree.toIntervalTree
+      (AugmentedRBTree.insert IntervalTree.maxHighAug AugmentedRBTree.intervalLt q t)
+    (IntervalTree.intervalSearch? updated query = none ↔
+      ¬ (Interval.overlaps q query = true ∨ IntervalTree.hasOverlap (AugmentedRBTree.toIntervalTree t) query)) ∧
+    (∀ i, IntervalTree.intervalSearch? updated query = some i →
+      (i = q ∨ i ∈ AugmentedRBTree.keys t) ∧ Interval.overlaps i query = true) := by
+  have hs := IntervalTree.intervalSearch?_spec
+    (AugmentedRBTree.isBST_toIntervalTree_insert q hB) (intervalSearch_after_update q hW) query
+  simpa only [AugmentedRBTree.hasOverlap_interval_insert, AugmentedRBTree.keys_toIntervalTree,
+    AugmentedRBTree.mem_keys_interval_insert] using hs
+
+/-- An inserted interval overlapping the query guarantees a successful search. -/
+theorem intervalSearch_insert_finds (q query : Interval) {t : AugmentedRBTree Interval Nat}
+    (hB : IntervalTree.IsBST (AugmentedRBTree.toIntervalTree t))
+    (hW : AugmentedRBTree.WellAugmented IntervalTree.maxHighAug t)
+    (hq : Interval.overlaps q query = true) :
+    ∃ i, IntervalTree.intervalSearch?
+      (AugmentedRBTree.toIntervalTree
+        (AugmentedRBTree.insert IntervalTree.maxHighAug AugmentedRBTree.intervalLt q t)) query = some i ∧
+      (i = q ∨ i ∈ AugmentedRBTree.keys t) ∧ Interval.overlaps i query = true := by
+  have hs := intervalSearch_insert_spec q query hB hW
+  have hn : IntervalTree.intervalSearch?
+      (AugmentedRBTree.toIntervalTree
+        (AugmentedRBTree.insert IntervalTree.maxHighAug AugmentedRBTree.intervalLt q t)) query ≠ none := by
+    intro he
+    exact hs.1.mp he (Or.inl hq)
+  obtain ⟨i, hi⟩ := Option.ne_none_iff_exists'.mp hn
+  exact ⟨i, hi, hs.2 i hi⟩
+
 
 end Chapter14
 end CLRS

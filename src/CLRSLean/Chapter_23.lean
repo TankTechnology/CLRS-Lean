@@ -45,21 +45,16 @@ complete connected scan.  Prim is represented by a dynamic light-edge trace;
 the shared cut property proves safe extension, exact components prove forest
 preservation, and a complete trace returns a concrete minimum spanning tree.
 
-The implementation layer now threads the real Chapter 21 costed union-find
-machine through Kruskal, proves its connectivity invariant at every edge, and
-identifies its output with mathematical Kruskal.  It composes sorting, scan,
-and union-find work into explicit `O(E log E)` and `O((E+V) alpha(V))` bounds.
-The executable Prim layer supplies indexed queue membership, `key`, `parent`,
-`decreaseKey`, and `extractMin`; a concrete frontier provider refines its edge
-choices to `PrimTrace`.  The binary-heap operation model proves
-`O((E+V) log V)`, hence `O(E log V)` for connected nontrivial graphs, and also
-records unsorted-array and Fibonacci-heap alternatives.
+The implementation layer threads the actual costed union-find machine through
+Kruskal and proves connectivity/output refinement. Its combined work expression
+adds an independent sorting budget to the scan and union-find counters.
 
-## Deferred Work
-
-The sealed boundary now includes functional implementation refinements and
-algorithm-level work bounds.  Remaining work is the semantic refinement from
-the indexed queue contract to the concrete `Batteries.BinaryHeap` array state,
-plus mutable-array/RAM write accounting.  These do not reopen the Chapter 23
-correctness milestone.
+The canonical fourth-edition Chapter 21 imports completion proofs for the
+frontier run and a cached array Prim execution. The latter constructs its own
+MST and counts queue/index preparation, array reads/writes, key comparisons
+and adjacency visits, with a {lit}`2n² + 5n + 6E` bound. The existing binary-heap
+formula is conditional on backend operations; it is not the cost of the
+reference frontier rescan or an implemented binary heap. The new array variant
+supplies its own concrete queue proof. Allocation and bit costs remain outside
+these abstract operation models.
 -/

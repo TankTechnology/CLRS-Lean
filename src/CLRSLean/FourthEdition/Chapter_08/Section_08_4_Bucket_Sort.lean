@@ -1,4 +1,5 @@
 import CLRSLean.FourthEdition.Chapter_08.Section_08_3_Radix_Sort
+import CLRSLean.FourthEdition.Chapter_08.Section_08_4_Bucket_Sort.Execution
 import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 import CLRSLean.Probability.FiniteExpectation
 import Mathlib
@@ -40,23 +41,22 @@ existing abstract expression by
 {lit}`fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost` and shown
 to be {lit}`O(n)` by {lit}`expectedTextbookBucketSortCost_isBigO`.
 
-The running-time / cost layer then binds this abstract model to the real
-executable construction:
+The execution layer uses {lit}`CountingExecution.distribute` to build stable
+indexed buckets in one input pass. {lit}`BucketExecution.execute` then runs
+counted insertion sort in each stored bucket and pushes its output elements.
+The public {lit}`bucketSortByRank` and {lit}`bucketSortByRankWithCost` both
+project that same execution. Work includes initialization, distribution,
+bucket visits, output pushes, comparisons, and insertion list-node construction
+under an indexed primitive model; it excludes persistent-array copying and
+scalar/key implementation costs.
 
-* {lit}`distributeBuckets` is a single-pass bucket builder (one constant-time
-  insert per element into an {lit}`Array` of buckets, rather than one filter per
-  bucket);
-* {lit}`sortBucketByRankWithCost` is the costed per-bucket sorter charging the
-  CLRS insertion-sort bound {lit}`length²` per bucket;
-* {lit}`bucketSortByRankCost` and {lit}`bucketSortByRankWithCost` instrument the
-  executable {lit}`bucketSortByRank` with the textbook cost
-  {lit}`n + Σⱼ nⱼ²`;
-* {lit}`bucketSortByRankCost_eq_textbookBucketSortCost` identifies that cost,
-  over the canonical enumeration {lit}`List.finRange n` of an assignment
-  {lit}`Fin n → Fin n`, with {lit}`textbookBucketSortCost`;
-* {lit}`fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost` and
-  {lit}`expectedBucketSortByRankCost_isBigO` therefore prove the executable
-  bucket-sort cost has linear ({lit}`O(n)`) expectation.
+{lit}`bucketSortByRankWithCost_work_le` bounds returned work by
+{lit}`2m + 6n + 2Σⱼ nⱼ²`, including the number of buckets {lit}`m`.
+The legacy {lit}`bucketSortByRankCost` remains the abstract occupancy budget
+{lit}`n + Σⱼ nⱼ²`; its existing expectation theorems retain that meaning.
+The companion {lit}`ExpectedExecution` module proves actual expected work
+at most {lit}`12n` when {lit}`m = n` and bucket assignments are independently
+uniform. Final output correctness separately requires cross-bucket rank order.
 -/
 
 namespace CLRS
@@ -208,23 +208,27 @@ theorem bucketSortBy_correct [DecidableEq α] (bucketCount : Nat)
 
 /-- Sort one bucket by the final natural-number rank. -/
 def sortBucketByRank (rank : α → Nat) (xs : List α) : List α :=
-  xs.mergeSort (fun x y => decide (rank x ≤ rank y))
+  (BucketExecution.insertionWithCost rank xs).value
 
 theorem sortBucketByRank_perm (rank : α → Nat) (xs : List α) :
-    (sortBucketByRank rank xs).Perm xs := by
-  simpa [sortBucketByRank] using
-    List.mergeSort_perm xs (fun x y => decide (rank x ≤ rank y))
+    (sortBucketByRank rank xs).Perm xs :=
+  BucketExecution.insertionWithCost_perm rank xs
 
 theorem sortBucketByRank_ordered (rank : α → Nat) (xs : List α) :
-    OrderedBy rank (sortBucketByRank rank xs) := by
-  apply orderedBy_of_pairwise
-  simpa [sortBucketByRank] using
-    List.pairwise_mergeSort' (r := fun x y : α => rank x ≤ rank y) xs
+    OrderedBy rank (sortBucketByRank rank xs) :=
+  orderedBy_of_pairwise (BucketExecution.insertionWithCost_pairwise rank xs)
 
-/-- Bucket sort whose per-bucket sorter is Lean's verified merge sort. -/
+/-- Bucket sort using one indexed distribution followed by counted insertion sort. -/
 def bucketSortByRank (bucketCount : Nat) (bucketOf rank : α → Nat)
     (xs : List α) : List α :=
-  bucketSortBy bucketCount bucketOf (sortBucketByRank rank) xs
+  (BucketExecution.execute bucketCount bucketOf rank xs).output.toList
+
+/-- The indexed execution refines the stable bucket specification. -/
+theorem bucketSortByRank_eq_spec (bucketCount : Nat) (bucketOf rank : α → Nat)
+    (xs : List α) :
+    bucketSortByRank bucketCount bucketOf rank xs =
+      bucketSortBy bucketCount bucketOf (sortBucketByRank rank) xs :=
+  BucketExecution.execute_value bucketCount bucketOf rank xs
 
 /--
 Reader-facing correctness theorem for the executable bucket-sort model.
@@ -240,7 +244,7 @@ theorem bucketSortByRank_correct [DecidableEq α] (bucketCount : Nat)
     OrderedBy rank (bucketSortByRank bucketCount bucketOf rank xs) ∧
       (∀ x, x ∈ bucketSortByRank bucketCount bucketOf rank xs ↔ x ∈ xs) ∧
       (bucketSortByRank bucketCount bucketOf rank xs).Perm xs := by
-  unfold bucketSortByRank
+  rw [bucketSortByRank_eq_spec]
   exact bucketSortBy_correct bucketCount bucketOf rank (sortBucketByRank rank)
     xs hxs
     (fun k => sortBucketByRank_ordered rank (bucket bucketOf xs k))
@@ -603,10 +607,10 @@ theorem distributeCons_size (bucketOf : α → Nat) (x : α) (acc : Array (List 
   · simp [h]
 
 /--
-Single-pass bucket distribution.  Folds over {lit}`xs` once, consing each
-element onto its bucket, so distribution costs one constant-time insert per
-element rather than one filter per bucket.  Buckets are kept in reverse input
-order; the per-bucket sorter re-establishes order.
+Auxiliary left-to-right bucket distribution. It conses each element onto its
+bucket and keeps reverse input order. The public sorter uses the shared stable
+{lit}`CountingExecution.distribute` instead, whose contents are proved equal to
+the stable bucket specification.
 -/
 def distributeBuckets (bucketCount : Nat) (bucketOf : α → Nat) (xs : List α) :
     Array (List α) :=
@@ -636,41 +640,60 @@ theorem bucket_eq_filter_eq (key : α → Nat) (xs : List α) (k : Nat) :
 
 /-! ## Costed per-bucket sorter -/
 
-/-- Costed per-bucket sorter: sorts one bucket with the verified merge sort and
-charges the CLRS per-bucket insertion-sort bound {lit}`length²`. -/
+/-- Execute insertion sort and expose its accumulated work. -/
 def sortBucketByRankWithCost (rank : α → Nat) (xs : List α) : List α × Nat :=
-  (sortBucketByRank rank xs, xs.length ^ 2)
+  let run := BucketExecution.insertionWithCost rank xs
+  (run.value, run.work)
 
-/-- Erasing the per-bucket cost recovers {lit}`sortBucketByRank`. -/
+/-- Erasing per-bucket work recovers the public insertion sorter. -/
 theorem sortBucketByRankWithCost_result (rank : α → Nat) (xs : List α) :
     (sortBucketByRankWithCost rank xs).1 = sortBucketByRank rank xs := rfl
 
-/-- The per-bucket sorter charges exactly the quadratic {lit}`length²` bound. -/
+/-- The actual data-dependent work is bounded by twice the squared bucket length. -/
 theorem sortBucketByRankWithCost_cost (rank : α → Nat) (xs : List α) :
-    (sortBucketByRankWithCost rank xs).2 = xs.length ^ 2 := rfl
+    (sortBucketByRankWithCost rank xs).2 ≤ 2 * xs.length ^ 2 :=
+  BucketExecution.insertionWithCost_work_le_sq rank xs
 
-/-! ## Costed executable bucket sort -/
+/-! ## Occupancy budget and actual bucket execution -/
 
-/--
-Cost of the executable bucket sort: {lit}`n` for the single-pass distribution
-scan (one constant-time insert per element into {lit}`distributeBuckets`) plus
-the sum of squared per-bucket sizes (the CLRS per-bucket insertion-sort bound
-{lit}`Σⱼ nⱼ²`).
--/
+/-- Abstract occupancy budget, retained for the finite-expectation interface.
+It excludes bucket-count overhead and is not the actual returned work. -/
 def bucketSortByRankCost (bucketCount : Nat) (bucketOf : α → Nat) (xs : List α) : Nat :=
   xs.length + ∑ j : Fin bucketCount, ((bucket bucketOf xs (j : Nat)).length) ^ 2
 
-/-- Bucket sort paired with its textbook cost. -/
+/-- Return the output and the work of the same indexed bucket execution. -/
 def bucketSortByRankWithCost (bucketCount : Nat) (bucketOf rank : α → Nat) (xs : List α) :
     List α × Nat :=
-  (bucketSortByRank bucketCount bucketOf rank xs,
-    bucketSortByRankCost bucketCount bucketOf xs)
+  let run := BucketExecution.execute bucketCount bucketOf rank xs
+  (run.output.toList, run.work)
 
-/-- Erasing the cost recovers the existing {lit}`bucketSortByRank`. -/
 theorem bucketSortByRankWithCost_result (bucketCount : Nat) (bucketOf rank : α → Nat)
     (xs : List α) :
     (bucketSortByRankWithCost bucketCount bucketOf rank xs).1 =
       bucketSortByRank bucketCount bucketOf rank xs := rfl
+
+/-- The returned work includes bucket-count overhead as well as the occupancy budget. -/
+theorem bucketSortByRankWithCost_work_le [DecidableEq α] (bucketCount : Nat)
+    (bucketOf rank : α → Nat) (xs : List α) (hkeys : AllKeysLt bucketOf xs bucketCount) :
+    (bucketSortByRankWithCost bucketCount bucketOf rank xs).2 ≤
+      2 * bucketCount + 4 * xs.length + 2 * bucketSortByRankCost bucketCount bucketOf xs := by
+  have h := BucketExecution.execute_work_le bucketCount bucketOf rank xs
+  have hperm := bucketSortBy_perm bucketCount bucketOf id xs hkeys
+    (fun b => List.Perm.refl b)
+  have hlen : ((List.range bucketCount).map (bucket bucketOf xs)).flatten.length = xs.length := by
+    simpa [bucketSortBy, List.flatMap] using hperm.length_eq
+  have hsum : ((List.range bucketCount).map
+      (fun k => (bucket bucketOf xs k).length ^ 2)).sum =
+      ∑ j : Fin bucketCount, (bucket bucketOf xs (j : Nat)).length ^ 2 := by
+    rw [Fin.sum_univ_eq_sum_range (fun k => (bucket bucketOf xs k).length ^ 2)]
+    clear hkeys h hperm hlen
+    induction bucketCount with
+    | zero => simp
+    | succ m ih => simp [List.range_succ, Finset.sum_range_succ, ih]
+  rw [hlen, hsum] at h
+  change (BucketExecution.execute bucketCount bucketOf rank xs).work ≤ _
+  unfold bucketSortByRankCost
+  omega
 
 /-! ## Refinement to the abstract expected-cost model -/
 
@@ -745,7 +768,7 @@ theorem fintypeExpect_congr {Ω : Type} [Fintype Ω] [DecidableEq Ω] (X Y : Ω 
   congr 1
   exact Finset.sum_congr rfl (fun ω _ => h ω)
 
-/-- The expectation of the executable bucket-sort cost over the independent
+/-- The expectation of the abstract occupancy budget over the independent
 uniform input model is exactly {lit}`expectedBucketSortCost n`. -/
 theorem fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost (n : Nat) (hn : 0 < n) :
     CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n =>
@@ -758,7 +781,7 @@ theorem fintypeExpect_bucketSortByRankCost_eq_expectedBucketSortCost (n : Nat) (
   rw [hcongr]
   exact fintypeExpect_textbookBucketSortCost_eq_expectedBucketSortCost n hn
 
-/-- The executable bucket-sort cost has linear expectation ({lit}`O(n)`). -/
+/-- The abstract occupancy budget has linear expectation ({lit}`O(n)`). -/
 theorem expectedBucketSortByRankCost_isBigO :
     Chapter03.isBigO (fun n : Nat =>
       CLRS.Probability.fintypeExpect (fun a : Fin n → Fin n =>

@@ -5,37 +5,31 @@ import CLRSLean.Chapter_03.Section_03_1_Asymptotic_Notation
 /-!
 # CLRS Chapter 18 - B-tree running time
 
-This module adds the running-time / cost layer for the executable B-tree
-operations.  Each cost function mirrors one real recursive construction from
-Sections 18.1-18.3 and counts the number of B-tree nodes (disk pages) the
-operation reads and writes:
+This module bounds recursive-descent charges that follow the branch structure
+of the B-tree search, insertion, and deletion definitions. Each selected
+recursive call contributes one unit; terminal cases also contribute one.
+Top-level insertion adds one budget unit when the root splits.
 
-- {lit}`searchCost` mirrors {lit}`searchExec` (Section 18.1),
-- {lit}`insertCost` mirrors {lit}`insertNonFull` and {lit}`insertRootCost`
-  charges the full-root split of {lit}`insertRoot` (Section 18.2),
-- {lit}`deleteCost` mirrors {lit}`composedDelete` (Section 18.3).
-
-Every descent performs {lit}`O(1)` node work (a split, a borrow, or a merge
-touches a constant number of pages), so the number of disk accesses is
-bounded by the number of levels visited.  The height bounds compose with the
-existing {lit}`wellFormed_height_log_bound` to give the CLRS running time:
+These counters do not enumerate literal page reads/writes. In particular,
+split/borrow/merge accesses, separator scans, max/min predecessor/successor
+traversals, persistent list copying, and root-normalization work are not charged
+individually. No constant-factor refinement to complete page I/O is proved here.
 
 Main results:
 
-- Theorem {lit}`searchCost_le_height`: search costs at most `height + 1`.
-- Theorem {lit}`insertCost_le_height`: non-full insertion costs at most
-  `height + 1`.
-- Theorem {lit}`insertRootCost_le_height`: top-level insertion costs at most
-  `height + 3` (the extra levels come from the full-root split).
-- Theorem {lit}`deleteCost_le_height`: deletion costs at most `height + 1`.
-- Theorem {lit}`searchCost_le_diskAccessBound`,
-  {lit}`insertRootCost_le_diskAccessBound`,
-  {lit}`deleteCost_le_diskAccessBound`: on every well-formed tree
-  (`2 ≤ t`) the three operations perform at most
-  {lit}`diskAccessBound t (totalKeys tr)` disk accesses, where
-  {lit}`diskAccessBound t n = log_t ((n+1)/2) + 3`.
-- Theorem {lit}`diskAccessBound_isBigO_log_t`: that bound is `O(log_t n)`, so
-  search, insertion, and deletion each run in `O(log_t n)` disk accesses.
+- {lit}`searchCost_le_height`, {lit}`insertCost_le_height`, and
+  {lit}`deleteCost_le_height`: the selected recursive path has at most
+  {lit}`height + 1` charges.
+- {lit}`insertRootCost_le_height`: the insertion descent/root-split budget is
+  at most {lit}`height + 3`.
+- The historical {lit}`*_le_diskAccessBound` theorems bound these same descent
+  counters on well-formed trees with {lit}`2 ≤ t`.
+- {lit}`diskAccessBound_isBigO_log_t`: the common mathematical envelope is
+  {lit}`O(log_t n)`. The historical name is retained for compatibility; it does
+  not convert the descent counter into a complete disk-access trace.
+
+Functional insertion/deletion structure, key-bag, and search correctness are
+independent of this accounting boundary and remain available unchanged.
 
 Notation conventions used in this section:
 
@@ -50,7 +44,7 @@ namespace BTree
 
 open List
 
-/-! ## Disk-access cost functions -/
+/-! ## Recursive-descent charges -/
 
 /--
 Number of nodes visited by {lit}`searchExec` for key {lit}`x`: one per level
@@ -68,10 +62,9 @@ decreasing_by
   exact heightOf_mem_lt (List.mem_iff_getElem?.mpr ⟨findChild ks x, _hc⟩)
 
 /--
-Number of nodes read and written by {lit}`insertNonFull` for key {lit}`x`
-(minimum degree {lit}`t`).  Each recursion step descends one level; the split
-of a full child touches only that child and its two halves, which is constant
-per level.
+Recursive-descent charges for the insertion branch structure. A full-child
+split changes the selected subtree but adds no separate page-read/write events.
+This is not a literal count of every node inspected or modified.
 -/
 def insertCost (t x : Nat) : BTree → Nat
   | node ks cs =>
@@ -102,10 +95,9 @@ decreasing_by
       | exact heightOf_le_of_children_subset (List.drop_subset _ _)
 
 /--
-Number of nodes read and written by {lit}`composedDelete` for key {lit}`x`
-(minimum degree {lit}`t`).  Each recursion step descends one level; a borrow
-or merge touches only the two adjacent children and their parent, which is
-constant per level.
+Recursive-descent charges for deletion. Borrow/merge selects the next
+subtree; max/min chooses a replacement key. The helper traversals and local
+page operations are not counted by the added unit at each recursive level.
 -/
 def deleteCost (t : Nat) (x : Nat) : BTree → Nat
   | node ks cs =>
@@ -256,7 +248,7 @@ decreasing_by
 /-! ## Height bounds -/
 
 /-- **O(h) search.**  {lit}`searchExec` descends at most one path, so its
-number of disk accesses is bounded by the tree height plus one. -/
+number of descent charges is bounded by the tree height plus one. -/
 theorem searchCost_le_height (x : Nat) (tr : BTree) :
     searchCost x tr ≤ heightOf tr + 1 := by
   induction tr using searchCost.induct x with
@@ -284,7 +276,7 @@ theorem searchCost_le_height (x : Nat) (tr : BTree) :
       · omega
 
 /-- **O(h) insertion.**  {lit}`insertNonFull` descends at most one path, so
-its number of disk accesses is bounded by the tree height plus one. -/
+its number of descent charges is bounded by the tree height plus one. -/
 theorem insertCost_le_height (t x : Nat) (tr : BTree) :
     insertCost t x tr ≤ heightOf tr + 1 := by
   induction tr using insertCost.induct (t := t) (x := x) with
@@ -403,7 +395,7 @@ private lemma rotateRight_target_lt_node (ks : List Nat) {cs : List BTree} {a b 
   omega
 
 /-- **O(h) deletion.**  {lit}`composedDelete` descends at most one path, so its
-number of disk accesses is bounded by the tree height plus one. -/
+number of descent charges is bounded by the tree height plus one. -/
 theorem deleteCost_le_height (t x : Nat) (tr : BTree) :
     deleteCost t x tr ≤ heightOf tr + 1 := by
   induction x, tr using deleteCost.induct (t := t) with
@@ -725,8 +717,8 @@ theorem deleteCost_le_height (t x : Nat) (tr : BTree) :
 /-! ## Top-level insertion cost -/
 
 /--
-Number of nodes read and written by the top-level {lit}`insertRoot`: the
-{lit}`insertNonFull` descent, plus one extra node for the full-root split.
+Insertion descent budget with one extra charge for the full-root split.
+The charge is a budget unit, not a literal count of split-page reads/writes.
 -/
 def insertRootCost (t x : Nat) (tr : BTree) : Nat :=
   if rootKeyCount tr = 2 * t - 1 then insertCost t x (splitRoot t tr) + 1
@@ -749,16 +741,16 @@ theorem insertRootCost_le_height (t x : Nat) (ht : 2 ≤ t) {tr : BTree}
     have hins := insertCost_le_height t x tr
     omega
 
-/-! ## `O(log_t n)` disk-access bounds -/
+/-! ## Logarithmic descent-budget bounds -/
 
 /--
-The CLRS `O(log_t n)` disk-access bound: the height of a well-formed tree is
-at most `log_t ((n+1)/2)`, and every operation adds a constant number of
-levels.
+Common logarithmic envelope for the descent budgets. Its historical
+{lit}`diskAccessBound` name is retained, but a full page-I/O interpretation
+requires additional accounting not established in this module.
 -/
 def diskAccessBound (t : Nat) (n : Nat) : Nat := Nat.log t ((n + 1) / 2) + 3
 
-/-- Search performs at most `log_t n + O(1)` disk accesses on a well-formed
+/-- Search has at most `log_t n + O(1)` descent charges on a well-formed
 tree. -/
 theorem searchCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
     (hwf : WellFormed t tr) (x : Nat) :
@@ -769,7 +761,7 @@ theorem searchCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
   unfold diskAccessBound
   omega
 
-/-- Top-level insertion performs at most `log_t n + O(1)` disk accesses on a
+/-- Top-level insertion has at most `log_t n + O(1)` descent/root-split charges on a
 well-formed tree. -/
 theorem insertRootCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
     (hwf : WellFormed t tr) (x : Nat) :
@@ -780,7 +772,7 @@ theorem insertRootCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
   unfold diskAccessBound
   omega
 
-/-- Deletion performs at most `log_t n + O(1)` disk accesses on a well-formed
+/-- Deletion has at most `log_t n + O(1)` descent charges on a well-formed
 tree. -/
 theorem deleteCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
     (hwf : WellFormed t tr) (x : Nat) :
@@ -792,10 +784,9 @@ theorem deleteCost_le_diskAccessBound (t : Nat) (ht : 2 ≤ t) {tr : BTree}
   omega
 
 /--
-**`O(log_t n)` disk accesses.**  The common bound
-{lit}`diskAccessBound t n = log_t ((n+1)/2) + 3` is `O(log_t n)`, so search,
-insertion, and deletion each run in `O(log_t n)` disk accesses on a
-well-formed tree.
+The common descent-budget envelope is {lit}`O(log_t n)`. This is an
+asymptotic theorem about the displayed numeric bound, not an additional
+operational refinement for page I/O or auxiliary traversals.
 -/
 theorem diskAccessBound_isBigO_log_t (t : Nat) (ht : 2 ≤ t) :
     CLRS.Chapter03.isBigO (fun n => (diskAccessBound t n : ℝ))

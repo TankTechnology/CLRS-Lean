@@ -5,7 +5,10 @@ import Mathlib.Tactic
 
 The complete transform folds globally ordered stages over a bit-reversed
 vector.  A stage recursively enumerates its independent contiguous blocks and
-uses the already verified butterfly execution at each block.
+uses the already verified butterfly execution at each block. The arithmetic
+fields charge the shared butterfly/twiddle schedule. Computing child roots
+{lit}`omega ^ 2` in nonfinal stages is root setup, excluded from these fields;
+they do not count every ring operation in the literal function evaluator.
 -/
 
 namespace CLRS

@@ -54,6 +54,12 @@ The native sections supply all represented fourth-edition elementary-graph
 sections.  The namespace migration `CLRS.Chapter22` → `CLRS.Chapter20` is
 tracked chapter by chapter.
 
+BFS and DFS have counters attached to their represented traversal executions.
+Topological sorting and SCC instead prove order/partition correctness and use
+{lit}`List.mergeSort` on finish times. Its additional comparisons and ordering
+work are not included in the DFS {lit}`V + E` controller count. No complete
+linear-time execution theorem for these merge-sorted entry points is claimed.
+
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
 -/

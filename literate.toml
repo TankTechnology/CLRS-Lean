@@ -5,17 +5,17 @@ docstrings_as_text = true
 
 [metadata]
 title = "CLRS-Lean"
-description = "A Lean 4 companion for CLRS-style algorithm correctness proofs."
+description = "Machine-checked algorithms and proofs across the 35 chapters of CLRS, fourth edition."
 
 [order_children]
 "CLRSLean" = [
   "CLRSLean.FourthEdition",
+  "CLRSLean.Progress",
+  "CLRSLean.Status",
   "CLRSLean.OnlineMaterial",
   "CLRSLean.ProofPatterns",
   "CLRSLean.Probability",
   "CLRSLean.Extensions",
-  "CLRSLean.Progress",
-  "CLRSLean.Status",
   "CLRSLean.Workflow",
 ]
 "CLRSLean.FourthEdition" = [
@@ -2541,7 +2541,7 @@ title = "Chapter 2. Getting Started"
 title = "CLRS-Lean"
 
 [modules."CLRSLean.FourthEdition"]
-title = "CLRS Fourth Edition"
+title = "Chapters 1–35 · CLRS Fourth Edition"
 
 [modules."CLRSLean.FourthEdition.Chapter_01"]
 title = "Chapter 1. The Role of Algorithms in Computing"
@@ -3645,7 +3645,7 @@ title = "Progress Dashboard"
 title = "Proof Status"
 
 [modules."CLRSLean.Workflow"]
-title = "Workflow"
+title = "Contributor Guide"
 
 [modules."CLRSLean.Chapter_02.Section_02_1_Insertion_Sort"]
 title = "2.1. Insertion Sort"

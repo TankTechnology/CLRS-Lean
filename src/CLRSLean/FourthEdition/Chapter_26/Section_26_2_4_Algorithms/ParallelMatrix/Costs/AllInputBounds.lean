@@ -3,8 +3,10 @@ import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatri
 /-!
 # CLRS Section 26.2 — All-Input Matrix Asymptotics
 
-This module lifts the exact-power analysis of executable {lit}`P-ADD` and
-{lit}`P-MATMUL` to every natural input size.  The results distinguish the
+This module extends numerical cost recurrences from their exact-power
+analysis to every natural size. The actual {lit}`P-ADD` and {lit}`P-MATMUL`
+constructors remain indexed by depth and dimension {lit}`2^k`; these numeric
+bounds do not supply an arbitrary-dimension padding/unpadding execution.  The results distinguish the
 execution-attached P-MATMUL span, which includes its sequential P-ADD stage and
 therefore grows as {lit}`Theta(log^2 n)`, from the earlier idealized recurrence.
 

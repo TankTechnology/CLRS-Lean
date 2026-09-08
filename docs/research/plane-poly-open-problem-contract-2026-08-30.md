@@ -59,7 +59,7 @@ solution
 
 | Artifact | Purpose | Generated | Hand-edited? |
 |---|---|---|---|
-| `docs/superpowers/specs/2026-08-30-plane-poly-open-problem-design.md` | frozen mathematical and formal design | no | yes |
+| `docs/designs/2026-08-30-plane-poly-open-problem-design.md` | frozen mathematical and formal design | no | yes |
 | `docs/research/plane-poly-open-problem-contract-2026-08-30.md` | claim and evidence boundary | no | yes |
 | future canonical gadget witness under `data/research/plane-poly/` | exact vertices, darts, rotations, faces, terminals | by search/export tool | no |
 | future Lean modules under `CLRSLean/Research/PlanePoly/` | kernel-checked definitions and proofs | no | yes |

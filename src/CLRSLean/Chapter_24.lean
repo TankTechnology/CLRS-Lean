@@ -11,7 +11,13 @@ finite weighted directed-graph model on top of the Chapter 22 style graph
 vocabulary and formalizes the Bellman-Ford algorithm: the relaxation dynamic
 program, the upper-bound property, realizability of estimates by actual walks,
 cycle removal under the no-negative-cycle hypothesis, exact correctness after
-{lit}`|V| - 1` rounds, convergence, and the {lit}`O(V·E)` work bound.
+{lit}`|V| - 1` rounds, convergence, and an abstract {lit}`O(V·E)` round/edge budget. The synchronous recursive
+evaluator does not yet establish that budget as stored-table execution cost.
+Correctness assumes global absence of negative cycles, without a failure-return
+interface. DAG execution assumes a supplied topological order; the Dijkstra
+binary-heap formula is a separate backend budget. The canonical fourth-edition
+chapter also exports a constructed BFS parent tree of tight edges, whose depth
+decreases strictly even in zero-weight cycles.
 
 ## Sections
 

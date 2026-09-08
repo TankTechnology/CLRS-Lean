@@ -18,7 +18,11 @@ algorithms, and designing algorithms), imported directly from
 and
 [Section 2.3](CLRSLean/FourthEdition/Chapter_02/Section_02_3_Designing_Algorithms/).
 Section 2.2 includes the full symbolic insertion-sort line-cost table and its
-best/worst trace specializations.  Section 2.3 includes the explicit costed
+best/worst symbolic specializations. The actual recursive comparison counter
+has a universal triangular upper bound and a descending input family attaining
+it at every size. `insertionSortWorstComparisons_isGreatest` and
+`insertionSortComparisons_worst_case_theta` expose this execution connection.
+Section 2.3 includes the explicit costed
 MERGE development, an executable recursive merge sort built from that MERGE,
 and execution-derived recurrence and asymptotic results.
 Declarations retain the `CLRS.Chapter02` namespace during the compatibility period; the
@@ -28,8 +32,10 @@ third-edition-numbered imports {lit}`CLRSLean.Chapter_02` and
 ## Coverage boundary
 
 Insertion sort and merge sort use immutable lists.  Section 2.2's
-line costs are the textbook symbolic unit-cost model, not operational word-RAM
-semantics.  Section 2.3 proves the executable recursive merge sort correct,
+line costs are supplied symbolic parameters, not traces extracted from an
+input or operational word-RAM semantics. The comparison counter, separately,
+counts key comparisons of the functional recursion; it excludes list allocation
+and traversal overhead.  Section 2.3 proves the executable recursive merge sort correct,
 identifies it with the compatibility API, and derives its all-input
 {lit}`Theta(n log n)` work bound.  Temporary-array allocation remains outside
 the advertised boundary.

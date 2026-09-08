@@ -32,10 +32,12 @@ The lower bound then follows from three independent facts:
   least {lit}`n` ({lit}`factorial_sq_ge_pow_self` +
   {lit}`logb_factorial_ge_half_mul_logb`).
 
-Combining these yields the headline theorem
-{lit}`comparisonSort_worstCase_lowerBound`: every correct comparison-based
-sorter on {lit}`n ≥ 2` distinct elements needs at least
-{lit}`(n/2)·(log₂ n - 1)` comparisons in the worst case.
+Combining these yields the structural-height theorem
+{lit}`comparisonSort_worstCase_lowerBound`. The companion {lit}`Execution`
+module adds a counted interpreter and proves
+{lit}`comparisonSort_exists_run_lowerBound`: for every correct sorter on
+{lit}`n ≥ 2` distinct elements, some input actually performs at least
+{lit}`(n/2)·log₂ n` comparisons, even when other branches are unreachable.
 
 ## Main results
 
@@ -49,16 +51,17 @@ sorter on {lit}`n ≥ 2` distinct elements needs at least
 - Theorem {lit}`factorial_sq_ge_pow_self`: {lit}`(n!)² ≥ nⁿ`
 - Theorem {lit}`logb_factorial_ge_half_mul_logb`:
   {lit}`log₂(n!) ≥ (n/2)·log₂ n`
-- Theorem {lit}`comparisonSort_worstCase_lowerBound` (CLRS §8.1): the
-  worst-case number of comparisons of any correct comparison sort is at least
-  {lit}`(n/2)·(log₂ n - 1)`, hence {lit}`Ω(n log n)`
+- Theorem {lit}`comparisonSort_worstCase_lowerBound`: the historical
+  structural-height lower bound.
+- Theorem {lit}`comparisonSort_exists_run_lowerBound` in {lit}`Execution`:
+  an actual input attains at least {lit}`(n/2)·log₂ n` comparisons.
 
 ## Current gaps
 
 None for the decision-tree model of comparison sorts over {lit}`Fin n`.
-RAM-level bookkeeping of comparisons (charging the comparison itself through
-an execution semantics) is out of scope, as is the non-comparison-based
-lower-bound analysis for counting/radix/bucket sort.
+The companion interpreter charges each executed comparison once. Other RAM
+bookkeeping and non-comparison lower-bound analysis for counting/radix/bucket
+sort remain outside this model.
 -/
 
 namespace CLRS
@@ -84,7 +87,8 @@ def SortTree.leafCount : SortTree n → ℕ
 
 /--
 The height of a decision tree: the largest number of internal nodes on a
-root-to-leaf path.  This is the worst-case number of comparisons.
+root-to-leaf path. It bounds every run from above, but an infeasible branch
+can make it larger than the maximum reachable comparison count.
 -/
 def SortTree.height : SortTree n → ℕ
   | leaf _ => 0
@@ -243,9 +247,10 @@ theorem factorial_le_leafCount_of_correctSort {T : SortTree n} (hT : CorrectSort
     (fun π => run_isLeafNodeOf T π)
 
 /--
-A correct sorter for `n` distinct elements performs at least `log₂(n!)`
-comparisons in the worst case: its decision tree needs `n!` leaves, and a tree
-of height `h` has at most `2^h` leaves.
+A correct sorter for {lit}`n` distinct elements has structural height at least
+{lit}`log₂(n!)`: its decision tree needs {lit}`n!` leaves and a tree of height
+{lit}`h` has at most {lit}`2^h` leaves. The companion {lit}`Execution` module
+proves a separate lower bound attained by an actual input.
 -/
 theorem height_le_logb_factorial {T : SortTree n} (hT : CorrectSort T) :
     Real.logb 2 (n.factorial : ℝ) ≤ (T.height : ℝ) := by
@@ -330,9 +335,11 @@ theorem logb_factorial_ge_half_mul_logb (n : ℕ) (hn : 0 < n) :
 /-! ## The lower bound -/
 
 /--
-**Worst-case comparison lower bound** (CLRS §8.1): any correct comparison-based
-sorting algorithm on `n ≥ 2` distinct elements needs at least
-`(n/2)·(log₂ n - 1)` comparisons in the worst case, which is `Ω(n log n)`.
+**Structural-height lower bound** (CLRS §8.1): any correct comparison tree on
+{lit}`n ≥ 2` distinct elements has height at least
+{lit}`(n/2)·(log₂ n - 1)`. The historical name is retained;
+{lit}`comparisonSort_exists_run_lowerBound` in the companion {lit}`Execution`
+module strengthens this to an actual input's comparison count.
 -/
 theorem comparisonSort_worstCase_lowerBound (n : ℕ) (hn : 2 ≤ n)
     {T : SortTree n} (hT : CorrectSort T) :

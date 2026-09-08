@@ -46,7 +46,11 @@ matching refinement at every step, at most `|V|` augmentations, and a separate
 support-indexed execution whose counter is attached to adjacency construction,
 residual bucket scans, parent-path recovery, graph-path projection, and
 concrete matching updates.
-The final bound is `O(V_f E_f)` for the constructed unit-capacity network.
+The exact product bound is {lit}`20 * V_f * (E_f + 1)` for the constructed
+unit-capacity network, with {lit}`V_f = |V| + 2` and
+{lit}`E_f = |L| + |E| + |R| = |V| + |E|`. It therefore includes source/sink
+arcs and does not automatically give {lit}`O(V E)` in the original sparse
+edge count, especially when the original graph has many isolated vertices.
 Section 25.2 proves Gale-Shapley stability (Theorem 25.5),
 stable-pairing existence, perfectness, man-optimality (Theorem 25.6), and
 woman-pessimality.  Section 25.3 formalizes the assignment model and Lemma

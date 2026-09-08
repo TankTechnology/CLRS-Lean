@@ -13,3 +13,8 @@ import CLRSLean.FourthEdition.Chapter_32
 
 example : CLRS.Chapter32.naiveMatcher ([0, 1, 0, 1] : List Nat) [0, 1] = [0, 2] := by
   decide
+
+#assert_axioms CLRS.Chapter32.RKExecution.execute_correct
+#assert_axioms CLRS.Chapter32.RKExecution.execute_chargedWork
+#assert_axioms CLRS.Chapter32.DFAExecution.execute_correct
+#assert_axioms CLRS.Chapter32.DFAExecution.execute_transitions

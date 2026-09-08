@@ -1,24 +1,26 @@
-import CLRSLean.Chapter_15.Section_15_4_Longest_Common_Subsequence
+import CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence.Tabulation
 
 /-!
 # Section 14.4 — Longest common subsequence
 
-This section completes the fourth-edition §14.4 algorithm boundary on top of the
-legacy recurrence and bottom-up length
-({lit}`CLRSLean.Chapter_15.Section_15_4_Longest_Common_Subsequence`).  It
-publishes the tabulated Θ(mn) `lcsLength` and the output reconstruction
-{name}`CLRS.Chapter15.lcsReconstruct` (with its length/common/correctness
-refinements), and proves the Θ(mn) table bound.
+The public {name}`CLRS.Chapter15.lcsLengthTabulated` computes rolling rows from
+stored predecessors. Its row invariant proves equality with the legacy recursive
+specification {name}`CLRS.Chapter15.lcsLength`. The executed cell counter is exactly
+`(m + 1)(n + 1)`; for positive lengths it lies between `mn` and `4mn`.
+
+Each cell uses constant many list/head, arithmetic, and equality operations.
+This is a cell-operation bound, excluding equality internals, allocation, and
+call-stack costs. The returned row has `n + 1` entries; no peak-memory theorem
+is claimed. The legacy reconstruction is functionally correct but still uses
+the recursive length oracle, so its runtime is not bounded by this counter.
 
 Main results:
 
-- Definition {lit}`lcsTableCells`: the number of table entries for inputs of
-  lengths {lit}`m` and {lit}`n`.
-- Theorem {lit}`lcsTableCells_le_four_mn`: the table stores `O(mn)` entries, and
-  each entry costs `O(1)`, so the tabulated LCS runs in `Θ(mn)`.
-
-Status: `proved` for the tabulated Θ(mn) table bound.  The recurrence,
-length, reconstruction, and correctness theorems remain in the legacy source.
+- {name}`CLRS.Chapter15.LCSTabulation.execute_row`: all stored row entries agree
+  with the recursive specification.
+- {name}`CLRS.Chapter15.LCSTabulation.execute_cells`: actual executed cell count.
+- {lit}`lcsExecution_cells_eq_tableCells`, {lit}`lcsExecution_cells_bounds`:
+  the table-size formula and quadratic bounds apply to the executed algorithm.
 
 Notation conventions used in this section:
 
@@ -39,9 +41,8 @@ def lcsTableCells (m n : Nat) : Nat :=
 /-- The LCS table has `(m + 1)(n + 1)` entries. -/
 theorem lcsTableCells_eq (m n : Nat) : lcsTableCells m n = (m + 1) * (n + 1) := rfl
 
-/-- The tabulated LCS table stores `O(mn)` entries, and each entry is computed in
-    `O(1)` time from its three predecessors, so the total time and space are
-    `Θ(mn)`. -/
+/-- Arithmetic upper bound for the number of visited cells. Execution is linked
+    to this formula by {lit}`lcsExecution_cells_eq_tableCells` below. -/
 theorem lcsTableCells_le_four_mn (m n : Nat) (hm : 1 ≤ m) (hn : 1 ≤ n) :
     lcsTableCells m n ≤ 4 * m * n := by
   unfold lcsTableCells
@@ -50,6 +51,20 @@ theorem lcsTableCells_le_four_mn (m n : Nat) (hm : 1 ≤ m) (hn : 1 ≤ n) :
   calc
     (m + 1) * (n + 1) ≤ (2 * m) * (2 * n) := Nat.mul_le_mul h1 h2
     _ = 4 * m * n := by ring
+
+/-- Connect the dimension formula to the counter carried by the row execution. -/
+theorem lcsExecution_cells_eq_tableCells [DecidableEq α] (xs ys : List α) :
+    (LCSTabulation.execute xs ys).cells = lcsTableCells xs.length ys.length :=
+  LCSTabulation.execute_cells xs ys
+
+/-- Matching product bounds for the actual cell visits, for nonempty inputs. -/
+theorem lcsExecution_cells_bounds [DecidableEq α] (xs ys : List α)
+    (hx : 1 ≤ xs.length) (hy : 1 ≤ ys.length) :
+    xs.length * ys.length ≤ (LCSTabulation.execute xs ys).cells ∧
+    (LCSTabulation.execute xs ys).cells ≤ 4 * xs.length * ys.length := by
+  rw [lcsExecution_cells_eq_tableCells]
+  exact ⟨Nat.mul_le_mul (Nat.le_succ _) (Nat.le_succ _),
+    lcsTableCells_le_four_mn _ _ hx hy⟩
 
 end Chapter15
 end CLRS

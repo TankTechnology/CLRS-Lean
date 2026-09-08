@@ -17,8 +17,12 @@ by the textbook proof:
 * every key bucket is exactly the corresponding input bucket, hence stable;
 * membership is preserved when all input keys are at most the declared maximum.
 
-The count-array implementation and linear-time cost model are future
-refinements of this stable bucket specification.
+The companion {lit}`Execution` module refines this stable specification with
+one indexed distribution and one output traversal, returning controller and
+indexed-operation counters. {lit}`MutableOutput.countingSortArray` and radix
+passes execute that controller. The existing count-table/scatter helpers
+remain specification developments; the new linear controller does not execute
+the literal cumulative-counter decrement program.
 
 ## Implementation details
 

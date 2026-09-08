@@ -4,7 +4,7 @@ import CLRSLean.FourthEdition.Chapter_13.Section_13_2_Rotations
 /-!
 # Section 13.3 - Insertion
 
-This section closes the fourth-edition §13.3 boundary for red-black insertion.
+This section proves functional red-black insertion properties and a descent budget.
 On top of the legacy functional {lit}`RBTree.insert` (which already preserves
 membership and red-black shape), it adds:
 
@@ -17,21 +17,23 @@ membership and red-black shape), it adds:
    invariant (the missing §13.3 refinement), via a characterization of {lit}`BST`
    as *sortedness of the inorder key list*.
 
-3. **The logarithmic execution-cost theorem.**  {lit}`insertCost` counts the
-   pointer operations of {lit}`RB-INSERT` and is proved {lit}`O(log n)` via
-   CLRS Lemma 13.1.
+3. **A logarithmic descent budget.** {lit}`insertCost` charges the search path
+   and terminal case. It is logarithmic by the red-black height bound. It does
+   not instrument insertion, rotations, recoloring, or pointer reconnection;
+   no domination theorem for the complete update is claimed.
 
 Main results:
 
 - Theorem {lit}`RBTree.keys_mem`: membership equals list membership of {lit}`keys`.
 - Theorem {lit}`RBTree.bst_iff_sorted`: {lit}`BST t` iff {lit}`keys t` is sorted.
 - Theorem {lit}`RBTree.keys_balanceLeft` / {lit}`RBTree.keys_balanceRight`:
-  the balancers preserve the inorder key list (the {lit}`RB-INSERT-FIXUP` bridge).
+  the functional balancers preserve the inorder key list. This does not identify
+  their execution with imperative {lit}`RB-INSERT-FIXUP`.
 - Theorem {lit}`RBTree.bst_balanceLeft` / {lit}`RBTree.bst_balanceRight`:
   the balancers preserve BST.
 - Theorem {lit}`RBTree.bst_insert`: insertion preserves BST.
-- Theorem {lit}`RBTree.insertCost_log_bound`: **RB-INSERT runs in
-  {lit}`O(log n)` pointer operations** on a red-black tree.
+- Theorem {lit}`RBTree.insertCost_log_bound`: the separately defined descent
+  budget is logarithmic on a red-black-shaped tree.
 -/
 
 namespace CLRS
@@ -164,12 +166,12 @@ theorem bst_balanceRight {l r : RBTree} {y : Nat}
   exact ⟨(bst_iff_sorted l).mp hL, (bst_iff_sorted r).mp hR,
     fun z hz => hLy z ((keys_mem z l).mpr hz), fun z hz => hyR z ((keys_mem z r).mpr hz)⟩
 
-/-! ## Pointer-operation cost of RB-INSERT -/
+/-! ## Abstract search-descent budget -/
 
-/-- The pointer-operation cost of inserting `x`: each level of the descent
-performs one node read plus the comparison, and the terminal level allocates one
-node.  The fixup ascent performs at most a constant number of rotations or
-recolors per level, so the whole operation is {lit}`O(height)`. -/
+/-- Search-descent analysis budget, retained under its historical name.
+Charges two per strict descent and one at termination. It omits balancing,
+recoloring, allocation internals, and pointer updates. This is not a counter
+returned by {lit}`insert`, nor a proved bound on that complete execution. -/
 def insertCost (x : Nat) : RBTree → Nat
   | .empty => 1
   | .node _ l y r =>
@@ -177,7 +179,7 @@ def insertCost (x : Nat) : RBTree → Nat
       else if y < x then 2 + insertCost x r
       else 1
 
-/-- The insertion cost is bounded by {lit}`2 * height + 1`. -/
+/-- The descent budget is bounded by {lit}`2 * height + 1`. -/
 theorem insertCost_le (x : Nat) (t : RBTree) : insertCost x t ≤ 2 * height t + 1 := by
   induction t with
   | empty => simp [insertCost, height]
@@ -193,9 +195,7 @@ theorem insertCost_le (x : Nat) (t : RBTree) : insertCost x t ≤ 2 * height t +
         omega
       · simp [h1, h2]
 
-/-- **RB-INSERT runs in {lit}`O(log n)` pointer operations.**  On a
-red-black-shaped tree with {lit}`n` internal nodes, insertion performs at most
-{lit}`2 · (2 log₂(n+1)) + 1` pointer operations. -/
+/-- The abstract descent budget is logarithmic under the red-black height bound. -/
 theorem insertCost_log_bound (x : Nat) (t : RBTree) (hShape : RedBlackShape t) :
     insertCost x t ≤ 2 * (2 * Nat.log 2 (size t + 1)) + 1 := by
   have hh := height_log_bound t hShape

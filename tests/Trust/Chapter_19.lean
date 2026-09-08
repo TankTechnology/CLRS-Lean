@@ -14,3 +14,22 @@ import CLRSLean.FourthEdition.Chapter_19
 example :
     (CLRS.Chapter21.Partition.discrete : CLRS.Chapter21.Partition Nat).sameSet 2 2 := by
   rfl
+
+#check CLRS.Chapter21.LinkedList.WeightedExecution.singleton_sized
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.singleton_sized
+#check CLRS.Chapter21.LinkedList.WeightedExecution.union_sized
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.union_sized
+#check CLRS.Chapter21.LinkedList.WeightedExecution.union_changes_cost
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.union_changes_cost
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_rewrites_eq_sum
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_rewrites_eq_sum
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_singleton_rewrites_le
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_singleton_rewrites_le
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_singleton_charged_le
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_singleton_charged_le
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_refines_spec
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_refines_spec
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_find_output
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_find_output
+#check CLRS.Chapter21.LinkedList.WeightedExecution.execute_find_representative
+#assert_axioms CLRS.Chapter21.LinkedList.WeightedExecution.execute_find_representative

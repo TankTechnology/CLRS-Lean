@@ -263,6 +263,19 @@ class _SidebarPruner:
         self.rewrite_container(element)
         if element.tag.lower() != "details":
             return element
+        if module_name == "CLRSLean.FourthEdition":
+            # The chapter list is a permanent index, not a collapsible group.
+            # Saved browser disclosure state cannot hide the 35 chapter names.
+            assert summary is not None and anchor is not None
+            heading_classes = ["leaf"]
+            if "current" in _classes(summary):
+                heading_classes.append("current")
+            heading = _Element("div", [("class", " ".join(heading_classes))], [anchor])
+            self.flattened_modules.append(module_name)
+            return _Element(
+                "div", [("class", "chapter-index")],
+                [heading, *(child for child in element.children if child is not summary)],
+            )
         if any(
             isinstance(child, _Element) and _is_nav_owner(child)
             for child in element.children

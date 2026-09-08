@@ -11,7 +11,7 @@ Proves equivalence between the CLRS discrete definition and the filter
 definition, plus standard algebraic properties: the `Θ` characterization with
 a single shared threshold, the `o`/`ω` and `O`/`Ω` dualities, and the
 little-`o` closure properties (additivity, products, composition) used in
-the growth estimates of §3.2.
+the growth estimates of fourth-edition §3.3.
 -/
 
 namespace CLRS
@@ -266,7 +266,7 @@ theorem isLittleO_mul {f₁ g₁ f₂ g₂ : ℕ → ℝ} :
 /--
 **Lemma (composition of `o`).** If `h : ℕ → ℕ` tends to infinity and
 `f = o(g)`, then `f ∘ h = o(g ∘ h)`.  This is the asymptotic analogue of
-substituting `h n` for `n`, as used in the growth estimates of CLRS §3.1/§3.2.
+substituting `h n` for `n`, as used in the growth estimates of fourth-edition CLRS §§3.2–3.3.
 -/
 theorem isLittleO_comp {f g : ℕ → ℝ} {h : ℕ → ℕ} (hh : Tendsto h atTop atTop) :
     isLittleO f g → isLittleO (fun n => f (h n)) (fun n => g (h n)) := by

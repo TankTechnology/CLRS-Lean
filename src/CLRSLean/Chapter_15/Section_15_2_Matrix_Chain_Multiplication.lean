@@ -15,12 +15,14 @@ cost no greater than any competing parenthesization.  Any two plans
 reconstructed from the same tight split table for the same interval have the
 same cost.
 
-Status: `proved` for the mathematical optimal-cost layer, with executable
-bottom-up table and optimal parenthesization.
+Status: `proved` for the mathematical optimal-cost layer, recursive recurrence
+evaluation, and optimal parenthesization.
 
 Deferred refinements:
 
-* Mutable-array memoization is a future implementation-level target.
+* The recurrence evaluator repeats subintervals and is not a cached table.
+  Fourth-edition Chapter 14 supplies separate interval-array executions and
+  stored-selector reconstruction with attached cell/candidate counters.
 -/
 
 namespace CLRS
@@ -202,7 +204,7 @@ theorem matrixChain_reconstructed_cost_le_planCost {dims : Nat → Nat}
     ChainPlan.cost dims plan ≤ ChainPlan.cost dims other := by
   exact matrixChain_reconstructed_optimal hlower hsplit hrec other
 
-/-! ## Bottom-up cost table and final optimality -/
+/-! ## Recursive cost specification and final optimality -/
 
 def matrixChainOpt (dims : Nat → Nat) : Nat → Nat → Nat
   | i, j =>

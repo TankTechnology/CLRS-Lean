@@ -27,11 +27,18 @@ Main result:
   normalized forcing {lit}`c·j^k ≤ forcing ≤ C·j^k` (the
   {lit}`f(n) = Θ(n^(log_b a)·log^k n)` textbook case) gives
   {lit}`T(b^i) = Θ((i+1)^(k+1)a^i)`.
-- Theorem {lit}`CLRS.Chapter04.master_case3_tail_dominated`: tail-dominated
-  normalized forcing gives the third Master-style exact-power case.
+- Theorem {lit}`CLRS.Chapter04.master_case3_tail_dominated`: a conditional
+  normalized tail-domination criterion.
+- Theorem {lit}`CLRS.Chapter04.master_case3_of_eventual_regularity`: eventual
+  forcing regularity derives {lit}`T(b^i) = Θ(f(b^i))`, absorbing the finite
+  prefix into an explicitly constructed constant.
+- Theorem {lit}`CLRS.Chapter04.normalized_tail_upper_of_eventual_regularity`:
+  supplies the normalized upper-bound premise of the legacy all-input wrappers.
 
-Status: `proved` for the exact-power Master theorem core.
-The all-input extension (floor/ceiling sandwiching) is proved in Section 4.6.
+Status: `proved` for these exact-power criteria, including case-3 regularity
+with nonnegative costs and positive forcing at the regularity threshold.
+The all-input transfer in Section 4.6 retains explicit monotonicity and
+adjacent-scale bounds; these hypotheses are not derived here.
 -/
 
 namespace CLRS
@@ -440,7 +447,10 @@ theorem master_case2_polylog_forcing (a b k : ℕ) (f T : ℕ → ℝ)
 /--
 Master case 3, exact-power form: if the normalized recurrence value is
 eventually controlled by the last normalized forcing term, then the last term
-dominates the whole recurrence tree.
+dominates the whole recurrence tree.  This is a conditional criterion;
+{lit}`normalized_tail_upper_of_eventual_regularity` derives its upper-bound
+premise from forcing regularity, and {lit}`master_case3_of_eventual_regularity`
+states the resulting exact-power theorem directly in terms of {lit}`f`.
 -/
 theorem master_case3_tail_dominated (a b : ℕ) (f T : ℕ → ℝ)
     (h_rec : ExactPowerRecurrence a b f T) (ha_pos : 0 < (a : ℝ))
@@ -491,6 +501,98 @@ theorem master_case3_tail_dominated (a b : ℕ) (f T : ℕ → ℝ)
       normalizedValue a b T i ≤ C * normalizedForcing a b f (i - 1) :=
         htail i hi_n₀ hi_one
       _ = C * (if i = 0 then 1 else normalizedForcing a b f (i - 1)) := by simp [hi_ne]
+
+
+/-! ### Case 3 from forcing regularity -/
+
+/-- Eventual forcing regularity controls the recurrence itself.  The finite
+prefix is absorbed in the constant chosen at index {lit}`i₀`; no upper bound on
+{lit}`T` is assumed.  Positivity at that index is needed to absorb its cost. -/
+theorem exactPower_upper_of_eventual_regularity (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T) (i₀ : ℕ) {c : ℝ}
+    (hc_lt_one : c < 1)
+    (hf_start : 0 < f (b ^ i₀))
+    (hf_nonneg : ∀ i, i₀ ≤ i → 0 ≤ f (b ^ i))
+    (h_reg : ∀ i, i₀ ≤ i → (a : ℝ) * f (b ^ i) ≤ c * f (b ^ (i + 1))) :
+    ∃ K : ℝ, 0 < K ∧ ∀ i, i₀ ≤ i → T (b ^ i) ≤ K * f (b ^ i) := by
+  let K : ℝ := max (T (b ^ i₀) / f (b ^ i₀)) (1 / (1 - c))
+  have hd : 0 < 1 - c := sub_pos.mpr hc_lt_one
+  have hK_inv : 1 / (1 - c) ≤ K := le_max_right _ _
+  have hK_pos : 0 < K := lt_of_lt_of_le (div_pos zero_lt_one hd) hK_inv
+  have hK_step : K * c + 1 ≤ K := by
+    have := (div_le_iff₀ hd).mp hK_inv
+    nlinarith
+  refine ⟨K, hK_pos, ?_⟩
+  intro i hi
+  induction i, hi using Nat.le_induction with
+  | base =>
+      exact (div_le_iff₀ hf_start).mp (le_max_left _ _)
+  | succ i hi ih =>
+      calc
+        T (b ^ (i + 1)) = (a : ℝ) * T (b ^ i) + f (b ^ (i + 1)) :=
+          h_rec.step i
+        _ ≤ (a : ℝ) * (K * f (b ^ i)) + f (b ^ (i + 1)) := by
+          gcongr
+        _ = K * ((a : ℝ) * f (b ^ i)) + f (b ^ (i + 1)) := by ring
+        _ ≤ K * (c * f (b ^ (i + 1))) + f (b ^ (i + 1)) := by
+          exact add_le_add
+            (mul_le_mul_of_nonneg_left (h_reg i hi) hK_pos.le) le_rfl
+        _ = (K * c + 1) * f (b ^ (i + 1)) := by ring
+        _ ≤ K * f (b ^ (i + 1)) :=
+          mul_le_mul_of_nonneg_right hK_step (hf_nonneg _ (by omega))
+
+/-- The normalized tail-upper premise of {name}`master_case3_tail_dominated`
+follows from eventual forcing regularity.  This bridge also supplies the
+premise required by the existing floor/ceiling all-input wrappers. -/
+theorem normalized_tail_upper_of_eventual_regularity
+    (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T) (i₀ : ℕ) {c : ℝ}
+    (hc_lt_one : c < 1)
+    (hf_start : 0 < f (b ^ i₀))
+    (hf_nonneg : ∀ i, i₀ ≤ i → 0 ≤ f (b ^ i))
+    (h_reg : ∀ i, i₀ ≤ i → (a : ℝ) * f (b ^ i) ≤ c * f (b ^ (i + 1))) :
+    ∃ K : ℝ, 0 < K ∧ ∃ n₀ : ℕ, ∀ i, i ≥ n₀ → 1 ≤ i →
+      normalizedValue a b T i ≤ K * normalizedForcing a b f (i - 1) := by
+  obtain ⟨K, hK, hbound⟩ :=
+    exactPower_upper_of_eventual_regularity a b f T h_rec i₀ hc_lt_one
+      hf_start hf_nonneg h_reg
+  refine ⟨K, hK, i₀, ?_⟩
+  intro i hi hi_one
+  simpa [normalizedValue, normalizedForcing, Nat.sub_add_cancel hi_one, mul_div_assoc]
+    using div_le_div_of_nonneg_right (hbound i hi) (pow_nonneg (Nat.cast_nonneg a) i)
+
+/-- Master case 3 on exact powers, derived from eventual forcing regularity
+{lit}`a f(b^i) ≤ c f(b^(i+1))`, with {lit}`c < 1`.  Nonnegative costs and
+one positive forcing value after the threshold suffice; arbitrary finite
+prefixes are allowed.  The conclusion uses the original forcing function.
+
+The usual {lit}`0 ≤ c` condition may be omitted: the proof only needs
+{lit}`c < 1` together with the stated forcing signs. -/
+theorem master_case3_of_eventual_regularity (a b : ℕ) (f T : ℕ → ℝ)
+    (h_rec : ExactPowerRecurrence a b f T) (i₀ : ℕ) {c : ℝ}
+    (hc_lt_one : c < 1) (h_base_nonneg : 0 ≤ T 1)
+    (hf_start : 0 < f (b ^ i₀))
+    (hf_nonneg : ∀ i, 0 ≤ f (b ^ i))
+    (h_reg : ∀ i, i₀ ≤ i → (a : ℝ) * f (b ^ i) ≤ c * f (b ^ (i + 1))) :
+    Chapter03.isBigTheta (fun i : ℕ => T (b ^ i)) (fun i : ℕ => f (b ^ i)) := by
+  have hT_nonneg : ∀ i, 0 ≤ T (b ^ i) := by
+    intro i
+    induction i with
+    | zero => simpa using h_base_nonneg
+    | succ i ih =>
+        rw [h_rec.step i]
+        exact add_nonneg (mul_nonneg (Nat.cast_nonneg a) ih) (hf_nonneg _)
+  obtain ⟨K, hK, hbound⟩ :=
+    exactPower_upper_of_eventual_regularity a b f T h_rec i₀ hc_lt_one
+      hf_start (fun i _ => hf_nonneg i) h_reg
+  refine isBigTheta_of_eventual_bounds ⟨K, hK, i₀, ?_⟩ ⟨1, zero_lt_one, 1, ?_⟩
+  · intro i hi
+    simpa [abs_of_nonneg (hT_nonneg i), abs_of_nonneg (hf_nonneg i)] using hbound i hi
+  · intro i hi
+    obtain ⟨j, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (by omega : i ≠ 0)
+    rw [abs_of_nonneg (hT_nonneg _), abs_of_nonneg (hf_nonneg _), one_mul,
+      h_rec.step j]
+    exact le_add_of_nonneg_left (mul_nonneg (Nat.cast_nonneg a) (hT_nonneg j))
 
 end Chapter04
 end CLRS
