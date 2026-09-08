@@ -1,6 +1,6 @@
 # Adversarial cross-review — Chapters 28–35
 
-[中文总览](index.md) · [分章证据表](chapters-28-35.md)
+[Chapter overview](index.md) · [Per-chapter evidence](chapters-28-35.md)
 
 Baseline HEAD: `c8b074e961fb204ab50b9ea123b864260dafde38`; date 2026-09-08. Author draft: `chapters-28-35.md`. **NOT-INDEPENDENTLY-VERIFIED** applies to every textbook-equivalence disposition below: no independent textbook corpus is available. Source-level statements about definitions, premises, and missing execution bridges are independently checked. No textbook quotations or theorem-number verification is claimed.
 

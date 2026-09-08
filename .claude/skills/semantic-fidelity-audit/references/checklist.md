@@ -1,15 +1,25 @@
-# 10 维语义检查表
+# Ten-Dimensional Semantic Checklist
 
-对每一节的每个定理/定义/算法函数,逐维度对照基准语料中该节内容。每条结论必须能写出:
-书条目名 + Lean 位置(文件:行号)+ 判定 + 一句差异说明。禁止"感觉不对"式结论。
+For every theorem, definition, and algorithm in a section, record the textbook
+item, Lean location, verdict, and a one-sentence difference. Avoid vague judgments.
 
-1. **数据结构表示** — 数组/链表/树/图/哈希的表示与书中描述一致:索引起点、可变性模型、哨兵表示
-2. **初始化与前置条件** — 算法入口初始状态与书中 INIT 一致;前置条件完整且不强于书中假设
-3. **循环不变量与终止** — 循环结构(while/for/递归)与书一致;不变量正确;终止性假设与书一致
-4. **输出规格** — 返回值、输出顺序、多重集语义、副作用与书一致
-5. **复杂度声明** — 大 O 绑定到正确代价模型(比较次数/基本操作数/摊销);量级与书一致
-6. **量化顺序与自由变量** — 定理 ∀∃ 顺序、自由变量含义与书一致;定理强度未被悄悄改变
-7. **边界情况** — 空输入、单元素、退化输入、负权重等书中讨论的边界在形式化中有对应处理或声明性排除
-8. **伪代码步骤对应** — 算法函数体控制流与书中伪代码逐行可对应;合并/展开的步骤需有注释说明
-9. **定理声明对应** — 书中定理(含编号)↔ Lean theorem 一一对应;缺项或多项均记录
-10. **已知简化是否在台账** — facade/partial 声明、Legacy 排除、已知缺口与 edition map 的 coverage_note 一致;隐藏简化(未声明)视为缺陷
+1. **Data representation:** indices, mutability, sentinels, and array/list/tree/
+   graph/hash representations match the stated model.
+2. **Initialization and preconditions:** entry state matches the algorithm and
+   premises are complete without being stronger than the source assumptions.
+3. **Invariant and termination:** control flow, invariants, and termination
+   assumptions match the source.
+4. **Output specification:** return value, ordering, multiset semantics, and side
+   effects match.
+5. **Complexity claim:** asymptotic bounds use the correct unit, such as
+   comparisons, primitive operations, or amortized work.
+6. **Quantifiers and free variables:** quantifier order and variable meaning do
+   not silently strengthen or weaken the theorem.
+7. **Boundary cases:** empty, singleton, degenerate, and negative-weight inputs
+   are handled or explicitly excluded where the source discusses them.
+8. **Pseudocode correspondence:** implementation control flow maps to the source;
+   merged or expanded steps are documented.
+9. **Theorem correspondence:** numbered textbook theorems map one-to-one to Lean
+   declarations, with omissions and additions recorded.
+10. **Declared simplifications:** facade, partial, legacy, and out-of-scope choices
+    agree with the edition map; undisclosed simplifications are defects.

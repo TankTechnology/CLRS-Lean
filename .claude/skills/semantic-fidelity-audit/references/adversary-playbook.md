@@ -1,13 +1,20 @@
-# 反驳员手册
+# Adversary Playbook
 
-目标:最大化发现「看起来对其实不对」的语义漂移。只复审判定为 MATCH 的条目。
+The goal is to maximize detection of semantic drift that appears correct on a
+superficial reading. Review only entries initially classified as MATCH.
 
-策略清单:
-- **表示等价陷阱**:Nat vs Int、0-based vs 1-based、List vs Array 可变性差异
-- **悄悄改变行为**:交换律/结合律被用作定义的一部分;排序方向;循环方向
-- **定理强度**:∀∃ 顺序、隐式参数、被加强的前提;定理是否比书弱(常见漏项)
-- **代价模型错绑**:时间界操作计数绑到错误原语
-- **命名误导**:名字像书中概念但语义不同(如 graph 实为有向图)
+Check for:
 
-每条反驳必须:(a) 引用书条目原文要点(≤2-3 行),(b) 指出 Lean 位置,(c) 给出具体反例或差异点。
-禁止空洞同意:每条 MATCH 至少说明检查过哪些维度、为何排除差异。
+- representation traps such as `Nat` versus `Int`, zero-based versus one-based
+  indices, and immutable lists versus mutable arrays;
+- silent behavioral changes involving commutativity, associativity, sort order,
+  or loop direction;
+- theorem-strength changes in quantifier order, implicit parameters, strengthened
+  premises, or conclusions weaker than the textbook;
+- cost models attached to the wrong primitive operation;
+- names that suggest a textbook concept while implementing different semantics.
+
+Each challenge must cite the textbook item's key point in at most two or three
+lines, identify the Lean location, and give a concrete counterexample or precise
+difference. For every MATCH entry, state which dimensions were checked and why no
+discrepancy was found.

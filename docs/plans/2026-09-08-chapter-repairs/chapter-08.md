@@ -8,4 +8,4 @@
 
 Ownership: root comparison trees, bucket composition and metadata; counting subtask counting execution/mutable API/radix; insertion subtask only generic insertion kernel. No shared file edits. Historical audit remains immutable.
 
-See [verification record](chapter-08-results.md). Full library regression passed with the Chapter10–12 batch (10711 jobs).
+See the [Chapter 8 result](chapter-08-results.md) and [unified verification record](verification.md).

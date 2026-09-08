@@ -315,7 +315,7 @@ Commit with:
 - Create: `CLRSLean/FourthEdition/Chapter_15/Section_15_3_Huffman_Codes/HeapExecution.lean`
 - Modify: `CLRSLean/FourthEdition/Chapter_15.lean`
 - Modify: `Tests/Trust/Chapter_15.lean`
-- Modify: `docs/audits/ch15-semantic-fidelity.md`
+- Modify: `docs/audits/index.md`
 - Modify: `docs/audits/2026-08-28-whole-book-proof-gap-audit.md`
 - Modify: `docs/clrs-proof-progress.csv`
 - Modify: `CLRSLean/Progress.lean`

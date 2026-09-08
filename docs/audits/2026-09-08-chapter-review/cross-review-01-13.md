@@ -1,6 +1,6 @@
 # Adversarial cross-review of Chapters 1–13
 
-[中文总览](index.md) · [分章证据表](chapters-01-13.md)
+[Chapter overview](index.md) · [Per-chapter evidence](chapters-01-13.md)
 
 Reviewed `chapters-01-13.md` against current source at baseline c8b074e961fb204ab50b9ea123b864260dafde38. **NOT-INDEPENDENTLY-VERIFIED applies to every textbook-equivalence verdict: no textbook corpus was available.** This is an independent, bounded public-definition/theorem-interface review, with selective proof-spine inspection; it is not a second exhaustive proof audit. No source changes or builds performed. Root's compiled Chapter13 witnesses are acknowledged as separately supplied evidence; I independently checked the definitions producing the behavior.
 

@@ -2,6 +2,14 @@
 
 This is the working loop for each CLRS section.
 
+## Repository Language
+
+Use English for every repository-controlled artifact: commit messages, branch
+names, pull requests, issues, source comments, documentation, audit records, and
+release notes. Mathematical notation and established proper names are allowed.
+Before committing, run `uv run python scripts/check_english_only.py`; the full
+repository check runs the same policy automatically.
+
 ## 1. Textbook Section Map
 
 Record the relevant CLRS section number, title, algorithms, theorem-like claims,

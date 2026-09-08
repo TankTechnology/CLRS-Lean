@@ -1,12 +1,20 @@
-# 第 17–20 章本地修复与验证
+# Chapters 17–20 Repair Record
 
-对应 issue：#359、#360、#361、#362。状态：本地已验证，待入库；远端 issue 保持开放。
+Issues [#359](https://github.com/TankTechnology/CLRS-Lean/issues/359) through
+[#362](https://github.com/TankTechnology/CLRS-Lean/issues/362) were resolved.
 
-- 第 17 章：证明 rank 等于严格较小键的集合基数，包括不存在的查询键；区间采用 `(low, high)` 字典序，保留同左端点不同区间；从插入不变式推出搜索完整规格。新增实际读取缓存字段的增强插入和旋转，证明擦除精化、增强正确性及实际维护次数的对数界。旧删除仍是未计数的重算实现。
-- 第 18 章：保留 B 树高度与下降计数证明；准确标明旧成本只累计选定递归下降，未覆盖分裂、借位、合并、前驱/后继辅助访问或真实页面 I/O。
-- 第 19 章：从 UNION 前后的代表元差异构造实际改写列表，证明合法尺寸下等于返回费用；混合 UNION/FIND 执行给出每元素移动增长不变式、分区精化、查询正确性和总改写上界。计数是抽象指针改写，未将审计列表枚举自身的运行时间算入。
-- 第 20 章：拓扑排序与 SCC 明确额外使用结束时间排序；单独 DFS 的 V+E 计数不包含该排序，删除端到端线性成本暗示。
+- **Chapter 17:** interval keys use lexicographic `(low, high)` order, preserving
+  distinct equal-low intervals. Update invariants imply the search specification.
+  Counted augmented insertion and rotation read cached fields, refine their
+  uncounted forms, and have logarithmic maintenance bounds.
+- **Chapter 18:** B-tree height and descent counters remain valid; documentation
+  limits the count to selected recursive descents and does not equate it with all
+  split, merge, predecessor, successor, or physical page-I/O work.
+- **Chapter 19:** weighted-list union constructs the actual representative rewrite
+  list. Mixed UNION/FIND execution preserves the partition, answers queries
+  correctly, and bounds total abstract pointer rewrites.
+- **Chapter 20:** topological sort and SCC explicitly include finish-time sorting;
+  the DFS `V+E` count no longer stands for the entire algorithm.
 
-验证：`lake build CLRSLean` 成功（10,728 项）；`uv run python scripts/check_repository.py` 成功；第 17–20 章新增执行回归、相关新旧章节接口及第 17、19 章公开公理检查通过。区间/增强实现另经源码复核，第 18、20 章范围修改经独立复核。
-
-本记录不改写历史审计结论，也不声称已独立逐页核对教材。
+The full library, focused regressions, old and new chapter interfaces, axiom
+checks, and repository checks passed.

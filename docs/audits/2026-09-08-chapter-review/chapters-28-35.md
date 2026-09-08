@@ -1,8 +1,8 @@
 # Read-only substantive audit: fourth-edition Chapters 28–35
 
-[中文逐章总览](index.md) · [独立交叉复核与最终分类](cross-review-28-35.md) · [可复现反例](counterexamples.md)
+[Chapter overview](index.md) · [Independent cross-review and final classifications](cross-review-28-35.md) · [Reproducible counterexamples](counterexamples.md)
 
-本文件保留第一轮检查的证据表；最终分节判定及更正以交叉复核记录和总览为准。
+This file preserves the first-pass evidence table. The cross-review record and overview govern the final section verdicts and corrections.
 
 
 Baseline: c8b074e961fb204ab50b9ea123b864260dafde38. Audit date: 2026-09-08. **NOT-INDEPENDENTLY-VERIFIED: textbook corpus unavailable; every textbook-equivalence verdict below is provisional and based on the represented source contract, not independent textbook comparison.** Source-level definition/interface discrepancies can nevertheless be confirmed. No source edits, reset, pull, commit, or site generation performed. The root reported that structural coverage passed and the same theorem sources passed the preceding full build/trust gate; those are supporting trust checks, not evidence of semantic equivalence.

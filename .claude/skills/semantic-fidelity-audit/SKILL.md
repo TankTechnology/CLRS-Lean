@@ -1,27 +1,47 @@
 ---
 name: semantic-fidelity-audit
-description: 按章审计 CLRS-Lean 形式化定义与原著算法的语义忠实性——双代理对抗流程(审计员 10 维对照 + 反驳员攻 MATCH),产出逐条对照报告与汇总索引。触发:审计第X章、语义忠实性审计、semantic fidelity audit。
+description: Audit a CLRS-Lean chapter for semantic fidelity to the textbook using an adversarial two-agent process: a ten-dimensional primary audit followed by a challenge review of every MATCH verdict. Produce an assertion-level report and update the audit index. Trigger for chapter audits, semantic-fidelity audits, and textbook-alignment reviews.
 ---
 
-# 语义忠实性审计
+# Semantic-Fidelity Audit
 
-检查形式化定义/定理的**含义**是否忠实于原著算法与定义。这是 check_book_coverage.py(结构对应)之上的补充层:结构检查保证"文件在、计数对",本 skill 保证"含义对"。
+Check whether formal definitions and theorems mean the same thing as the source
+algorithm or definition. This complements `check_book_coverage.py`: the structural
+check confirms that expected files and counts exist, while this skill checks their
+meaning.
 
-## 前置
-1. 仓库根 = CLRS-Lean 仓库,`git pull` 至最新 main
-2. 结构前提:`python3 scripts/check_book_coverage.py --report` 必须通过;不通过则先修结构,不进入审计
-3. 语料:本机 `~/.config/clrs-audit/config` 第 1 行为语料目录(仓库外)。config 缺失或该章语料缺失 → 全部结论附加 NOT-INDEPENDENTLY-VERIFIED,报告头部显著声明"基于模型知识,未经课本核对"
+## Preconditions
 
-## 流程(章号 N)
-1. **提取**:`bash .claude/skills/semantic-fidelity-audit/scripts/extract_chapter.sh N` → 语料文本路径
-2. **审计员**:读 references/auditor-prompt.md,填模板变量,用 Agent 工具派发 subagent(变量:CHAPTER_NO、CHAPTER_TITLE 来自 docs/clrs-fourth-edition-map.csv;SOURCE_FILES 为该章 source_modules 展开的 .lean 路径;CORPUS_TEXT 为第 1 步产物路径,若不存在则填"不存在")
-3. **反驳员**:读 references/adversary-prompt.md,输入为审计员对照表,同样用 Agent 工具派发
-4. **合并**:反驳成立(≥2 条独立差异)的 MATCH 条目降级为 MINOR;UNCERTAIN 保留;把反驳记录写进报告
-5. **报告**:按 references/report-template.md 写 `docs/audits/chNN-semantic-fidelity.md`;更新 `docs/audits/index.md`(每章一行:章号/审计日期(北京时间)/判定分布/缺陷数/基准来源)
-6. **提交**:`git add docs/audits/` 并 commit(只提交报告与索引)
+1. Work from the CLRS-Lean repository root and update to the latest `main`.
+2. `python3 scripts/check_book_coverage.py --report` must pass. Repair structural
+   failures before starting the semantic audit.
+3. The first line of `~/.config/clrs-audit/config` may name a corpus directory
+   outside the repository. If the configuration or chapter corpus is absent,
+   label every conclusion `NOT-INDEPENDENTLY-VERIFIED` and state prominently that
+   the review relies on model knowledge rather than an independent textbook check.
 
-## 红线(违反即失败)
-- 语料文件/提取文本/语料路径绝不允许进入 git 或出现在仓库任何文件中
-- 报告引用原文用中性表述「参考第 X.X 节」,单条 ≤2-3 行;不得出现可推断参考材料存在的表述、文件名、来源
-- MAJOR/CRITICAL 缺陷:报告附 issue 草稿,**不自动开 issue**,由用户决定
-- 审计只读:不修改任何 Lean 源文件;不触碰 Chapter_34 文件
+## Chapter workflow
+
+1. **Extract:** run
+   `bash .claude/skills/semantic-fidelity-audit/scripts/extract_chapter.sh N`.
+2. **Audit:** fill in `references/auditor-prompt.md`. Obtain `CHAPTER_NO` and
+   `CHAPTER_TITLE` from `docs/clrs-fourth-edition-map.csv`; expand `SOURCE_FILES`
+   from the chapter's `source_modules`; use the extracted path for `CORPUS_TEXT`,
+   or `missing` when extraction is unavailable.
+3. **Challenge:** run an independent review using
+   `references/adversary-prompt.md` and the auditor's comparison table.
+4. **Merge:** downgrade a MATCH verdict when the challenge establishes at least
+   two independent discrepancies. Preserve UNCERTAIN verdicts and record the
+   challenge review.
+5. **Report:** use `references/report-template.md` for
+   `docs/audits/chNN-semantic-fidelity.md` and update `docs/audits/index.md`.
+6. **Commit:** stage and commit only the audit report and index.
+
+## Non-negotiable rules
+
+- Never commit corpus files, extracted text, or corpus paths.
+- Cite at most two or three lines per source item, refer neutrally to the relevant
+  section, and do not disclose corpus filenames or provenance.
+- Include issue drafts for MAJOR and CRITICAL defects. Do not create issues without
+  user authorization.
+- The audit is read-only: do not modify Lean sources or Chapter 34 files.

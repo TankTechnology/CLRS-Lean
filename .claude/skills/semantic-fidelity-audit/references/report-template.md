@@ -1,23 +1,28 @@
-# 报告模板
+# Report Template
 
-文件:`docs/audits/chNN-semantic-fidelity.md`
+Write the report to `docs/audits/chNN-semantic-fidelity.md`.
 
-# ChNN <章名> 语义忠实性审计
+# ChNN: <Chapter title> Semantic-Fidelity Audit
 
-- 审计日期(北京时间)/ skill 版本 / 基准来源(课本章节号,或 NOT-INDEPENDENTLY-VERIFIED)
-- 结论分布:MATCH x · MINOR x · MAJOR x · CRITICAL x · UNCERTAIN x
-- 结构前提:check_book_coverage.py 结果(通过/失败)
+- Audit date and time zone, skill version, and reference basis; use
+  `NOT-INDEPENDENTLY-VERIFIED` when no independently checked corpus is available.
+- Verdict distribution: MATCH, MINOR, MAJOR, CRITICAL, and UNCERTAIN counts.
+- Structural prerequisite: result of `check_book_coverage.py`.
 
-## 断言对照表(每节一个小节)
+## Assertion comparison table
 
-| 书条目 | Lean 位置 | 判定 | 说明 |
+Create one subsection per textbook section.
 
-## 缺陷清单
+| Textbook item | Lean location | Verdict | Explanation |
+| --- | --- | --- | --- |
 
-每条:严重度 / 位置 / 差异描述 / 建议修法 / (MAJOR+CRITICAL 附 issue 草稿)
+## Defects
 
-## 反驳记录
+For each item include severity, location, discrepancy, recommended repair, and an
+issue draft for MAJOR or CRITICAL findings.
 
-反驳员复核的 MATCH 条目数、提出的差异数、最终降级数
+## Adversarial review
 
-引用规则:单条引用 ≤2-3 行,用「参考第 X.X 节」中性表述,不出现语料文件名或来源。
+Record the number of MATCH entries reviewed, discrepancies proposed, and final
+downgrades. Quote at most two or three lines per item, refer neutrally to the
+relevant section, and do not name or describe corpus files.

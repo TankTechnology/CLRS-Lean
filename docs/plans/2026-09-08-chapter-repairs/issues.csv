@@ -1,32 +1,32 @@
-chapter_no,severity,issue_no,url,title,repair_state
-1,MINOR,345,https://github.com/TankTechnology/CLRS-Lean/issues/345,audit(ch01): 更新第四版导读编号与失败接口约定,merged-closed
-2,UNCERTAIN,346,https://github.com/TankTechnology/CLRS-Lean/issues/346,audit(ch02): 连接插入排序实际比较计数与最坏情况界,merged-closed
-3,MINOR,347,https://github.com/TankTechnology/CLRS-Lean/issues/347,audit(ch03): 统一辅助模块中的第四版节编号,merged-closed
-4,UNCERTAIN,348,https://github.com/TankTechnology/CLRS-Lean/issues/348,audit(ch04): 补齐矩阵成本及递推定理的公开连接,merged-closed
-5,MINOR,349,https://github.com/TankTechnology/CLRS-Lean/issues/349,audit(ch05): 更新概率分析导读以呈现已有最长连续段结果,merged-closed
-6,MINOR,350,https://github.com/TankTechnology/CLRS-Lean/issues/350,audit(ch06): 准确说明 heapify 的修复前提与控制步成本,merged-closed
-8,MAJOR,351,https://github.com/TankTechnology/CLRS-Lean/issues/351,audit(ch08): 修复线性排序的分配执行与成本对应,merged-closed
-10,MINOR,352,https://github.com/TankTechnology/CLRS-Lean/issues/352,audit(ch10): 补齐数组状态与链表查询的公开契约,merged-closed
-11,MAJOR,353,https://github.com/TankTechnology/CLRS-Lean/issues/353,audit(ch11): 修正完全散列单射量词与构造成本声明,merged-closed
-12,MINOR,354,https://github.com/TankTechnology/CLRS-Lean/issues/354,audit(ch12): 澄清集合 BST 与补充期望高度的展示范围,merged-closed
-13,MAJOR,355,https://github.com/TankTechnology/CLRS-Lean/issues/355,audit(ch13): 修复红黑树指针旋转、表示关系与更新成本,merged-closed
-14,MAJOR,356,https://github.com/TankTechnology/CLRS-Lean/issues/356,audit(ch14): 实现与表格成本一致的动态规划执行,merged-closed
-15,MINOR,357,https://github.com/TankTechnology/CLRS-Lean/issues/357,audit(ch15): 明确离线缓存任意容量的空缓存启动边界,merged-closed
-16,MINOR,358,https://github.com/TankTechnology/CLRS-Lean/issues/358,audit(ch16): 补齐混合栈操作序列的摊还分析,merged-closed
-17,MAJOR,359,https://github.com/TankTechnology/CLRS-Lean/issues/359,audit(ch17): 修复同左端点区间插入及增强成本桥接,merged-closed
-18,MINOR,360,https://github.com/TankTechnology/CLRS-Lean/issues/360,audit(ch18): 连接 B 树递归下降预算与页面访问解释,merged-closed
-19,MINOR,361,https://github.com/TankTechnology/CLRS-Lean/issues/361,audit(ch19): 从加权链表并查集执行构造总改写计数,merged-closed
-20,MINOR,362,https://github.com/TankTechnology/CLRS-Lean/issues/362,audit(ch20): 说明拓扑排序与 SCC 的结束时间排序成本,merged-closed
-21,MAJOR,363,https://github.com/TankTechnology/CLRS-Lean/issues/363,audit(ch21): 从 Prim 执行构造最终生成树及实际成本,merged-closed
-22,MAJOR,364,https://github.com/TankTechnology/CLRS-Lean/issues/364,audit(ch22): 补齐前驱树构造与最短路检测范围,merged-closed
-23,MAJOR,365,https://github.com/TankTechnology/CLRS-Lean/issues/365,audit(ch23): 补齐负环检测完备性并连接 APSP 执行成本,merged-closed
-24,MAJOR,366,https://github.com/TankTechnology/CLRS-Lean/issues/366,audit(ch24): 完成 Edmonds–Karp 稀疏界及 relabel-to-front 调度执行,merged-closed
-25,MINOR,367,https://github.com/TankTechnology/CLRS-Lean/issues/367,audit(ch25): 修正匹配章节的过期缺口及女性最差性注释,merged-closed
-26,MINOR,368,https://github.com/TankTechnology/CLRS-Lean/issues/368,audit(ch26): 明确并行矩阵执行的维度范围,merged-closed
-27,CRITICAL,369,https://github.com/TankTechnology/CLRS-Lean/issues/369,audit(ch27): 修复不可满足的缓存接口及在线下界量词,merged-closed
-28,MINOR,370,https://github.com/TankTechnology/CLRS-Lean/issues/370,audit(ch28): 对齐矩阵运算旧 Θ 措辞与已闭合 LUP 成本,merged-closed
-29,MINOR,371,https://github.com/TankTechnology/CLRS-Lean/issues/371,audit(ch29): 修正线性规划导读对已导入求解器的范围描述,merged-closed
-30,MINOR,372,https://github.com/TankTechnology/CLRS-Lean/issues/372,audit(ch30): 明确 FFT 精确乘法计数中的根准备与共享假设,merged-closed
-31,MAJOR,373,https://github.com/TankTechnology/CLRS-Lean/issues/373,audit(ch31): 绑定 Miller–Rabin 计数与实际测试及多轮概率,merged-closed
-32,MAJOR,374,https://github.com/TankTechnology/CLRS-Lean/issues/374,audit(ch32): 修复 DFA 构造计数与 Rabin–Karp 常数更新声明,merged-closed
-35,MINOR,375,https://github.com/TankTechnology/CLRS-Lean/issues/375,audit(ch35): 补近似算法组合接口与输出规模连接,merged-closed
+chapter_no,issue_no,title,status
+1,345,"Update fourth-edition guide numbering and failure API conventions",closed
+2,346,"Connect actual insertion-sort comparison counts to the worst-case bound",closed
+3,347,"Align helper-module section numbering with the fourth edition",closed
+4,348,"Connect matrix costs and recurrence theorems to public executions",closed
+5,349,"Expose the existing longest-streak results in the probability guide",closed
+6,350,"State heapify repair preconditions and controller costs precisely",closed
+8,351,"Connect linear-time sorting distribution executions to their cost bounds",closed
+10,352,"Complete public contracts for array states and linked-list queries",closed
+11,353,"Correct perfect-hash injectivity quantifiers and construction costs",closed
+12,354,"Clarify set-valued BST semantics and supplementary expected-height scope",closed
+13,355,"Repair pointer rotations, representation invariants, and update-cost claims",closed
+14,356,"Implement dynamic-programming executions matching the tabular cost claims",closed
+15,357,"Clarify the empty-cache boundary for arbitrary capacity",closed
+16,358,"Complete amortized analysis for mixed stack-operation traces",closed
+17,359,"Repair equal-left-endpoint interval insertion and augmentation cost bridges",closed
+18,360,"Connect B-tree descent budgets to page-access interpretations",closed
+19,361,"Construct total rewrite counts from weighted-list union-find execution",closed
+20,362,"Account for finish-time sorting in topological sort and SCC",closed
+21,363,"Construct the final spanning tree and actual cost from Prim execution",closed
+22,364,"Complete predecessor-tree construction and shortest-path scope",closed
+23,365,"Complete negative-cycle detection and connect APSP execution costs",closed
+24,366,"Complete sparse Edmonds-Karp bounds and relabel-to-front scheduling",closed
+25,367,"Remove stale matching gaps and correct the woman-pessimal note",closed
+26,368,"State the dimensional scope of parallel matrix execution",closed
+27,369,"Repair the unsatisfiable cache interface and online lower-bound quantifiers",closed
+28,370,"Align legacy matrix-operation asymptotics with closed LUP costs",closed
+29,371,"Correct the linear-programming guide's solver scope",closed
+30,372,"Clarify root preparation and sharing assumptions in exact FFT counts",closed
+31,373,"Connect Miller-Rabin counts to executed tests and repeated-trial probability",closed
+32,374,"Repair DFA construction counts and Rabin-Karp constant-update claims",closed
+35,375,"Complete approximation compositions and returned-output size bridges",closed

@@ -1,8 +1,8 @@
 # Chapters 1–13: semantic/content audit
 
-[中文逐章总览](index.md) · [独立交叉复核与最终分类](cross-review-01-13.md) · [可复现反例](counterexamples.md)
+[Chapter overview](index.md) · [Independent cross-review and final classifications](cross-review-01-13.md) · [Reproducible counterexamples](counterexamples.md)
 
-本文件保留第一轮检查的证据表；最终分节判定及更正以交叉复核记录和总览为准。
+This file preserves the first-pass evidence table. The cross-review record and overview govern the final section verdicts and corrections.
 
 
 Baseline: `c8b074e961fb204ab50b9ea123b864260dafde38`. Read-only source audit; no Lean/repository files changed. Corpus configuration absent. **NOT-INDEPENDENTLY-VERIFIED applies globally to every textbook-equivalence, coverage, numbering, MATCH, or difference conclusion below.** Findings about what the current source computes or what a theorem actually states are independently checkable from source. This draft does not claim an exhaustive line-by-line verification of every imported proof.

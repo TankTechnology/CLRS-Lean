@@ -1,6 +1,6 @@
 # Adversarial cross-review: Chapters 14–27
 
-[中文总览](index.md) · [分章证据表](chapters-14-27.md)
+[Chapter overview](index.md) · [Per-chapter evidence](chapters-14-27.md)
 
 Baseline `c8b074e961fb204ab50b9ea123b864260dafde38`. Reviewed `chapters-14-27.md` against current sources, following `.claude/skills/semantic-fidelity-audit/references/adversary-playbook.md`. **NOT-INDEPENDENTLY-VERIFIED** applies to every textbook-equivalence conclusion: there is no configured textbook corpus, so I cannot supply the playbook's requested textbook extracts. This review challenges source representations, hypotheses, constructors, execution/cost connections, and repository claims. It does not substitute model recollection for a textbook comparison.
 

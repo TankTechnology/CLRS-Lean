@@ -1,177 +1,150 @@
-# 第四版逐章 Lean 内容审查 · 2026-09-08
+# Fourth-Edition Chapter Review · 2026-09-08
 
-本报告审查当前 Lean 定义、公共定理、主要证明依赖与章节完成声明之间的对应关系。
-**源码审查已发现阻止维持现有全书完成声明的问题。编译通过、没有证明占位符、
-公理依赖合规，不保证算法定义正确、定理前提可满足或运行时间对应实际执行。**
+This report compares the current Lean definitions, public theorems, selected
+proof dependencies, and chapter-completion claims. The review found issues that
+prevented the previous whole-book completion wording from remaining accurate.
+A successful build, absence of proof placeholders, and acceptable axiom
+dependencies do not by themselves establish that an algorithm definition is
+correct, its premises are satisfiable, or its runtime theorem measures the
+actual execution.
 
-## 审查基线与边界
+## Baseline and limits
 
-- 第四版第 1–35 章，版本映射中共 137 个节条目；第 1 章为说明性内容。
-- 基础提交：`c8b074e961fb204ab50b9ea123b864260dafde38`，加本任务已有的网站与文档整理。
-- Lean 源码快照：2,164 个文件；按路径排序，以“路径 + NUL + 文件内容 + NUL”
-  累积得到 SHA-256：`e9d903b1080a3b0da09f24210a021bf96a5aae6332fb6fdee96f43cc0023a022`。
-- `check_book_coverage.py --report`：通过。账本仍记录 1,689 / 1,689 项与
-  34 个 `main-proof-complete` 章节；这些是待审查的声明，不是本报告的结论。
-- 本次不修改原有 Lean 定义、证明或章节状态；附录保存可复现的审查证据。
+- Scope: fourth-edition Chapters 1–35 and 137 mapped section entries; Chapter 1
+  is expository.
+- Baseline commit: `c8b074e961fb204ab50b9ea123b864260dafde38`, plus the website
+  and documentation cleanup already present in this task.
+- Lean snapshot: 2,164 files. SHA-256 over sorted `path + NUL + contents + NUL`:
+  `e9d903b1080a3b0da09f24210a021bf96a5aae6332fb6fdee96f43cc0023a022`.
+- `check_book_coverage.py --report` passed. The ledger's 1,689/1,689 entries and
+  34 `main-proof-complete` chapters were claims under review, not conclusions.
+- The audit itself did not modify Lean definitions, proofs, or chapter status.
 
-**NOT-INDEPENDENTLY-VERIFIED：本次未完成教材正文逐条核对。**
-[出版社第四版资料](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
-只用于核实版本背景，不能替代定理与伪代码的原文对照。下面的确定性缺陷依据源码、
-接口之间的矛盾以及 Lean 检查的反例；“未发现问题”仅限已检查的定义、公共结论与
-选取的证明依赖，不代表逐行审查了所有辅助证明或教材全部习题。
+**NOT-INDEPENDENTLY-VERIFIED:** the audit did not compare every claim against the
+textbook text independently. The [publisher's fourth-edition page](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
+confirms edition metadata only. Deterministic findings below follow from source
+definitions, inconsistent interfaces, and kernel-checked counterexamples. A
+statement that no issue was found applies only to the inspected public surface
+and selected proof dependencies.
 
-## 已直接复现的阻断问题
+## Reproduced blocking findings
 
-### 第 27 章：缓存算法接口在目标输入域不可满足
+### Chapter 27: the caching algorithm interface is uninhabited on its target domain
 
-`Algorithm.step_size` 对所有缓存集合强制容量不超过 `k`，而 `step_hit`
-又要求命中时保持集合不变；二者都没有合法初始缓存的前置条件。在
-`Page = Fin (k + 1)`、`C = univ` 时直接推出 `k + 1 ≤ k`。
-因此没有满足这个接口的算法，使用它的缓存竞争性与下界定理在目标场景中
-成为空前提结论。参见
-[接口定义](../../../src/CLRSLean/FourthEdition/Chapter_27/Section_27_3_Online_Caching.lean)。
+`Algorithm.step_size` bounds every cache by `k`, while `step_hit` preserves the
+cache on a hit; neither premise restricts the initial cache to a legal state. For
+`Page = Fin (k + 1)` and `C = univ`, the interface derives `k + 1 ≤ k`. Competitive
+and lower-bound theorems over this interface therefore had empty premises. The
+repair needed a legal-state domain, preservation, sufficient history for LRU-like
+algorithms, and a nonempty implementation.
 
-应把状态限制为合法缓存、证明合法性随执行保持，并加入历史/辅助状态以表示
-LRU 等算法；随后提供非空实例，重新检查竞争性和下界。
+### Chapter 13: pointer rotations disconnect reachable keys
 
-### 第 13 章：指针旋转未接回根或父节点
+`rotateLeftP` and `rotateRightP` changed local nodes without updating
+`RBStore.root` or the former parent's child link. A two-node example changed the
+reachable keys from `[1, 2]` to `[1]`. `StoreRepr` also allowed a sentinel address
+to represent a nonempty tree. The functional red-black-tree proofs remained
+valid, but the pointer refinement required root/parent rewiring and stronger
+sentinel, ownership, and parent-child invariants.
 
-`rotateLeftP` / `rotateRightP` 修改局部节点，却不修改 `RBStore.root`，也不修改
-旋转前父节点指向该子树的链接。两节点示例中，从根可达的键由 `[1, 2]`
-变为 `[1]`。`StoreRepr` 还允许哨兵地址表示非空树，同一存储可以同时表示
-空树与单节点树。参见
-[指针表示与旋转](../../../src/CLRSLean/FourthEdition/Chapter_13/Section_13_2_Rotations.lean)。
+### Chapter 14: recursive LCS execution did not support the tabular runtime claim
 
-应补齐根/父链接更新，强化哨兵、非共享与父子关系约束，再证明指针旋转与
-函数式旋转的表示对应。已证明的函数式红黑树结论不因此变成错误。
+Public `lcsLength` evaluated both recursive branches on unequal inputs without a
+table or memo cache, while the fourth-edition guide described it as a tabulated
+Theta(mn) algorithm. `lcsTableCells` counted a separate size expression. Equal-
+length disjoint inputs of length 5 produced 503 recursive calls versus 36 table
+cells; length 8 produced 25,739 versus 81. These executions motivated an actual
+tabulated implementation with refinement and attached cost.
 
-### 第 14 章：LCS 递归实现与表格运行时间声明不对应
+### Chapter 17: interval insertion lost distinct intervals with equal low endpoints
 
-公共 `lcsLength` 在不相等分支递归计算两个子问题，没有缓存或表格。
-第四版入口却把它描述为表格化 Θ(mn) 算法；`lcsTableCells` 只定义并约束一个
-独立的表格大小表达式。参见
-[执行定义](../../../src/CLRSLean/Chapter_15/Section_15_4_Longest_Common_Subsequence.lean)
-与[第四版成本声明](../../../src/CLRSLean/FourthEdition/Chapter_14/Section_14_4_Longest_Common_Subsequence.lean)。
+Inserting `(0, 10)` into a valid one-node `(0, 1)` tree left the tree unchanged;
+a later query for `(5, 5)` returned `none`. The comparator used only the low
+endpoint, so distinct intervals became the same key without a uniqueness premise.
+The static search theorem remained valid, but update membership, BST preservation,
+and search-after-update needed a total interval order or explicit overwrite rule.
 
-对同一递归进行调用计数并证明返回值相等后，两个长度为 5 的不相交输入产生
-503 次调用，独立表格表达式为 36；长度为 8 时分别为 25,739 与 81。
-这些是具体执行证据，不是额外声称已形式化的渐近下界。
-应实现实际的表格/记忆化执行，证明与现有规格一致，再把计数绑定到该执行。
+All four examples are in the [reproducible Lean appendix](counterexamples.md).
 
-### 第 17 章：区间树插入丢失相同左端点的不同区间
+## Chapter verdicts
 
-向满足现有 BST 与增强不变量的 `(0, 1)` 单节点树插入 `(0, 10)`，树不发生变化。
-随后查询 `(5, 5)` 返回 `none`，尽管新插入区间与它重叠。原因是比较器只比较左端点，
-插入将两个不同区间视为同一个键，且没有要求左端点唯一。现有静态搜索正确性定理
-没有错误，但更新接口缺少插入成员性与 BST 保持结论。
+Each distribution is ordered MATCH / MINOR / MAJOR / CRITICAL / UNCERTAIN.
 
-[区间定义与插入实现](../../../src/CLRSLean/Chapter_14/Section_14_3_Interval_Trees.lean)
-应使用能区分区间/节点的排序，或明确限定唯一左端点及覆盖策略，再把更新与搜索定理接起来。
+| Ch. | Topic | Distribution | Review conclusion | Evidence |
+| ---: | --- | --- | --- | --- |
+| 1 | The Role of Algorithms | 1/1/0/0/0 | Expository; correct legacy navigation and failure-API conventions. | [detail](chapters-01-13.md) |
+| 2 | Getting Started | 2/0/0/0/1 | MERGE was present; the insertion-sort worst-case count bridge needed proof. | [detail](chapters-01-13.md) |
+| 3 | Characterizing Running Times | 3/0/0/0/0 | No core defect found in the inspected asymptotic interfaces. | [detail](chapters-01-13.md) |
+| 4 | Divide-and-Conquer | 3/0/0/0/4 | Matrix correctness held; costs and recurrence theorems needed public execution bridges and precise scope. | [detail](chapters-01-13.md) |
+| 5 | Probabilistic Analysis and Randomized Algorithms | 4/0/0/0/0 | No core defect found; existing longest-streak results were missing from the guide. | [detail](chapters-01-13.md) |
+| 6 | Heapsort | 5/0/0/0/0 | Core heap results held; documentation overstated the heapify repair region. | [detail](chapters-01-13.md) |
+| 7 | Quicksort | 4/0/0/0/0 | No core defect found in the inspected execution and expectation bridge. | [detail](chapters-01-13.md) |
+| 8 | Sorting in Linear Time | 0/0/3/0/1 | Distribution executions repeatedly scanned input and the decision-tree lower bound used unreachable depth. | [detail](chapters-01-13.md) |
+| 9 | Medians and Order Statistics | 3/0/0/0/0 | No core defect found within the stated partition-work model. | [detail](chapters-01-13.md) |
+| 10 | Elementary Data Structures | 1/2/0/0/0 | Array legality, list query contracts, and fourth-edition numbering needed clarification. | [detail](chapters-01-13.md) |
+| 11 | Hash Tables | 4/0/1/0/0 | Perfect-hash injectivity quantified over too large a domain; construction cost was detached. | [detail](chapters-01-13.md) |
+| 12 | Binary Search Trees | 2/1/0/0/0 | Set semantics and the supplementary expected-height scope needed explicit documentation. | [detail](chapters-01-13.md) |
+| 13 | Red-Black Trees | 1/0/3/0/0 | Pointer rotations and representation invariants were unsound; update cost was independent. | [detail](chapters-01-13.md) |
+| 14 | Dynamic Programming | 0/1/4/0/0 | LCS, matrix-chain, and optimal-BST evaluators did not match tabular execution claims. | [detail](chapters-14-27.md) |
+| 15 | Greedy Algorithms | 3/1/0/0/0 | Core proofs held; arbitrary-capacity offline caching excluded an empty initial cache. | [detail](chapters-14-27.md) |
+| 16 | Amortized Analysis | 3/1/0/0/0 | MULTIPOP had a single-call bound rather than a mixed-trace amortized theorem. | [detail](chapters-14-27.md) |
+| 17 | Augmenting Data Structures | 0/0/2/0/1 | Equal-low interval insertion, update/search composition, and actual maintenance costs needed repair. | [detail](chapters-14-27.md) |
+| 18 | B-Trees | 2/1/0/0/0 | Correctness held; page-access wording exceeded the recursive-descent counter. | [detail](chapters-14-27.md) |
+| 19 | Data Structures for Disjoint Sets | 3/1/0/0/0 | Forest results held; weighted-list union lacked a constructed total rewrite count. | [detail](chapters-14-27.md) |
+| 20 | Elementary Graph Algorithms | 4/1/0/0/0 | BFS/DFS held; topological sort and SCC omitted finish-time sorting from their costs. | [detail](chapters-14-27.md) |
+| 21 | Minimum Spanning Trees | 1/0/1/0/0 | Prim execution did not yet construct the final spanning-tree certificate or attach queue costs. | [detail](chapters-14-27.md) |
+| 22 | Single-Source Shortest Paths | 2/1/1/0/1 | Tight predecessor edges did not guarantee a source-rooted tree; negative-cycle scope needed clarification. | [detail](chapters-14-27.md) |
+| 23 | All-Pairs Shortest Paths | 0/0/3/0/0 | Negative-cycle completeness and actual construction costs were overstated. | [detail](chapters-14-27.md) |
+| 24 | Maximum Flow | 3/0/2/0/0 | Edmonds-Karp used a dense augmentation bound; relabel-to-front lacked a complete scheduler. | [detail](chapters-14-27.md) |
+| 25 | Bipartite Matching | 1/2/0/0/0 | Core flow, stable-matching, and Hungarian chains held; one direction note and stale gaps needed correction. | [detail](chapters-14-27.md) |
+| 26 | Parallel Algorithms | 2/1/0/0/0 | Results held within their stated dimension and scheduler models. | [detail](chapters-14-27.md) |
+| 27 | Online Algorithms | 0/1/1/1/0 | The caching interface was uninhabited; deterministic lower-bound quantifiers were too weak. | [detail](chapters-14-27.md) |
+| 28 | Matrix Operations | 3/0/0/0/0 | LUP execution and cost held; legacy asymptotic wording required alignment. | [detail](chapters-28-35.md) |
+| 29 | Linear Programming | 3/0/0/0/0 | Public contracts held; the guide overstated the imported solver's executable scope. | [detail](chapters-28-35.md) |
+| 30 | Polynomials and the FFT | 2/1/0/0/0 | Correctness held; exact counts needed root-preparation and sharing assumptions. | [detail](chapters-28-35.md) |
+| 31 | Number-Theoretic Algorithms | 6/1/1/0/0 | Miller-Rabin result and count came from different computations; repeated-trial probability lacked composition. | [detail](chapters-28-35.md) |
+| 32 | String Matching | 2/1/2/0/0 | DFA table size was used as construction work and Rabin-Karp omitted power-update cost. | [detail](chapters-28-35.md) |
+| 33 | Machine-Learning Algorithms | 3/0/0/0/0 | No core defect found within the one-step and finite-step claims. | [detail](chapters-28-35.md) |
+| 34 | NP-Completeness | 5/0/0/0/0 | Sampled semantic, serialization, machine-time, NP-membership, and hardness chains held. | [detail](chapters-28-35.md) |
+| 35 | Approximation Algorithms | 2/3/0/0/0 | Existing guarantees depended on caller-supplied MST/LP witnesses and needed composed public outputs. | [detail](chapters-28-35.md) |
 
-以上四组证据见[可复现 Lean 附录](counterexamples.md)。第 13、17、27 章由审查者与主审
-分别验证；第 14 章包含经过内核检查的结果保持定理与具体调用计数执行。
+The totals are **83 / 21 / 24 / 1 / 8 = 137**. This is a section-level
+classification rather than an error count. A section can retain valid
+mathematical theorems while receiving a MAJOR verdict for its execution or cost
+claim. Ten online-supplement entries with `chapter_no=0` are outside this
+denominator. See [sections.csv](sections.csv) for section IDs and source modules.
 
-## 逐章结论
+## Cross-review
 
-下面每章均审查了映射节的公共入口与核心定义，并抽查证明依赖。
-“未发现核心缺陷”不等于全章所有辅助证明已逐行复核；详细表保留模型边界、疑点与文档修正。
-第 34 章尤其只检查公开闭合链及选取的机器/编码接口。
+| Range | MATCH rows challenged independently | Final sections | Record |
+| --- | ---: | ---: | --- |
+| Chapters 1–13 | 43 | 50 | [review and corrections](cross-review-01-13.md) |
+| Chapters 14–27 | 35 | 52 | [review and corrections](cross-review-14-27.md) |
+| Chapters 28–35 | 38 | 35 | [review and corrections](cross-review-28-35.md) |
 
-| 章 | 内容 | 节判定分布¹ | 当前审查结论 | 详细证据 |
-| --- | --- | --- | --- | --- |
-| 1 | 算法的作用 | 1 / 1 / 0 / 0 / 0 | 说明性章节；修正旧版章节引用与接口惯例描述。 | [第 1 章](chapters-01-13.md) |
-| 2 | 算法基础 | 2 / 0 / 0 / 0 / 1 | MERGE/归并排序执行链已补齐；插入排序最坏成本公式与实际计数的连接仍需补证。 | [第 2 章](chapters-01-13.md) |
-| 3 | 运行时间的刻画 | 3 / 0 / 0 / 0 / 0 | 未发现核心缺陷；严格小 o/ω、非负条件与 Stirling 相关桥接有实质证明。 | [第 3 章](chapters-01-13.md) |
-| 4 | 分治 | 3 / 0 / 0 / 0 / 4 | 矩阵算法正确性成立；成本为独立递推，Master/Akra–Bazzi 只覆盖明确的受限情形。 | [第 4 章](chapters-01-13.md) |
-| 5 | 概率分析与随机算法 | 4 / 0 / 0 / 0 / 0 | 未发现核心缺陷；招聘、洗牌的分布与期望已有执行对应。 | [第 5 章](chapters-01-13.md) |
-| 6 | 堆排序 | 5 / 0 / 0 / 0 / 0 | 未发现核心缺陷；堆操作、排序与所声明控制步成本已有对应。 | [第 6 章](chapters-01-13.md) |
-| 7 | 快速排序 | 4 / 0 / 0 / 0 / 0 | 未发现核心缺陷；比较次数与随机期望之间已有实际执行桥接。 | [第 7 章](chapters-01-13.md) |
-| 8 | 线性时间排序 | 0 / 0 / 3 / 0 / 1 | MAJOR：计数/桶排序反复扫描输入，与线性分配成本声明不对应；决策树需可达执行下界。 | [第 8 章](chapters-01-13.md) |
-| 9 | 中位数与顺序统计量 | 3 / 0 / 0 / 0 / 0 | 未发现声明范围内核心缺陷；随机 SELECT 明确只计分区工作，非整个取枢轴实现。 | [第 9 章](chapters-01-13.md) |
-| 10 | 基本数据结构 | 1 / 2 / 0 / 0 / 0 | 模型边界：需合法数组状态约束；链表是按键集合式操作；旧编号需清理。 | [第 10 章](chapters-01-13.md) |
-| 11 | 散列表 | 4 / 0 / 1 / 0 / 0 | MAJOR：完全散列次级单射条件量化过强；随机构造成本尚未绑定到构造器。 | [第 11 章](chapters-01-13.md) |
-| 12 | 二叉搜索树 | 2 / 1 / 0 / 0 / 0 | 未发现核心正确性缺陷；有序集合语义、删除与期望高度证明成立，指针范围需保持准确。 | [第 12 章](chapters-01-13.md) |
-| 13 | 红黑树 | 1 / 0 / 3 / 0 / 0 | MAJOR：指针旋转丢失根可达节点、表示关系过弱；更新成本只是独立预算。 | [第 13 章](chapters-01-13.md) |
-| 14 | 动态规划 | 0 / 1 / 4 / 0 / 0 | MAJOR：LCS、矩阵链和最优 BST 的递归求值被描述为表格化执行；成本未附着。 | [第 14 章](chapters-14-27.md) |
-| 15 | 贪心算法 | 3 / 1 / 0 / 0 / 0 | 活动选择与 Huffman 证明链有效；离线缓存的一般容量空缓存启动仍是已披露范围边界。 | [第 15 章](chapters-14-27.md) |
-| 16 | 摊还分析 | 3 / 1 / 0 / 0 / 0 | 计数器与动态表证明有效；MULTIPOP 仅有单次界，尚非任意混合操作序列分析。 | [第 16 章](chapters-14-27.md) |
-| 17 | 数据结构的扩张 | 0 / 0 / 2 / 0 / 1 | MAJOR：相同左端点插入丢失区间；更新后搜索与实际增强成本尚缺连接。 | [第 17 章](chapters-14-27.md) |
-| 18 | B 树 | 2 / 1 / 0 / 0 / 0 | 未发现核心正确性缺陷；插入/删除强不变量已有证明；I/O 计数措辞需对应递归下降模型。 | [第 18 章](chapters-14-27.md) |
-| 19 | 不相交集合 | 3 / 1 / 0 / 0 / 0 | 森林执行与反阿克曼界已闭合；链表总改写数仍缺从操作轨迹构造计数的接口。 | [第 19 章](chapters-14-27.md) |
-| 20 | 基本图算法 | 4 / 1 / 0 / 0 / 0 | BFS/DFS 正确性及成本已有执行桥接；拓扑排序/SCC 的排序工作需要单独说明。 | [第 20 章](chapters-14-27.md) |
-| 21 | 最小生成树 | 1 / 0 / 1 / 0 / 0 | MAJOR：Prim 的合法选择轨迹尚未推出足够轮数后的覆盖证书；堆预算未绑定其执行。 | [第 21 章](chapters-14-27.md) |
-| 22 | 单源最短路径 | 2 / 1 / 1 / 0 / 1 | MAJOR：紧前驱边不能保证源根最短路径树；合法输入距离定理有效，负环检测范围需说明。 | [第 22 章](chapters-14-27.md) |
-| 23 | 所有结点对最短路径 | 0 / 0 / 3 / 0 / 0 | MAJOR：负环检测“两个方向”实际为同一方向；负自环被对角初始化覆盖；成本附着过度声明。 | [第 23 章](chapters-14-27.md) |
-| 24 | 最大流 | 3 / 0 / 2 / 0 / 0 | MAJOR：V³ 次增广不足以推出稀疏 O(VE²)；重标记到前运行纪律尚未由完整算法构造。 | [第 24 章](chapters-14-27.md) |
-| 25 | 二分图匹配 | 1 / 2 / 0 / 0 / 0 | 未发现核心缺陷；实际流增广成本、稳定匹配与 Hungarian 最优性链有效；女性最差性注释方向和旧缺口备注需修正。 | [第 25 章](chapters-14-27.md) |
-| 26 | 并行算法 | 2 / 1 / 0 / 0 / 0 | 未发现所声明模型内核心缺陷；调度器、并行乘法/归并与工作量、跨度证明相连。 | [第 26 章](chapters-14-27.md) |
-| 27 | 在线算法 | 0 / 1 / 1 / 1 / 0 | CRITICAL：目标页面域上缓存 Algorithm 类型不可满足；竞争性结果出现空前提，租赁下界需加强量词。 | [第 27 章](chapters-14-27.md) |
-| 28 | 矩阵运算 | 3 / 0 / 0 / 0 / 0 | LUP 执行、失败判定、代入求解及成本已补齐；精确域/实数模型不含数值稳定性。 | [第 28 章](chapters-28-35.md) |
-| 29 | 线性规划 | 3 / 0 / 0 / 0 / 0 | 标准形式/一般 LP 转换、四类建模与对偶公开契约有效；非计算实数求解器不承诺多项式执行时间。 | [第 29 章](chapters-28-35.md) |
-| 30 | 多项式与 FFT | 2 / 1 / 0 / 0 / 0 | 正确性链未发现核心缺陷；FFT 精确乘法计数需明确是否排除旋转因子生成。 | [第 30 章](chapters-28-35.md) |
-| 31 | 数论算法 | 6 / 1 / 1 / 0 / 0 | MAJOR：Miller–Rabin 返回值与计数来自不同计算；多轮错误率尚缺随机采样/事件组合定理。 | [第 31 章](chapters-28-35.md) |
-| 32 | 字符串匹配 | 2 / 1 / 2 / 0 / 0 | MAJOR：DFA 表格大小被当作构造工作，Rabin–Karp 重复幂运算未计入所称常数更新。 | [第 32 章](chapters-28-35.md) |
-| 33 | 机器学习算法 | 3 / 0 / 0 / 0 / 0 | 未发现核心缺陷；证明一轮 Lloyd 单调性、乘法权重期望损失及有限步梯度界，非全局最优/无条件收敛。 | [第 33 章](chapters-28-35.md) |
-| 34 | NP 完全性 | 5 / 0 / 0 / 0 / 0 | 抽查的语义、原始编码、机器时间、NP 成员性与困难性公开闭合链有效；未穷尽大量辅助证明。 | [第 34 章](chapters-28-35.md) |
-| 35 | 近似算法 | 2 / 3 / 0 / 0 / 0 | FPTAS 计数执行缺口已闭合；TSP 与 LP 舍入仍以提供的 MST/LP 解为条件，需标清组合边界。 | [第 35 章](chapters-28-35.md) |
+Independent reviewers did not overturn functional-correctness MATCH verdicts
+within their stated scope. They corrected the direction of the Chapter 25
+woman-pessimal note and clarified the boundaries of the legacy bucket-sort model,
+Rabin-Karp abstract steps, and shared FFT arithmetic.
 
-¹ 每节只记一个主判定，顺序为 **MATCH / MINOR / MAJOR / CRITICAL / UNCERTAIN**。
-合计 **83 / 21 / 24 / 1 / 8 = 137**。这是节级审查分类，不是错误定理数量：同一节中
-已成立的数学结论可以保留 MATCH，整体却因实现或成本声明被判 MAJOR。
-MINOR 包含已披露但需让读者看清的模型边界；UNCERTAIN 表示尚未核实的连接或范围，
-不等同于已证明错误。任何等级均继承前述教材未独立核对与辅助证明抽查限制。
-逐节主判定与源模块清单见 [sections.csv](sections.csv)。版本映射另含 10 个 `chapter_no=0`
-的在线补充条目，不计入本次 35 章、137 节分母；部分相关依赖在主章证明链中抽查。
+## Resolution
 
-## 交叉复核记录
+Issues [#345](https://github.com/TankTechnology/CLRS-Lean/issues/345) through
+[#375](https://github.com/TankTechnology/CLRS-Lean/issues/375) tracked every
+actionable chapter finding. The repairs, focused regressions, model boundaries,
+and unified verification are recorded in the
+[chapter-repair index](../../plans/2026-09-08-chapter-repairs/index.md). The
+current release wording refers to the selected proof inventory and completed
+repair scope rather than every theorem, exercise, or low-level implementation in
+the textbook.
 
-| 范围 | 独立挑战的 MATCH 表行 | 最终节数 | 记录 |
-| --- | --- | --- | --- |
-| 第 1–13 章 | 43（42 个映射节相关表行，另含 BST 期望高度补充行） | 50 | [复核及更正](cross-review-01-13.md) |
-| 第 14–27 章 | 35 | 52 | [复核及更正](cross-review-14-27.md) |
-| 第 28–35 章 | 38 | 35 | [复核及更正](cross-review-28-35.md) |
+## Verification record
 
-三组均由不同于第一轮审查者的审查者反驳检查。没有推翻原先限定范围内的功能正确性
-MATCH；混合了语义与成本的条目按主要缺口归类。新增 §25.2 女性最差稳定匹配的
-注释方向错误，定理本身方向正确；节主判定改为 MINOR。另明确了桶排序旧抽象模型、
-Rabin–Karp 抽象步数与 FFT 共享算术的合法边界，避免把它们都当成错误定理。
-
-## 优先修复项与验收草稿
-
-这些是可直接转为 issue 的草稿，未向外部系统提交。位置、前提、反例和保留成立的定理
-见对应分章报告；修复不能只通过改名让过强声明继续存在。
-
-| 草稿标题 / 严重度 | 修复范围 | 验收要求 |
-| --- | --- | --- |
-| Ch27 · 修复可满足的缓存算法接口 / CRITICAL | 合法缓存状态、辅助历史、非空实例及竞争性接口 | 在 `Fin(k+1)` 上构造合法算法；证明状态保持；重新证明非空前提下的竞争性结论与下界。 |
-| Ch13 · 修复指针旋转与表示关系 / MAJOR | 根/父链接、哨兵、非共享与父子一致性 | 两节点旋转保留所有键；强表示唯一性；指针执行精化函数式旋转。 |
-| Ch17 · 保留相同左端点的不同区间 / MAJOR | 键排序或显式覆盖策略，更新后不变量 | 明确重复键语义；证明插入成员性、BST 保持及更新后搜索；通过附录反例回归。 |
-| Ch8 · 将线性分配接入真实排序 / MAJOR | 计数/基数/桶排序分配器及成本 | 公共排序调用单遍分配；证明结果精化并对同一次执行计数；不能继续按每桶全表扫描收取线性费用。 |
-| Ch11 · 限定完全散列单射域 / MAJOR | `sec_inj` 的存储键前提与构造器边界 | 允许非存储键碰撞；验证合法表实例、查询与构造预算的实际对应。 |
-| Ch14 · 实现有缓存的动态规划执行 / MAJOR | LCS、矩阵链、最优 BST 及通用缓存承诺 | 实际表格/缓存状态、结果精化、按依赖顺序计算、绑定计数；否则明确降为递推规格和独立预算。 |
-| Ch13/17 · 连接树更新执行成本 / MAJOR | 实际再平衡/增强操作及计数 | 对同一次执行证明返回值精化和总工作界，包含所宣称的旋转/重着色/局部维护。 |
-| Ch21 · 从 Prim 执行构造覆盖证书 / MAJOR | 有界循环进展、最终覆盖、成本来源 | 足够燃料执行在连通输入上产生 spanning 与 MST；成本约束实际队列操作。 |
-| Ch22 · 证明前驱树而非仅紧边 / MAJOR | 源根性、终止父链、无环及路径权重 | 零权环实例中仍构造源根树；给出严格递减的前驱秩或松弛来源。 |
-| Ch23 · 完整负环检测与实际成本 / MAJOR | 负自环初始化、检测完备性、表格/队列计数 | 保留负自环或显式限制输入域；证明缺失的负环→负对角方向；注明/补齐执行与预算对应。 |
-| Ch24 · 补齐 EK 稀疏界与 RTF 完整运行 / MAJOR | 临界边支持集、BFS/增广成本、出队/放电循环 | 用 O(E) 支持集替代全顶点对，推出同一执行的目标界；从初始化构造结束的合法 RTF 运行。 |
-| Ch31 · 绑定素性测试执行与计数 / MAJOR | 单底数反复平方、多底数组合、概率事件 | Boolean 与计数来自同一执行；证明精化；由独立均匀采样推导接受事件界，或撤回多轮已形式化措辞。 |
-| Ch32 · 区分表大小、转移次数与实际工作 / MAJOR | DFA 构造/扫描及 RK 高位幂预计算 | 构造一次 DFA 表并传入扫描；计入构造过程；RK 预计算并传递高位幂，或明确降为抽象步数模型。 |
-
-## 对发布声明的影响
-
-**不建议在修复或明确收缩范围之前宣布“全书核心形式化完成”。**
-较准确的表述是“第四版 35 章导读与 1,689 项选定证明条目的阶段性成果，语义审查发现的接口与成本缺口正在完善”。
-[修订的公告草稿](../../releases/2026-09-08-announcement.md) 保留了可核实的里程碑和原有本地验证记录。
-
-现有编译与信任检查没有因此失效：问题在于某些定义、前提或所证明命题弱于对外宣称，
-并不意味着 Lean 内核接受了错误推理。账本和网站完成标签尚未由本次只读审查重新分类，
-不应再独立用作全书语义闭合的证据。
-
-## 验证记录
-
-- 结构覆盖检查通过；137 个主章规范节 ID 均有第一轮证据表与独立复核的主判定，无遗漏或重复。
-- 四组反例/执行证据通过 `lake env lean`；具体结果见附录。LCS 的数值输出仅作具体执行证据。
-- 审查结束时再次计算 2,164 个 Lean 源文件的快照指纹，与基线相同。
-- 之前同一源码的完整库构建与 35 章信任检查结果仍有效；本次没有为未改动的源码重复全量构建。
-- 报告、本地 Markdown 链接、README 生成块与仓库快速检查在归档时验证。
-- 本次交付审查文档、修订的发布措辞和修复验收草稿；没有修复 Lean 源码、重新分类状态账本、提交 issue、发布推文或部署网站。
+- Structural coverage passed, with exactly one first-pass and cross-reviewed
+  primary verdict for every one of the 137 canonical section IDs.
+- All four counterexample or execution-evidence groups passed `lake env lean`.
+- The final 2,164-file Lean snapshot fingerprint matched the baseline.
+- Markdown links, generated README content, and fast repository checks passed at
+  archival time.
+- The audit delivered evidence and repair acceptance criteria; the subsequent
+  repair commits and unified verification record establish their resolution.

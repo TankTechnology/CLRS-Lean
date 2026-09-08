@@ -1,11 +1,12 @@
-# 判定级别定义
+# Verdict Definitions
 
-| 判定 | 含义 |
-|------|------|
-| MATCH | 语义一致(经反驳员复核后仍成立) |
-| MINOR | 可解释差异(注释/命名/等价表示),不改变数学内容,建议但不必须修 |
-| MAJOR | 数学内容差异:定理变弱/变强、定义不等价、前提缺失,但不影响章节主要结论 |
-| CRITICAL | 核心定义/定理与书不符,可能使章节结论失真或误导读者 |
-| UNCERTAIN | 无法判定(语料缺失/书中表述模糊/Lean 代码难读);必须给出具体阻塞原因 |
+| Verdict | Meaning |
+| --- | --- |
+| MATCH | Semantically aligned after adversarial review. |
+| MINOR | An explainable representational, naming, or documentation difference that does not alter the mathematics. Repair is recommended but not required. |
+| MAJOR | A mathematical difference, such as a stronger or weaker theorem, non-equivalent definition, or missing premise, that does not invalidate the chapter's main conclusion. |
+| CRITICAL | A core definition or theorem conflicts with the source and may invalidate or mislead the chapter conclusion. |
+| UNCERTAIN | A verdict cannot be reached because the reference is missing or ambiguous, or the Lean source resists reliable interpretation. The blocker must be stated. |
 
-`NOT-INDEPENDENTLY-VERIFIED` 为语料缺失时的全局附加标签,可与上述判定并存。
+`NOT-INDEPENDENTLY-VERIFIED` is a global label used when no independently checked
+corpus is available. It may accompany any verdict.

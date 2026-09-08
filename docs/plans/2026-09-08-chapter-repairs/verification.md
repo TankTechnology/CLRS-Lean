@@ -1,39 +1,43 @@
-# 逐章修复统一验收
+# Unified Chapter-Repair Verification
 
-基础提交：`c8b074e961fb204ab50b9ea123b864260dafde38`。
-修复分支：`codex/chapter-audit-repairs-2026-09-08`。
-集成提交：`fadc6b6fa19088fc7ff0dcf70c70b3dd72c12973`（PR #377）。
+All 31 chapter issues from the September 8 audit were repaired and integrated by
+PR [#377](https://github.com/TankTechnology/CLRS-Lean/pull/377). This record applies
+to the integrated source tree, not to an isolated chapter branch.
 
-## 最终验证
+## Lean and repository checks
 
-| 检查 | 结果 |
-| --- | --- |
-| `lake build CLRSLean`（所有章节及最终导读接入后） | 通过，10,768 项 |
-| `python3 scripts/check_v1_trust_gate.py` | 第 01–35 章通过；第 31 章扩展接口随后单独重新验证通过 |
-| 新增章节执行/接口回归 | 全部通过；各批记录列出案例及适用模型 |
-| `uv run python scripts/check_repository.py` | 通过：CSV、导读、网站配置/导航测试、占位符政策、本地链接等 |
-| `git diff --check` | 通过 |
-| 独立源码复核 | 新增关键表示、实际执行与成本桥接受复核；无待处理发现 |
-| Pages 同流水线本地构建 | 通过：2,188 个模块、2,190 个 HTML 页面及 sitemap URL |
-| Chromium 本地部署验收 | 通过：主页、35 章、Chapter 35、进度页、390px 移动端及无 JavaScript 模式；无控制台错误或横向溢出 |
+- `lake build CLRSLean` completed **10,768 jobs** with exit status 0.
+- `uv run python scripts/check_repository.py` passed all metadata, generated-file,
+  placeholder, workflow, and Markdown-link checks.
+- `python3 scripts/check_v1_trust_gate.py` passed Chapters 1–35.
+- Chapter 31's expanded trust surface and all new focused semantic/interface
+  regressions passed.
+- `git diff --check` reported no whitespace errors.
 
-构建保留既有 Verso 文档提示、Mathlib 提示和本地 Verso 依赖补丁提示。这些不是证明失败。
-信任门仅允许 `propext`、`Classical.choice`、`Quot.sound`；新增公共定理无占位证明或自定义公理。
-新增帮助定理没有被自动计入原有 1,689 项选定证明清单。
+## Website checks
 
-## 兼容性与范围
+The Pages-equivalent local build completed **13,156 jobs**. It planned and rendered
+2,188 modules in four shards, prepared 2,190 HTML pages, produced 2,190 sitemap
+URLs, and passed freshness, page-weight, rendering, and merge checks.
 
-- 修复第 13 章不健全的存储表示和第 27 章缓存合法状态域，需要加强部分构造器/定理前提；依赖旧宽松接口的下游代码需提供合法性证明。既有仓库接口测试已更新或重新验证。
-- 每章明确计数对象及未包含的操作。精确实数、抽象指针改写、加权事件、共享表/队列的定理，不自动成为持久结构求值、RAM、浮点或位复杂度结论。
-- 原始审查仍为 NOT-INDEPENDENTLY-VERIFIED：教材原文未逐页独立核对。本轮验收覆盖 issue 指定的源定义、实际定理、执行回归和范围声明，不认证整本教材全部结论或习题。
-- 网站默认第四版并直接展开 35 章的导航修改已在合并提交上重新完成四分片渲染、本地 HTTP 服务和 Chromium 检查。线上 GitHub Pages 尚未触发；本地结果不能替代工作流成功后的线上复核。推文尚未发布。
+Browser smoke tests confirmed:
 
-## 证据入口
+- exactly 35 visible fourth-edition chapter links on the home page;
+- no third-edition chapter links in the default navigation;
+- an expanded chapter list without a collapsed disclosure control;
+- successful responses for all 35 chapter URLs;
+- visible Chapter 35, Vertex Cover LP, and progress-page content;
+- no horizontal overflow at desktop width or 390-pixel mobile width;
+- the same 35 chapter links with JavaScript disabled;
+- no browser console errors or page errors.
 
-[修复索引](index.md) · [逐章 issue 映射](issues.csv) · [第 1–3 章](first-batch.md) ·
-[第 4–6 章](chapters-04-06.md) · [第 8 章](chapter-08-results.md) ·
-[第 10–12 章](chapters-10-12.md) · [第 11、13–16 章](chapters-11-16.md) ·
-[第 17–20 章](chapters-17-20.md) · [第 21–30、32 章](chapters-21-32.md) ·
-[第 31 章](chapter-31.md) · [第 35 章](chapter-35.md)。
+## Interpretation
 
-阶段记录中的“本地、待提交”描述当时状态；当前远端集成状态以修复索引为准。
+The result closes the selected 1,689-entry proof inventory and the September 8
+repair scope. It does not claim that every textbook theorem, exercise, low-level
+implementation, RAM step, bit-complexity bound, or numerical-stability property
+has been formalized. Textbook correspondence remains
+`NOT-INDEPENDENTLY-VERIFIED` because the book was not checked page by page.
+
+See the [repair index](index.md), [issue map](issues.csv), and
+[chapter commit map](commits.csv) for traceability.

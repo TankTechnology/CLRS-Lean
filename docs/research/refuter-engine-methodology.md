@@ -1,41 +1,54 @@
-# Refuter Engine Methodology(反例搜索方法学)
+# Refuter Engine Methodology
 
-**状态**:方法论记录(2026-08-18);通用引擎尚未实现,仅有模式 + 一次性实例。
+**Status:** methodology record dated 2026-08-18. The general engine has not been
+implemented; only the pattern and one-off instances exist.
 
-## 起源案例:Miller-Rabin 误差界(Ch31)
+## Origin: the Miller–Rabin error bound in Chapter 31
 
-这一方法最早在 Chapter 31 的 Miller--Rabin 误差界攻坚中得到系统使用；
-当时的逐步交接记录仍可从 Git 历史恢复：
+The approach emerged while repairing the Miller–Rabin probability argument:
 
-1. **待攻猜想形式化为有限结构上的可判定谓词**——「强骗子在 (Z/nZ)ˣ 中构成子群」
-2. **编译态穷举搜索**(`#eval`,对全部单位闭包检查)发现反例:**n = 65, 85, 145, 185**
-3. **反例即产物**:不构成子群——否定了朴素子群证明路线,解释了该定理证明为何微妙
-4. **第二个搜索**:φ(n)/4 形式的界在 **n = 9 为假**(liars={1,8},2 > 6/4)
-5. **根因刻画**:φ(n)/4 恰在"好子群指数为 3"时失效,仅发生于 n = 3²
-6. **最强普适形式**:liars ≤ (n−1)/4(无例外),等价于见证者 ≥ 3(n−1)/4,**严格强于** CLRS Theorem 31.39 的 (n−1)/2
+1. Express the conjecture as a decidable predicate over a finite structure: the
+   strong liars form a subgroup of the units modulo `n`.
+2. Exhaustively evaluate small domains at compile time. This found counterexamples
+   at `n = 65, 85, 145, 185`.
+3. Treat the counterexample as a result: failure of subgroup closure rejects the
+   naive subgroup proof strategy and explains why the theorem is subtle.
+4. Search a second claim. The `φ(n)/4` bound fails at `n = 9`, where the liar set
+   is `{1, 8}` and `2 > 6/4`.
+5. Characterize the cause: the bound fails when the good subgroup has index 3,
+   which in the searched setting occurs at `n = 3²`.
+6. State the strongest uniform correction: `liars ≤ (n-1)/4`, equivalently at
+   least `3(n-1)/4` witnesses. This is stronger than the `(n-1)/2` witness bound
+   in CLRS Theorem 31.39.
 
-## 方法五步
+## Five-step method
 
-1. **Formulate** — 把猜想写成有限结构上的可判定谓词(小见证、可枚举)
-2. **Search** — 编译态穷举(`#eval` / 原生代码)扫小参数域
-3. **Verify** — 命中即产出内核验证的反例证明(反例本身可机器检查)
-4. **Bound** — 未命中则记录「已验证的搜索上界」+ 结构洞察
-5. **Classify** — 刻画失效条件的根因(如"指数为 3 当且仅当 n=3²"),导出修正后的最强陈述
+1. **Formulate:** encode the conjecture as a decidable statement over a finite,
+   enumerable domain with small witnesses.
+2. **Search:** use `#eval` or compiled native code over a bounded parameter range.
+3. **Verify:** turn every hit into a kernel-checked counterexample proof.
+4. **Bound:** when no hit exists, record the verified search limit and structural
+   observations without claiming an unbounded theorem.
+5. **Classify:** identify the exact failure condition and derive a corrected,
+   maximally strong statement.
 
-## 通用化准则(什么样的开放问题可搜)
+## Suitable open problems
 
-- 猜想可写成一阶有限陈述(组合数论、字符串组合学、小图论)
-- 反例期望尺度小(可以穷举)
-- 判定过程可编译(不依赖交互)
+- finite first-order conjectures in combinatorial number theory, string
+  combinatorics, or small graph theory;
+- problems whose counterexamples are expected to be small enough to enumerate;
+- predicates that compile without interactive proof search.
 
-## 候选靶子
+Candidate targets include string attractors, searches related to Lehmer's
+totient problem, BPSW pseudoprimes, and computed validation of candidate semantic
+differences proposed during audits.
 
-- **String Attractors**(Kempa–Prezza 2018):最小 attractor 的 NP 难性、与压缩度量的关系——开放问题密集
-- **Lehmer totient 问题**(1932 未解):φ(n) | n−1 的合数搜索
-- **BPSW 伪素数**:存在性搜索
-- 审计反驳员的候选验证:LLM 生成候选差异 → 计算验证(替代纯 LLM 反驳)
+## Relationship to semantic audits
 
-## 与审计的关系
+The current semantic-fidelity adversary proposes differences through language-
+model review. The target architecture is:
 
-当前 semantic-fidelity-audit 的反驳员是纯 LLM。目标架构:
-**LLM 提候选 → refuter engine 计算验证 → 只有验证通过的才进报告**。既提高反驳质量,又压缩审计时间。
+`candidate generation → computed refutation or confirmation → verified report`
+
+Only computationally validated candidates would enter the final report. This
+raises adversarial-review quality while reducing time spent on unsupported leads.

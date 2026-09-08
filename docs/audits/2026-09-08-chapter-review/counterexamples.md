@@ -1,12 +1,14 @@
-# 可复现的源码审查证据
+# Reproducible Source-Review Evidence
 
-这些代码针对本目录索引记录的源快照。每个代码块独立保存为一个临时 `.lean`
-文件，然后在仓库根运行 `lake env lean <临时文件>` 即可复核。
-它们没有修改原始算法，没有加入项目公理，也没有使用 `sorry` 或 `native_decide`。
+These examples target the source snapshot recorded by this directory's index.
+Save each code block as a separate temporary `.lean` file and run
+`lake env lean <temporary-file>` from the repository root to reproduce it. The
+examples do not modify the original algorithms, add project axioms, or use
+`sorry` or `native_decide`.
 
-## 第 13 章：旋转丢失可达键与哨兵表示不唯一
+## Chapter 13: rotation loses a reachable key and sentinel representation is not unique
 
-Lean 检查退出码 0；各 example 由内核验证。
+Lean exits with status 0; the kernel checks every example.
 
 ```lean
 import CLRSLean.FourthEdition.Chapter_13
@@ -64,9 +66,10 @@ example : Represents cyclic (.node .black .empty 7 .empty) := by
 end Chapter13Audit
 ```
 
-## 第 27 章：算法接口不可满足
+## Chapter 27: unsatisfiable algorithm interface
 
-由审查者与主审分别运行，均退出码 0；证明了任意 Algorithm (Fin (k + 1)) k 会推出 False。
+The reviewer and primary auditor ran this independently with status 0. It proves
+that every `Algorithm (Fin (k + 1)) k` implies `False`.
 
 ```lean
 import CLRSLean.FourthEdition.Chapter_27
@@ -77,9 +80,11 @@ example (k : Nat) (A : CLRS.OnlineCaching.Algorithm (Fin (k + 1)) k) : False := 
   simp at h
 ```
 
-## 第 14 章：LCS 调用计数与独立表格表达式
+## Chapter 14: LCS call count and an independent tabular expression
 
-Lean 检查退出码 0；counted_value 为内核检查的值保持定理。四个 #eval 输出依次为 503、36、25739、81；数值输出是执行结果，不作为新的渐近界证明。
+Lean exits with status 0; `counted_value` is a kernel-checked value-preservation
+theorem. The four `#eval` commands produce 503, 36, 25739, and 81. These numbers
+are execution results rather than a new asymptotic-bound proof.
 
 ```lean
 import CLRSLean.FourthEdition.Chapter_14.Section_14_4_Longest_Common_Subsequence
@@ -115,10 +120,12 @@ end LCSAudit
 ```
 
 
-## 第 17 章：相同左端点的区间插入丢失
+## Chapter 17: interval insertion loses equal-low endpoints
 
-审查者与主审分别运行，均退出码 0。初始树满足已有增强不变量与 BST 条件；
-插入不同区间后树未变化，并遗漏本应命中的查询。
+The reviewer and primary auditor ran this independently with status 0. The
+initial tree satisfies the existing augmentation invariant and BST condition;
+inserting a distinct interval leaves the tree unchanged and omits a query match
+that should exist.
 
 ```lean
 import CLRSLean.FourthEdition.Chapter_17
