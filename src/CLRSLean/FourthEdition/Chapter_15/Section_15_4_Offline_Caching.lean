@@ -22,8 +22,8 @@ Main results:
 - `fifo_step_of_mem` / `fifo_step_fault`: the policy's cache transitions
 - `LegalTrace`: a policy-independent certificate for a legal cache execution
 - `fifo_optimal`: optimality for every nonempty eviction-phase cache
-- `fifo_optimal_from_empty`: optimality from the literal empty cache, including
-  the compulsory first miss (CLRS Theorem 15.5)
+- `fifo_optimal_from_empty`: optimality from the literal empty cache in the
+  capacity-one core execution, including the compulsory first miss
 - `fifo_optimal_after_compulsory_fill`: the capacity-independent bridge from a
   common compulsory-fill phase to the verified eviction phase
 
@@ -31,8 +31,10 @@ Completion boundary:
 
 - The mathematical offline-caching optimality theorem is complete for finite
   request lists.  Both a nonempty eviction-phase cache and the literal empty
-  start of the core transition semantics are covered; arbitrary-capacity fill
-  phases use the explicit policy-independent `compulsoryFillCost` bridge.
+  start of the core transition semantics are covered. The latter has capacity
+  one after the first load. For larger capacities, `compulsoryFillCost` only adds
+  a supplied common cost to a supplied nonempty resident set and remaining suffix;
+  no general capacity-parametric empty-start fill execution is proved here.
   Pointer-level cache mutation, RAM costs, and hardware caching behavior are
   separate implementation refinements and are not claimed here.
 

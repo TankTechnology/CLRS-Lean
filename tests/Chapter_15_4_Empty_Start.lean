@@ -10,3 +10,6 @@ open CLRS.Caching
 
 #assert_axioms fifo_optimal_from_empty
 #assert_axioms fifo_optimal_after_compulsory_fill
+
+#check CLRS.Caching.cacheSeq_empty_card_one_after_first
+#assert_axioms CLRS.Caching.cacheSeq_empty_card_one_after_first

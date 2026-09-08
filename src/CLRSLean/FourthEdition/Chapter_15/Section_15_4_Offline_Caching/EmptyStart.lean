@@ -7,11 +7,16 @@ The core eviction trace starts from a nonempty cache because every fault must
 name a resident page to evict.  This module isolates the compulsory first miss:
 under the core transition semantics an empty cache becomes the singleton
 containing the first request, independently of the policy.  Thereafter the
-existing exchange theorem applies unchanged.
+existing exchange theorem applies unchanged. This literal-empty execution is
+capacity one after its first request: it cannot represent filling a capacity-k
+cache for k > 1.
 
 For a capacity greater than one, the deterministic compulsory-fill phase is
 represented separately by {lit}`compulsoryFillCost`; once a nonempty resident set is
 handed to the eviction phase, adding the same fill cost preserves optimality.
+The fill cost, resident set, and remaining suffix are supplied parameters. This
+module does not compute them from a capacity and empty initial state, or prove
+that such a capacity-parametric fill execution realizes this decomposition.
 -/
 
 namespace CLRS.Caching
@@ -31,6 +36,14 @@ theorem cacheSeq_empty_eq_singleton_after_first
         π.step (t + 1) (cacheSeq π {p} (p :: rest) (t + 1))
           ((p :: rest).getD (t + 1) 0)
       rw [ih]
+
+/-- The core literal-empty run has capacity one after the first request. -/
+theorem cacheSeq_empty_card_one_after_first
+    (π : Policy) (p : Page) (rest : List Page) (t : Nat) :
+    (cacheSeq π ∅ (p :: rest) (t + 1)).card = 1 := by
+  rw [cacheSeq_empty_eq_singleton_after_first]
+  rw [cacheSeq_card π {p} (p :: rest) (t + 1) (by simp)]
+  simp
 
 theorem faultAt_empty_zero (π : Policy) (p : Page) (rest : List Page) :
     faultAt π ∅ (p :: rest) 0 = 1 := by
@@ -80,8 +93,9 @@ theorem misses_empty_eq_singleton_add_one
 
 /--
 Farthest-in-future is optimal from the literal empty cache in the core
-transition semantics; the empty request list and the compulsory first miss are
-both covered.
+transition semantics of capacity one after the first load; the empty request
+list and the compulsory first miss are both covered. This is not an arbitrary
+capacity empty-start execution theorem.
 -/
 theorem fifo_optimal_from_empty (π : Policy) (σ : List Page) :
     misses (fifoPolicy σ) ∅ σ ≤ misses π ∅ σ := by
@@ -102,7 +116,8 @@ def compulsoryFillCost
 /--
 Adding a common compulsory-fill cost does not change the optimal eviction
 policy for the remaining requests.  This is the capacity-independent bridge
-used when a textbook cache is filled before the first eviction.
+for supplied fill data. It does not establish that a capacity-parametric
+empty-start algorithm produces those data.
 -/
 theorem fifo_optimal_after_compulsory_fill
     (fillMisses : Nat) (π : Policy) (resident : Finset Page)
