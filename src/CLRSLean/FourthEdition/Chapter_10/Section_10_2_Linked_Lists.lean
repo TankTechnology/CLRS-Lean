@@ -12,6 +12,9 @@ Main results:
 
 - Theorem {lit}`listSearch_sound`: a successful search returns an element from
   the input list satisfying the predicate.
+- Theorem {lit}`listSearch_eq_none_iff`: failure is equivalent to no match.
+- Theorems {lit}`listSearch_eq_some_iff_prefix` and
+  {lit}`listSearch_eq_some_iff_firstIndex`: success identifies the first match.
 - Theorem {lit}`mem_listInsert_self`: inserting at the front makes the inserted
   element a member.
 - Theorem {lit}`mem_listDeleteAll_iff`: deleting all nodes with a key gives the
@@ -19,7 +22,10 @@ Main results:
 
 Status: `proved` for the functional-list model.
 
-Deferred refinements: pointer updates and free-list allocation.
+Deletion in this model removes every equal value, including duplicates; it
+does not represent deletion of one node by pointer identity.
+
+Deferred refinements: pointer updates, identity-based deletion, and free-list allocation.
 -/
 
 namespace CLRS
@@ -59,6 +65,38 @@ theorem listSearch_sound {p : α → Bool} {xs : List α} {x : α}
         simp [listSearch, hyfalse] at h
         rcases ih h with ⟨hmem, hp⟩
         exact ⟨by simp [hmem], hp⟩
+
+
+/-- The local executable search is the standard first-match list search. -/
+theorem listSearch_eq_find? (p : α → Bool) (xs : List α) :
+    listSearch p xs = xs.find? p := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+      cases hp : p x <;> simp [listSearch, ih, hp]
+
+/-- Search fails exactly when every input element fails the predicate. -/
+theorem listSearch_eq_none_iff (p : α → Bool) (xs : List α) :
+    listSearch p xs = none ↔ ∀ x ∈ xs, p x = false := by
+  rw [listSearch_eq_find?, List.find?_eq_none]
+  simp
+
+/-- A successful search splits the input at a matching value, with no match
+in the preceding prefix. This characterizes the first match even with duplicates. -/
+theorem listSearch_eq_some_iff_prefix (p : α → Bool) (xs : List α) (x : α) :
+    listSearch p xs = some x ↔ p x = true ∧
+      ∃ before after, xs = before ++ x :: after ∧ ∀ y ∈ before, p y = false := by
+  rw [listSearch_eq_find?]
+  simpa using (List.find?_eq_some_iff_append (xs := xs) (p := p) (b := x))
+
+/-- Search succeeds precisely at a matching index whose earlier positions all
+fail the predicate. The index is in range and identifies the returned payload. -/
+theorem listSearch_eq_some_iff_firstIndex (p : α → Bool) (xs : List α) (x : α) :
+    listSearch p xs = some x ↔ p x = true ∧
+      ∃ (i : Nat) (hi : i < xs.length), xs[i] = x ∧
+        ∀ j (hj : j < i), p (xs[j]'(Nat.lt_trans hj hi)) = false := by
+  rw [listSearch_eq_find?]
+  simpa using (List.find?_eq_some_iff_getElem (xs := xs) (p := p) (b := x))
 
 /-! ## Insert and delete correctness -/
 

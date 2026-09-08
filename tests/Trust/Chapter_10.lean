@@ -16,3 +16,14 @@ example :
       ({ store := fun _ => 0, top := 0, capacity := 2 } : CLRS.Chapter10.ArrayStack Nat)).map
         (fun stack => stack.top) = some 1 := by
   decide
+
+#assert_axioms CLRS.Chapter10.ArrayStack.empty_valid
+#assert_axioms CLRS.Chapter10.ArrayQueue.empty_valid
+#assert_axioms CLRS.Chapter10.arrayPush_preserves_valid
+#assert_axioms CLRS.Chapter10.arrayPop_preserves_valid
+#assert_axioms CLRS.Chapter10.arrayEnqueue_preserves_valid
+#assert_axioms CLRS.Chapter10.arrayDequeue_preserves_valid
+#assert_axioms CLRS.Chapter10.arrayEnqueue_valid_input
+#assert_axioms CLRS.Chapter10.arrayDequeue_valid_input
+#assert_axioms CLRS.Chapter10.listSearch_eq_none_iff
+#assert_axioms CLRS.Chapter10.listSearch_eq_some_iff_firstIndex
