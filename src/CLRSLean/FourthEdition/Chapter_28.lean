@@ -42,7 +42,10 @@ The costed solver {lit}`lupSolveWithCost` erases to the existing
 {lit}`2n²` field operations; its permutation is implemented by direct vector
 indexing rather than a hidden matrix-vector product.  These are exact-field unit-cost results with
 decidable zero testing; floating-point stability, mutable storage, allocation,
-and bit/RAM costs remain outside this boundary.
+and bit/RAM costs remain outside this boundary. The older numerical
+substitution, decomposition, inversion and Cholesky budgets have separate
+{lit}`isBigO` proofs; those statements are upper bounds. Only the costed LUP
+decomposition/solve results described above are attached to those executions.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
