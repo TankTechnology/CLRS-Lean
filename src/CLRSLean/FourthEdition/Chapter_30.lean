@@ -42,7 +42,13 @@ The supporting implementation pages remain available outside the main sidebar:
 
 The native sections supply the represented fourth-edition polynomial/FFT
 sections (the FFT correctness and work analysis, the bit-reversal and
-iterative-FFT implementations, and the parallel FFT).
+iterative-FFT implementations, and the parallel FFT). Exact arithmetic fields
+use shared butterfly products; function-valued outputs do not establish
+memoization when their two slots are evaluated separately. Iterative child-root
+squaring is excluded setup work. Bit-reversal movement has a separate counter.
+The parallel arithmetic-circuit model treats roots as constants. DFT correctness
+and the stated asymptotic theorems hold in these respective charge models;
+{lit}`totalWork` is not a count of every operation of the literal evaluator.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

@@ -224,13 +224,16 @@ theorem twiddleChildRoot_eq_square [Monoid K] {k : Nat} (hk : 0 < k)
     subst k
     simp [twiddlePowersAuxExec, pow_two]
 
-/-- One radix-2 butterfly layer and its actual arithmetic counters. -/
+/-- One radix-2 butterfly layer and its shared-arithmetic charge counters. -/
 structure ButterflyExecution (K : Type*) (k : Nat) where
   value : PowTwoVec K (k + 1)
   addSubtractions : Nat
   multiplications : Nat
 
-/-- Consume a previously evaluated twiddle trace in a butterfly layer. -/
+/-- Consume a previously evaluated twiddle trace in a butterfly layer.
+The charge counts {lit}`w j * v j` once per butterfly, shared by the sum and
+difference. The function-valued output below does not itself memoize this
+product across separate evaluations of its two output slots. -/
 def butterflyLayerFromTwiddleExec [Ring K] {k : Nat} (omega : K)
     (twiddleRun : TwiddleExecution K)
     (hrun : twiddleRun = twiddlePowersAuxExec omega (2 ^ k) 1)
