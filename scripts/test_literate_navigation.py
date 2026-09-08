@@ -88,6 +88,7 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
             (
                 "CLRSLean.ProofPatterns",
                 "CLRSLean.FourthEdition.Chapter_22",
+                "CLRSLean.FourthEdition",
             ),
         )
         self.assertNotIn("Boundary", result.html)
@@ -101,12 +102,33 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
             result.html,
         )
         self.assertIn(
-            '<details open><summary><a href="CLRSLean/FourthEdition/"', result.html
+            '<div class="chapter-index"><div class="leaf"><a href="CLRSLean/FourthEdition/"', result.html
         )
         self.assertLess(
             result.html.index(">Chapter 22</a>"),
             result.html.index(">Chapter 23</a>"),
         )
+
+    def test_chapter_index_cannot_hide_the_35_chapter_names(self) -> None:
+        chapters = "".join(
+            f'<details><summary><a href="CLRSLean/FourthEdition/Chapter_{n:02}/" '
+            f'title="CLRSLean.FourthEdition.Chapter_{n:02}">Chapter {n}</a></summary>'
+            f'<div class="leaf"><a title="CLRSLean.FourthEdition.Chapter_{n:02}.Section_1" '
+            f'href="CLRSLean/FourthEdition/Chapter_{n:02}/Section_1/">Section</a></div></details>'
+            for n in range(1, 36)
+        )
+        source = (
+            '<nav class="module-tree"><details><summary class="current">'
+            '<a href="CLRSLean/FourthEdition/" title="CLRSLean.FourthEdition">'
+            'Fourth Edition</a></summary>' + chapters + '</details></nav>'
+        )
+        result = prune_reader_sidebar(source)
+        self.assertIn('<div class="chapter-index"><div class="leaf current">', result.html)
+        self.assertEqual(result.html.count('<details>'), 35)
+        self.assertNotIn('<summary class="current">', result.html)
+        for n in range(1, 36):
+            self.assertIn(f'>Chapter {n}</a>', result.html)
+        self.assertEqual(prune_reader_sidebar(result.html).html, result.html)
 
     def test_keeps_fourth_edition_section_rows_and_prunes_helpers(self) -> None:
         source = """<nav class="module-tree">

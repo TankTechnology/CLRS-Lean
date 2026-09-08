@@ -36,7 +36,7 @@ Chapter 24 `BFSState` and residual-path API, Chapter 25 matching-flow and Berge
 theorems, and the repository trust/audit scripts.
 
 **Approved design:**
-`docs/superpowers/specs/2026-08-28-ch25-costed-bipartite-flow-design.md`.
+`docs/designs/2026-08-28-ch25-costed-bipartite-flow-design.md`.
 
 ---
 

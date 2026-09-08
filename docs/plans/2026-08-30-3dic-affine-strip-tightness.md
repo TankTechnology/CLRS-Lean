@@ -698,8 +698,8 @@ git commit -m "research: specialize affine strip tightness"
 - Modify: `docs/research/3d-ic-affine-strip-tightness-contract-2026-08-30.md`
 - Modify: `docs/research/3d-ic-route-a-literature-audit-2026-08-29.md`
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
-- Modify: `docs/superpowers/specs/2026-08-30-3dic-affine-strip-tightness-design.md`
-- Modify: `docs/superpowers/plans/2026-08-30-3dic-affine-strip-tightness.md`
+- Modify: `docs/designs/2026-08-30-3dic-affine-strip-tightness-design.md`
+- Modify: `docs/plans/2026-08-30-3dic-affine-strip-tightness.md`
 
 - [x] **Step 1: Freeze the trust surface**
 
@@ -772,8 +772,8 @@ git add Tests/Research_ThreeDIC_Trust.lean \
   docs/research/3d-ic-affine-strip-tightness-contract-2026-08-30.md \
   docs/research/3d-ic-route-a-literature-audit-2026-08-29.md \
   docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md \
-  docs/superpowers/specs/2026-08-30-3dic-affine-strip-tightness-design.md \
-  docs/superpowers/plans/2026-08-30-3dic-affine-strip-tightness.md
+  docs/designs/2026-08-30-3dic-affine-strip-tightness-design.md \
+  docs/plans/2026-08-30-3dic-affine-strip-tightness.md
 git commit -m "docs(research): audit affine strip tightness"
 ```
 

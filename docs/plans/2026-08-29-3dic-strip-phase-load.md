@@ -390,7 +390,7 @@ git commit -m "research: certify phase-aware strip load"
 - Modify: `Tests/Research_ThreeDIC_Trust.lean`
 - Modify: `docs/research/3d-ic-route-a-literature-audit-2026-08-29.md`
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
-- Modify: `docs/superpowers/plans/2026-08-29-3dic-strip-phase-load.md`
+- Modify: `docs/plans/2026-08-29-3dic-strip-phase-load.md`
 
 - [x] **Step 1: Extend the trust audit**
 
@@ -455,7 +455,7 @@ gates pass, mark Steps 5 and 6 complete, then commit that final plan state:
 ```bash
 git add docs/research/3d-ic-route-a-literature-audit-2026-08-29.md \
   docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md \
-  docs/superpowers/plans/2026-08-29-3dic-strip-phase-load.md
+  docs/plans/2026-08-29-3dic-strip-phase-load.md
 git commit -m "docs(plan): close phase-aware strip certificate"
 ```
 

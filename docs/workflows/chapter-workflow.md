@@ -61,8 +61,8 @@ the narrow file check, the interface check, and the library build when the
 environment has Mathlib available:
 
 ```bash
-lake env lean CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
-lake env lean Tests/Chapter_02_Interface.lean
+lake env lean src/CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean
+lake env lean tests/Chapter_02_Interface.lean
 lake build CLRSLean
 ```
 
@@ -75,7 +75,7 @@ publishing, release, or website task.
 
 Update:
 
-- the relevant `CLRSLean/Chapter_XX.lean` page;
+- the relevant `src/CLRSLean/FourthEdition/Chapter_XX.lean` page;
 - `docs/clrs-proof-progress.csv` and the generated dashboard when chapter
   coverage changes;
 - a focused interface test when the public declaration surface changes;

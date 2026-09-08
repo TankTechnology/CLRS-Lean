@@ -17,7 +17,7 @@ description: 按章审计 CLRS-Lean 形式化定义与原著算法的语义忠�
 2. **审计员**:读 references/auditor-prompt.md,填模板变量,用 Agent 工具派发 subagent(变量:CHAPTER_NO、CHAPTER_TITLE 来自 docs/clrs-fourth-edition-map.csv;SOURCE_FILES 为该章 source_modules 展开的 .lean 路径;CORPUS_TEXT 为第 1 步产物路径,若不存在则填"不存在")
 3. **反驳员**:读 references/adversary-prompt.md,输入为审计员对照表,同样用 Agent 工具派发
 4. **合并**:反驳成立(≥2 条独立差异)的 MATCH 条目降级为 MINOR;UNCERTAIN 保留;把反驳记录写进报告
-5. **报告**:按 references/report-template.md 写 `docs/audits/chNN-semantic-fidelity.md`;更新 `docs/audits/INDEX.md`(每章一行:章号/审计日期(北京时间)/判定分布/缺陷数/基准来源)
+5. **报告**:按 references/report-template.md 写 `docs/audits/chNN-semantic-fidelity.md`;更新 `docs/audits/index.md`(每章一行:章号/审计日期(北京时间)/判定分布/缺陷数/基准来源)
 6. **提交**:`git add docs/audits/` 并 commit(只提交报告与索引)
 
 ## 红线(违反即失败)

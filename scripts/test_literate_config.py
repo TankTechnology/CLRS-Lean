@@ -62,8 +62,10 @@ class LiterateConfigTest(unittest.TestCase):
         titled_modules = parse_module_titles(text)
 
         self.assertEqual(list(PRIMARY_ROOT_MODULES), order_children["CLRSLean"])
-        self.assertEqual("CLRS Fourth Edition", titled_modules.get(PRIMARY_ROOT_MODULES[0]))
-        self.assertEqual("Online Material", titled_modules.get(PRIMARY_ROOT_MODULES[1]))
+        self.assertEqual("Chapters 1–35 · CLRS Fourth Edition", titled_modules.get(PRIMARY_ROOT_MODULES[0]))
+        self.assertEqual("Progress Dashboard", titled_modules.get(PRIMARY_ROOT_MODULES[1]))
+        self.assertEqual("Proof Status", titled_modules.get(PRIMARY_ROOT_MODULES[2]))
+        self.assertEqual("Contributor Guide", titled_modules.get("CLRSLean.Workflow"))
 
     def test_fourth_edition_chapters_are_ordered_and_titled(self) -> None:
         text = LITERATE_TOML.read_text()

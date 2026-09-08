@@ -7,6 +7,26 @@ counts and status rows; {lit}`docs/clrs-fourth-edition-map.csv` owns the bridge
 to current theorem-bearing sources; section modules and interface tests own
 formal truth; and {lit}`docs/scope.md` records the project-wide claim boundary.
 
+## Whole-Book Snapshot
+
+The canonical ledger contains 35 chapter rows.  All 35 chapters are represented
+in Lean: 34 chapters are {lit}`main-proof-complete` for their advertised models,
+and Chapter 1 is {lit}`expository`.  No chapter remains {lit}`partial` or
+{lit}`not-started`, and the generated dashboard reports all 1,689 selected
+reader-facing theorem entries proved with zero edition-coverage gap units.
+
+This is a selected, reviewed theorem inventory.  It does not claim every
+exercise, chapter-end Problem, pointer/RAM model, or floating-point
+implementation.  The generated dashboard owns the live totals; this page
+explains how to read them.
+
+The September 8 source audit and its chapter-by-chapter repair record are kept
+separately in {lit}`docs/audits/2026-09-08-chapter-review/` and
+{lit}`docs/plans/2026-09-08-chapter-repairs/`. The original audit describes its
+base commit; the repair record links later execution refinements, regressions,
+and clarified cost models. It does not establish an independent page-by-page
+verification against the textbook.
+
 ## Edition And Compatibility Contract
 
 Chapter numbers on this page mean CLRS fourth edition.  New work should import
@@ -33,19 +53,6 @@ chapter; {lit}`docs/migrations/clrs4.md` records the current mapping.
 The proved/tracked fraction is a selected proof-inventory metric.  Even a
 complete fraction can accompany {lit}`partial` when the fourth-edition map names
 an obligation that has not yet been selected into that inventory.
-
-## Whole-Book Snapshot
-
-The canonical ledger contains 35 chapter rows.  All 35 chapters are represented
-in Lean: 34 chapters are {lit}`main-proof-complete` for their advertised models,
-and Chapter 1 is {lit}`expository`.  No chapter remains {lit}`partial` or
-{lit}`not-started`, and the generated dashboard reports all 1,689 selected
-reader-facing theorem entries proved with zero edition-coverage gap units.
-
-This is a selected, reviewed theorem inventory.  It does not claim every
-exercise, chapter-end Problem, pointer/RAM model, or floating-point
-implementation.  The generated dashboard owns the live totals; this page
-explains how to read them.
 
 ## Chapter 34 Flagship
 
@@ -103,11 +110,6 @@ structural properties and is instantiated back to activity selection; Huffman
 has equation (15.4), separate Lemma 15.2/15.3 interfaces, and honest list/heap
 cost layers; offline caching includes literal-empty-start optimality through
 `CLRS.Caching.fifo_optimal_from_empty`.
-
-## Not-Started Chapters
-
-No chapter is {lit}`not-started`: every canonical chapter has at least one
-represented section or an expository guide.
 
 ## Online And Supplementary Material
 
