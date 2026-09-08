@@ -179,8 +179,10 @@ def onlineCost (r p : ℝ) (s : Strategy) (T : ℕ) : ℝ :=
 `(2 - r/p)` times the optimal offline cost.
 -/
 theorem rentThenBuy_lower_bound (r p : ℝ) (hr : 0 < r) (hp : 0 < p) (a : ℕ) :
-    ∃ T : ℕ, (2 - r / p) * optCost r p T ≤ rentThenBuyCost r p a T := by
-  refine ⟨a + 1, ?_⟩
+    ∃ T : ℕ, 0 < T ∧ 0 < optCost r p T ∧
+      (2 - r / p) * optCost r p T ≤ rentThenBuyCost r p a T := by
+  refine ⟨a + 1, by omega, ?_, ?_⟩
+  · exact lt_min (mul_pos (by positivity) hr) hp
   have ha0 : 0 ≤ (a : ℝ) := Nat.cast_nonneg a
   have hcost : rentThenBuyCost r p a (a + 1) = (a : ℝ) * r + p := by
     apply rentThenBuyCost_long
@@ -220,13 +222,18 @@ strategy there is an input `T` on which it pays at least `(2 - r/p)` times the
 optimal offline cost.
 -/
 theorem skiRental_lower_bound (r p : ℝ) (hr : 0 < r) (hp : 0 < p) (s : Strategy) :
-    ∃ T : ℕ, (2 - r / p) * optCost r p T ≤ onlineCost r p s T := by
+    ∃ T : ℕ, 0 < T ∧ 0 < optCost r p T ∧
+      (2 - r / p) * optCost r p T ≤ onlineCost r p s T := by
   cases s with
   | none =>
       -- The strategy never buys, so on a long trip it pays `T * r` while the
       -- optimum is `p`; pick `T` large enough that `2 * p - r ≤ T * r`.
       obtain ⟨T, hT⟩ := exists_nat_gt (2 * p / r : ℝ)
-      refine ⟨T, ?_⟩
+      have hTpos : 0 < T := by
+        have hq : 0 < 2 * p / r := div_pos (by positivity) hr
+        have ht : (0 : ℝ) < T := hq.trans hT
+        exact_mod_cast ht
+      refine ⟨T, hTpos, lt_min (mul_pos (by exact_mod_cast hTpos) hr) hp, ?_⟩
       simp [onlineCost]
       have hmul : (2 * p / r) * r < (T : ℝ) * r := mul_lt_mul_of_pos_right hT hr
       have h2p : (2 * p / r) * r = 2 * p := by field_simp [ne_of_gt hr]
@@ -240,6 +247,13 @@ theorem skiRental_lower_bound (r p : ℝ) (hr : 0 < r) (hp : 0 < p) (s : Strateg
   | some a =>
       simp [onlineCost]
       exact rentThenBuy_lower_bound r p hr hp a
+
+/-- Strictly smaller ratios fail on a positive-cost finite input. -/
+theorem skiRental_not_competitive_below (r p c : ℝ) (hr : 0 < r) (hp : 0 < p)
+    (s : Strategy) (hc : c < 2 - r / p) :
+    ∃ T : ℕ, 0 < T ∧ c * optCost r p T < onlineCost r p s T := by
+  obtain ⟨T,hT,hpos,hbound⟩ := skiRental_lower_bound r p hr hp s
+  exact ⟨T,hT,(mul_lt_mul_of_pos_right hc hpos).trans_le hbound⟩
 
 end SkiRental
 
