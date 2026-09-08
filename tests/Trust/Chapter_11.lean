@@ -21,3 +21,19 @@ import CLRSLean.FourthEdition.Chapter_11
 
 example : CLRS.Chapter11.divisionHash 10 42 = 2 := by
   decide
+
+#check CLRS.Chapter11.PerfectConstruction.buildTrace_attempts
+#assert_axioms CLRS.Chapter11.PerfectConstruction.buildTrace_attempts
+#check CLRS.Chapter11.PerfectConstruction.tableOfBuild_search
+#assert_axioms CLRS.Chapter11.PerfectConstruction.tableOfBuild_search
+#check CLRS.Chapter11.PerfectConstruction.buildTwoLevel_success
+#assert_axioms CLRS.Chapter11.PerfectConstruction.buildTwoLevel_success
+#check CLRS.Chapter11.PerfectConstruction.buildTwoLevel_stores
+#assert_axioms CLRS.Chapter11.PerfectConstruction.buildTwoLevel_stores
+#check CLRS.Chapter11.PerfectConstruction.expected_buildTwoLevel_work_le_budget
+#assert_axioms CLRS.Chapter11.PerfectConstruction.expected_buildTwoLevel_work_le_budget
+#check CLRS.Chapter11.PerfectConstruction.expected_buildTwoLevel_work_lt
+#assert_axioms CLRS.Chapter11.PerfectConstruction.expected_buildTwoLevel_work_lt
+
+#check CLRS.Chapter11.PerfectConstruction.buildTwoLevel_recovers_original
+#assert_axioms CLRS.Chapter11.PerfectConstruction.buildTwoLevel_recovers_original
