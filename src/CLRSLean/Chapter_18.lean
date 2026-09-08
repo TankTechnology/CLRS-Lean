@@ -240,7 +240,9 @@ under the documented assumptions for the current functional B-tree model.
 {lit}`insertNonFull`, {lit}`insertRoot`, and {lit}`composedDelete`
 constructions, and every one is bounded by {lit}`heightOf + O(1)`; composing
 with {lit}`wellFormed_height_log_bound` gives the CLRS
-{lit}`O(log_t n)` disk-access bound ({lit}`diskAccessBound`).  Disk-page
+{lit}`O(log_t n)` recursive-descent envelope (historically named
+{lit}`diskAccessBound`). The counters omit individual split/borrow/merge and
+max/min helper visits; no full page-I/O constant-factor bridge is proved.  Disk-page
 layout, pointer mutation, and RAM semantics remain optional lower-level
 refinements.
 -/

@@ -47,7 +47,12 @@ forward to these sources.
 
 ## Coverage boundary
 
-The existing B-tree search insertion deletion and invariant developments are reused.
+The existing B-tree search, insertion/deletion structure, and exact key-bag
+semantics are preserved. The running-time companion bounds recursive-descent
+charges by height and a logarithmic key-count envelope. Its historical
+{lit}`diskAccessBound` name does not mean a complete page-I/O count: split,
+borrow, merge, predecessor/successor helper traversals, and storage internals
+are not individually counted or connected by a constant-factor theorem.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
