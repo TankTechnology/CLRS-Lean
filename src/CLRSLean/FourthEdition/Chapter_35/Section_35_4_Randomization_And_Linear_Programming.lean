@@ -40,6 +40,13 @@ Main results:
   weight is at most twice the LP objective, hence at most twice the optimal
   cover's weight — a factor-two approximation.
 
+The formula is an unweighted finite set of clauses: duplicates collapse and
+weighted or repeated-clause objectives are outside this model. Each admitted
+clause has three distinct variables. The rounding theorem below accepts a
+fractional solution and its objective-bound premise. The companion
+{lit}`VertexCoverLP` constructs a graph LP, calls initialized Chapter 29 SIMPLEX,
+and derives that bound for its returned optimum before rounding.
+
 Notation conventions used in this section:
 
 - `n` : the number of Boolean variables
