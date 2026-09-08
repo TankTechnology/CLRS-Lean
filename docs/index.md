@@ -1,40 +1,50 @@
 # CLRS-Lean Documentation
 
-This directory contains the small set of documents that complement the Lean
-sources.  The source tree and its interface tests remain the authority for
-theorems; documentation should explain scope, architecture, and reusable proof
-techniques instead of duplicating theorem declarations.
+Start with the [book website](https://tanktechnology.github.io/CLRS-Lean/) to
+read the formalization. This index connects readers and contributors to the
+maintained sources behind it.
 
-## Start here
+## Read and verify
 
-| Question | Canonical source |
+| I want to… | Start here |
 | --- | --- |
-| What does the project claim to cover? | [`scope.md`](scope.md) |
-| Which chapters and sections are represented? | [`clrs-proof-progress.csv`](clrs-proof-progress.csv) and [`clrs-online-material.csv`](clrs-online-material.csv) |
-| What is the current high-level status? | [`../src/CLRSLean/Status.lean`](../src/CLRSLean/Status.lean) and the generated [`../src/CLRSLean/Progress.lean`](../src/CLRSLean/Progress.lean) |
-| Where are exact theorem names checked? | The relevant `CLRSLean/Chapter_*` modules and `Tests/*_Interface.lean` |
-| What remains to be done? | [Open GitHub issues](https://github.com/TankTechnology/CLRS-Lean/issues) |
+| Browse the 35 chapters | [Chapter index](https://tanktechnology.github.io/CLRS-Lean/CLRSLean/FourthEdition/) |
+| Understand what “complete” means | [Project scope](scope.md) and [Proof Status](../src/CLRSLean/Status.lean) |
+| Check chapter coverage | [Progress Dashboard](../src/CLRSLean/Progress.lean), generated from the [chapter ledger](clrs-proof-progress.csv) |
+| Find exact theorem statements | [Chapter guides](../src/CLRSLean/FourthEdition/) and [interface tests](../tests/) |
+| Check proof trust | [Trust-gate guide](audits/v1-trust-gate.md) and [chapter audits](audits/index.md) |
+| Announce the milestone | [Release announcement](releases/2026-09-08-announcement.md) |
 
-## Maintainer guides
+## Contribute and maintain
 
-- [`repository-architecture.md`](repository-architecture.md) explains ownership
-  and change boundaries.
-- [`migrations/clrs4.md`](migrations/clrs4.md) records the fourth-edition mapping
-  contract.
-- [`site-architecture.md`](site-architecture.md) and
-  [`workflows/chapter-workflow.md`](workflows/chapter-workflow.md) cover publishing
-  and chapter work.
-- [`build-and-agents.md`](build-and-agents.md) documents local verification.
+| Task | Guide |
+| --- | --- |
+| Set up the library | [README](../README.md#local-setup) |
+| Develop and verify proofs | [Chapter workflow](workflows/chapter-workflow.md) and [fast verification](workflows/lean-fast-verification.md) |
+| Review a chapter's completion | [Completion checklist](workflows/chapter-completion-audit.md) |
+| Understand code ownership and naming | [Repository architecture](repository-architecture.md) |
+| Resolve third- and fourth-edition numbering | [Migration guide](migrations/clrs4.md) and [edition map](clrs-fourth-edition-map.csv) |
+| Build, preview, or publish the website | [Site architecture and runbook](site-architecture.md) |
+| Prepare isolated builds | [Build and agent infrastructure](build-and-agents.md) |
+| Follow the chapter audit repairs | [Repair queue and local evidence](plans/2026-09-08-chapter-repairs/index.md) · [GitHub tracker #376](https://github.com/TankTechnology/CLRS-Lean/issues/376) |
+| Find future work | [GitHub issues](https://github.com/TankTechnology/CLRS-Lean/issues) |
 
-## Reusable records
+## Document directories
 
-- [`proof-patterns/`](proof-patterns/) contains durable proof-engineering lessons.
-- [`audits/`](audits/) contains semantic audit artifacts.  Treat dated reports as
-  immutable snapshots, not as live status ledgers.
-- [`proof-audits/chapter-completion-audit.md`](proof-audits/chapter-completion-audit.md)
-  is the reusable chapter-completion checklist.
-- [`research/`](research/) contains research-facing methodology notes.
+- `workflows/`: repeatable contributor and verification procedures.
+- `audits/`: dated evidence and the trust-gate guide. Historical findings describe
+  the source at audit time; the repair queue tracks subsequent evidence. The
+  current ledger's labels are still being reconciled with the September 8 findings.
+- `proof-patterns/`: reusable proof techniques and engineering lessons.
+- `designs/`: dated design decisions and specifications.
+- `plans/`: dated implementation plans, retained as development history.
+- `research/`: research contracts and exploratory notes beyond the main book.
+- `releases/`: public announcement drafts and release evidence.
+- `migrations/`: compatibility and source-migration policies.
+- `literate/`: the website stylesheet.
 
-Historical implementation plans, checkpoint reports, and retired status boards
-remain recoverable from Git history.  They are intentionally not maintained on
-`main`.
+The chapter ledger, [online-material ledger](clrs-online-material.csv), and
+edition map remain the machine-readable inventory sources. Their counts and
+labels do not override known semantic findings; the audit and linked issues
+record the original obligations; the repair queue records subsequent fixes and
+verification.

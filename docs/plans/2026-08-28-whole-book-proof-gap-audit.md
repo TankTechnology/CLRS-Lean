@@ -17,11 +17,11 @@
 - `docs/clrs-proof-progress.csv`: corrected Chapter 31 count and fourth-edition section range.
 - `CLRSLean/FourthEdition/Chapter_32/Section_32_2_Rabin_Karp.lean`: remove the stale rolling-recurrence gap sentence and document the proved bridge.
 - `docs/audits/2026-08-28-whole-book-proof-gap-audit.md`: immutable per-chapter evidence matrix and ranked closure queue.
-- `docs/audits/INDEX.md`: link the new audit snapshot without turning it into a live status ledger.
-- `docs/superpowers/specs/2026-08-28-ch02-executable-merge-sort-design.md`: focused design created only if the audit confirms the Chapter 2 bridge gap.
-- `docs/superpowers/plans/2026-08-28-ch02-executable-merge-sort.md`: red-green Chapter 2 implementation plan.
-- `docs/superpowers/specs/2026-08-28-ch11-uniform-probe-space-design.md`: focused design created only if the audit confirms the Chapter 11 probability-provenance gap.
-- `docs/superpowers/plans/2026-08-28-ch11-uniform-probe-space.md`: red-green Chapter 11 implementation plan.
+- `docs/audits/index.md`: link the new audit snapshot without turning it into a live status ledger.
+- `docs/designs/2026-08-28-ch02-executable-merge-sort-design.md`: focused design created only if the audit confirms the Chapter 2 bridge gap.
+- `docs/plans/2026-08-28-ch02-executable-merge-sort.md`: red-green Chapter 2 implementation plan.
+- `docs/designs/2026-08-28-ch11-uniform-probe-space-design.md`: focused design created only if the audit confirms the Chapter 11 probability-provenance gap.
+- `docs/plans/2026-08-28-ch11-uniform-probe-space.md`: red-green Chapter 11 implementation plan.
 
 ### Task 1: Make progress prose machine-checkable
 
@@ -172,7 +172,7 @@ git commit -m "fix(audit): reject and repair proof-ledger prose drift"
 
 **Files:**
 - Create: `docs/audits/2026-08-28-whole-book-proof-gap-audit.md`
-- Modify: `docs/audits/INDEX.md`
+- Modify: `docs/audits/index.md`
 
 - [ ] **Step 1: Inventory every chapter using the six-lane contract**
 
@@ -220,7 +220,7 @@ compatibility, and Chapter 21 incremental union-find/Kruskal integration.
 
 - [ ] **Step 5: Link the immutable snapshot from the audit index**
 
-Add a dated row to `docs/audits/INDEX.md` and state explicitly that the new
+Add a dated row to `docs/audits/index.md` and state explicitly that the new
 report is an evidence snapshot, while current unresolved work is tracked in
 GitHub issues.
 
@@ -239,7 +239,7 @@ once in the new report.
 Commit:
 
 ```text
-git add docs/audits/2026-08-28-whole-book-proof-gap-audit.md docs/audits/INDEX.md
+git add docs/audits/2026-08-28-whole-book-proof-gap-audit.md docs/audits/index.md
 git commit -m "docs(audit): assess proof obligations across all 35 chapters"
 ```
 

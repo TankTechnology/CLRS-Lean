@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_02
 
 /-!
-# Workflow
+# Contributor Guide
 
 CLRS-Lean uses a repeatable fourth-edition section workflow.  The goal is to
 make future chapters easy to audit, easy to deploy, and pleasant to read while
@@ -76,8 +76,8 @@ single algorithm.
 
 Use narrow checks while editing, then a project-level build before publishing:
 
-* {lit}`lake env lean CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean`
-* {lit}`lake env lean Tests/Chapter_02_Interface.lean`
+* {lit}`lake env lean src/CLRSLean/Chapter_02/Section_02_1_Insertion_Sort.lean`
+* {lit}`lake env lean tests/Chapter_02_Interface.lean`
 * {lit}`lake build`
 * {lit}`lake build :literateHtml`
 

@@ -309,7 +309,7 @@ scan. Commit with `docs(research): audit affine direction codesign`.
 ### Task 6: Final verification and integration review
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-08-29-3dic-affine-codesign.md`
+- Modify: `docs/plans/2026-08-29-3dic-affine-codesign.md`
 
 - [x] **Step 1: Run fresh full verification**
 

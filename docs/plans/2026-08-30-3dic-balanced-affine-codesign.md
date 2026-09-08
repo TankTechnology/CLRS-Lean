@@ -330,7 +330,7 @@ git commit -m "docs(research): audit balanced affine codesign"
 ### Task 4: Run full verification and review the theorem boundary
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-08-30-3dic-balanced-affine-codesign.md`
+- Modify: `docs/plans/2026-08-30-3dic-balanced-affine-codesign.md`
 
 - [x] **Step 1: Run all ThreeDIC interfaces and trust tests**
 

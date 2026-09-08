@@ -454,7 +454,7 @@ git commit -m "research: bound affine line-defect chain load"
 **Files:**
 - Modify: `docs/research/3d-ic-hbt-affine-window-coloring-2026-08-29.md`
 - Modify: `docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md`
-- Modify: `docs/superpowers/plans/2026-08-29-3dic-affine-connectivity-line-load.md`
+- Modify: `docs/plans/2026-08-29-3dic-affine-connectivity-line-load.md`
 
 - [x] **Step 1: Update claim boundaries**
 
@@ -493,7 +493,7 @@ ignored `.lake/packages/verso` local-change warning.
 ```bash
 git add docs/research/3d-ic-hbt-affine-window-coloring-2026-08-29.md \
   docs/research/3d-ic-hbt-final-question-stack-2026-08-29.md \
-  docs/superpowers/plans/2026-08-29-3dic-affine-connectivity-line-load.md
+  docs/plans/2026-08-29-3dic-affine-connectivity-line-load.md
 git commit -m "docs(research): record affine route A closure"
 ```
 
