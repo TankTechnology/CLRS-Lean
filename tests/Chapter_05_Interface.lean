@@ -19,6 +19,8 @@ import CLRSLean.Chapter_05
 #check longestStreak_upperBound
 
 #check CLRS.Chapter05.expectedLongestStreak
+#check CLRS.Chapter05.expectedLongestStreak_le
+#check CLRS.Chapter05.expectedLongestStreak_lowerBound
 #check CLRS.Chapter05.OnlineHiring.isAbsoluteBest
 #check CLRS.Chapter05.OnlineHiring.isRecordAt
 #check CLRS.Chapter05.OnlineHiring.hiringStrategy
