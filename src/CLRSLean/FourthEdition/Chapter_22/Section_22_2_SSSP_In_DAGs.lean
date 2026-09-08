@@ -4,17 +4,14 @@ import CLRSLean.FourthEdition.Chapter_22.Section_22_1_Bellman_Ford
 /-!
 # 22.2. Single-source shortest paths in directed acyclic graphs
 
-This section formalizes CLRS's {lit}`DAG-SHORTEST-PATHS` algorithm.  On a weighted
-**directed acyclic graph** the single-source shortest-path problem is solved in
-{lit}`Θ(V + E)` time by a single left-to-right relaxation pass: topologically sort
-the vertices, then relax the out-edges of each vertex once, in topological
-order.  Because every edge runs from an earlier vertex to a later one, one pass
-already produces the exact distances — none of Bellman-Ford's {lit}`|V| - 1` rounds
-are needed.
+This section proves a single relaxation pass correct given a supplied,
+complete, duplicate-free topological vertex order. It does not construct that
+weighted order from Chapter 20's unweighted topological sorter. Under the
+ordering hypothesis, every edge runs forward and one pass gives exact distances.
 
 The section reuses the Chapter 22.1 weighted-graph model wholesale: the
 {lit}`WeightedGraph` structure, {lit}`walkWeight`, {lit}`IsWalkFrom`, and the
-shortest-distance specification {lit}`IsShortestDist`.  Chapter 22.4's topological
+shortest-distance specification {lit}`IsShortestDist`.  Chapter 20.4's topological
 order is stated over the unweighted {lit}`Chapter22.Graph`; since Chapter 22 uses
 a different structure ({lit}`Chapter24.WeightedGraph`), we **restate** the
 topological-order predicate directly over {lit}`WeightedGraph.Adj`.
@@ -358,18 +355,16 @@ theorem sum_outdegree (G : WeightedGraph V) :
   simp only [outdegree]
   exact (Finset.card_eq_sum_card_fiberwise (fun e _ => Finset.mem_univ e.1)).symm
 
-/-- Total {lit}`DAG-SHORTEST-PATHS` work: initialize each of the {lit}`|V|` vertices, then
-relax each of the {lit}`|E|` edges once. -/
+/-- Independent vertex/edge budget for an ideal single pass; not an attached
+counter for the represented distance-map evaluation or order construction. -/
 def dagSSSPWork (G : WeightedGraph V) : ℕ := Fintype.card V + G.edges.card
 
-/-- **{lit}`Θ(V + E)` work.**  The total work decomposes as {lit}`|V|` vertex visits plus
-{lit}`∑ outdegree = |E|` edge relaxations — each vertex and each edge is touched
-exactly once. -/
+/-- Arithmetic decomposition of the independent budget via out-degrees. -/
 theorem dagSSSPWork_eq (G : WeightedGraph V) :
     G.dagSSSPWork = Fintype.card V + ∑ u : V, G.outdegree u := by
   rw [dagSSSPWork, sum_outdegree]
 
-/-- The single pass performs at most {lit}`|V| + |E|` operations. -/
+/-- The independent budget is bounded by its defining formula. -/
 theorem dagSSSPWork_le (G : WeightedGraph V) :
     G.dagSSSPWork ≤ Fintype.card V + G.edges.card := le_refl _
 

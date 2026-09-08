@@ -37,8 +37,9 @@ the CLRS §22.5 backbone:
   final edge converges the endpoint estimate
 - Theorem `relaxDist_eq_of_shortest_walk` (Lemma 22.15): after enough rounds a
   shortest walk is fully relaxed
-- Theorem `predecessor_tight` (Lemma 22.16): the predecessor edge is tight, so
-  the predecessor subgraph is a shortest-paths tree rooted at the source
+- Theorem `predecessor_tight`: the independently selected predecessor edge is
+  tight. Tightness alone does not prove a source-rooted tree; zero-weight cycles
+  can admit cyclic tight selections.
 
 The Dijkstra-correctness reformulation (Theorem 22.17) is not restated here;
 Dijkstra correctness is already proved in Section 22.3.
@@ -266,8 +267,8 @@ theorem relaxDist_eq_of_shortest_walk (s v : V) (p : List V)
 /-! ## Predecessor subgraph (Lemma 22.16) -/
 
 /-- The vertex `u` in the predecessor set of `v` that minimizes
-{lit}`δ(s, u) + w(u, v)`: the predecessor of `v` on a shortest `s`-rooted path.
-If `v` has no incoming edge the value is `v` (a junk value). -/
+{lit}`δ(s, u) + w(u, v)`. This independent minimizer has no depth-decrease or
+acyclicity guarantee. If `v` has no incoming edge the value is `v` (a junk value). -/
 noncomputable def predecessor (s v : V) : V :=
   if h : (G.preds v).Nonempty then
     Classical.choose (Finset.exists_mem_eq_inf (G.preds v) h
@@ -396,8 +397,8 @@ theorem predecessor_inf_eq (s v : V) (hv : v ≠ s) (hreach : ∃ p : List V, G.
 /--
 **Predecessor-subgraph property (Lemma 22.16).**  The predecessor edge is
 tight: for a reachable non-source vertex `v`,
-{lit}`δ(s, v) = δ(s, π(v)) + w(π(v), v)`.  This is the condition under which
-the predecessor subgraph is a shortest-paths tree rooted at `s`.
+{lit}`δ(s, v) = δ(s, π(v)) + w(π(v), v)`. This edge equation alone does not
+ensure source reachability or acyclicity of the selected parent relation.
 -/
 theorem predecessor_tight (hNC : G.NoNegCycle) (s v : V) (hv : v ≠ s)
     (hreach : ∃ p : List V, G.IsWalkFrom s v p) :
