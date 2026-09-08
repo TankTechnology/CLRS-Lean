@@ -54,7 +54,7 @@ fidelity. The textbook correspondence remains NOT-INDEPENDENTLY-VERIFIED.
 
 ## Release validation
 
-PR #377 is merged as `fadc6b6f`. On that merged checkout, the library build
+PR #377 is merged as rewritten commit `1a62e356`. On that merged checkout, the library build
 passed 10,768 jobs, the repository checks and all 35 chapter trust surfaces
 passed, and the GitHub Pages-equivalent four-shard pipeline built 2,188 modules
 into 2,190 optimized HTML pages and sitemap URLs. Raw-page weight, source
