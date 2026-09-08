@@ -111,7 +111,10 @@ dynamic-multithreading model and analyzes parallel algorithms in terms of
   costs to {lit}`CLRS.Chapter27.pAddWork`,
   {lit}`CLRS.Chapter27.pAddSpan`,
   {lit}`CLRS.Chapter27.pMatMulExecWork`, and
-  {lit}`CLRS.Chapter27.pMatMulExecSpan`.  The resulting all-input bounds are
+  {lit}`CLRS.Chapter27.pMatMulExecSpan`. Actual matrix constructors operate at
+  dimension {lit}`2^k`; the all-input theorems extend their numerical cost
+  recurrences, without constructing arbitrary-dimension padding/unpadding.
+  The resulting recurrence bounds are
   Θ(n²) work / Θ(log n) span for P-ADD and Θ(n³) work /
   Θ(log² n) span for executable P-MATMUL.  The legacy
   {lit}`CLRS.Chapter27.pMatMulSpan` recurrence instead models a constant-time

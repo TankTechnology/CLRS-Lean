@@ -7,7 +7,9 @@ import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMatri
 
 This navigation module groups the executable {lit}`P-ADD` and {lit}`P-MATMUL`
 definitions with their value-correctness theorems and exact execution-attached
-work/span equalities and all-input asymptotic main theorems.
+work/span equalities for dimension {lit}`2^k`. The all-input asymptotic
+theorems concern numerical recurrence extensions, without an arbitrary-size
+padding/unpadding constructor.
 
 ## Implementation details
 
