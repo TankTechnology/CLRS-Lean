@@ -4,49 +4,37 @@ import CLRSLean.FourthEdition.Chapter_13.Section_13_3_Insertion
 /-!
 # Section 13.4 - Deletion
 
-This section closes the fourth-edition §13.4 boundary for red-black deletion.
-The legacy functional {lit}`RBTree.delete` already preserves membership
-({lit}`inTree_delete_iff`) and red-black shape ({lit}`redBlackShape_delete`).
-Here we add the remaining **logarithmic execution-cost** layer.
+This section proves BST ordering for the functional {lit}`RBTree.delete`,
+complementing its membership and red-black shape proofs. Deletion searches the
+tree and uses functional {lit}`join`, {lit}`splitMin`, and rebalancers.
 
-The composed deletion {lit}`RBTree.delete` = {lit}`repaintRoot black (del x t)`:
-{lit}`del` searches down the tree, then at the deletion point applies
-{lit}`join`, which removes the minimum of the right subtree via {lit}`splitMin`
-and rebalances with {lit}`baldL`/`baldR`.  Every one of these stages touches at
-most a root-to-leaf path, so the whole operation is {lit}`O(height)` pointer
-operations.
+The historical {lit}`RBTree.deleteCost` is a separate analysis budget: it adds
+charges along a search path and inserts subtree heights at a matching key.
+It does not execute or count the join, fixup, recoloring, or pointer updates.
+No domination theorem connects it to the complete deletion execution.
 
 Main results:
 
-- Definition {lit}`RBTree.deleteCost`: the auditable pointer-operation cost of
-  {lit}`RB-DELETE` (one node read and one comparison per search level, plus the
-  {lit}`join`/`splitMin`/rebalance work bounded by the heights of the two
-  subtrees).
-- Theorem {lit}`RBTree.deleteCost_le`: the deletion cost is bounded by
-  {lit}`4 * height + 1`.
-- Theorem {lit}`RBTree.deleteCost_log_bound`: **RB-DELETE runs in
-  {lit}`O(log n)` pointer operations** on a red-black tree.
-- Theorem {lit}`RBTree.bst_delete`: **RB-DELETE preserves the BST ordering
-  invariant** — the composed {lit}`delete` keeps the inorder key sequence sorted
-  (via {lit}`bst_iff_sorted` and a {lit}`keys` sublist argument through
-  {lit}`del`/{lit}`join`/{lit}`splitMin`/{lit}`baldL`/{lit}`baldR`), closing the
-  §13.4 ordering refinement alongside the §13.3 {lit}`bst_insert` and the §13.2
-  rotation {lit}`bst_rotateLeft`/`bst_rotateRight`.
+- {lit}`RBTree.deleteCost_le` and {lit}`RBTree.deleteCost_log_bound`: height and
+  logarithmic bounds on that explicitly defined abstract budget.
+- {lit}`RBTree.bst_delete`: functional deletion preserves BST ordering, via
+  inorder sublists through {lit}`del`, {lit}`join`, {lit}`splitMin`, and balancing.
 
-Current gaps: none for the represented §13.4 boundary; the lower-level
-imperative {lit}`RB-DELETE-FIXUP` pointer-rewiring refinement is optional.
+The functional set-tree correctness results remain applicable. Imperative
+{lit}`RB-DELETE-FIXUP` refinement and complete executed update costs are outside
+these results.
 -/
 
 namespace CLRS
 namespace Chapter13
 namespace RBTree
 
-/-! ## Pointer-operation cost of RB-DELETE -/
+/-! ## Abstract deletion analysis budget -/
 
-/-- The pointer-operation cost of deleting `x`: one node read and one comparison
-per level of the descent, plus — at the deletion point — the cost of joining the
-two subtrees (removing the minimum of the right subtree and rebalancing), which
-is bounded by the sum of the two subtree heights. -/
+/-- Historical deletion analysis budget: two per strict descent, then two
+plus subtree heights at a matching key. The subtree terms are supplied budgets,
+not measured join or rebalance operations. No complete execution bound follows
+without an additional refinement and domination proof. -/
 def deleteCost (x : Nat) : RBTree → Nat
   | .empty => 1
   | .node _ l y r =>
@@ -54,7 +42,7 @@ def deleteCost (x : Nat) : RBTree → Nat
       else if y < x then 2 + deleteCost x r
       else 2 + height l + height r
 
-/-- The deletion cost is bounded by {lit}`4 * height + 1`. -/
+/-- The abstract deletion budget is bounded by {lit}`4 * height + 1`. -/
 theorem deleteCost_le (x : Nat) (t : RBTree) : deleteCost x t ≤ 4 * height t + 1 := by
   induction t with
   | empty => simp [deleteCost, height]
@@ -73,9 +61,7 @@ theorem deleteCost_le (x : Nat) (t : RBTree) : deleteCost x t ≤ 4 * height t +
         have hmaxr : height r ≤ max (height l) (height r) := Nat.le_max_right _ _
         omega
 
-/-- **RB-DELETE runs in {lit}`O(log n)` pointer operations.**  On a
-red-black-shaped tree with {lit}`n` internal nodes, deletion performs at most
-{lit}`4 · (2 log₂(n+1)) + 1` pointer operations. -/
+/-- The abstract deletion budget is logarithmic on red-black-shaped trees. -/
 theorem deleteCost_log_bound (x : Nat) (t : RBTree) (hShape : RedBlackShape t) :
     deleteCost x t ≤ 4 * (2 * Nat.log 2 (size t + 1)) + 1 := by
   have hh := height_log_bound t hShape
