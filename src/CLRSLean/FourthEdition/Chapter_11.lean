@@ -1,3 +1,4 @@
+import CLRSLean.FourthEdition.Chapter_11.Section_11_5_Perfect_Hashing.Construction
 import CLRSLean.FourthEdition.Chapter_11.Section_11_1_Direct_Address_Tables
 import CLRSLean.FourthEdition.Chapter_11.Section_11_2_Chained_Hash_Tables
 import CLRSLean.FourthEdition.Chapter_11.Section_11_3_Hash_Functions
@@ -79,7 +80,9 @@ unsuccessful-search cost by {lit}`1/m`.
 * 11.5 Perfect hashing: {lit}`proved`.
   Main results: {lit}`CLRS.Chapter11.perfectSearch_iff_mem`,
   {lit}`CLRS.Chapter11.perfectHash_collision_free_prob_ge_half`,
-  and {lit}`CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`.
+  {lit}`CLRS.Chapter11.perfectHash_expected_total_space_lt_2n`, and the
+  {lit}`PerfectConstruction` companion's successful finite-trial array
+  construction and expected executed-work bounds.
 
 ## Current Gaps
 
@@ -106,8 +109,22 @@ form), refined to the closed form `(1/α) · ln(1/(1-α))`
 formalises the two-level perfect-hashing scheme: a primary
 hash into `m = n` buckets plus per-bucket secondary tables of size `n_j²`, which
 are collision-free with probability ≥ 1/2 (Theorem 11.9) and collectively use
-expected `O(n)` space (Theorem 11.10).  The remaining gap is RAM / probe-count
-operational semantics.
+expected `O(n)` space (Theorem 11.10). Secondary injectivity is required only
+for stored keys in their primary bucket, allowing unstored keys to collide.
+
+The {lit}`PerfectConstruction` companion builds primary payload buckets and
+secondary arrays, trying supplied random local-index hashes before a guaranteed
+injective fallback. Actual attempts agree with the finite trial-count model.
+Counted collision checks, initialization, placement, and assembly have conditional
+expectation at most `9 * constructionCost`, and nested uniform expectation below
+`45n` for positive `n`. The older theorem named
+{lit}`perfectHash_expected_construction_time_le_const_n` bounds the abstract
+budget itself by `5n`; it is not the executed counter.
+
+This SUHA construction samples functions on local bucket indices. Conversion
+from arbitrary original-key queries to constant-time hash programs, hash-code
+generation, persistent allocation, and machine arithmetic are not established
+by these execution bounds.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

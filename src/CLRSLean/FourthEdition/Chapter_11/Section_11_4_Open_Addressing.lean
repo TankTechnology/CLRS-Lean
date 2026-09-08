@@ -56,11 +56,12 @@ Notation conventions used in this section:
 - `probeTail m n i` : `P[first i probes all occupied]`, the uniform-hashing tail
 - `H_k` : the `k`-th harmonic number `∑_{r=1}^{k} 1/r`
 
-Current gaps: the expected-probe values are the tail-sum
-`E[X] = ∑_{i≥0} P[X > i]`, with the tail probabilities `probeTail` the standard
-uniform-hashing without-replacement products.  Deriving those tails from an
-explicit permutation sample space (via `Fintype` counting) is a deferred
-refinement; RAM / cache-cost semantics remain out of scope (epic #28).
+The companion {lit}`UniformProbe` development derives the without-replacement
+tails from an explicit uniform permutation sample space and identifies their
+tail sum with the actual first-empty-slot probe count. The upper bounds retain
+their non-full-load hypotheses; the logarithmic successful-search bound requires
+{lit}`0 < n < m`. Successful expectation averages insertion-time occupancies.
+RAM and cache costs remain outside this model.
 -/
 
 namespace CLRS
