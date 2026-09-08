@@ -303,10 +303,12 @@ structure ArrayMaxHeapExcept (a : List Nat) (heapSize bad : Nat) : Prop where
     a[i]'(Nat.lt_of_lt_of_le hi heapSize_le_length)
 
 /-!
-For heapify-style proofs we also use a localized heap predicate.  It checks
-only parent nodes whose indices are at least {lit}`start`.  This matches the CLRS
-subtree view: when repairing the subtree rooted at {lit}`start`, edges entering the
-subtree root from smaller indices are outside the local obligation.
+For heapify-style proofs we use an index-suffix heap predicate. It checks all
+parent nodes with indices at least {lit}`start`, including nodes outside the
+descendant subtree of {lit}`start`. Thus it is stronger than the ordinary
+subtree condition. Parent indices below {lit}`start` are outside its obligation.
+This stronger invariant supports bottom-up heap construction; at {lit}`start = 0`
+it is the global heap predicate.
 -/
 
 /-- Max-heap obligations restricted to parent indices {lit}`start ..< heapSize`. -/
