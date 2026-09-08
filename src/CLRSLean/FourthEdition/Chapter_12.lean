@@ -21,8 +21,13 @@ third-edition-numbered imports {lit}`CLRSLean.Chapter_12` and
 ## Coverage boundary
 
 The existing functional binary-search-tree development is reused across the
-fourth-edition three-section organization.  The Section 12.4 analysis proves
-the expected height of a uniformly randomly built BST is at most
+fourth-edition three-section organization. Strict ordering and duplicate-key
+suppression give set semantics for natural-number keys. The pointer-heap
+representation preserves child structure and disjoint footprints; it does not
+require stored parent fields to agree with all incoming child edges.
+
+A supplementary random-construction analysis, inherited from the older edition
+and outside the fourth-edition §12.1–12.3 section inventory, proves the expected height of a uniformly randomly built BST is at most
 {lit}`30 Hₙ ≤ 30(1 + log n)`.
 
 ## Implementation details

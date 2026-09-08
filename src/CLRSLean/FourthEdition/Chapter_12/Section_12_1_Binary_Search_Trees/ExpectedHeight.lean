@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees.RandomConstruction
 
 /-!
-# Section 12.4 - Expected height of a randomly built BST
+# Supplementary topic — Expected height of a randomly built BST
 
 The deterministic bridge in {lit}`RandomConstruction` transfers the existing
 finite-permutation exponential-tail analysis to the binary search tree built by
