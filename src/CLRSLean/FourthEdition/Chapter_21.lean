@@ -4,6 +4,9 @@ import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim
 import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S1_UnionFindBridge
 import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S2_StatefulKruskal
 import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S3_ExecutablePrim
+import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S4_Completion
+import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S5_CountedFrontier
+import CLRSLean.FourthEdition.Chapter_21.Section_21_2_Kruskal_And_Prim.S6_ArrayPrim
 
 /-!
 # Chapter 21 — Minimum Spanning Trees
@@ -38,7 +41,24 @@ The supporting implementation pages remain available outside the main sidebar:
 
 The native sections supply the represented fourth-edition
 minimum-spanning-tree sections (Theorem 21.1 safe-edge characterization
-and the Kruskal/Prim correctness chains).
+and the Kruskal/Prim correctness chains). Prim now derives coverage from
+sufficient fuel and constructs the MST of the actual run; no final spanning
+certificate or initial optimal tree is supplied by the caller. The graph
+premises still include connectedness, an exact component interpretation, and
+the existing restriction that crossing edge identifiers belong to the graph.
+
+{lit}`ArrayPrim.execute` uses stored adjacency rows, cached array keys/parents,
+and minimum scans. Its own counters prove {lit}`2n² + 5n + 6|E|` cell work,
+including index/queue initialization, at most {lit}`n` extractions and
+{lit}`2|E|` adjacency visits. Here {lit}`n` is the ambient array size; it equals
+{lit}`|V|` for the full index universe. Adjacency representation is input,
+not constructed from an unordered edge set by this algorithm. Array allocation,
+bit operations and arbitrary weight-function internals are outside this model.
+
+The reference frontier execution also exposes actual full-edge rescans.
+The old binary-heap expression remains a conditional backend budget. Kruskal's
+combined formula includes a sorting budget plus the actual union-find scan
+cost; it does not count an executed comparison sort.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
