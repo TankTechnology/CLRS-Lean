@@ -14,7 +14,9 @@ keys strictly smaller than it).
 
 We add {lit}`OSRBTree.osRank` (using cached sizes) and the ideal
 {lit}`OSRBTree.rankOf` (using recomputed sizes), prove they agree on well-sized
-trees, and prove OS-RANK runs in {lit}`O(log n)` pointer operations via the
+trees. The {lit}`RankCardinality` companion proves that under strict BST
+ordering, both ranks equal the cardinality of keys strictly below the query,
+including when that query is absent. We also prove OS-RANK runs in {lit}`O(log n)` pointer operations via the
 height of the underlying red-black tree.
 
 Main results:

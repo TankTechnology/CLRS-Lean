@@ -5,25 +5,23 @@ import CLRSLean.FourthEdition.Chapter_13.Section_13_4_Deletion
 /-!
 # Section 17.2 - How to augment a data structure
 
-This section closes the fourth-edition §17.2 boundary.  The legacy
-{lit}`CLRSLean.Chapter_14` development already proves the *maintainability* of an
-augmentation — {lit}`AugmentedTree.augmentation_theorem` and
-{lit}`AugmentedRBTree.wellAugmented_insert` show that a rotation-invariant,
-locally-recomputed field survives every red-black primitive.  What remains is
-the **cost** of that maintenance: CLRS §17.2's asymptotic bound that a
-constant-time `combine` makes the whole update {lit}`O(log n)`.
+The legacy augmentation theorems prove field correctness through functional
+red-black updates. Their smart constructor recursively recomputes mathematical
+child augmentations, so that implementation does not justify a local-cost claim.
 
-We formalize the constant-time premise (the `combine` call costs a fixed number
-{lit}`c` of pointer operations) and prove that the augmentation maintenance cost
-of a red-black update is {lit}`c` times the length of the {lit}`O(log n)` fixup
-path.
+The {lit}`Execution` companion supplies a distinct cached-field insertion and
+rotation execution. It reads stored child fields, returns the tree plus actual
+{lit}`combine` and rotation counters, and refines legacy insertion on
+{lit}`WellAugmented` inputs. Insertion uses at most {lit}`5h + 1` combines and
+{lit}`2h` rotations; the red-black height theorem yields logarithmic bounds.
+Each executed double rotation counts both primitives and their local rebuilds.
 
-Main results:
-
-- Definition {lit}`augmentationUpdateCost`: the augmentation maintenance cost of
-  a red-black update (a constant `combine` cost per node on the fixup path).
-- Theorem {lit}`augmentation_update_bound`: **from a constant-time `combine`,
-  augmentation maintenance during a red-black update is {lit}`O(log n)`**.
+The historical {lit}`augmentationUpdateCost` below is only an independent
+height-based budget. Its theorem does not measure any update by itself. Use
+{lit}`AugmentationExecution.insert_maintenanceCost_log_bound` for the executed
+cached insertion. Deletion remains the legacy recomputing implementation, with
+no attached logarithmic maintenance counter here. Allocation, comparison, and
+bit-arithmetic internals are outside these field-maintenance counts.
 -/
 
 namespace CLRS
@@ -32,16 +30,13 @@ namespace Chapter14
 open CLRS.Chapter13 (RBTree)
 open AugmentedRBTree (toRB)
 
-/-- The augmentation maintenance cost of a red-black update on
-{lit}`AugmentedRBTree`: the number of `combine` recomputations on the
-{lit}`O(log n)` search-and-fixup path, each costing the constant `c`. -/
+/-- Historical height-based analysis budget, not a measured update counter.
+The cached execution companion proves its own explicit combine/rotation bounds. -/
 def augmentationUpdateCost (c : Nat) {β : Type} (t : AugmentedRBTree Nat β) : Nat :=
   c * (RBTree.height (toRB t) + 1)
 
-/-- **CLRS §17.2 augmentation update bound.**  From the constant-time `combine`
-premise (cost `c` per call), the augmentation maintenance cost of a red-black
-update is {lit}`O(log n)`: at most {lit}`c · (2 log₂(n+1) + 1)` pointer
-operations on a red-black-shaped tree with {lit}`n` nodes. -/
+/-- The independent height budget is logarithmic on red-black-shaped trees.
+An actual update bound requires the companion's counted-execution refinement. -/
 theorem augmentation_update_bound (c : Nat) {β : Type} (t : AugmentedRBTree Nat β)
     (hShape : RBTree.RedBlackShape (toRB t)) :
     augmentationUpdateCost c t ≤ c * (2 * Nat.log 2 (RBTree.size (toRB t) + 1) + 1) := by

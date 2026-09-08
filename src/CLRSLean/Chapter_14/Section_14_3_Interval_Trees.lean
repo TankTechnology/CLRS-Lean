@@ -1716,10 +1716,12 @@ theorem sizeAug_toRB_insert (x : Nat) (t : AugmentedRBTree Nat Nat) :
 
 Taking {lit}`aug := IntervalTree.maxHighAug` recovers interval trees: the cached
 field is the subtree's maximum high endpoint, maintained through the same generic
-executable insertion, with the BST order taken on interval low endpoints. -/
+executable insertion, with distinct intervals ordered lexicographically by low and high endpoints. -/
 
-/-- BST comparison for interval trees: order by the interval's low endpoint. -/
-def intervalLt (i j : Interval) : Bool := natLt i.low j.low
+/-- Compare intervals lexicographically by low endpoint, then high endpoint.
+Distinct intervals with equal low endpoints remain distinct insertion keys. -/
+def intervalLt (i j : Interval) : Bool :=
+  decide (i.low < j.low ∨ (i.low = j.low ∧ i.high < j.high))
 
 /-- **Interval-tree instance.**  The maximum-high-endpoint augmentation is
 maintained through the generic executable red-black insertion. -/
