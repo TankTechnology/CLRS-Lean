@@ -101,7 +101,7 @@ Main results:
   delete-min on the successor subtree).  Together these are the CLRS "each BST
   operation runs in {lit}`O(h)` time" bounds made concrete.
 
-## Randomly built BST (Section 12.4)
+## Supplementary topic: randomly built BSTs (legacy §12.4)
 
 - Theorem {lit}`isAncestorOf_iff_firstInInterval`: key {lit}`x` is an ancestor of
   key {lit}`y` in the BST built from a list of distinct keys exactly when
@@ -132,8 +132,9 @@ Current gaps:
 
 - The zipper-based parent-pointer layer (iterative search, TRANSPLANT,
   TREE-DELETE, parent-pointer successor/predecessor) is proved, and an imperative
-  pointer-heap layer now proves in-place TRANSPLANT and leaf TREE-INSERT refine
-  the functional specification.
+  pointer-heap layer proves TRANSPLANT and leaf TREE-INSERT refine the
+  functional child-structure specification. Its {lit}`RepresentsW` relation
+  leaves parent-field consistency unconstrained.
 - An explicit RAM cost model over the pointer operations remains future work.
 -/
 
@@ -142,7 +143,8 @@ namespace Chapter12
 
 /-! ## Tree model and invariant -/
 
-/-- A binary tree of natural-number keys. -/
+/-- A binary tree of natural-number keys. The ordered model is a strict key
+set: duplicate-key insertion leaves an existing equal key in place. -/
 inductive BSTree where
   | empty : BSTree
   | node : BSTree → Nat → BSTree → BSTree
@@ -1919,7 +1921,9 @@ following child pointers in the heap {lit}`s` from the pointer {lit}`p` yields t
 functional tree {lit}`t`, using exactly the node ids in the finite set {lit}`S`.
 The side conditions {lit}`i ∉ Sl`, {lit}`i ∉ Sr`, and {lit}`Disjoint Sl Sr` bake in the
 BST-layout invariant that no cell is shared between a node and its subtrees or
-across the two subtrees — the pointer-model analogue of acyclicity. -/
+across the two subtrees — the pointer-model analogue of acyclicity. The
+{lit}`pp` parent field is unconstrained: this relation certifies child structure
+and footprints, not consistency of stored parent links. -/
 inductive RepresentsW (s : Store) : Option Nat → BSTree → Finset Nat → Prop where
   | nil : RepresentsW s none BSTree.empty ∅
   | node {i k : Nat} {lp rp pp : Option Nat} {l r : BSTree} {Sl Sr : Finset Nat}
