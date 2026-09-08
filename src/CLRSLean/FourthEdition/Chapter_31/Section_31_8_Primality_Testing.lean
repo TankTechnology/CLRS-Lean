@@ -21,8 +21,8 @@ Main results:
 - {lit}`isCarmichael` (**Carmichael numbers**): a composite `n` passing the
   Fermat test for every `a` coprime to `n`; a Carmichael number is a Fermat
   pseudoprime to every coprime base
-  ({lit}`carmichael_fermatPseudoprime`).  {lit}`isCarmichael_561` shows the
-  smallest Carmichael number is 561, so `PSEUDOPRIME` cannot certify
+  ({lit}`carmichael_fermatPseudoprime`).  {lit}`isCarmichael_561` shows that
+  561 is a Carmichael number, so `PSEUDOPRIME` cannot certify
   primality.  The helper {lit}`modeq_of_coprime_mul` combines congruences
   under coprime moduli.
 - **Miller-Rabin**: {lit}`strongTestParams` writes `n−1 = 2^s·d` with `d` odd;
@@ -59,16 +59,20 @@ Main results:
 - **Random-witness analysis (the MILLER-RABIN error bound)**: the count of
   strong-liar bases among `1, …, n-1` is at most `(n-1)/4`
   ({lit}`strongLiars_nat_card_le`), so a uniformly random base errs with
-  probability at most `1/4` and `s` independent rounds err with probability at
-  most `4⁻ˢ` (CLRS Theorem 31.39).
+  probability at most `1/4`. The {lit}`Probability` companion proves the
+  repeated-round bound for the actual residue-based execution over a finite
+  product of independent uniform bases (CLRS Theorem 31.39).
 
 Notation:
 
 - {lit}`a ≡ b [MOD n]` : `Nat.ModEq`.
 - {lit}`Nat.totient n` : Euler's totient.
 
-Deferred: none (the executable multi-base {lit}`millerRabinLoop` and its
-operation-count bound {lit}`millerRabinLoop_count_le` are proved).
+The legacy {lit}`millerRabinLoop` pairs semantic decisions with a detached
+exponentiation budget. Its second component is not a measured decision cost.
+The {lit}`Execution` companion provides {lit}`MillerRabinExecution.run`, whose
+Boolean and modular-multiplication counter come from the same residue computation.
+Parameter decomposition, comparisons, sampling and bit runtime are outside that counter.
 -/
 
 namespace CLRS
@@ -150,7 +154,7 @@ theorem modeq_of_coprime_mul {a b m n : ℕ} (hcop : Nat.Coprime m n)
   exact hax.symm.trans hxb
 
 /--
-**561 is a Carmichael number.**  The smallest Carmichael number (CLRS §31.8).
+**561 is a Carmichael number** (CLRS §31.8). Minimality is not asserted by this theorem.
 It shows the Fermat test can be fooled by a composite integer for every base
 coprime to it, so `PSEUDOPRIME` cannot certify primality.
 -/
@@ -2063,11 +2067,12 @@ theorem strongLiars_nat_card_le {n : ℕ} [NeZero n] (hn1 : 1 < n) (hn_odd : Odd
     _ ≤ (n - 1) / 4 := strongLiars_card_le (n := n) hn1 hn_odd hn_comp
 
 /--
-**MILLER-RABIN (multi-base loop, CLRS §31.8).**  Run the single-base
-{lit}`millerRabin` test over every base in `bases`, left to right.  The first
-component is `true` exactly when every base reports "probably prime"; the
-second component is the total number of modular multiplications charged by the
-underlying repeated squarings ({lit}`modExpWithCount`).
+**Legacy multi-base semantic loop and detached budget.** The first component
+is true exactly when all supplied bases pass {lit}`millerRabin`. The second
+sums the counters of independent exponentiations with exponent {lit}`n - 1`;
+those residues do not determine these Boolean decisions. This is an analysis
+budget, not an attached execution-cost theorem. The {lit}`Execution` companion
+provides the counted residue-based checker and a lazy multi-base loop.
 -/
 def millerRabinLoop (n : ℕ) : List ℕ → Bool × ℕ
 | [] => (true, 0)
@@ -2084,8 +2089,8 @@ theorem millerRabinLoop_fst_iff (n : ℕ) (bases : List ℕ) :
   | cons a as ih =>
       simp [millerRabinLoop, ih, Bool.and_eq_true, List.mem_cons]
 
-/-- **The loop uses at most `2 · |bases| · Nat.size (n−1)` modular
-multiplications** (CLRS §31.8). -/
+/-- The legacy detached exponentiation budget is at most
+{lit}`2 · |bases| · Nat.size (n−1)`. This does not measure the decision procedure. -/
 theorem millerRabinLoop_count_le (n : ℕ) (bases : List ℕ) :
     (millerRabinLoop n bases).2 ≤ bases.length * (2 * Nat.size (n - 1)) := by
   induction bases with

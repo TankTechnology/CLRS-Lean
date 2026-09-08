@@ -8,6 +8,10 @@ import CLRSLean.FourthEdition.Chapter_31.Section_31_6_Powers_Of_An_Element
 import CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA
 import CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing
 
+import CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor.Execution
+import CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA.KeyRoundTrip
+import CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing.Probability
+
 /-!
 # Chapter 31 — Number-Theoretic Algorithms
 
@@ -49,11 +53,27 @@ sections (§31.1--31.8), including the executable cost layers:
 {lit}`CLRS.Chapter31.modExpWithCount` (§31.6),
 {lit}`CLRS.Chapter31.rsaKeyGen` and
 {lit}`CLRS.Chapter31.rsaEncrypt`/{lit}`CLRS.Chapter31.rsaDecrypt` (§31.7), and
-{lit}`CLRS.Chapter31.millerRabinLoop` (§31.8).  §31.1 also carries the
+{lit}`CLRS.Chapter31.MillerRabinExecution.run` (§31.8).  §31.1 also carries the
 least-common-multiple layer ({lit}`CLRS.Chapter31.gcd_mul_lcm_eq`,
 {lit}`CLRS.Chapter31.lcm_eq_mul_of_coprime`), and §31.5 packages the Chinese
 remainder theorem as the ring isomorphism
 {lit}`CLRS.Chapter31.zmod_chineseRemainder`.
+
+The counted Euclid companion refines the public first-argument recursion and
+proves that its actual division count is {lit}`euclidDivisions b a` for the call
+{lit}`euclid a b`. Generated RSA keys from supplied distinct primes round-trip
+all messages modulo the generated modulus; in-range messages recover exactly.
+No key-prime generation or RSA key-assembly runtime is claimed.
+
+Miller–Rabin now decides from the residues of the same counted exponentiation
+and squaring execution. It stops at the first rejecting base and uses at most
+{lit}`3 * bases.length * Nat.size (n - 1)` modular multiplications. Parameter
+decomposition, comparisons, supplied-base sampling and bit runtime are outside
+that counter. The legacy loop retains its detached exponentiation budget.
+The finite product sample space proves actual executed false acceptance is at
+most {lit}`(1 / 4)^rounds` for odd composite inputs greater than one, under
+independent uniform sampling with replacement from residues {lit}`1,...,n-1`.
+The Carmichael theorem for 561 establishes membership, not minimality.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
