@@ -46,8 +46,8 @@ The cost is precision: every case must be handled, every inequality justified.
 Start with the sections that already have strong proof stories:
 
 * Chapter 2: sorting correctness, a runtime bound, and a merge-sort recurrence.
-* Chapter 16: Huffman optimality, the flagship greedy proof.
-* Chapter 23: the MST cut property and Kruskal's induction.
+* Chapter 15: Huffman optimality, the flagship greedy proof.
+* Chapter 21: the MST cut property and Kruskal's induction.
 
 To build and browse the site locally:
 
@@ -57,7 +57,9 @@ To build and browse the site locally:
 ## Conventions
 
 * **0-indexed**: lists and sequences start at 0, for Mathlib compatibility.
-* **Total functions**: partial operations return junk values, not {lit}`Option`.
+* **Total functions**: failure-aware APIs may return {lit}`Option`. Some
+  mathematical operations use totalized values; their useful guarantees carry
+  explicit input hypotheses.
 * **Unfinished theorem targets**: kept out of imported proof files and recorded
   as {lit}`partial`, {lit}`blocked-design`, or {lit}`future-work` in the status pages.
   Each chapter page lists exactly what is missing.
