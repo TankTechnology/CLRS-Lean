@@ -17,9 +17,11 @@ Main results:
 
 - Definition `lruStep` / `lruRun` / `lruMisses`: the LRU policy (cache kept as a
   most-recent-first list) and its miss count.
-- Structure `Algorithm`: an arbitrary eviction algorithm over a `Finset` cache,
+- Structure {lit}`Algorithm`: a legacy memoryless eviction policy over a finite-set cache,
   bundled with its validity laws (it loads the request, only adds the request,
-  keeps the cache at size ≤ `k`, and leaves a hit's cache unchanged), and `misses`.
+  preserves capacity and hit residency on legal states), and {lit}`misses`.
+  The {lit}`Policies` companion adds history-dependent policies and an actual
+  inhabited LRU instance for positive capacities.
 - Lemma `distinct_fault`: a segment requesting `k + 1` distinct pages forces a
   miss for any size-`k` algorithm.
 - Lemma `resident_fault`: a page resident at the start of a segment that then
@@ -43,7 +45,10 @@ Main results:
   algorithm and any request count `N` there is a request sequence of length `N`
   on which the algorithm faults every request while some offline schedule faults
   at most `N / k + k + 1` times — so no deterministic online algorithm is
-  `c`-competitive for any `c < k` (`caching_no_c_competitive`).
+  natural-ratio multiplicative bound below {lit}`k`. The stronger
+  {lit}`Policy.no_real_competitive` companion includes real ratios, arbitrary
+  additive constants and auxiliary state; {lit}`Schedule.lru_k_competitive`
+  proves the upper bound against every legal offline trace.
 
 Notation conventions used in this section:
 
@@ -102,14 +107,18 @@ def lruPos (q : Page) (L : List Page) : ℕ := (L.takeWhile (fun x => x ≠ q)).
 A deterministic paging algorithm with cache size bound `k`.  `step C p` is the
 cache after serving request `p` from cache `C`; the bundled laws say it loads
 `p`, only ever adds `p`, and keeps at most `k` resident pages.  This is the
-standing model of an online or offline adversary algorithm (CLRS §27.3).
+legacy memoryless policy interface. Size preservation and hit behavior are
+required only for legal capacity states; invalid oversized caches cannot force
+a contradiction. Positive capacity is necessary when pages can be requested.
+History-dependent online policies and offline schedules are distinct interfaces
+in the companion development.
 -/
 structure Algorithm (Page : Type) [DecidableEq Page] (k : ℕ) where
   step : Finset Page → Page → Finset Page
   step_loads : ∀ C p, p ∈ step C p
   step_subset : ∀ C p, step C p ⊆ insert p C
-  step_size : ∀ C p, (step C p).card ≤ k
-  step_hit : ∀ C p, p ∈ C → step C p = C
+  step_size : ∀ C p, C.card ≤ k → (step C p).card ≤ k
+  step_hit : ∀ C p, C.card ≤ k → p ∈ C → step C p = C
 
 /-- The algorithm's cache after processing `σ`. -/
 def runGo (A : Algorithm Page k) : Finset Page → List Page → Finset Page
@@ -159,7 +168,7 @@ lemma runGo_size (A : Algorithm Page k) (C : Finset Page) (σ : List Page)
   | nil => simpa [runGo] using hC
   | cons p τ ih =>
       rw [runGo]
-      exact ih (A.step C p) (A.step_size C p)
+      exact ih (A.step C p) (A.step_size C p hC)
 
 /-- If a run has no misses, every requested page was already resident: the
 requested pages are a subset of the initial cache. -/
@@ -898,7 +907,7 @@ lemma missesGo_append (A : Algorithm Page k) (C : Finset Page) (σ τ : List Pag
 
 /-- A run with no misses leaves the cache unchanged. -/
 lemma runGo_eq_self_of_misses_eq_zero (A : Algorithm Page k) (C : Finset Page) (ρ : List Page)
-    (h : missesGo A C ρ = 0) : runGo A C ρ = C := by
+    (h : missesGo A C ρ = 0) (hC : C.card ≤ k) : runGo A C ρ = C := by
   induction ρ generalizing C with
   | nil => simp [runGo]
   | cons p τ ih =>
@@ -912,7 +921,7 @@ lemma runGo_eq_self_of_misses_eq_zero (A : Algorithm Page k) (C : Finset Page) (
           simpa [missesGo] using h
         simpa [hp] using h'
       rw [runGo]
-      simpa [A.step_hit C p hp] using ih (A.step C p) hτ
+      simpa [A.step_hit C p hC hp] using ih (A.step C p) hτ (A.step_size C p hC)
 
 /-- When a `phaseGo` prefix ends because the next request would exceed `k`, the
 accumulated pages have cardinality exactly `k` and the next request is fresh. -/
@@ -1059,10 +1068,11 @@ lemma phases_le_misses (k : ℕ) (σ : List Page) (hk : 0 < k)
                 simp [missesGo] at hforce ⊢
                 exact hforce
               have hih := ih fp.2.length hremlen' fp.2 rfl A (A.step (runGo A C fp.1) q)
-                (A.step_size (runGo A C fp.1) q)
+                (A.step_size (runGo A C fp.1) q (runGo_size A C fp.1 hC))
               have hqstep : q ∈ A.step (runGo A C fp.1) q := A.step_loads (runGo A C fp.1) q
               have hhit : A.step (A.step (runGo A C fp.1) q) q = A.step (runGo A C fp.1) q :=
-                A.step_hit (A.step (runGo A C fp.1) q) q hqstep
+                A.step_hit (A.step (runGo A C fp.1) q) q
+                  (A.step_size (runGo A C fp.1) q (runGo_size A C fp.1 hC)) hqstep
               have hih' : (phases k fp.2).length ≤
                   missesGo A (A.step (runGo A C fp.1) q) rest' + 1 := by
                 have hmiss : missesGo A (A.step (runGo A C fp.1) q) fp.2 =
@@ -1154,7 +1164,7 @@ lemma advCache_card_le (A : Algorithm (Fin (k + 1)) k) (n : ℕ) :
   | zero => simp [advCache]
   | succ n ih =>
       simp [advCache]
-      exact A.step_size (advCache A n) (freshPage (advCache A n))
+      exact A.step_size (advCache A n) (freshPage (advCache A n)) ih
 
 /-- The adversarial request sequence of length `n`: always request the page
 absent from the algorithm's current cache. -/
