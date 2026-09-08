@@ -58,7 +58,11 @@ sections (§29.1 formulations and algorithms, §29.2 formulating problems,
 §29.3 duality with Theorems 29.8--29.10).  The detailed simplex algorithm
 (legacy Section 29.3) and the initial basic feasible solution (legacy
 Section 29.5) are retained as supplementary online material (reachable
-through {lit}`CLRSLean.OnlineMaterial`).
+through {lit}`CLRSLean.OnlineMaterial`). The canonical guide already imports
+{lit}`SolverWrapper`, whose normalization/initialized-solver composition
+certifies all three outcomes for general-form programs. The construction uses
+classical real-valued choices; no polynomial SIMPLEX or machine-runtime bound
+is claimed.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
