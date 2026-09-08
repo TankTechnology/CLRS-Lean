@@ -25,7 +25,15 @@ period; the third-edition-numbered imports {lit}`CLRSLean.Chapter_10` and
 The legacy stack, queue, list, and rooted-tree developments are reused, together
 with the fourth-edition §10.1 array-backed stack and queue interface
 (top/head/tail pointers with overflow, underflow, and circular wrap-around).
-Concrete RAM execution and pointer memory remain deferred.
+{lit}`ArrayStack.Valid` bounds the top by capacity; {lit}`ArrayQueue.Valid`
+requires positive capacity and in-range head/tail. Empty constructors and
+successful-operation preservation are proved. Queue operations reject invalid
+raw states, including zero capacity. General FIFO is proved for functional
+queues; the circular-array layer provides valid transitions and local round trips.
+
+Linked search has failure-completeness and first-match/minimal-index contracts.
+{lit}`listDeleteAll` removes every equal value, not one identity-bearing node.
+Concrete RAM execution and pointer memory remain outside these models.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

@@ -1,9 +1,9 @@
 import Mathlib
 
 /-!
-# CLRS Section 10.4 - Representing rooted trees
+# CLRS Section 10.3 - Representing rooted trees
 
-CLRS §10.4 shows how to store a rooted tree with an *unbounded* branching factor
+CLRS §10.3 shows how to store a rooted tree with an *unbounded* branching factor
 using only two pointers per node -- the **left-child, right-sibling (LCRS)**
 representation -- instead of a per-node child array.  In the textbook,
 {lit}`x.left-child` points to the leftmost child of {lit}`x` and
@@ -34,7 +34,7 @@ Main results:
 - Theorem {lit}`toLCRSForest_preorder`: the encoding preserves the preorder label
   sequence, and {lit}`toLCRSForest_numNodes`: it preserves the node count.
 
-Status: {lit}`proved`.  This is the functional/representational core of §10.4; the
+Status: {lit}`proved`.  This is the functional/representational core of §10.3; the
 pointer/free-list RAM layer for Chapter 10 stays under the imperative-memory
 epic and is out of scope here.
 
@@ -54,7 +54,7 @@ universe u
 /--
 A {lit}`RoseTree α` is a multiway rooted tree: a label of type {lit}`α` together
 with an ordered list of child subtrees (arbitrary branching factor).  This is the
-"logical" rooted tree of CLRS §10.4, before any pointer representation is
+"logical" rooted tree of CLRS §10.3, before any pointer representation is
 chosen.
 -/
 inductive RoseTree (α : Type u) where
@@ -62,7 +62,7 @@ inductive RoseTree (α : Type u) where
 
 /--
 An {lit}`LCRSTree α` is the binary tree used for the left-child / right-sibling
-representation of CLRS §10.4.  {lit}`node a l r` stores label {lit}`a`; its left
+representation of CLRS §10.3.  {lit}`node a l r` stores label {lit}`a`; its left
 subtree {lit}`l` encodes {lit}`a`'s children (its leftmost child together with
 that child's sibling chain) and its right subtree {lit}`r` encodes {lit}`a`'s own
 right siblings.  {lit}`nil` is the null pointer.
@@ -78,7 +78,7 @@ Encode a *forest* (an ordered list of sibling rose trees) into a single
 {lit}`LCRSTree`.  The head tree {lit}`node a cs` becomes an LCRS node whose left
 subtree encodes its children {lit}`cs` and whose right subtree encodes the
 remaining siblings {lit}`ts`.  This is the recursive heart of the LCRS
-representation (CLRS §10.4).
+representation (CLRS §10.3).
 -/
 def toLCRSForest : List (RoseTree α) → LCRSTree α
   | [] => .nil
@@ -119,7 +119,7 @@ def ofLCRS [Inhabited α] : LCRSTree α → RoseTree α
 /--
 **Decode ∘ encode = id on forests.**  Encoding a forest to its LCRS binary tree
 and decoding it back returns the original forest: the LCRS representation loses
-no information (CLRS §10.4).
+no information (CLRS §10.3).
 -/
 theorem ofLCRSForest_toLCRSForest (f : List (RoseTree α)) :
     ofLCRSForest (toLCRSForest f) = f := by
@@ -145,7 +145,7 @@ The LCRS round trip packaged as an {lit}`Equiv`: the forest encoding
 {lit}`toLCRSForest` is a *bijection* from rooted forests
 ({lit}`List (RoseTree α)`) to LCRS binary trees ({lit}`LCRSTree α`), with inverse
 {lit}`ofLCRSForest`.  This is the precise sense in which the left-child /
-right-sibling scheme of CLRS §10.4 is a faithful representation.
+right-sibling scheme of CLRS §10.3 is a faithful representation.
 -/
 def lcrsEquiv : List (RoseTree α) ≃ LCRSTree α where
   toFun := toLCRSForest
