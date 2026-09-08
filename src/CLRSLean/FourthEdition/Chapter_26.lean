@@ -56,7 +56,13 @@ The supporting implementation pages remain available outside the main sidebar:
 
 The native sections supply the represented fourth-edition parallel
 sections (§26.1 fork-join basics, §26.2 parallel matrix multiplication,
-§26.3 parallel merge sort).
+§26.3 parallel merge sort). The actual matrix constructors take a depth
+{lit}`k` and operate on dimension {lit}`2^k`. Their exact carried work/span
+proofs apply to those executions. The all-input asymptotic theorems bound
+numerical recurrence extensions at arbitrary {lit}`n`; they do not construct
+a padding/unpadding execution for arbitrary matrix dimensions. The completing
+greedy scheduler and executed merge/merge-sort work/span results retain their
+stated domains.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
