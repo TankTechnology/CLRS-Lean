@@ -16,3 +16,9 @@ import CLRSLean.FourthEdition.Chapter_35
 #assert_axioms CLRS.ApproxSubsetSum.approxSubsetSumWithCost_value
 #assert_axioms CLRS.ApproxSubsetSum.approxSubsetSumWithCost_work_le
 #assert_axioms CLRS.ApproxSubsetSum.approxSubsetSumWithCost_fptas
+
+#assert_axioms CLRS.TSP.GraphAdapter.graphTour_two_approx
+#assert_axioms CLRS.SetCover.greedySetCover_card_eq_cost
+#assert_axioms CLRS.SetCover.greedySetCover_card_approx
+#assert_axioms CLRS.SetCover.greedySetCover_card_ln_approx
+#assert_axioms CLRS.RandomizedLP.VertexCoverLP.execute_correct
