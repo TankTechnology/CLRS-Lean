@@ -31,7 +31,8 @@ Main results:
 - Theorem {lit}`arrayMaxHeapFrom_of_maxHeapifyFuel_succ`: one fuelled heapify
   step is correct once the recursive branch supplies the child postcondition.
 - Theorem {lit}`maxHeapifyFuel_repair_subtree`: enough fuel recursively repairs
-  the localized subtree rooted at {lit}`i`.
+  heap obligations for every parent index at least {lit}`i`, using the
+  stronger index-suffix precondition.
 - Theorem {lit}`maxHeapifyFuel_root_isMaxHeap`: root heapify with enough fuel
   produces a global max-heap.
 
@@ -1055,8 +1056,11 @@ theorem maxHeapifyFuel_swap_branch_repair {fuel : Nat} {a : List Nat}
   simpa [maxHeapifyFuel, hneq] using hchild
 
 /--
-Subtree form of {lit}`MAX-HEAPIFY` correctness: if the localized subtree rooted
-at {lit}`i` has at most one bad parent, enough fuel repairs that subtree.
+Index-suffix form of {lit}`MAX-HEAPIFY` correctness: if every parent index at
+least {lit}`i` satisfies the heap inequalities except possibly {lit}`i` itself,
+enough fuel restores all those inequalities. The precondition includes nodes
+outside the descendant subtree of {lit}`i`. The historical theorem name is
+retained for compatibility; bottom-up construction uses this stronger invariant.
 -/
 theorem maxHeapifyFuel_repair_subtree {fuel : Nat} {a : List Nat}
     {heapSize i : Nat}
