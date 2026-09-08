@@ -2,6 +2,9 @@ import CLRSLean.Chapter_25
 import CLRSLean.FourthEdition.Chapter_23.Section_23_1_All_Pairs_Model
 import CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall
 import CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm
+import CLRSLean.FourthEdition.Chapter_23.Section_23_2_Floyd_Warshall.NegativeCycle
+import CLRSLean.FourthEdition.Chapter_23.MatrixExecution.Reindex
+import CLRSLean.FourthEdition.Chapter_23.Section_23_3_Johnsons_Algorithm.Execution
 
 /-!
 # Chapter 23 — All-Pairs Shortest Paths
@@ -26,15 +29,31 @@ forward to these sources.
 
 ## Coverage boundary
 
-The native sections supply the represented fourth-edition all-pairs
-shortest-path sections (Lemmas 23.1--23.2 and 23.7, Theorems 23.3, 23.5 and
-23.8), together with the running-time layer bound to the real executable
-constructions: repeated squaring `O(V³ log V)`
-({lit}`CLRS.Chapter24.WeightedGraph.fasterAPSPCost_le_n_cubed_log`),
-Floyd--Warshall `O(V³)`
-({lit}`CLRS.Chapter24.WeightedGraph.floydWarshall_O_cubed`), and Johnson
-`O(V² log V + V E log V)`
-({lit}`CLRS.Chapter24.WeightedGraph.johnsonCost_eq`).
+The native sections prove valid-input shortest-path correctness. The legacy
+matrix initializer sets the diagonal to zero and cannot detect a negative
+self-edge. The cycle-safe initializer preserves those edges, and
+{lit}`cycleFloydWarshall_negative_iff` proves that a negative final diagonal
+is equivalent to a negative cycle, with no absence-of-negative-cycles premise.
+Under {lit}`NoNegCycle`, the corrected and legacy distance results agree.
+
+{lit}`MatrixExecution` stores each completed table, shares each previous
+phase once, and counts actual min-plus scans and table writes. Its Floyd
+updates are exactly {lit}`n³`; repeated squaring has exactly
+{lit}`numSquarings * n³` candidate visits. Separate counters include initial
+and intermediate table writes and the final {lit}`n` diagonal scan. An explicit
+vertex/index equivalence supports arbitrary finite carriers. These are exact
+real-arithmetic cell models, excluding enumeration construction, allocation and
+bit costs; the real comparisons remain noncomputable primitives in Lean.
+
+Johnson's existing construction assumes {lit}`NoNegCycle` and has no
+negative-cycle failure result. Its heap expression is a conditional backend
+budget. The separate {lit}`JohnsonExecution.johnsonStored` over indexed
+graphs {lit}`Fin n` prepares a stored Bellman–Ford potential, caches reweighted
+edges, runs a stored scan queue from each source and retains every result row.
+Its actual counter is at most {lit}`4n³ + 14n² + 12n + 4`, hence
+{lit}`16(n+1)³`. It refines the original valid-input Johnson distances. Graph
+queries, indexed access and real arithmetic are primitives; finite-set lookup
+internals, persistent-array copying and bit costs are not included.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

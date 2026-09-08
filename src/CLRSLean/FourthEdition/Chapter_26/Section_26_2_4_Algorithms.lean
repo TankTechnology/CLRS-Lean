@@ -25,7 +25,9 @@ costs directly to algorithm results, executable and proved-correct P-ADD and
 P-MATMUL algorithms, exact equalities between their recorded costs and their
 execution recurrences, monotonicity and adjacent-power sandwiches for all four
 matrix costs, power-of-two solutions, and all-input {lit}`Theta` results for
-P-ADD and executable P-MATMUL.  The earlier idealized P-MATMUL recurrence
+the numerical P-ADD and P-MATMUL cost extensions. Actual matrix executions
+have dimension {lit}`2^k`; no arbitrary-dimension padding/unpadding interface
+is constructed by the all-input bounds. The earlier idealized P-MATMUL recurrence
 retains its all-input upper bounds.  The imports also provide monotonicity,
 adjacent-power sandwiches, and all-input {lit}`Theta` results for P-MERGE and
 P-MERGE-SORT.  The compatibility extension retains the corresponding Strassen

@@ -1,4 +1,5 @@
 import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort
+import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.Execution
 import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.MutableOutputArray
 
 /-!
@@ -8,8 +9,8 @@ This file proves the pure correctness spine for radix sort from the stable
 counting-sort theorem in Section 8.2.
 
 The model is intentionally abstract.  A list of digit functions is supplied in
-least-significant to most-significant order, and each pass is a stable
-{lit}`countingSortBy` over the current digit.  The final theorems say that the
+least-significant to most-significant order. Each pass executes the stable
+indexed counting controller and refines {lit}`countingSortBy` over its digit.  The final theorems say that the
 result is ordered by the corresponding most-significant-first lexicographic
 relation, preserves membership, preserves the input order inside each complete
 digit signature, and hence captures the CLRS stable-pass proof spine.
@@ -21,14 +22,17 @@ fixed-width keys.  The final concrete theorem therefore says radix sort returns
 a list ordered by the ordinary natural-number key when every key is represented
 inside the supplied digit window.
 
-A running-time / cost layer then instruments the abstract radix sort:
+The execution layer calls {lit}`CountingExecution.execute` for every digit.
+{lit}`radixSortByWithCost` sums controller visits read from those executions;
+{lit}`radixSortByWithIndexedWork` expands the key/index/list-operation ledger.
+Both erase to the public {lit}`radixSortBy`, whose passes also call the same
+indexed controller. Bounded digits give exact returned-counter formulas and
+{lit}`O(d(n+k))` bounds.
 
-* {lit}`radixSortByWithCost` charges each stable counting-sort pass the mutable
-  counting-sort work {lit}`MutableOutput.countingSortArrayCost maxDigit
-  (input length)` and erases back to {lit}`radixSortBy`;
-* {lit}`radixSortNatByCost` is the concrete {lit}`digitCount`-pass cost, and
-  {lit}`radixSortNatByCost_bigO` proves the {lit}`O(d(n+k))` bound with
-  {lit}`k = base`.
+The stable-bucket controller is a refinement of counting sort, not the literal
+cumulative-counter decrement program. Indexed operations and key evaluation
+are unit-cost primitives; persistent-array copying and machine time remain
+outside this ledger.
 -/
 
 namespace CLRS
@@ -161,7 +165,7 @@ least-significant to most-significant order.
 def radixSortBy (maxDigit : Nat) : List (α → Nat) → List α → List α
   | [], xs => xs
   | digit :: digits, xs =>
-      radixSortBy maxDigit digits (countingSortBy maxDigit digit xs)
+      radixSortBy maxDigit digits (CountingExecution.execute maxDigit digit xs).output.toList
 
 /-- All digit functions are bounded by the declared maximum digit. -/
 def AllDigitsLe (digitsLow : List (α → Nat)) (xs : List α)
@@ -220,12 +224,12 @@ theorem radixSortBy_ordered_aux
       (radixSortBy maxDigit digitsLow xs) := by
   induction digitsLow generalizing rel xs with
   | nil =>
-      simpa [radixSortBy, RadixRel] using hxs
+      simpa [radixSortBy, CountingExecution.execute_result, RadixRel] using hxs
   | cons digit digits ih =>
       have hpass : OrderedRel (LexWith digit rel)
           (countingSortBy maxDigit digit xs) :=
         radixPass_orderedRel maxDigit digit rel xs hxs
-      simpa [radixSortBy, RadixRel] using
+      simpa [radixSortBy, CountingExecution.execute_result, RadixRel] using
         ih (LexWith digit rel) (countingSortBy maxDigit digit xs) hpass
 
 /-- Radix sort returns a list ordered by the induced digit lexicographic order. -/
@@ -260,7 +264,7 @@ theorem radixSortBy_mem_iff
         intro d hd
         exact hdigits d (by simp [hd])
       have htail := ih (countingSortBy maxDigit digit xs) hrest x
-      exact htail.trans (hpass_mem x)
+      simpa only [radixSortBy, CountingExecution.execute_result] using htail.trans (hpass_mem x)
 
 theorem radixSortBy_perm [DecidableEq α]
     (maxDigit : Nat) :
@@ -287,7 +291,8 @@ theorem radixSortBy_perm [DecidableEq α]
         refine allDigitsLe_of_mem_iff ?_ hpass_mem
         intro d hd
         exact hdigits d (by simp [hd])
-      exact (ih (countingSortBy maxDigit digit xs) hrest).trans hpass_perm
+      simpa only [radixSortBy, CountingExecution.execute_result] using
+        (ih (countingSortBy maxDigit digit xs) hrest).trans hpass_perm
 
 theorem radixSortBy_digitClass_eq
     (maxDigit : Nat) :
@@ -324,7 +329,7 @@ theorem radixSortBy_digitClass_eq
             =
           digitClass (digit :: digits) sample
             (radixSortBy maxDigit digits pass) := by
-              simp [radixSortBy, pass]
+              simp [radixSortBy, CountingExecution.execute_result, pass]
         _ =
           (digitClass digits sample
               (radixSortBy maxDigit digits pass)).filter
@@ -706,47 +711,61 @@ theorem countingSortBy_length_eq_of_allKeysLe [DecidableEq α]
     (countingSortBy maxKey key xs).length = xs.length :=
   (countingSortBy_perm maxKey key xs hxs).length_eq
 
-/--
-Costed radix sort.  Each stable counting-sort pass is charged the mutable
-counting-sort work {lit}`MutableOutput.countingSortArrayCost maxDigit
-(input length)`, and the per-pass costs accumulate.  The first component is
-exactly {lit}`radixSortBy`.
--/
-def radixSortByWithCost (maxDigit : Nat) :
+/-- Each pass runs the indexed counting controller once. The supplied ledger
+reads counters from that same returned execution record. -/
+def radixSortByWithLedger (maxDigit : Nat) (ledger : CountingExecution.Execution α → Nat) :
     List (α → Nat) → List α → List α × Nat
   | [], xs => (xs, 0)
   | digit :: digits, xs =>
-      let rest := radixSortByWithCost maxDigit digits
-        (countingSortBy maxDigit digit xs)
-      (rest.1, MutableOutput.countingSortArrayCost maxDigit xs.length + rest.2)
+      let pass := CountingExecution.execute maxDigit digit xs
+      let rest := radixSortByWithLedger maxDigit ledger digits pass.output.toList
+      (rest.1, ledger pass + rest.2)
 
-/-- Erasing the cost recovers the existing {lit}`radixSortBy`. -/
+/-- Actual controller visits accumulated across stable indexed counting passes. -/
+def radixSortByWithCost (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α) : List α × Nat :=
+  radixSortByWithLedger maxDigit CountingExecution.Execution.controllerVisits digitsLow xs
+
+/-- Expanded key/index/list-operation ledger from those same counting passes. -/
+def radixSortByWithIndexedWork (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α) : List α × Nat :=
+  radixSortByWithLedger maxDigit CountingExecution.Execution.indexedWork digitsLow xs
+
+theorem radixSortByWithLedger_result (maxDigit : Nat)
+    (ledger : CountingExecution.Execution α → Nat)
+    (digitsLow : List (α → Nat)) (xs : List α) :
+    (radixSortByWithLedger maxDigit ledger digitsLow xs).1 =
+      radixSortBy maxDigit digitsLow xs := by
+  induction digitsLow generalizing xs with
+  | nil => rfl
+  | cons digit digits ih =>
+      simp only [radixSortByWithLedger, radixSortBy]
+      exact ih _
+
+/-- Erasing the cost preserves the public radix-sort result. -/
 theorem radixSortByWithCost_result (maxDigit : Nat)
     (digitsLow : List (α → Nat)) (xs : List α) :
     (radixSortByWithCost maxDigit digitsLow xs).1 =
-      radixSortBy maxDigit digitsLow xs := by
-  induction digitsLow generalizing xs with
-  | nil =>
-      simp [radixSortByWithCost, radixSortBy]
-  | cons digit digits ih =>
-      simp only [radixSortByWithCost, radixSortBy]
-      exact ih _
+      radixSortBy maxDigit digitsLow xs :=
+  radixSortByWithLedger_result maxDigit _ digitsLow xs
 
-/--
-Under the bounded-digit hypothesis the cost of the costed radix sort is exactly
-{lit}`digitsLow.length` copies of the per-pass mutable counting-sort work: each
-pass preserves the input length, so every pass is charged the same amount.
--/
-theorem radixSortByWithCost_cost_eq [DecidableEq α] (maxDigit : Nat)
+theorem radixSortByWithIndexedWork_result (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α) :
+    (radixSortByWithIndexedWork maxDigit digitsLow xs).1 =
+      radixSortBy maxDigit digitsLow xs :=
+  radixSortByWithLedger_result maxDigit _ digitsLow xs
+
+private theorem radixSortByWithLedger_cost_eq [DecidableEq α] (maxDigit : Nat)
+    (ledger : CountingExecution.Execution α → Nat) (passCost : Nat → Nat)
+    (hledger : ∀ digit ys, AllKeysLe digit ys maxDigit →
+      ledger (CountingExecution.execute maxDigit digit ys) = passCost ys.length)
     (digitsLow : List (α → Nat)) (xs : List α)
     (hdigits : AllDigitsLe digitsLow xs maxDigit) :
-    (radixSortByWithCost maxDigit digitsLow xs).2 =
-      digitsLow.length * MutableOutput.countingSortArrayCost maxDigit xs.length := by
+    (radixSortByWithLedger maxDigit ledger digitsLow xs).2 =
+      digitsLow.length * passCost xs.length := by
   induction digitsLow generalizing xs with
-  | nil =>
-      simp [radixSortByWithCost]
+  | nil => simp [radixSortByWithLedger]
   | cons digit digits ih =>
-      simp only [radixSortByWithCost]
       have hdigit : AllKeysLe digit xs maxDigit := hdigits digit (by simp)
       have hlen : (countingSortBy maxDigit digit xs).length = xs.length :=
         countingSortBy_length_eq_of_allKeysLe maxDigit digit xs hdigit
@@ -754,13 +773,49 @@ theorem radixSortByWithCost_cost_eq [DecidableEq α] (maxDigit : Nat)
         intro d hd x hx
         exact hdigits d (by simp [hd]) x
           ((countingSortBy_mem_iff maxDigit digit xs hdigit x).mp hx)
-      rw [ih (countingSortBy maxDigit digit xs) hrest, hlen]
+      simp only [radixSortByWithLedger, CountingExecution.execute_result]
+      rw [hledger digit xs hdigit, ih _ hrest, hlen]
       simp only [List.length_cons]
       ring
 
+/-- Under bounded digits, length preservation makes every pass return the
+same controller-visit total. -/
+theorem radixSortByWithCost_cost_eq [DecidableEq α] (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) :
+    (radixSortByWithCost maxDigit digitsLow xs).2 =
+      digitsLow.length * MutableOutput.countingSortArrayCost maxDigit xs.length := by
+  apply radixSortByWithLedger_cost_eq maxDigit _ _ ?_ digitsLow xs hdigits
+  intro digit ys hy
+  rw [CountingExecution.execute_controllerVisits maxDigit digit ys hy,
+    MutableOutput.countingSortArrayCost_eq]
+
+/-- The expanded operation ledger is also linear per digit pass. -/
+theorem radixSortByWithIndexedWork_cost_eq [DecidableEq α] (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) :
+    (radixSortByWithIndexedWork maxDigit digitsLow xs).2 =
+      digitsLow.length * (6 * xs.length + 2 * (maxDigit + 1)) := by
+  exact radixSortByWithLedger_cost_eq maxDigit CountingExecution.Execution.indexedWork
+    (fun n => 6 * n + 2 * (maxDigit + 1))
+    (fun digit ys hy => CountingExecution.execute_indexedWork maxDigit digit ys hy)
+    digitsLow xs hdigits
+
+/-- Uniform bound on the returned expanded operation ledger. -/
+theorem radixSortByWithIndexedWork_cost_le [DecidableEq α] (maxDigit : Nat)
+    (digitsLow : List (α → Nat)) (xs : List α)
+    (hdigits : AllDigitsLe digitsLow xs maxDigit) :
+    (radixSortByWithIndexedWork maxDigit digitsLow xs).2 ≤
+      6 * digitsLow.length * (xs.length + maxDigit + 1) := by
+  rw [radixSortByWithIndexedWork_cost_eq maxDigit digitsLow xs hdigits]
+  calc
+    digitsLow.length * (6 * xs.length + 2 * (maxDigit + 1)) ≤
+        digitsLow.length * (6 * (xs.length + maxDigit + 1)) := by gcongr; omega
+    _ = _ := by ring
+
 /--
-Total mutable counting-sort work of concrete base-{lit}`base` radix sort over
-{lit}`n` keys: {lit}`digitCount` passes, each a mutable counting sort with
+Total indexed counting-controller visits of concrete base-{lit}`base` radix sort over
+{lit}`n` keys: {lit}`digitCount` passes, each using the stable indexed controller with
 alphabet size {lit}`base`.
 -/
 def radixSortNatByCost (base digitCount n : Nat) : Nat :=

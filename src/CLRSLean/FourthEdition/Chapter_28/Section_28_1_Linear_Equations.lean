@@ -49,11 +49,13 @@ Main results:
   an LUP decomposition {lit}`σ.permMatrix · A = L · U` with `L` unit
   lower-triangular, {lit}`det U = sign σ · det A` — determinants agree up to
   sign; {lit}`det_ne_zero_of_lup` gives `U` nonsingular when `A` is.
-- Cost analysis (CLRS running times): {lit}`substitutionCost_isBigO`
-  (LUP-SOLVE is `Θ(n²)`), {lit}`lupDecompositionCost_isBigO` (LUP is
-  `Θ(n³)`), {lit}`matrixInversionCost_isBigO` (inversion is `Θ(n³)`), and
-  {lit}`choleskyCost_isBigO` (Cholesky is `Θ(n³)`), as abstract operation
-  counts bounded by the standard `O` classes.
+- The legacy {lit}`substitutionCost_isBigO`, {lit}`lupDecompositionCost_isBigO`,
+  {lit}`matrixInversionCost_isBigO`, and {lit}`choleskyCost_isBigO` prove upper
+  bounds for abstract numerical budgets, not two-sided execution bounds.
+  The {lit}`ExecutableLUP` companion separately proves actual decomposition
+  and solve counters with exact-field correctness. Inversion and Cholesky
+  budgets here are not measured execution counters.
+
 
 Notation conventions:
 
@@ -895,28 +897,26 @@ lemma upperTriangular_diag_ne_zero_of_det_ne_zero {n : ℕ} (U : Matrix (Fin n) 
 section Cost
 
 /-- Abstract forward+backward substitution cost for LUP-SOLVE: the
-`n(n-1)/2` inner-loop operations of the two substitution loops, `Θ(n²)`
-(CLRS §28.1). -/
+numerical envelope {lit}`n²/2`. This is not the exact two-loop operation count. -/
 noncomputable def substitutionCost (n : ℕ) : ℝ := (n : ℝ) * (n : ℝ) / 2
 
-/-- Abstract LUP-decomposition cost: the `~n³/3` elimination operations of
-the LUP-DECOMPOSITION loops, `Θ(n³)` (CLRS §28.1). -/
+/-- Abstract cubic LUP-decomposition envelope {lit}`n³/3`, separate from
+the execution counter in the {lit}`ExecutableLUP` companion. -/
 noncomputable def lupDecompositionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3 / 3
 
-/-- Abstract matrix-inversion cost via an LUP decomposition: `Θ(n³)`
-operations (CLRS §28.2). -/
+/-- Abstract cubic matrix-inversion budget; no executed inversion counter
+is attached here. -/
 noncomputable def matrixInversionCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
 
-/-- Abstract Cholesky-decomposition cost: `Θ(n³)` operations (CLRS §28.3). -/
+/-- Abstract cubic Cholesky budget; no executed Cholesky counter is attached here. -/
 noncomputable def choleskyCost (n : ℕ) : ℝ := (n : ℝ) ^ 3
 
-/-- The substitution cost is at most `n²`: `n(n-1)/2 ≤ n²`. -/
+/-- The substitution envelope is at most {lit}`n²`: {lit}`n²/2 ≤ n²`. -/
 theorem substitutionCost_quadratic_bound (n : ℕ) : substitutionCost n ≤ (n : ℝ) ^ 2 := by
   unfold substitutionCost
   nlinarith [sq_nonneg (n : ℝ)]
 
-/-- **LUP-SOLVE runs in `Θ(n²)`** (CLRS §28.1): the substitution cost is
-`O(n²)`. -/
+/-- The numerical substitution envelope has an {lit}`O(n²)` upper bound. -/
 theorem substitutionCost_isBigO :
     CLRS.Chapter03.isBigO substitutionCost (fun n => (n : ℝ) ^ 2) := by
   rw [CLRS.Chapter03.isBigO_iff]
@@ -934,8 +934,7 @@ theorem lupDecompositionCost_cubic_bound (n : ℕ) : lupDecompositionCost n ≤ 
   have h3 : (0 : ℝ) ≤ (n : ℝ) ^ 3 := by positivity
   nlinarith
 
-/-- **LUP decomposition runs in `Θ(n³)`** (CLRS §28.1): the elimination cost
-is `O(n³)`. -/
+/-- The numerical LUP-decomposition envelope has an {lit}`O(n³)` upper bound. -/
 theorem lupDecompositionCost_isBigO :
     CLRS.Chapter03.isBigO lupDecompositionCost (fun n => (n : ℝ) ^ 3) := by
   rw [CLRS.Chapter03.isBigO_iff]
@@ -947,14 +946,12 @@ theorem lupDecompositionCost_isBigO :
   rw [abs_of_nonneg hnonneg, abs_of_nonneg hnonneg2]
   simpa using (lupDecompositionCost_cubic_bound n)
 
-/-- **Matrix inversion runs in `Θ(n³)`** (CLRS §28.2): inverting through an
-LUP decomposition is `O(n³)`. -/
+/-- The abstract matrix-inversion budget has an {lit}`O(n³)` upper bound. -/
 theorem matrixInversionCost_isBigO :
     CLRS.Chapter03.isBigO matrixInversionCost (fun n => (n : ℝ) ^ 3) := by
   exact CLRS.Chapter03.isBigO_refl matrixInversionCost
 
-/-- **Cholesky decomposition runs in `Θ(n³)`** (CLRS §28.3): the recursion is
-`O(n³)`. -/
+/-- The abstract Cholesky budget has an {lit}`O(n³)` upper bound. -/
 theorem choleskyCost_isBigO :
     CLRS.Chapter03.isBigO choleskyCost (fun n => (n : ℝ) ^ 3) := by
   exact CLRS.Chapter03.isBigO_refl choleskyCost

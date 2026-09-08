@@ -1,6 +1,8 @@
 import CLRSLean.FourthEdition.Chapter_27.Section_27_1_Waiting_For_Elevator
 import CLRSLean.FourthEdition.Chapter_27.Section_27_2_Maintaining_A_Search_List
 import CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching
+import CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching.Competitive
+import CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching.LowerBound
 
 /-!
 # Chapter 27 — Online Algorithms
@@ -28,15 +30,19 @@ permutation of the initial set).
 Section 27.3 (Online caching) is formalized natively in
 `CLRSLean.FourthEdition.Chapter_27.Section_27_3_Online_Caching`: the paging
 model with the least-recently-used (LRU) policy as a most-recent-first list,
-the bundled deterministic `Algorithm` eviction model with its cache-size law,
-the phase-partition fault lemmas (`distinct_fault`, `resident_fault`), the
-phase-count lower bound (`phases_le_misses`), the `k`-competitive upper bound
-(Theorem 27.3, `lru_k_competitive`), and the matching Sleator-Tarjan lower
-bound (Theorem 27.4, `caching_lower_bound`): for any deterministic online
-algorithm there is a request sequence over the `k + 1`-page universe on which it
-faults every request while a phase-based offline schedule faults at most
-`N / k + k + 1` times, so no algorithm is `c`-competitive for any `c < k`
-(`caching_no_c_competitive`).
+the legacy memoryless {lit}`Algorithm` with legal-state capacity/hit laws,
+and the new {lit}`Policy` interface with arbitrary auxiliary state. An inhabited
+LRU policy preserves recency order, so equal resident sets can produce different
+evictions. {lit}`Schedule` describes future-dependent offline traces separately.
+
+{lit}`Schedule.lru_k_competitive` proves the actual LRU miss bound against every
+legal offline schedule. {lit}`Policy.lru_k_competitive` follows for actual online
+policy runs. The actual phase-based offline execution is a valid schedule.
+{lit}`Policy.no_real_competitive` proves that for every real ratio
+{lit}`0 ≤ c < k` and every real additive constant there is a nonempty request
+sequence defeating that ratio. The witness length grows with the constant;
+this theorem permits arbitrary hidden history and requires positive capacity.
+
 
 No legacy source is promoted into this chapter.
 
@@ -46,16 +52,14 @@ No legacy source is promoted into this chapter.
 
 ## Coverage boundary
 
-Status: `main-proof-complete`.  Represented sections 27.1 (Waiting for an
-elevator), 27.2 (Maintaining a search list), and 27.3 (Online caching) — the
-rent-or-buy cost and the offline optimum `min (T*r) p`, Theorem 27.1 (the
-`2`-competitive upper bound), the elevator corollary with its worst-case
-competitive ratio, the MOVE-TO-FRONT list-update analysis with Theorem 27.2
-(the `4`-competitive bound), and the LRU paging model with the phase-partition
-fault lemmas, Theorem 27.3 (the `k`-competitive upper bound), and Theorem 27.4
-(the matching Sleator-Tarjan deterministic lower bound).  Together with the
-matching deterministic lower bounds of Section 27.1 (`2 - r/p`, already proved)
-this makes Chapter 27 complete with no recorded gaps.
+The represented rental lower bounds retain positive horizons and strictly
+positive offline costs; {lit}`skiRental_not_competitive_below` rules out every
+strictly smaller ratio. The list-update theorem uses equality of distinct-key
+sets. Physical index and adjacent-swap interpretations require duplicate-free
+permutations; arbitrary offline list traces are not covered by its strategy
+interface. Paging uses explicit valid states, history-dependent online policies,
+and separately validated offline schedules. These are abstract competitive
+cost models, not machine-runtime bounds.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

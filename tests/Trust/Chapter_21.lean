@@ -13,3 +13,9 @@ import CLRSLean.FourthEdition.Chapter_21
 
 example : CLRS.MST.kruskal (fun _ _ => true) [1, 2] ∅ = ({1, 2} : Finset Nat) := by
   decide
+
+#assert_axioms CLRS.MST.ExecutablePrim.frontierRun_minimum_spanning_tree_of_card
+#assert_axioms CLRS.MST.ExecutablePrim.ArrayPrim.execute_minimum_spanning_tree
+#assert_axioms CLRS.MST.ExecutablePrim.ArrayPrim.execute_cost_bound
+#assert_axioms CLRS.MST.ExecutablePrim.ArrayPrim.execute_edgeVisits_le
+#assert_axioms CLRS.MST.ExecutablePrim.ArrayPrim.execute_extracts_le

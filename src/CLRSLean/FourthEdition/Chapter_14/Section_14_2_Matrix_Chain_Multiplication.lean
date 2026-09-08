@@ -6,26 +6,23 @@ open scoped BigOperators
 /-!
 # Section 14.2 — Matrix-chain multiplication
 
-This section completes the fourth-edition §14.2 algorithm boundary on top of the
-legacy recurrence and bottom-up table
-({lit}`CLRSLean.Chapter_15.Section_15_2_Matrix_Chain_Multiplication`).  It
-publishes the tabulated `MATRIX-CHAIN-ORDER` — the cost table
-{name}`CLRS.Chapter15.matrixChainOpt` (the {lit}`m` table) and the split table
-{name}`CLRS.Chapter15.matrixChainSplit` (the {lit}`s` table) — together with the
-split-reconstruction refinement
-{name}`CLRS.Chapter15.matrixChainReconstruct_reconstructed`, and proves the
-`Θ(n³)` time and `Θ(n²)` space bounds of the table algorithm.
+The legacy {name}`CLRS.Chapter15.matrixChainOpt` and
+{name}`CLRS.Chapter15.matrixChainSplit` recursively evaluate an optimization
+specification; they do not store a dynamic-programming table. This section
+retains their arithmetic table-size and candidate-budget formulas.
 
-Main results:
+The {lit}`Execution` companion supplies {lit}`MatrixChainExecution.execute`:
+actual arrays of interval-length rows storing costs and selected splits. Each
+candidate reads strictly shorter stored intervals. Its correctness theorem
+identifies every stored cost and proves the selected split attains it. Table
+reconstruction reads those stored splits without rerunning the recurrence.
+The cell and candidate counters are accumulated by that same fill execution.
 
-- Definition {lit}`matrixChainSpace`: the number of distinct subproblems.
-- Theorem {lit}`matrixChainSpace_le_square`: the table stores `O(n²)` entries.
-- Definition {lit}`matrixChainTime`: the number of split evaluations.
-- Theorem {lit}`matrixChainTime_le_cubic`: the algorithm performs `O(n³)` split
-  evaluations.
-
-Status: `proved` for the tabulated algorithm's time and space bounds.  The
-optimality and reconstruction theorems remain in the legacy source.
+The parameter {lit}`N` in the execution is the largest matrix index, so indices
+{lit}`0..N` describe {lit}`N + 1` matrices. Array access, dimension lookup, and
+arithmetic are primitive events; allocation/copying and arithmetic bit costs
+are excluded. The formulas below alone are not execution-cost proofs; use the
+companion's {lit}`execute_cells` and {lit}`execute_candidateVisits` interfaces.
 
 Notation conventions used in this section:
 
@@ -39,11 +36,11 @@ namespace Chapter15
 /-! ## Space and time of the table algorithm -/
 
 /-- The number of distinct {lit}`(i, j)` subproblems with {lit}`0 ≤ i ≤ j ≤ n`,
-    i.e. the space used by the two tables. -/
+    an arithmetic interval-count formula. -/
 def matrixChainSpace (n : Nat) : Nat :=
   (n + 1) * (n + 2) / 2
 
-/-- The number of split evaluations performed by `MATRIX-CHAIN-ORDER`: for each
+/-- An abstract split-count formula: for each
     interval {lit}`[i, j]` there are {lit}`j - i` candidate split points. -/
 def matrixChainTime (n : Nat) : Nat :=
   (Finset.range (n + 1)).sum (fun j => (Finset.range j).sum (fun i => j - i))
@@ -52,7 +49,7 @@ def matrixChainTime (n : Nat) : Nat :=
 theorem matrixChainSpace_eq (n : Nat) :
     matrixChainSpace n = (n + 1) * (n + 2) / 2 := rfl
 
-/-- `MATRIX-CHAIN-ORDER` stores `O(n²)` table entries. -/
+/-- Quadratic bound on the interval-count formula. -/
 theorem matrixChainSpace_le_square (n : Nat) : matrixChainSpace n ≤ (n + 2) ^ 2 := by
   unfold matrixChainSpace
   calc
@@ -60,7 +57,7 @@ theorem matrixChainSpace_le_square (n : Nat) : matrixChainSpace n ≤ (n + 2) ^ 
     _ ≤ (n + 2) * (n + 2) := Nat.mul_le_mul_right _ (by omega : n + 1 ≤ n + 2)
     _ = (n + 2) ^ 2 := by rw [pow_two]
 
-/-- `MATRIX-CHAIN-ORDER` performs `O(n³)` split evaluations. -/
+/-- Cubic bound on the abstract split-count formula. -/
 theorem matrixChainTime_le_cubic (n : Nat) : matrixChainTime n ≤ (n + 1) ^ 3 := by
   unfold matrixChainTime
   calc

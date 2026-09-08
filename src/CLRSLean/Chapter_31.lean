@@ -8,6 +8,10 @@ import CLRSLean.Chapter_31.Section_31_7_RSA
 import CLRSLean.Chapter_31.Section_31_8_Primality_Testing
 import CLRSLean.Chapter_31.Section_31_9_Integer_Factorization
 
+import CLRSLean.FourthEdition.Chapter_31.Section_31_2_Greatest_Common_Divisor.Execution
+import CLRSLean.FourthEdition.Chapter_31.Section_31_7_RSA.KeyRoundTrip
+import CLRSLean.FourthEdition.Chapter_31.Section_31_8_Primality_Testing.Probability
+
 /-! # Chapter 31 — Number-Theoretic Algorithms
 
 Chapter 31 of CLRS covers algorithms for number theory: divisibility, the
@@ -38,7 +42,10 @@ primality test, and the Pollard's-rho factorization heuristic.
   (Theorem 31.2), the Corollary 31.3/31.4 facts, and
   {lit}`CLRS.Chapter31.extendedEuclid` + `extendedEuclid_spec`.
 * **Running time (Lamé / Fibonacci)**: {lit}`CLRS.Chapter31.euclidDivisions`
-  counts the recursive calls of `EUCLID`;
+  uses the second-argument CLRS convention. The actual
+  {lit}`CLRS.Chapter31.euclidWithCount` follows the public first-argument
+  recursion; {lit}`CLRS.Chapter31.euclidWithCount_spec` proves its count is
+  {lit}`euclidDivisions b a` on the call {lit}`euclid a b`;
   {lit}`CLRS.Chapter31.fib_le_of_euclidDivisions` (Lemma 31.10) gives
   `a ≥ F_{k+2}`, `b ≥ F_{k+1}` for `k` calls;
   {lit}`CLRS.Chapter31.euclidDivisions_lt` (Theorem 31.11, Lamé) bounds the
@@ -76,6 +83,12 @@ primality test, and the Pollard's-rho factorization heuristic.
 * {lit}`CLRS.Chapter31.totient_mul_prime` and
   {lit}`CLRS.Chapter31.rsa_correct` (Theorem 31.36).
 
+* {lit}`CLRS.Chapter31.rsaKeyGen_roundTrip_mod` and
+  {lit}`CLRS.Chapter31.rsaKeyGen_roundTrip` connect generated keys to actual
+  encryption/decryption for every message, with exact recovery below the modulus.
+  Keys are assembled from supplied distinct primes; no prime generation, security,
+  or key-assembly runtime is claimed.
+
 ### 31.8 Primality Testing
 
 * {lit}`CLRS.Chapter31.fermat_test` (Theorem 31.31),
@@ -84,13 +97,13 @@ primality test, and the Pollard's-rho factorization heuristic.
 * **Carmichael numbers**: {lit}`CLRS.Chapter31.isCarmichael` — a composite `n`
   passing the Fermat test for every coprime base
   ({lit}`CLRS.Chapter31.carmichael_fermatPseudoprime`);
-  {lit}`CLRS.Chapter31.isCarmichael_561` exhibits the smallest one.
+  {lit}`CLRS.Chapter31.isCarmichael_561` proves that 561 is one; minimality is not proved.
 * **Miller-Rabin**: {lit}`CLRS.Chapter31.strongTestParams` (the `2^s·d`
   decomposition), {lit}`CLRS.Chapter31.strongPseudoprime` (STRONG-PSEUDOPRIME),
   {lit}`CLRS.Chapter31.Witness`, and the executable
   {lit}`CLRS.Chapter31.millerRabin` test.  Correctness:
   {lit}`CLRS.Chapter31.strongPseudoprime_of_prime` (a prime passes every
-  base), {lit}`CLRS.Chapter31.not_witness_of_prime`, and
+  coprime base), {lit}`CLRS.Chapter31.not_witness_of_prime`, and
   {lit}`CLRS.Chapter31.witness_not_prime` (a witness certifies
   compositeness).
 * **Miller-Rabin error bound (Rabin–Monier)**: {lit}`CLRS.Chapter31.goodUnits`
@@ -103,6 +116,14 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.strongLiars_card_le` — **at most `(n−1)/4` of the
   bases are strong liars** (Theorem 31.39, sharpened to `(n−1)/4` by
   Rabin–Monier).
+
+* {lit}`CLRS.Chapter31.MillerRabinExecution.run` decides from counted residues
+  and stops at the first rejecting base. Its counter is at most three times
+  the number of supplied bases times {lit}`Nat.size (n - 1)` modular
+  multiplications; decomposition, comparisons, sampling and bit runtime are excluded.
+  {lit}`CLRS.Chapter31.MillerRabinExecution.uniform_error_le` proves the
+  {lit}`4^-rounds` executed error bound for the finite product of independent
+  uniform nonzero residues. The old {lit}`millerRabinLoop` retains a detached budget.
 
 ### 31.9 Integer Factorization
 
@@ -129,20 +150,22 @@ primality test, and the Pollard's-rho factorization heuristic.
   {lit}`CLRS.Chapter31.pollardRhoLoop_terminates_on_collision` bound to the
   real construction.
 
-**Status: `main-proof-complete`** — Sections 31.1–31.9 fully proved,
-including the Miller-Rabin error bound and the POLLARD-RHO probabilistic
-analysis (birthday bound + expected `O(√p)`).
+**Status: {lit}`main-proof-complete`** for the represented mathematical
+interfaces of Sections 31.1–31.8. The legacy §31.9 integer-factorization
+material remains in the online scope.
 
-## Deferred Work
+## Cost and implementation boundaries
 
-The only remaining scope outside the represented fourth-edition sections is
-the RSA security (one-way function) claim.  The executable layers are now
-complete: `modularLinearEquationSolver` (§31.4), `modExpWithCount` (§31.6),
-`rsaKeyGen`/`rsaEncrypt`/`rsaDecrypt` (§31.7), and `millerRabinLoop` (§31.8);
-the least-common-multiple layer (§31.1) and the `ZMod.chineseRemainder`
-ring-isomorphism packaging (§31.5) are also proved.  The legacy §31.9
-integer-factorization development is retained as online material with its
-probabilistic analysis complete.
+The executable interfaces include the modular equation solver, counted
+modular exponentiation, supplied-prime RSA key assembly and round trips,
+and the residue-based Miller–Rabin loop. Euclid counts division steps;
+exponentiation and Miller–Rabin count modular multiplications. These are
+not bit-runtime claims. Miller–Rabin parameter decomposition, comparisons
+and base sampling are uncounted, and the old loop retains a detached budget.
+RSA key-prime generation, key-assembly runtime and security are outside the
+proved interface. The finite-product Miller–Rabin error theorem assumes
+independent uniform bases with replacement from nonzero residues.
+
 -/
 
 namespace CLRS

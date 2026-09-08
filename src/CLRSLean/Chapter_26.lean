@@ -12,10 +12,10 @@ import CLRSLean.Chapter_26.Section_26_6_MaxFlow_MinCut
 
 /-! # Chapter 26 - Maximum Flow
 
-Chapter 26 opens the maximum-flow part of the CLRS graph track.  The current
-partial development builds a finite capacity-function model, proves concrete
-Ford--Fulkerson augmentation and the full Max-Flow Min-Cut equivalence, and
-exposes infrastructure for the later algorithms.
+Chapter 26 opens the maximum-flow part of the CLRS graph track.  The development builds a finite capacity-function model, proves concrete
+Ford--Fulkerson augmentation and the full Max-Flow Min-Cut equivalence. The
+canonical fourth-edition Chapter 24 guide also imports constructed sparse
+Edmonds-Karp and initialized relabel-to-front executions with work bounds.
 
 ## Sections
 
@@ -111,7 +111,7 @@ the monotonic residual-distance theorem of Lemma 26.7.  The companion
 submodules assemble the explicit shortest augmenting path from residual
 reachability, run the Edmonds-Karp loop to an integral maximal flow
 ({lit}`edmondsKarp_maximal`), prove the critical-edge counting argument that
-bounds the number of augmentations by `O(VE²)`
+bounds the classical sequence of augmentations
 ({lit}`critical_count_bound`, {lit}`augmentation_count_bound`), and supply an
 executable breadth-first search ({lit}`residualBFS`) whose parent chain yields
 the shortest augmenting path ({lit}`bfs_shortestAugmenting`).
@@ -139,11 +139,25 @@ the termination foundation, and {lit}`maximal_of_no_overflow` combines a valid
 height function with zero internal excess to certify maximality via the
 max-flow min-cut theorem.
 
-## Deferred Work
+## Constructed fourth-edition executions
 
-Section 26.5 (relabel-to-front) and the fine-grained saturating/nonsaturating
-push count (`O(V²E)`/`O(V³)`) are deferred outside the current selected
-milestone.
+The canonical Chapter 24 guide imports {lit}`SparseEK.execute`, whose actual
+support-BFS timeline returns a maximum flow, makes at most {lit}`2VE`
+augmentations, and has work at most {lit}`130VE²` for nonempty positive-capacity
+support. Empty support costs at most {lit}`V+2`, including isolated vertices.
+This is a dictionary/queue/bucket and exact-real primitive charge model, not a
+persistent-container runtime theorem.
+
+It also imports {lit}`RelabelExecution.initializedFlow` and
+{lit}`RelabelExecution.initializedWork`. Source saturation, cached excess,
+current-neighbor scans, relabel minimum scans, and move-to-front list operations
+are constructed; their preserved invariants imply the discharge discipline.
+The run terminates at a maximum flow with at most {lit}`9V³` basic operations
+and at most {lit}`864V³` in the stated weighted scalar/indexed RAM charge,
+including initialization. No caller-supplied scheduler or terminal certificate
+is required. Exact-real primitive internals, allocation, persistent-function
+evaluation, and bit complexity remain outside this model.
+
 -/
 
 namespace CLRS

@@ -1,4 +1,4 @@
-import CLRSLean.Chapter_15.Section_15_1_Rod_Cutting
+import CLRSLean.FourthEdition.Chapter_14.Section_14_1_Rod_Cutting.Execution
 
 /-!
 # Section 14.1 — Rod cutting
@@ -19,9 +19,11 @@ Main results:
 - Definition {lit}`rodCutPlan` and theorems {lit}`rodCutPlan_correct`,
   {lit}`rodCutPlan_optimal`: `PRINT-CUT-ROD-SOLUTION` rebuilds an optimal
   cutting plan of length {lit}`n`.
-- Definition {lit}`rodCutStepCount` and theorems {lit}`rodCutStepCount_eq`,
-  {lit}`rodCutStepCount_le_quadratic`: `BOTTOM-UP-CUT-ROD` performs exactly
-  {lit}`n (n + 1) / 2` first-cut evaluations, an `O(n²)` bound.
+- {name}`CLRS.Chapter15.RodExecution.execute` fills an array using a single stored prefix per
+  outer iteration. {lit}`rodExecution_candidates_eq` connects its candidate
+  counter to {lit}`rodCutStepCount`; {lit}`rodExecution_candidates_le_quadratic`
+  bounds those executed candidate visits. Price lookup, array access, and
+  arithmetic are primitive events; their internals are excluded.
 - Definition {lit}`memoizedRodCut` and theorems {lit}`memoizedRodCut_value`,
   {lit}`memoizedRodCut_correct`: the top-down `MEMOIZED-CUT-ROD` cache-threading
   algorithm returns the optimal revenue and keeps its cache consistent.
@@ -550,6 +552,17 @@ theorem memoizedRodCut_value (price : Nat → Nat) (n : Nat) (cache : Nat → Op
     (hcons : ConsistentCache price cache) :
     (memoizedRodCut price n cache).1 = bottomUpRodRevenue price n :=
   (memoizedRodCut_correct price n cache hcons).1
+
+/-- The bottom-up execution realizes the previously defined triangular budget. -/
+theorem rodExecution_candidates_eq (price : Nat → Nat) (n : Nat) :
+    (RodExecution.execute price n).candidates = rodCutStepCount n :=
+  RodExecution.execute_candidates price n
+
+/-- Quadratic bound on actual candidate visits, independently of price values. -/
+theorem rodExecution_candidates_le_quadratic (price : Nat → Nat) (n : Nat) :
+    (RodExecution.execute price n).candidates ≤ n ^ 2 := by
+  rw [rodExecution_candidates_eq]
+  exact rodCutStepCount_le_quadratic n
 
 end Chapter15
 end CLRS

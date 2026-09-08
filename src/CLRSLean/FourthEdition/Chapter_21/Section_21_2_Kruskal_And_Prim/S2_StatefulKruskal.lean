@@ -324,17 +324,18 @@ theorem scan_initial_cost_le_inverseAckermann
   simp only [initial, zero_add]
   nlinarith
 
-/-- Comparison-sort work model used for the end-to-end CLRS bound. -/
+/-- Abstract comparison-sort budget; this module does not execute a counted sort. -/
 def comparisonSortWork (m : Nat) : Nat :=
   m * (Nat.log2 m + 1)
 
-/-- End-to-end Kruskal work: sorting, one constant scan action per edge, and
-the concrete Chapter 19 union-find execution. -/
+/-- Combined Kruskal budget: abstract sorting, one scan charge per edge, and
+the actual Chapter 19 union-find execution. Only the union-find component is
+derived from the returned scan trace. -/
 def totalWork (G : Graph (Fin n) E) (edges : List E) : Nat :=
   comparisonSortWork edges.length + edges.length +
     (scan G edges (initial n E)).cost
 
-/-- Exact decomposition of the implementation-level Kruskal work model. -/
+/-- Exact decomposition of the combined sorting budget and union-find counter. -/
 theorem totalWork_eq (G : Graph (Fin n) E) (edges : List E) :
     totalWork G edges =
       edges.length * (Nat.log2 edges.length + 1) + edges.length +

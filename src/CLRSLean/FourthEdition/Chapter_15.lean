@@ -39,9 +39,9 @@ these sources during the compatibility period.
 Section 15.4 (offline caching) is a native fourth-edition section.  Its finite
 cache model, farthest-in-future policy, legal-trace exchange construction, and
 public optimality theorems `CLRS.Caching.fifo_optimal` and
-`CLRS.Caching.fifo_optimal_from_empty` complete CLRS Theorem 15.5 for every
-finite request sequence at both the nonempty eviction-phase boundary and the
-literal empty start of the core transition semantics.  It is imported through
+`CLRS.Caching.fifo_optimal_from_empty` prove optimality for every finite request
+sequence from a nonempty eviction-phase cache, and from a literal empty cache
+whose core execution has capacity one after the first load.  It is imported through
 [Section 15.4](CLRSLean/FourthEdition/Chapter_15/Section_15_4_Offline_Caching/).
 The section is split into the sub-modules:
 
@@ -53,8 +53,9 @@ The section is split into the sub-modules:
 This completion is at the mathematical cache-policy level.  Pointer/RAM
 implementations and hardware caching costs remain optional refinements outside
 the advertised theorem boundary.  An arbitrary-capacity compulsory-fill phase
-is represented by the policy-independent `compulsoryFillCost` bridge rather
-than by an unverified mutable cache implementation.
+is not implemented here. The policy-independent `compulsoryFillCost` bridge
+assumes a supplied fill cost, resident set, and remaining suffix. It proves the
+arithmetic transfer of optimality, not a general-capacity empty-start execution.
 
 The third-edition Sections 16.4 (matroids) and 16.5 (task scheduling) are
 retained as supplementary online material (reachable through

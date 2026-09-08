@@ -6,8 +6,8 @@ import Mathlib
 # 5.4. Probabilistic analysis
 
 This section applies the CLRS §5.2 indicator-random-variable technique (see
-{lit}`CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean`) to two
-classic probabilistic analyses from CLRS §5.4, both over a **product uniform**
+{lit}`CLRSLean/Chapter_05/Section_05_2_Indicator_Random_Variables.lean`) to the birthday and balls-and-bins
+analyses from CLRS §5.4, both over a **product uniform**
 sample space evaluated with the shared toolkit
 {lit}`CLRS.Probability.fintypeExpect`.
 
@@ -29,6 +29,12 @@ pair of distinct coordinates collides with probability {lit}`1/n`
 citing only the shared toolkit.  This mirrors, without modifying, the
 balls-and-bins analyses of §8.4 (bucket sort) and §11.2 (chained hashing).
 
+The fair-coin development uses {lit}`CoinFlip n = Fin n → Fin 2`. It studies
+the maximum run of heads across the whole sequence. Its tail bound and
+tail-sum identity prove {lit}`E[L] ≤ log₂ n + 2`; independent disjoint blocks
+prove {lit}`E[L] ≥ log₂ n / 8` for {lit}`n ≥ 16`. Together these give the
+expected longest streak logarithmic growth.
+
 Main results:
 
 - Theorem {lit}`CLRS.Chapter05.singleBinProb`: a fixed ball lands in a fixed bin
@@ -40,7 +46,16 @@ Main results:
 - Theorem {lit}`CLRS.Chapter05.expectedCollisions_eq`: the expected number of
   same-birthday pairs is {lit}`k(k-1)/(2n)`.
 
-Status: `proved` for the product-uniform model over {lit}`Fin k → Fin n`.
+- Theorem {lit}`CLRS.Chapter05.longestStreak_upperBound`: for positive
+  {lit}`t`, the chance of a run of at least {lit}`t` heads is at most
+  {lit}`n / 2^t`.
+- Theorem {lit}`CLRS.Chapter05.expectedLongestStreak_le`: the expected maximum
+  run is at most {lit}`log₂ n + 2`.
+- Theorem {lit}`CLRS.Chapter05.expectedLongestStreak_lowerBound`: for
+  {lit}`n ≥ 16`, the expected maximum run is at least {lit}`log₂ n / 8`.
+
+Status: {lit}`proved` for the birthday/occupancy product-uniform model and
+the longest-run upper and lower bounds in the independent fair-coin model.
 
 Notation conventions used in this section:
 

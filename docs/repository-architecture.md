@@ -40,13 +40,13 @@ section/chapter changes
 
 ### Library Root
 
-`CLRSLean.lean` imports every public chapter guide, the reusable proof-pattern
+`src/CLRSLean.lean` imports every public chapter guide, the reusable proof-pattern
 aggregator, and the public progress/status/workflow pages.  It should remain a
 short landing page, not a second theorem ledger.
 
 ### Chapter Guides
 
-`src/CLRSLean/Chapter_XX.lean` imports the represented sections for one chapter and
+`src/CLRSLean/FourthEdition/Chapter_XX.lean` is the canonical chapter guide and
 states the chapter's formalization boundary.  A guide answers:
 
 - Which sections are represented?
@@ -165,3 +165,20 @@ Use three gates:
 
 The static gate establishes metadata consistency.  It does not replace the Lean
 kernel build, and the Lean build does not replace rendered-site checks.
+
+## File and page naming
+
+- Public chapters use `FourthEdition/Chapter_NN.lean` with two-digit numbers.
+  The displayed title follows the fourth-edition ledger.
+- Existing `Chapter_NN/Section_*.lean` paths and declaration names retain their
+  compatibility meanings. Resolve their edition through the map before editing.
+- Website titles describe a reader's destination: chapter index, progress,
+  proof status, online material, proof patterns, and contributor guide. Stable
+  module URLs need not change when a title is clarified.
+- Maintained Markdown uses lowercase, hyphen-separated filenames. Directory
+  indexes are `index.md`; the repository entry remains `README.md`.
+- Designs live in `docs/designs/`; implementation plans live in `docs/plans/`.
+  Both use a `YYYY-MM-DD-topic` stem. Their location describes their purpose,
+  independently of the tool used to write them.
+- Audit snapshots retain their original findings and dates. Release drafts
+  live in `docs/releases/`. Neither is a second live progress ledger.

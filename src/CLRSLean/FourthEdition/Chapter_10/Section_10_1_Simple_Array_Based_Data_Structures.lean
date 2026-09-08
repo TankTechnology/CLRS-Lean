@@ -26,7 +26,9 @@ Main results:
   {lit}`arrayEnqueue_overflow` / {lit}`arrayDequeue_empty`: array overflow and
   underflow are reported as {lit}`none`.
 
-Status: `proved` for the functional-list and array-backed models.
+Status: {lit}`proved` for functional-list LIFO/FIFO, valid array-pointer
+transitions, and the stated local array round trips. A general circular-array
+FIFO abstraction theorem is not claimed here.
 
 Deferred refinements: RAM execution, pointer mutation, and memory costs.
 -/
@@ -138,6 +140,18 @@ structure ArrayStack (α : Type u) where
   top : Nat
   capacity : Nat
 
+/-- Legal raw stack state: occupied slots fit within the capacity. Zero-capacity
+stacks are valid exactly when empty. -/
+def ArrayStack.Valid (s : ArrayStack α) : Prop := s.top ≤ s.capacity
+
+/-- Construct an empty stack over any supplied backing store. -/
+def ArrayStack.empty (capacity : Nat) (store : ArrayStore α) : ArrayStack α :=
+  ⟨store, 0, capacity⟩
+
+/-- Every empty stack satisfies its pointer bound, including capacity zero. -/
+theorem ArrayStack.empty_valid (capacity : Nat) (store : ArrayStore α) :
+    (ArrayStack.empty capacity store).Valid := Nat.zero_le _
+
 /-- PUSH onto an array-backed stack: write at the current top and advance the top
 pointer; returns {lit}`none` on overflow when the stack is already full. -/
 def arrayPush (x : α) (s : ArrayStack α) : Option (ArrayStack α) :=
@@ -183,33 +197,54 @@ structure ArrayQueue (α : Type u) where
   tail : Nat
   capacity : Nat
 
+/-- Legal circular-queue state. One slot is reserved to distinguish full from
+empty, so a valid capacity-one queue has no usable storage slots. -/
+def ArrayQueue.Valid (q : ArrayQueue α) : Prop :=
+  0 < q.capacity ∧ q.head < q.capacity ∧ q.tail < q.capacity
+
+instance (q : ArrayQueue α) : Decidable q.Valid :=
+  inferInstanceAs (Decidable (0 < q.capacity ∧ q.head < q.capacity ∧ q.tail < q.capacity))
+
+/-- Construct an empty raw queue; positive capacity makes it valid. -/
+def ArrayQueue.empty (capacity : Nat) (store : ArrayStore α) : ArrayQueue α :=
+  ⟨store, 0, 0, capacity⟩
+
+/-- Empty circular queues are valid precisely for positive capacity. -/
+theorem ArrayQueue.empty_valid (capacity : Nat) (store : ArrayStore α)
+    (hcapacity : 0 < capacity) : (ArrayQueue.empty capacity store).Valid :=
+  ⟨hcapacity, hcapacity, hcapacity⟩
+
 /-- ENQUEUE: write at the tail and advance the tail (wrapping around); returns
-{lit}`none` on overflow when the queue is full. -/
+{lit}`none` on overflow or an invalid raw state, including zero capacity. -/
 def arrayEnqueue (x : α) (q : ArrayQueue α) : Option (ArrayQueue α) :=
-  if q.head = (q.tail + 1) % q.capacity then
-    none
-  else
-    some { store := arrayWrite q.tail x q.store, head := q.head,
-           tail := (q.tail + 1) % q.capacity, capacity := q.capacity }
+  if q.Valid then
+    if q.head = (q.tail + 1) % q.capacity then
+      none
+    else
+      some { store := arrayWrite q.tail x q.store, head := q.head,
+             tail := (q.tail + 1) % q.capacity, capacity := q.capacity }
+  else none
 
 /-- DEQUEUE: read at the head and advance the head (wrapping around); returns
-{lit}`none` on underflow when the queue is empty. -/
+{lit}`none` on underflow or an invalid raw state. -/
 def arrayDequeue (q : ArrayQueue α) : Option (α × ArrayQueue α) :=
-  if q.head = q.tail then
-    none
-  else
-    some (arrayRead q.store q.head,
-          { store := q.store, head := (q.head + 1) % q.capacity,
-            tail := q.tail, capacity := q.capacity })
+  if q.Valid then
+    if q.head = q.tail then
+      none
+    else
+      some (arrayRead q.store q.head,
+            { store := q.store, head := (q.head + 1) % q.capacity,
+              tail := q.tail, capacity := q.capacity })
+  else none
 
 /-- Enqueueing into an empty array-backed queue and then dequeueing returns the
-enqueued element; the circular wrap leaves the tail one slot ahead of the head. -/
+enqueued element; the resulting head and tail are equal again after the dequeue. -/
 theorem arrayDequeue_arrayEnqueue_empty (x : α) (n : Nat) (f : Nat → α) (hn : 1 < n) :
     (arrayEnqueue x { store := f, head := 0, tail := 0, capacity := n }).bind
         (fun q' => arrayDequeue q') =
       some (x, { store := arrayWrite 0 x f, head := 1 % n, tail := 1 % n, capacity := n }) := by
   unfold arrayEnqueue arrayDequeue
-  simp [hn, Nat.mod_eq_of_lt, arrayRead, arrayWrite]
+  simp [ArrayQueue.Valid, hn, show 0 < n by omega, Nat.mod_eq_of_lt, arrayRead, arrayWrite]
 
 /-- Dequeueing an empty array-backed queue reports underflow. -/
 theorem arrayDequeue_empty (f : Nat → α) (n : Nat) :
@@ -224,9 +259,94 @@ theorem arrayEnqueue_overflow (x : α) (q : ArrayQueue α)
 
 /-- Enqueueing advances the tail pointer, wrapping modulo the capacity. -/
 theorem arrayEnqueue_tail_wraps (x : α) (q : ArrayQueue α)
-    (h : q.head ≠ (q.tail + 1) % q.capacity) :
+    (hq : q.Valid) (h : q.head ≠ (q.tail + 1) % q.capacity) :
     (arrayEnqueue x q).map (fun q' => q'.tail) = some ((q.tail + 1) % q.capacity) := by
-  simp [arrayEnqueue, h]
+  simp [arrayEnqueue, hq, h]
+
+
+/-! ## Validity and safe raw-state handling -/
+
+/-- A successful push stays within capacity and preserves that capacity. -/
+theorem arrayPush_preserves_valid {x : α} {s s' : ArrayStack α}
+    (h : arrayPush x s = some s') : s'.Valid ∧ s'.capacity = s.capacity := by
+  unfold arrayPush at h
+  split at h
+  · simp only [Option.some.injEq] at h
+    subst s'
+    constructor
+    · dsimp [ArrayStack.Valid]
+      omega
+    · rfl
+  · simp at h
+
+/-- Popping a valid stack preserves validity and capacity. -/
+theorem arrayPop_preserves_valid {s s' : ArrayStack α} {x : α}
+    (hs : s.Valid) (h : arrayPop s = some (x, s')) :
+    s'.Valid ∧ s'.capacity = s.capacity := by
+  unfold arrayPop at h
+  split at h
+  · simp at h
+  · simp only [Option.some.injEq, Prod.mk.injEq] at h
+    rcases h with ⟨_, rfl⟩
+    dsimp [ArrayStack.Valid] at hs ⊢
+    omega
+
+/-- Invalid raw queues cannot accept an element. -/
+theorem arrayEnqueue_invalid (x : α) (q : ArrayQueue α) (hq : ¬ q.Valid) :
+    arrayEnqueue x q = none := by simp [arrayEnqueue, hq]
+
+/-- Invalid raw queues cannot produce an element. -/
+theorem arrayDequeue_invalid (q : ArrayQueue α) (hq : ¬ q.Valid) :
+    arrayDequeue q = none := by simp [arrayDequeue, hq]
+
+/-- Zero-capacity queues reject every enqueue, independently of pointer values. -/
+theorem arrayEnqueue_zero_capacity (x : α) (q : ArrayQueue α) (h : q.capacity = 0) :
+    arrayEnqueue x q = none :=
+  arrayEnqueue_invalid x q (by simp [ArrayQueue.Valid, h])
+
+/-- Zero-capacity queues reject every dequeue, independently of pointer values. -/
+theorem arrayDequeue_zero_capacity (q : ArrayQueue α) (h : q.capacity = 0) :
+    arrayDequeue q = none :=
+  arrayDequeue_invalid q (by simp [ArrayQueue.Valid, h])
+
+/-- Successful enqueue preserves legal pointers and the capacity. The validity
+check also guarantees that its write occurs at an in-range tail index. -/
+theorem arrayEnqueue_preserves_valid {x : α} {q q' : ArrayQueue α}
+    (h : arrayEnqueue x q = some q') : q'.Valid ∧ q'.capacity = q.capacity := by
+  unfold arrayEnqueue at h
+  split at h
+  next hq =>
+    split at h
+    · simp at h
+    · simp only [Option.some.injEq] at h
+      subst q'
+      exact ⟨⟨hq.1, hq.2.1, Nat.mod_lt _ hq.1⟩, rfl⟩
+  · simp at h
+
+/-- Successful dequeue preserves legal pointers and the capacity. -/
+theorem arrayDequeue_preserves_valid {q q' : ArrayQueue α} {x : α}
+    (h : arrayDequeue q = some (x, q')) : q'.Valid ∧ q'.capacity = q.capacity := by
+  unfold arrayDequeue at h
+  split at h
+  next hq =>
+    split at h
+    · simp at h
+    · simp only [Option.some.injEq, Prod.mk.injEq] at h
+      rcases h with ⟨_, rfl⟩
+      exact ⟨⟨hq.1, Nat.mod_lt _ hq.1, hq.2.2⟩, rfl⟩
+  · simp at h
+
+/-- Every successful enqueue uses a valid input state and an in-range write. -/
+theorem arrayEnqueue_valid_input {x : α} {q q' : ArrayQueue α}
+    (h : arrayEnqueue x q = some q') : q.Valid := by
+  by_contra hq
+  simp [arrayEnqueue, hq] at h
+
+/-- Every successful dequeue reads a valid input state. -/
+theorem arrayDequeue_valid_input {q q' : ArrayQueue α} {x : α}
+    (h : arrayDequeue q = some (x, q')) : q.Valid := by
+  by_contra hq
+  simp [arrayDequeue, hq] at h
 
 end Chapter10
 end CLRS

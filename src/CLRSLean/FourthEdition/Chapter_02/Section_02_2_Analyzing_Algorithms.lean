@@ -7,11 +7,18 @@ import CLRSLean.FourthEdition.Chapter_02.Section_02_2_Analyzing_Algorithms.LineC
 
 This file records the Chapter 2 cost models.  The line-cost development assigns
 the textbook constants `c₁`, `c₂`, and `c₄`--`c₈`, derives the execution count
-of every charged pseudocode line from the loop trace `tᵢ`, and proves the full
-seven-term equation for `T(n)`.  Its best- and worst-case specializations are
-proved as exact execution-count records.  The comparison model separately
-proves the tight asymptotic bounds: Θ(n²) in the worst case and Θ(n) for
-already-sorted input.
+of every charged pseudocode line from supplied symbolic counts `tᵢ`, and proves
+the full seven-term equation for `T(n)`. Its best- and worst-case
+specializations are exact substitutions into that table; these parameters are
+not extracted from an input execution.
+
+The recursive comparison counter is bounded on every input by
+`insertionSortComparisons_le_worst`. The explicit descending family
+`insertionSortWorstInput` attains that bound at every size, including zero.
+`insertionSortWorstComparisons_isGreatest` identifies the size formula with the
+maximum of actual length-n comparison counts, and
+`insertionSortComparisons_worst_case_theta` combines this connection with Θ(n²).
+Already-sorted input has exactly n-1 comparisons and the existing Θ(n) bound.
 
 A `ThetaBoundedBy` predicate packages the O and Ω directions into a single
 Θ-notation claim, matching the textbook's asymptotic language in §2.2.
@@ -21,11 +28,13 @@ A `ThetaBoundedBy` predicate packages the O and Ω directions into a single
 * `EventuallyBoundedBy` is an O-notation upper-bound predicate; the textbook
   uses Θ-notation (both upper and lower bounds) in §2.2.  The
   `ThetaBoundedBy` wrapper combines both directions to recover the Θ claim.
-  The worst-case Θ(n²) bound is `insertionSortWorstComparisons_theta_quadratic`;
-  the best-case Θ(n) bound is `insertionSortBestComparisons_theta_linear`.
+  `insertionSortComparisons_worst_case_theta` connects the worst-case Θ(n²)
+  formula to the attained maximum of actual runs; the best-case Θ(n) bound is
+  `insertionSortBestComparisons_theta_linear`.
 * The line-cost table is a symbolic unit-cost model.  It accounts for the
   for-loop test, assignments, while-loop tests, shifts, and decrements, but it
-  is not an operational word-RAM or mutable-array semantics.
+  is not an operational word-RAM or mutable-array semantics. No validity
+  predicate asserts that every supplied `tᵢ` sequence is a realizable trace.
 * Discursive content (why worst-case analysis is preferred, RAM-model
   instruction set enumeration) is not formalized — this is a reasonable
   omission for a theorem-oriented companion.
@@ -154,6 +163,105 @@ def insertSortedComparisons (x : Nat) : List Nat → Nat
 def insertionSortComparisons : List Nat → Nat
   | [] => 0
   | x :: xs => insertSortedComparisons x (insertionSort xs) + insertionSortComparisons xs
+
+/-! ### Attained worst-case count of actual comparison runs -/
+
+/-- Inserting into a list makes at most one comparison per existing element. -/
+theorem insertSortedComparisons_le_length (x : Nat) (xs : List Nat) :
+    insertSortedComparisons x xs ≤ xs.length := by
+  induction xs with
+  | nil => simp [insertSortedComparisons]
+  | cons y ys ih =>
+      simp only [insertSortedComparisons, List.length_cons]
+      split <;> omega
+
+/-- The triangular worst-case budget grows by the previous input length. -/
+theorem insertionSortWorstComparisons_succ (n : Nat) :
+    insertionSortWorstComparisons (n + 1) =
+      n + insertionSortWorstComparisons n := by
+  cases n with
+  | zero => simp [insertionSortWorstComparisons, triangular]
+  | succ n => simp [insertionSortWorstComparisons, triangular]; omega
+
+/-- Every actual insertion-sort comparison count is bounded by the size budget. -/
+theorem insertionSortComparisons_le_worst (xs : List Nat) :
+    insertionSortComparisons xs ≤ insertionSortWorstComparisons xs.length := by
+  induction xs with
+  | nil => simp [insertionSortComparisons, insertionSortWorstComparisons, triangular]
+  | cons x xs ih =>
+      have h := insertSortedComparisons_le_length x (insertionSort xs)
+      have hlen := (insertionSort_perm xs).length_eq
+      rw [insertionSortComparisons, List.length_cons, insertionSortWorstComparisons_succ]
+      omega
+
+/-- An explicit worst-case family: the distinct keys n-1, ..., 0. -/
+def insertionSortWorstInput : Nat → List Nat
+  | 0 => []
+  | n + 1 => n :: insertionSortWorstInput n
+
+@[simp] theorem insertionSortWorstInput_length (n : Nat) :
+    (insertionSortWorstInput n).length = n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [insertionSortWorstInput, ih]
+
+private theorem mem_insertionSortWorstInput_lt {n x : Nat}
+    (hx : x ∈ insertionSortWorstInput n) : x < n := by
+  induction n with
+  | zero => simp [insertionSortWorstInput] at hx
+  | succ n ih =>
+      simp only [insertionSortWorstInput, List.mem_cons] at hx
+      rcases hx with rfl | hx
+      · omega
+      · exact Nat.lt_succ_of_lt (ih hx)
+
+/-- A key larger than every existing element forces a full insertion scan. -/
+theorem insertSortedComparisons_eq_length_of_forall_lt (x : Nat) (xs : List Nat)
+    (h : ∀ y ∈ xs, y < x) : insertSortedComparisons x xs = xs.length := by
+  induction xs with
+  | nil => rfl
+  | cons y ys ih =>
+      have hxy : ¬x ≤ y := Nat.not_le.mpr (h y (by simp))
+      have htail : ∀ z ∈ ys, z < x := fun z hz => h z (by simp [hz])
+      simp [insertSortedComparisons, hxy, ih htail, Nat.add_comm]
+
+/-- The descending family attains the worst-case budget at every size. -/
+theorem insertionSortComparisons_worst_input (n : Nat) :
+    insertionSortComparisons (insertionSortWorstInput n) =
+      insertionSortWorstComparisons n := by
+  induction n with
+  | zero => simp [insertionSortWorstInput, insertionSortComparisons,
+      insertionSortWorstComparisons, triangular]
+  | succ n ih =>
+      have hall : ∀ y ∈ insertionSort (insertionSortWorstInput n), y < n := by
+        intro y hy
+        exact mem_insertionSortWorstInput_lt
+          ((insertionSort_perm (insertionSortWorstInput n)).mem_iff.mp hy)
+      have hscan := insertSortedComparisons_eq_length_of_forall_lt n
+        (insertionSort (insertionSortWorstInput n)) hall
+      have hlen := (insertionSort_perm (insertionSortWorstInput n)).length_eq
+      rw [insertionSortWorstInput, insertionSortComparisons, hscan, hlen,
+        insertionSortWorstInput_length, ih, insertionSortWorstComparisons_succ]
+
+/-- The size formula is the attained maximum of actual length-n run counts. -/
+theorem insertionSortWorstComparisons_isGreatest (n : Nat) : IsGreatest
+    {c | ∃ xs : List Nat, xs.length = n ∧ insertionSortComparisons xs = c}
+    (insertionSortWorstComparisons n) := by
+  constructor
+  · exact ⟨insertionSortWorstInput n, insertionSortWorstInput_length n,
+      insertionSortComparisons_worst_input n⟩
+  · rintro c ⟨xs, hlen, rfl⟩
+    simpa [hlen] using insertionSortComparisons_le_worst xs
+
+/-- Actual worst-case comparison counts have the proved quadratic Theta bound. -/
+theorem insertionSortComparisons_worst_case_theta :
+    (∀ n, IsGreatest
+      {c | ∃ xs : List Nat, xs.length = n ∧ insertionSortComparisons xs = c}
+      (insertionSortWorstComparisons n)) ∧
+    ThetaBoundedBy insertionSortWorstComparisons (fun n => n * n) :=
+  ⟨insertionSortWorstComparisons_isGreatest,
+    insertionSortWorstComparisons_theta_quadratic⟩
+
 
 lemma allLe_of_perm {x : Nat} {xs ys : List Nat} (h_perm : xs.Perm ys) (h_allLe : AllLe x xs) :
     AllLe x ys := by

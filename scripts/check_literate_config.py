@@ -12,12 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 FOURTH_EDITION = "CLRSLean.FourthEdition"
 PRIMARY_ROOT_MODULES = (
     FOURTH_EDITION,
+    "CLRSLean.Progress",
+    "CLRSLean.Status",
     "CLRSLean.OnlineMaterial",
     "CLRSLean.ProofPatterns",
     "CLRSLean.Probability",
     "CLRSLean.Extensions",
-    "CLRSLean.Progress",
-    "CLRSLean.Status",
     "CLRSLean.Workflow",
 )
 FOURTH_EDITION_CHAPTER_TITLES = (
@@ -91,7 +91,7 @@ def validate_config(config_text: str, fourth_edition_source: str) -> list[str]:
     actual_root = order_children.get("CLRSLean", [])
     if actual_root != list(PRIMARY_ROOT_MODULES):
         errors.append(
-            "primary root order must be fourth edition, online material, and support pages: "
+            "primary root order must be chapters, progress, proof status, and supporting guides: "
             + ", ".join(PRIMARY_ROOT_MODULES)
         )
 
@@ -112,7 +112,7 @@ def validate_config(config_text: str, fourth_edition_source: str) -> list[str]:
         )
 
     expected_root_titles = {
-        FOURTH_EDITION: "CLRS Fourth Edition",
+        FOURTH_EDITION: "Chapters 1–35 · CLRS Fourth Edition",
         "CLRSLean.OnlineMaterial": "Online Material",
     }
     for module, expected in expected_root_titles.items():

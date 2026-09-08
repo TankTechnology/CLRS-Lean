@@ -5,6 +5,10 @@ import CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_P
 import CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem
 import CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem.Costed
 
+import CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem.GraphExecution
+import CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem.ReturnedFamily
+import CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming.VertexCoverLP
+
 /-!
 # Chapter 35 — Approximation Algorithms
 
@@ -26,12 +30,18 @@ imported through
 [Section 35.1](CLRSLean/FourthEdition/Chapter_35/Section_35_1_The_Vertex_Cover_Problem/).
 
 Section 35.2 (the traveling-salesperson problem) is also a native fourth-edition
-section: it models APPROX-TSP-TOUR with a rooted tree (a minimum spanning tree),
+section: its original model takes a rooted minimum spanning tree and
 proves that the depth-first walk costs exactly twice the tree (Lemma 35.2), that
 the preorder tour visits every vertex exactly once, that shortcutting the walk
 costs no more than the walk (triangle inequality), and — combining these with
 Lemma 35.3 (an MST costs no more than any tour) — that APPROX-TSP-TOUR returns a
-tour within a factor of two of any tour (Theorem 35.2).  It is imported through
+tour within a factor of two of any tour (Theorem 35.2). The new
+{lit}`GraphAdapter.graphTour` starts from a complete Nat-weighted graph on
+{lit}`Fin n` and a root, runs the Chapter 21 Prim frontier construction, and
+roots its selected edges. Its factor-two theorem constructs the minimum-tree
+obligations internally and needs only the stated metric assumptions and a
+comparator tour. Rooting and component decisions are classical finite
+constructions; no implementation runtime is asserted here. It is imported through
 [Section 35.2](CLRSLean/FourthEdition/Chapter_35/Section_35_2_The_Traveling_Salesperson_Problem/).
 
 Section 35.3 (the set-covering problem) is a native fourth-edition section: it
@@ -40,7 +50,10 @@ returned family, and — via the harmonic charging argument — proves that the
 number of sets picked is at most `H(d)` times the size of any cover, where `d`
 bounds the set sizes (Theorem 35.3), and — via the iterated multiplicative
 shrink of the uncovered set — that GREEDY-SET-COVER is an `O(lg |X|)`-
-approximation algorithm (Theorem 35.4).  It is imported through
+approximation algorithm (Theorem 35.4).
+{lit}`greedySetCover_card_eq_cost` connects the actual returned family to this
+pick count; {lit}`greedySetCover_card_approx` and
+{lit}`greedySetCover_card_ln_approx` bound that returned cardinality. It is imported through
 [Section 35.3](CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem/).
 
 Section 35.4 (randomization and linear programming) is a native fourth-edition
@@ -50,7 +63,16 @@ with probability `7/8` under a uniformly random assignment and linearity of
 expectation gives the `7/8 · |F|` bound, and the factor-two LP-rounding
 approximation of minimum-weight vertex cover (Theorem 35.6), where rounding the
 fractional cover `x` up at the `1/2` threshold costs at most twice the LP
-objective.  It is imported through
+objective. The random model uses an unweighted finite set of clauses; duplicate
+clauses collapse, and each clause must use three distinct variables.
+{lit}`VertexCoverLP.execute` constructs the edge and box constraints, invokes
+initialized Chapter 29 SIMPLEX, and rounds its returned optimum. Feasibility
+and nonnegative rational weights rule out the solver’s infeasible and unbounded
+outcomes; every integral comparator cover supplies the lower-bound bridge.
+{lit}`VertexCoverLP.execute_correct` proves coverage and factor two without a
+supplied fractional solution or objective-bound premise. This Fin-indexed
+construction uses real fractional vectors and exact-real classical SIMPLEX;
+it makes no polynomial SIMPLEX or bit-runtime claim. It is imported through
 [Section 35.4](CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming/).
 
 Section 35.5 (the subset-sum problem) is a native fourth-edition section: it

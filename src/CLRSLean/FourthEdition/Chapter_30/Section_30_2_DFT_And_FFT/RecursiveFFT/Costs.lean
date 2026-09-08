@@ -4,7 +4,10 @@ import Mathlib.Data.Nat.Log
 
 /-! # Chapter 30.2: Recursive FFT costs and padding
 
-All exact counts below are projections of `recursiveFFTExec`.  The independent
+All exact counts below are projections of {lit}`recursiveFFTExec` in the
+shared butterfly arithmetic model. Each product used by both output slots is
+charged once; this does not count duplicated evaluation of function-valued
+outputs.  The independent
 numeric closed form is introduced only after those execution equations.
 -/
 
@@ -42,7 +45,7 @@ theorem recursiveFFTExec_multiplications [Ring K] {k : Nat}
         twiddlePowersAuxExec_multiplications, pow_succ]
       ring
 
-/-- Exact total work of the canonical recursive FFT execution. -/
+/-- Exact charged work of recursive FFT under the shared-product model. -/
 theorem recursiveFFTWork_exact [Ring K] {k : Nat}
     (omega : K) (a : PowTwoVec K k) :
     recursiveFFTWork omega a = 2 * k * 2 ^ k := by

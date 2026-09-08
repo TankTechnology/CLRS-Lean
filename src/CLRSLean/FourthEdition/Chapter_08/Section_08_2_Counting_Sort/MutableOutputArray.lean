@@ -1,66 +1,27 @@
 import Mathlib
 import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort
 import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.CountTables
+import CLRSLean.FourthEdition.Chapter_08.Section_08_2_Counting_Sort.Execution
 
 /-!
-# CLRS Section 8.2 - Counting sort mutable output-array refinement
+# CLRS Section 8.2 - Stable indexed-bucket output-array refinement
 
-This file adds the final imperative refinement layer for CLRS
-{lit}`COUNTING-SORT`: a single mutable output {lit}`Array` filled by a
-cumulative-count reverse scan.  It sits on top of the count-table and
-reverse-scan layers of {lit}`Section_08_2_Counting_Sort.CountTables` and reuses
-the concrete {lit}`Array` pattern established for the mutable dynamic tables of
-CLRS Section 17.4.
+The public {lit}`countingSortArray` calls {lit}`CountingExecution.execute`:
+one initialization loop, one right-to-left indexed distribution, and one
+output loop visiting the stored buckets and pushing their elements. Its array
+output equals the existing {lit}`countingSortBy` specification, preserving
+orderedness, per-key stability, membership, and permutation contracts.
 
-The construction {lit}`countingSortArray` fills the output {lit}`Array α`
-segment by segment for keys {lit}`0, 1, ..., maxKey`, appending each key segment
-produced by the stability-preserving reverse scan
-{lit}`ReverseScan.reverseBucket`.  The segment boundaries are exactly the
-cumulative counts {lit}`ReverseScan.cumulativeCount`, matching the prefix-count
-array {lit}`C` of the textbook algorithm: after filling keys {lit}`0..j` the
-number of used output slots is {lit}`cumulativeCount key xs j`.
+The older {lit}`scatter` remains a per-key-filter specification helper. It is
+not called by the public sorter. Cumulative counts describe output segment
+boundaries; the executable does not run the textbook cumulative-counter
+decrement program. This is an indexed stable-bucket refinement.
 
-The refinement theorem {lit}`countingSortArray_toList` proves that the mutable
-output array, read back as a list, is *extensionally equal* to the stable bucket
-specification {lit}`countingSortBy`.  The array therefore inherits the full
-correctness spine: ordered-by-key output, per-key stability, membership
-preservation, and multiset permutation.  Finally {lit}`countingSortArrayCost`
-records the four linear passes of the algorithm and
-{lit}`countingSortArrayCost_bigO` packages the {lit}`O(n + k)` work bound, with
-{lit}`countingSortArray_size_of_allKeysLe` pinning the number of scatter writes
-to exactly {lit}`n` under the CLRS precondition that keys lie in {lit}`0..maxKey`.
-
-Main results:
-
-- Definition {lit}`countingSortArray`: mutable output-array counting sort.
-- Definition {lit}`countingSortInPlace`: the same refinement taking and
-  returning an {lit}`Array`.
-- Theorem {lit}`countingSortArray_toList`: the mutable output array refines
-  {lit}`countingSortBy` extensionally.
-- Theorems {lit}`countingSortArray_ordered`, {lit}`countingSortArray_bucket_eq`,
-  {lit}`countingSortArray_mem_iff`, {lit}`countingSortArray_perm`, and
-  {lit}`countingSortArray_correct`: inherited ordered/stable/membership/permutation
-  correctness.
-- Theorems {lit}`scatter_range_size` and {lit}`countingSortArray_size`: the
-  fill offsets are the cumulative counts.
-- Theorem {lit}`countingSortArray_size_of_allKeysLe`: exactly {lit}`n` scatter
-  writes under the CLRS key-range precondition.
-- Definition {lit}`countingSortArrayCost` and theorems
-  {lit}`countingSortArrayCost_eq`, {lit}`countingSortArrayCost_le`, and
-  {lit}`countingSortArrayCost_bigO`: the linear {lit}`O(n + k)` work bound.
-
-Notation conventions used in this section:
-
-- `key` : the natural-number key function
-- `xs`  : the input list
-- `maxKey` : the maximum key `k`; keys are assumed to lie in `0..maxKey`
-- `n`   : the input length `xs.length`
-
-Current gaps:
-
-- A full RAM/step-count operational cost semantics (charging individual array
-  reads and writes through an execution model) remains out of scope; the linear
-  work bound here is a per-pass step count matching the CLRS accounting.
+The execution returns counters accumulated in its loops.
+{lit}`countingSortArrayCost` is their controller-visit total on bounded keys,
+while {lit}`CountingExecution.execute_indexedWork` counts key evaluations,
+index checks, reads, cons operations, writes, bucket visits, and output pushes.
+These unit-cost ledgers do not model persistent-array copying or machine time.
 -/
 
 namespace CLRS
@@ -70,16 +31,8 @@ namespace MutableOutput
 
 /-! ## The mutable output array -/
 
-/--
-Scatter the reverse-scan buckets for a list of keys {lit}`ks` into a growing
-output {lit}`Array`, appending each key segment via a real {lit}`Array` append.
-
-This is the physical fill loop: {lit}`out` starts empty and each key {lit}`k`
-contributes its stable reverse-scan bucket {lit}`ReverseScan.reverseBucket key
-xs k` to the right end of {lit}`out`, so the segment for key {lit}`k` occupies a
-contiguous block whose left boundary is the cumulative count of the earlier
-keys.
--/
+/-- Per-key-filter scatter specification. This helper rescans the input for
+every requested key and is not the public linear controller. -/
 def scatter (key : α → Nat) (xs : List α) (ks : List Nat) : Array α :=
   ks.foldl (fun out k => out ++ (ReverseScan.reverseBucket key xs k).toArray) #[]
 
@@ -104,20 +57,13 @@ theorem scatter_toList (key : α → Nat) (xs : List α) (ks : List Nat) :
         ih (init ++ (ReverseScan.reverseBucket key xs k).toArray)]
       simp [List.flatMap_cons, List.append_assoc]
 
-/--
-Mutable output-array counting sort: fill the output {lit}`Array α` segment by
-segment for keys {lit}`0, 1, ..., maxKey`, each segment produced by the stable
-reverse scan.  The segment boundaries are the cumulative counts, matching the
-prefix-count array of CLRS {lit}`COUNTING-SORT`.
--/
+/-- Stable output array from the actual indexed distribution and emission loops. -/
 def countingSortArray (maxKey : Nat) (key : α → Nat) (xs : List α) : Array α :=
-  scatter key xs (List.range (maxKey + 1))
+  (CountingExecution.execute maxKey key xs).output
 
 /--
-Array-to-array wrapper of the mutable output refinement: sort the elements of an
-{lit}`Array` and return a new {lit}`Array`.  This is the imperative
-{lit}`COUNTING-SORT` reading its input from and writing its output to an
-{lit}`Array`.
+Array-to-array wrapper of the indexed stable-bucket refinement: read the
+input array and return a new sorted output array.
 -/
 def countingSortInPlace (maxKey : Nat) (key : α → Nat) (a : Array α) : Array α :=
   countingSortArray maxKey key a.toList
@@ -131,11 +77,17 @@ correctness properties transfer through this extensional equality.
 -/
 theorem countingSortArray_toList (maxKey : Nat) (key : α → Nat) (xs : List α) :
     (countingSortArray maxKey key xs).toList = countingSortBy maxKey key xs := by
-  unfold countingSortArray
-  rw [scatter_toList]
-  change ReverseScan.countingSortByReverse maxKey key xs = countingSortBy maxKey key xs
-  rw [ReverseScan.countingSortByReverse_eq_countingSortByTable,
-    countingSortByTable_eq_countingSortBy]
+  exact CountingExecution.execute_result maxKey key xs
+
+/-- The linear controller is extensionally equal to the older per-key scatter helper. -/
+theorem countingSortArray_eq_scatter (maxKey : Nat) (key : α → Nat) (xs : List α) :
+    countingSortArray maxKey key xs = scatter key xs (List.range (maxKey + 1)) := by
+  apply Array.toList_inj.mp
+  rw [countingSortArray_toList, scatter_toList]
+  unfold countingSortBy
+  apply List.flatMap_congr
+  intro k hk
+  exact (ReverseScan.reverseBucket_eq_bucket key xs k).symm
 
 /-- The array wrapper reads back as the stable bucket specification of its input. -/
 theorem countingSortInPlace_toList (maxKey : Nat) (key : α → Nat) (a : Array α) :
@@ -217,7 +169,7 @@ i.e. the total number of in-range elements.
 -/
 theorem countingSortArray_size (maxKey : Nat) (key : α → Nat) (xs : List α) :
     (countingSortArray maxKey key xs).size = ReverseScan.cumulativeCount key xs maxKey := by
-  unfold countingSortArray
+  rw [countingSortArray_eq_scatter]
   exact scatter_range_size key xs maxKey
 
 /--
@@ -233,13 +185,9 @@ theorem countingSortArray_size_of_allKeysLe [DecidableEq α]
 
 /-! ## Linear work bound -/
 
-/--
-Per-pass step count of CLRS {lit}`COUNTING-SORT` on an input of length {lit}`n`
-with keys in {lit}`0..maxKey`: initialize the {lit}`maxKey + 1` count slots, run
-one counting pass over the {lit}`n` inputs, run one prefix-sum pass over the
-{lit}`maxKey + 1` counts, and run one scatter pass writing the {lit}`n` inputs
-into the output array.
--/
+/-- Controller-visit ledger: initialize each bucket, visit each input once,
+visit each stored bucket once, and push each output element once. Bounded
+keys make the number of output pushes equal to the input length. -/
 def countingSortArrayCost (maxKey : Nat) (n : Nat) : Nat :=
   (maxKey + 1) + n + (maxKey + 1) + n
 
@@ -266,6 +214,35 @@ theorem countingSortArrayCost_bigO :
   refine ⟨2, ?_⟩
   intro maxKey n
   unfold countingSortArrayCost
+  omega
+
+/-- The actual controller returns the advertised ledger on bounded keys. -/
+theorem countingSortArray_execution_cost [DecidableEq α]
+    (maxKey : Nat) (key : α → Nat) (xs : List α) (hxs : AllKeysLe key xs maxKey) :
+    (CountingExecution.execute maxKey key xs).controllerVisits =
+      countingSortArrayCost maxKey xs.length := by
+  rw [CountingExecution.execute_controllerVisits maxKey key xs hxs,
+    countingSortArrayCost_eq]
+
+/-- Return the output and the controller visits from the same execution. -/
+def countingSortArrayWithCost (maxKey : Nat) (key : α → Nat) (xs : List α) : Array α × Nat :=
+  let run := CountingExecution.execute maxKey key xs
+  (run.output, run.controllerVisits)
+
+theorem countingSortArrayWithCost_result (maxKey : Nat) (key : α → Nat) (xs : List α) :
+    (countingSortArrayWithCost maxKey key xs).1 = countingSortArray maxKey key xs := rfl
+
+theorem countingSortArrayWithCost_cost [DecidableEq α]
+    (maxKey : Nat) (key : α → Nat) (xs : List α) (hxs : AllKeysLe key xs maxKey) :
+    (countingSortArrayWithCost maxKey key xs).2 = countingSortArrayCost maxKey xs.length :=
+  countingSortArray_execution_cost maxKey key xs hxs
+
+/-- The expanded indexed-operation ledger remains linear. -/
+theorem countingSortArray_indexedWork_le [DecidableEq α]
+    (maxKey : Nat) (key : α → Nat) (xs : List α) (hxs : AllKeysLe key xs maxKey) :
+    (CountingExecution.execute maxKey key xs).indexedWork ≤
+      6 * (xs.length + maxKey + 1) := by
+  rw [CountingExecution.execute_indexedWork maxKey key xs hxs]
   omega
 
 end MutableOutput

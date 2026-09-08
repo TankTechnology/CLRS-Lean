@@ -20,24 +20,23 @@ during the compatibility period.
 ## Coverage boundary
 
 The native color/black-height invariant layer and logarithmic-height theorem
-(§13.1), and the three fourth-edition section layers completing the §13.2–§13.4
-boundaries:
+(§13.1) are complemented by the following represented interfaces:
 
 - §13.1 ({lit}`Section_13_1_Red_Black_Trees`): the color and black-height
   invariants, membership preservation under rotations, the no-red-red property,
   the {lit}`height_log_bound` theorem (CLRS Lemma 13.1), and the functional
   insertion/deletion key-set and shape layers.
 - §13.2 ({lit}`Section_13_2_Rotations`): a pointer/sentinel red-black store
-  {lit}`RBStore` with representation predicate {lit}`StoreRepr`, pointer-level
-  rotation/recolor primitives with constant cost, and BST/inorder preservation
-  of rotations.
-- §13.3 ({lit}`Section_13_3_Insertion`): the {lit}`RB-INSERT-FIXUP` inorder
-  bridge ({lit}`keys_balanceLeft`/`keys_balanceRight`), BST output preservation
-  {lit}`bst_insert`, and the logarithmic execution-cost theorem
-  {lit}`insertCost_log_bound`.
-- §13.4 ({lit}`Section_13_4_Deletion`): the logarithmic execution-cost theorem
-  {lit}`deleteCost_log_bound` and BST ordering preservation of the composed
-  delete {lit}`bst_delete`.
+  {lit}`RBStore` with parent-aware disjoint-footprint representation and unique
+  tree interpretation. Pointer rotations reconnect the root or old parent's
+  child and refine functional rotation through arbitrary tree contexts.
+  The six-assignment rotation budget is an upper bound, not an exact count.
+- §13.3 ({lit}`Section_13_3_Insertion`): inorder and BST preservation for the
+  functional Okasaki balancers and insertion. {lit}`insertCost_log_bound` bounds
+  a separate search-descent budget; it does not measure complete insertion.
+- §13.4 ({lit}`Section_13_4_Deletion`): BST ordering preservation for functional
+  deletion. {lit}`deleteCost_log_bound` bounds a search/subtree-height budget;
+  join, rebalancing, and pointer execution are not connected to that budget.
 - The chapter-level {lit}`WellFormed` bundle combines {lit}`RedBlackShape` and
   {lit}`BST`; {lit}`insert_correct` and {lit}`delete_correct` preserve that
   invariant together with exact membership semantics.

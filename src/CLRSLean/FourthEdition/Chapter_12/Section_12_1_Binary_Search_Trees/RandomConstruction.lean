@@ -2,7 +2,7 @@ import CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees
 import CLRSLean.Extensions.TreapHeight
 
 /-!
-# Section 12.4 - Random BST construction and height bridge
+# Supplementary topic — Random BST construction and height bridge
 
 This module identifies the tree built from an insertion permutation with the
 canonical random-priority tree already analyzed by the treap probability

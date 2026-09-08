@@ -38,6 +38,12 @@ The supporting implementation page remains available outside the main sidebar:
 ## Coverage boundary
 
 The represented heap and priority-queue correctness developments are reused.
+{lit}`ArrayMaxHeapFrom a heapSize start` constrains all parent indices at least
+{lit}`start`, including parents outside its descendant subtree. Heapify repair
+uses this stronger invariant, which is maintained by bottom-up construction.
+The storage model uses a persistent backing list; proved execution counters
+charge controller frames, excluding list traversal/copying, allocation, and
+imperative RAM costs.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.

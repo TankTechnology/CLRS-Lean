@@ -85,6 +85,16 @@ Lean skeletons extracted so far live in `CLRSLean/ProofPatterns/`.
 2. `Permuted` / membership: usually via `List.Perm` or an `InTree`/`InList` equivalence.
 3. Loop invariant: write the `LoopInvariant` predicate first, then prove initialization, preservation, and termination.
 
+### Attained Worst-Case Costs
+
+A Θ theorem about a size formula is not yet a worst-case theorem about runs.
+Prove a universal input bound and an explicit input family attaining it, then
+package `IsGreatest {c | ∃ xs, xs.length = n ∧ runCost xs = c} (budget n)`.
+This states both upper-bound validity and attainability, including empty inputs.
+The Chapter 2 repair uses a descending distinct-key family and permutation-based
+length/member transport through the already-proved sorting algorithm. Keep
+symbolic line-count parameters separate from counters extracted from execution.
+
 ### Recursive Data Structures (Trees, Heaps)
 
 1. The recursive structure of the theorem should align with the function definition.
@@ -188,7 +198,7 @@ cost.
 
 ### Chapter Completion Audit
 
-Whenever a chapter is completed and declared "main proofs done", you must run the checklist in `docs/proof-audits/chapter-completion-audit.md`:
+Whenever a chapter is completed and declared "main proofs done", you must run the checklist in `docs/workflows/chapter-completion-audit.md`:
 
 - `lake build CLRSLean` passes;
 - no `sorry` / `admit` / `axiom`;
@@ -213,3 +223,7 @@ agent Lean proving ability, create a dedicated, versioned dataset manifest:
 - Use `lake build` as the passing criterion.
 
 ---
+
+### Counted block algebra and rounded-tree potentials (2026-09-08)
+
+A block addition must traverse scalar leaves before it is charged in a scalar-operation model. Share intermediate result records and add each local cost once; then prove erasure and a constant-factor comparison with legacy budgets. For rounded unequal branches, prove mass conservation and bounded child ratios, then use n log n as an induction potential; finite base cases are absorbed by a linear term.

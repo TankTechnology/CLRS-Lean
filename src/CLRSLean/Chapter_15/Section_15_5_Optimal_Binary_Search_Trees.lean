@@ -23,15 +23,17 @@ The main results mirror the matrix-chain pattern:
   the value prescribed by the OBST recurrence.
 * {lit}`obst_reconstructed_cost_eq`: a plan reconstructed from a tight root table
   attains the recurrence value, hence is optimal.
-* {lit}`bottomUpOBST_obstRecurrence`: the executable bottom-up table-filling
-  function satisfies the CLRS recurrence.
+* {lit}`bottomUpOBST_obstRecurrence`: the recursive evaluator satisfies the
+  CLRS recurrence; this does not establish tabulated runtime.
 
-Status: `proved` for the mathematical optimal-cost layer, including executable
-bottom-up table and optimal rooted-tree construction.
+Status: `proved` for the mathematical optimal-cost layer, recursive recurrence
+evaluation, and optimal rooted-tree construction.
 
 Deferred refinements:
 
-* Mutable-array memoization is a future implementation-level target.
+* The recurrence evaluator repeats subintervals and is not a cached table.
+  Fourth-edition Chapter 14 supplies separate interval-array executions and
+  stored-selector reconstruction with attached cell/candidate counters.
 -/
 
 namespace CLRS
@@ -65,15 +67,15 @@ end BSTPlan
 /--
 Total weight of the subtree containing keys {lit}`i+1, ..., j` and dummy keys
 {lit}`i, ..., j`.  This is the sum of all successful- and unsuccessful-search
-probabilities in the subtree.
+nonnegative integer weights in the subtree.
 -/
 def weight (p q : Nat → Nat) (i j : Nat) : Nat :=
   (Finset.Icc (i + 1) j).sum p + (Finset.Icc i j).sum q
 
 /--
-The expected search cost of a BST plan under success probabilities {lit}`p`
-(key {lit}`k` has probability {lit}`p k`) and failure probabilities {lit}`q`
-(dummy key {lit}`d_k` has probability {lit}`q k`).
+Weighted search cost under nonnegative integer success weights {lit}`p`
+and dummy-key weights {lit}`q`. The historical name is retained; this does
+not model arbitrary normalized real probabilities or prove a scaling bridge.
 -/
 def expectedCost (p q : Nat → Nat) : {i j : Nat} → BSTPlan i j → Nat
   | i, _, BSTPlan.empty _ => q i
@@ -176,7 +178,7 @@ theorem obst_reconstructed_optimal {p q : Nat → Nat} {opt : Nat → Nat → Na
   rw [heq]
   exact obst_opt_le_planCost hlb other
 
-/-! ## Executable bottom-up table -/
+/-! ## Recursive recurrence evaluator -/
 
 /--
 The canonical executable OBST value function obtained by recursively evaluating
@@ -200,7 +202,7 @@ decreasing_by
     have hr := Finset.mem_Icc.mp r.2
     omega
 
-/-- The executable bottom-up function satisfies the OBST recurrence. -/
+/-- The recursive evaluator satisfies the OBST recurrence. -/
 theorem bottomUpOBST_obstRecurrence (p q : Nat → Nat) :
     OBSTRecurrence p q (bottomUpOBST p q) := by
   constructor

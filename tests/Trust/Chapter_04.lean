@@ -26,3 +26,14 @@ import CLRSLean.FourthEdition.Chapter_04
 #assert_axioms CLRS.Chapter04.unbalancedIntegerTree_totalCost_eq
 #assert_axioms CLRS.Chapter04.unbalancedIntegerTree_has_unequal_depth
 #assert_axioms CLRS.Chapter04.balancedIntegerCost_floorRecurrence
+
+-- Repair #348: execution costs and recurrence hypotheses.
+#assert_axioms CLRS.Chapter04.MatrixExecution.mulWithCost_correct
+#assert_axioms CLRS.Chapter04.MatrixExecution.strassenWithCost_correct
+#assert_axioms CLRS.Chapter04.MatrixExecution.mulWithCost_theta
+#assert_axioms CLRS.Chapter04.MatrixExecution.strassenWithCost_theta
+#assert_axioms CLRS.Chapter04.balancedIntegerCost_isBigTheta
+#assert_axioms CLRS.Chapter04.unbalancedIntegerCost_isBigTheta
+#assert_axioms CLRS.Chapter04.normalized_tail_upper_of_eventual_regularity
+#assert_axioms CLRS.Chapter04.master_case3_of_eventual_regularity
+#assert_axioms CLRS.Chapter04.akraBazzi_bigTheta_nonneg
