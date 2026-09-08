@@ -42,3 +42,6 @@ example :
       [{ start := 0, finish := 2 }, { start := 3, finish := 5 }] := by
   norm_num [CLRS.ActivitySelection.activitySelection, CLRS.ActivitySelection.greedySelect,
     CLRS.ActivitySelection.activitiesAfter, CLRS.ActivitySelection.Before]
+
+#check CLRS.Caching.cacheSeq_empty_card_one_after_first
+#assert_axioms CLRS.Caching.cacheSeq_empty_card_one_after_first
