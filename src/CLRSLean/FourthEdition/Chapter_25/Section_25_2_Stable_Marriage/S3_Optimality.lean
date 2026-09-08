@@ -792,9 +792,10 @@ theorem gs_man_optimal_perfect (P : PreferenceProfile M W)
   exact ⟨w, hw, gs_man_optimal P m w hw⟩
 
 /-- **Woman-pessimality of the Gale–Shapley output** (CLRS §25.2): each woman
-is matched to her worst valid partner — no stable matching pairs her with a
-man she prefers to her Gale–Shapley partner, and her Gale–Shapley partner is
-preferred to every other stable partner of hers. -/
+who receives a partner does not strictly prefer that Gale–Shapley partner
+to any partner she receives in another stable pairing. Thus her Gale–Shapley
+partner is her worst valid partner. With equal cardinalities, perfectness
+discharges the matched-woman premise. -/
 theorem gs_woman_pessimal (P : PreferenceProfile M W) :
     ∀ w m₀, (gs P).wPartner w = some m₀ →
       ∀ μ : Pairing M W, Pairing.Stable P μ →
