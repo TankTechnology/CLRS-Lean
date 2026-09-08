@@ -4,32 +4,28 @@ import CLRSLean.FourthEdition.Chapter_14.Section_14_2_Matrix_Chain_Multiplicatio
 /-!
 # Section 14.5 — Optimal binary search trees
 
-This section completes the fourth-edition §14.5 algorithm boundary on top of the
-legacy recurrence and bottom-up cost table
-({lit}`CLRSLean.Chapter_15.Section_15_5_Optimal_Binary_Search_Trees`).  It
-publishes the three `OPTIMAL-BST` tables — the expected-cost table
-{name}`CLRS.Chapter15.OBST.bottomUpOBST` (the {lit}`e` table), the weight table
-{name}`CLRS.Chapter15.OBST.weight` (the {lit}`w` table), and a computable root table
-{lit}`obstRoot` — together with a public reconstruction interface and the
-`Θ(n³)` time / `Θ(n²)` space bounds.
+The legacy {name}`CLRS.Chapter15.OBST.bottomUpOBST` evaluates a recursive
+optimal-cost specification and repeats intervals. The {lit}`obstRoot` and
+{lit}`obstReconstruct` interfaces here are likewise specification-based
+selectors/reconstruction; the dimension formulas alone do not bound their runtime.
 
-Main results:
+The {lit}`Execution` companion stores interval costs, weights, and selected
+roots in arrays, using strictly shorter previously stored intervals. Each
+interval computes its weight by one cached weight update before scanning roots.
+Reconstruction reads those stored roots and never reruns the old recursive
+oracle. The execution refines the recurrence and gives optimal plans, with
+cell/candidate counts attached to the same fill.
 
-- Definition {lit}`obstRoot` and theorem {lit}`obstRoot_optimal`: the computable
-  root table is tight for {lit}`bottomUpOBST`.
-- Definition {lit}`obstReconstruct` and theorem
-  {lit}`obstReconstruct_reconstructed`: a public `BSTPlan` reconstruction from
-  the root table.
-- Theorem {lit}`obstTableSpace_le_square` / {lit}`obstTableTime_le_cubic`: the
-  `Θ(n²)` space and `Θ(n³)` time bounds.
-
-Status: `proved` for the public e/w/root tables, reconstruction, and the cost
-bounds.  The recurrence and optimality theorems remain in the legacy source.
+Weights {lit}`p q : Nat → Nat` are nonnegative integer frequencies, including
+zero. They are not arbitrary normalized real probabilities, and no general
+scaling-to-probabilities theorem is provided. Natural arithmetic and array
+access are primitive events; bit arithmetic, persistent copying, and allocation
+are outside the cost model.
 
 Notation conventions used in this section:
 
-- `p` : successful-search probabilities
-- `q` : unsuccessful-search (dummy key) probabilities
+- `p` : successful-search integer weights
+- `q` : unsuccessful-search (dummy key) integer weights
 - `i`, `j` : the interval of keys {lit}`i+1, ..., j`
 -/
 
@@ -59,7 +55,7 @@ private lemma exists_inf'_eq (s : Finset ℕ) (h : s.Nonempty) (f : ℕ → ℕ)
       simp
 
 /--
-The computable root table of `OPTIMAL-BST`: for interval {lit}`i < j`, it selects
+A recurrence-based root selector (not a cached table): for interval {lit}`i < j`, it selects
 the smallest admissible root {lit}`r ∈ [i+1, j]` that attains the recurrence
 minimum; the diagonal is the junk value {lit}`i`.
 -/

@@ -4,8 +4,8 @@ import Mathlib
 # CLRS Section 15.4 - Longest common subsequence
 
 This section formalizes the CLRS longest-common-subsequence dynamic program.
-It defines the mathematical LCS certificate, the table recurrence, and an
-executable bottom-up length computation with a reconstruction procedure.  The
+It defines the mathematical LCS certificate, a recursive evaluation of the
+recurrence, and a reconstruction procedure using that recursive evaluator.  The
 main theorem proves that the reconstructed sequence is indeed a longest common
 subsequence.
 
@@ -26,9 +26,10 @@ Status: `proved` for the functional LCS correctness layer.
 
 Deferred refinements:
 
-* Mutable-array cost-table implementation and linear-space optimization remain
-  future implementation-level targets beyond the current mathematical-correctness
-  scope.
+* This length evaluator repeats subproblems; its recurrence correctness does not
+  establish a polynomial runtime. Fourth-edition §14.4 provides a separate rolling-row
+  execution with an exact cell counter. Reconstruction here still uses this recursive
+  evaluator and has no quadratic runtime claim.
 -/
 
 namespace CLRS
@@ -289,8 +290,9 @@ theorem lcsCertificate_of_table_reconstruction_length
 /-! ## Bottom-up LCS length computation -/
 
 /--
-The executable bottom-up LCS length function, directly implementing the CLRS
-recurrence by structural recursion over the two input lists.
+Recursive evaluation of the CLRS LCS recurrence. Unequal heads branch into two
+calls, repeating subproblems. This is a functional specification, not tabulation;
+the separately defined {lit}`lcsLengthTabulated` uses stored row entries.
 -/
 def lcsLength {α : Type u} [DecidableEq α] : List α → List α → Nat
   | [], _ => 0

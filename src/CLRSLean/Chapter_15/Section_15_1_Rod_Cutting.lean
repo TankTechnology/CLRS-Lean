@@ -454,9 +454,10 @@ reading the earlier revenues that are already stored in the array - the imperati
 def rodRevenueArrayAux (price : Nat → Nat) : Nat → Array Nat
   | 0 => #[0]
   | j + 1 =>
-      (rodRevenueArrayAux price j).push
+      let previous := rodRevenueArrayAux price j
+      previous.push
         ((Finset.Icc 1 (j + 1)).sup
-          (fun i => price i + arrGet (rodRevenueArrayAux price j) ((j + 1) - i)))
+          (fun i => price i + arrGet previous ((j + 1) - i)))
 
 /-- The bottom-up table for rod length {lit}`n` stores exactly {lit}`n + 1` entries. -/
 theorem rodRevenueArrayAux_size (price : Nat → Nat) (n : Nat) :
