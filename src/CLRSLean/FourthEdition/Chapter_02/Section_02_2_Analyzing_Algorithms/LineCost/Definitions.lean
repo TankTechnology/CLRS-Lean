@@ -5,7 +5,9 @@ import Mathlib
 
 This module represents the seven charged lines in the textbook insertion-sort
 cost table.  The outer-loop index `k` ranges over `0, ..., n - 2` and
-corresponds to the textbook index `i = k + 2`.
+corresponds to the textbook index `i = k + 2`. The parameter `t` supplies
+symbolic while-test counts; this module neither extracts it from an execution
+nor proves that arbitrary supplied counts are realizable.
 -/
 
 namespace CLRS
@@ -46,7 +48,7 @@ def insertionSortWhileTestSum (n : Nat) (t : Nat → Nat) : Nat :=
 def insertionSortBodyIterationSum (n : Nat) (t : Nat → Nat) : Nat :=
   ∑ k ∈ Finset.range (n - 1), (t (k + 2) - 1)
 
-/-- Derive all seven line counts from input size and while-test trace. -/
+/-- Derive the symbolic seven-line table from size and supplied while-test counts. -/
 def insertionSortLineCounts (n : Nat) (t : Nat → Nat) : InsertionSortLineCounts where
   forLoopTests := n
   keyAssignments := n - 1
