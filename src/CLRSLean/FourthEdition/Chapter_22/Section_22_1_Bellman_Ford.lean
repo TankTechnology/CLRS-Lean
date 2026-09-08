@@ -8,7 +8,11 @@ finite weighted directed graph, walks and their weights, the single-source
 shortest-path distance {lit}`δ(s, ·)`, and the Bellman-Ford
 relaxation dynamic program.  It then proves that the relaxation values are exact
 shortest-path distances after {lit}`|V| - 1` rounds when the graph has no
-negative-weight cycle, and packages the classic {lit}`O(V·E)` work count.
+negative-weight cycle anywhere in the graph. This is a valid-input distance
+interface, not a source-relative negative-cycle detector with failure return.
+A negative cycle unreachable from the chosen source still violates the stated
+{lit}`NoNegCycle` premise. The separate {lit}`O(V·E)` formula is an abstract
+round/edge budget, not a cached-table execution counter.
 
 Main results:
 
@@ -37,10 +41,10 @@ Notation conventions used in this section:
 - {lit}`relaxDist k v` : shortest-path estimate at {lit}`v` after {lit}`k` rounds
 - {lit}`⊤` : {lit}`+∞`, i.e. no walk found yet
 
-The relaxation is modelled synchronously: one round relaxes every edge once, in
-parallel.  This is the standard "for {lit}`i` in {lit}`1..|V|-1`, relax all edges" model
-and is faithful to CLRS at the abstract-cost layer used throughout the graph
-track; per-edge ordering and RAM write accounting are a separate refinement.
+The recurrence is synchronous: every next-round estimate reads the preceding
+round's values. It is a mathematical evaluation of that recurrence, not an
+instrumented in-place edge loop or a proof of cache reuse. The valid-input
+shortest-distance theorem is independent of those operational refinements.
 -/
 
 namespace CLRS

@@ -8,7 +8,9 @@ Building on the weighted directed-graph model and the shortest-path distance
 Dijkstra's algorithm under nonnegative edge weights: the **greedy invariant**
 (CLRS Theorem 22.6), stating that the unsettled vertex with minimum tentative
 distance already has the correct shortest-path distance.  It also records the
-{lit}`O(E log V)` binary-heap work decomposition.
+conditional binary-heap operation budget. The mathematical queue's minimum
+selector is not a concrete binary heap, and the budget is not a counter
+attached to its execution.
 
 Main results:
 
@@ -163,13 +165,14 @@ theorem dijkstra_extractMin_correct
 
 /-! ## Work bound: {lit}`O(E log V)` -/
 
-/-- Binary-heap Dijkstra work: {lit}`|V|` extract-mins and {lit}`|E|` decrease-keys, each
-{lit}`O(log |V|)`, i.e. {lit}`(|V| + |E|)·(log₂|V| + 1)`. -/
+/-- Abstract backend budget assuming the displayed numbers of extract-min and
+decrease-key operations at logarithmic unit charges. No concrete heap execution
+or operation-count refinement is asserted by this definition. -/
 def dijkstraWork (vertices edges : Nat) : Nat :=
   (vertices + edges) * (Nat.log2 vertices + 1)
 
-/-- **{lit}`O(E log V)` work.**  For a connected graph ({lit}`|V| ≤ 2|E|`) the binary-heap
-Dijkstra work is {lit}`O(E log V)`. -/
+/-- Arithmetic bound on the independent backend budget under the supplied
+vertex/edge-size inequality. This does not prove the queue execution cost. -/
 theorem dijkstraWork_le_edge_log {vertices edges : Nat} (hconn : vertices ≤ 2 * edges) :
     dijkstraWork vertices edges ≤ 3 * edges * (Nat.log2 vertices + 1) := by
   unfold dijkstraWork

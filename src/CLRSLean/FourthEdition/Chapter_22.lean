@@ -4,6 +4,7 @@ import CLRSLean.FourthEdition.Chapter_22.Section_22_2_SSSP_In_DAGs
 import CLRSLean.FourthEdition.Chapter_22.Section_22_3_Dijkstra
 import CLRSLean.FourthEdition.Chapter_22.Section_22_4_Difference_Constraints
 import CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties
+import CLRSLean.FourthEdition.Chapter_22.Section_22_5_Shortest_Path_Properties.PredecessorTree
 
 /-!
 # Chapter 22 — Single-Source Shortest Paths
@@ -29,12 +30,23 @@ to these sources.
 
 ## Coverage boundary
 
-The native sections supply the represented fourth-edition
-single-source-shortest-path sections: Bellman-Ford (Theorem 22.4, with the
-`O(V·E)` work bound), SSSP in DAGs, Dijkstra, difference constraints
-(Theorem 22.9), and the full §22.5 shortest-path-property stack (Lemmas
-22.10--22.16, including the subpath, convergence, path-relaxation, and
-predecessor-subgraph properties).
+Bellman–Ford proves synchronous distance correctness under global
+{lit}`NoNegCycle`; it does not return failure for source-reachable negative
+cycles or weaken the premise to source-relative absence. DAG shortest paths
+require a supplied complete topological order. Dijkstra proves its mathematical
+loop under nonnegative edge weights; its binary-heap budget is an independent
+backend formula, not a measured concrete priority-queue execution. The
+vertex/edge and round/edge formulas likewise do not imply stored-table reuse.
+
+Difference constraints use a fresh source reaching every variable, so global
+negative-cycle absence is appropriate for their feasibility equivalence.
+The old independently minimizing predecessor selector proves tight edges only;
+zero-weight cycles show why a separate decreasing-depth parent construction
+is required for a source-rooted shortest-path tree. The new {lit}`shortestPathTree`
+computes distances, constructs the tight-edge graph, and returns its actual BFS
+parents and depths. {lit}`shortestPathTree_correct` proves source-rooted weighted
+shortest paths and coverage; strictly decreasing depths prove acyclicity even
+with zero-weight cycles. This classical construction adds no runtime claim.
 
 See {lit}`docs/clrs-fourth-edition-map.csv` for the section-level mapping and
 {lit}`docs/migrations/clrs4.md` for compatibility and deprecation policy.
