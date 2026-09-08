@@ -3,23 +3,20 @@ import Mathlib
 /-!
 # Section 14.3 — Elements of dynamic programming
 
-This section packages the reusable, algorithm-independent core of dynamic
-programming: a generic memo-cache consistency invariant and a distinct-state
-cost bridge.  The section examples (§14.1, §14.2, §14.4, §14.5) instantiate
-these interfaces with their own optimal-substructure proofs.
+This section defines cache-value consistency and a finite set-cardinality
+inequality. Neither property alone proves that an algorithm computes a state
+only once.
 
-Main results:
+The {lit}`Execution` companion supplies a separate executable guarantee:
+{lit}`DPExecution.buildLayers` appends stored rows in dependency order. Its
+invariant lifts any cell property whose premises concern earlier rows. Actual
+cell-write and candidate counters are accumulated during filling. Matrix-chain
+and optimal-BST executions instantiate this builder with their own stored cells
+and recurrence proofs; those are the concrete once-per-state clients.
 
-- Definition {lit}`MemoCacheConsistent`: a cache is consistent when every stored
-  value agrees with the ground-truth value function.
-- Definition {lit}`distinctCacheStates`: the number of distinct cached states in
-  a finite list.
-- Theorem {lit}`distinctCacheStates_le_length`: a pass over a list of states
-  caches at most one entry per distinct state, the distinct-state cost bridge.
-
-Status: `proved` for the generic cache invariant and the distinct-state bound.
-The algorithm-specific optimal-substructure and reconstruction theorems remain
-in the sibling sections.
+The historical {lit}`distinctCacheStates_le_length` remains a cardinality fact,
+not an execution or cache-miss bound. {lit}`MemoCacheConsistent` describes value
+correctness only; its use does not silently assume memoized runtime.
 
 Notation conventions used in this section:
 
@@ -36,8 +33,7 @@ namespace Chapter15
 /--
 A memoization cache is consistent when every stored value agrees with the
 ground-truth value function {lit}`correct`.  This is the reusable
-"cache invariant" that each dynamic-programming example discharges for its own
-Bellman value function.
+cache-value invariant. Execution and cache-miss bounds require separate proofs.
 -/
 def MemoCacheConsistent {State Value : Type} (correct : State → Value)
     (cache : State → Option Value) : Prop :=
@@ -50,23 +46,21 @@ theorem MemoCacheConsistent_eq {State Value : Type} {correct : State → Value}
     {s : State} {v : Value} (hstore : cache s = some v) : v = correct s :=
   h s v hstore
 
-/-! ## The distinct-state cost bridge -/
+/-! ## Cardinality of the cached states -/
 
 /--
-The number of distinct states that a cache stores among a finite list of states.
-This is the "distinct subproblem" count that bounds the work of a memoized
-pass: each distinct state is computed (and cached) once, and every later
-occurrence is a cache hit.
+The number of distinct states with a stored value among the supplied list.
+This definition inspects a completed cache; it says nothing about how often
+those states were evaluated while constructing that cache.
 -/
 def distinctCacheStates {State : Type} [DecidableEq State]
     (cache : State → Option Value) (states : List State) : Nat :=
   ((states.filter (fun s => (cache s).isSome)).toFinset).card
 
 /--
-**Distinct-state cost bridge.**  The number of distinct cached states among a
-list of states is at most the list length.  Hence a memoized traversal that
-computes each state at most once performs `O(#distinct states)` value
-computations regardless of how many times the states recur.
+The distinct cached-state count is at most the supplied list length.
+This elementary cardinality inequality does not establish any once-per-state
+execution guarantee.
 -/
 theorem distinctCacheStates_le_length {State : Type} [DecidableEq State]
     (cache : State → Option Value) (states : List State) :
