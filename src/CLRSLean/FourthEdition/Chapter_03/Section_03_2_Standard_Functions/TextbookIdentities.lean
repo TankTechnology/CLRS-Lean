@@ -5,10 +5,10 @@ open Asymptotics
 open scoped Topology
 
 /-!
-# CLRS §3.2 textbook identities
+# CLRS §3.3 textbook identities
 
 This file gives stable CLRS-facing names to the elementary identities used in
-the prose of §3.2.  Most proofs deliberately delegate to Mathlib; the value of
+the prose of §3.3.  Most proofs deliberately delegate to Mathlib; the value of
 these declarations is an explicit, searchable textbook interface rather than
 a second implementation of integer or real arithmetic.
 -/

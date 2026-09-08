@@ -483,9 +483,9 @@ theorem isLittleO_log_pow_const_exp {a : ℕ} {c : ℝ} (hc : 1 < c) :
   unfold isLittleO
   exact h1.trans_isBigO h2.isBigO
 
-/-! ## Fibonacci-number growth (CLRS §3.2)
+/-! ## Fibonacci-number growth (CLRS §3.3)
 
-CLRS §3.2 closes with the Fibonacci numbers and two growth facts: the golden-ratio
+CLRS §3.3 closes with the Fibonacci numbers and two growth facts: the golden-ratio
 closed form eq (3.25) and eq (3.26), which states that {lit}`Fₙ` is the closest
 integer to {lit}`φⁿ/√5`, hence {lit}`Fₙ = Θ(φⁿ)`.  Mathlib supplies Binet's formula
 {name}`Real.coe_fib_eq` and the golden-ratio arithmetic; the lemmas below restate them
@@ -600,9 +600,9 @@ theorem isLittleO_exp_fib {c : ℝ} (hc0 : 0 ≤ c) (hc : c < Real.goldenRatio) 
   unfold isLittleO
   exact ho.trans_isBigO hΩ
 
-/-! ## Iterated logarithm {lit}`lg*` (CLRS §3.2)
+/-! ## Iterated logarithm {lit}`lg*` (CLRS §3.3)
 
-CLRS §3.2 defines the iterated logarithm
+CLRS §3.3 defines the iterated logarithm
 {lit}`lg* n = min { i ≥ 0 : lg⁽ⁱ⁾ n ≤ 1 }`, the number of times {lit}`lg` must be
 applied before the result drops to {lit}`≤ 1`, and stresses how extraordinarily
 slowly it grows.  Mathlib has no iterated logarithm (only {name}`Nat.log`/{name}`Nat.clog`), so
@@ -610,7 +610,7 @@ we define {lit}`lgStar` by well-founded recursion on {lit}`ℕ`, base {lit}`2`, 
 prove the recurrence, monotonicity, and the {lit}`o(log n)` slow-growth bound. -/
 
 /--
-The base-{lit}`2` iterated logarithm {lit}`lg* n` (CLRS §3.2 definition): the number
+The base-{lit}`2` iterated logarithm {lit}`lg* n` (CLRS §3.3 definition): the number
 of times base-{lit}`2` {name}`Nat.log` must be applied to {lit}`n` before reaching
 {lit}`≤ 1`.  Defined by well-founded recursion; the recursive argument
 {lit}`Nat.log 2 n` is strictly smaller than {lit}`n` for {lit}`n ≥ 2`.
@@ -642,7 +642,7 @@ theorem lgStar_two : lgStar 2 = 1 := by
   rw [lgStar_of_two_le (le_refl 2), hl, lgStar_of_le_one (le_refl 1)]
 
 /--
-**Tower recurrence** (CLRS §3.2).  For {lit}`n ≥ 1`, {lit}`lg* (2ⁿ) = 1 + lg* n`: each
+**Tower recurrence** (CLRS §3.3).  For {lit}`n ≥ 1`, {lit}`lg* (2ⁿ) = 1 + lg* n`: each
 extra power-of-two "tower level" adds exactly one to the iterated logarithm.
 -/
 theorem lgStar_two_pow {n : ℕ} (hn : 1 ≤ n) : lgStar (2 ^ n) = 1 + lgStar n := by
@@ -701,7 +701,7 @@ theorem natLog_two_le_two_log {m : ℕ} (hm : 1 ≤ m) :
     mul_nonneg hcast (show (0 : ℝ) ≤ Real.log 2 - 0.5 by linarith [Real.log_two_gt_d9])]
 
 /--
-**Extreme slow growth** (CLRS §3.2).  The iterated logarithm is {lit}`o(log n)`:
+**Extreme slow growth** (CLRS §3.3).  The iterated logarithm is {lit}`o(log n)`:
 {lit}`lg* n = o(log n)`, placing it below {lit}`log n` in the growth hierarchy.
 Proof: {lit}`lg* n ≤ log₂(log₂ n) + 2 ≤ 2·log 2 + 2·log(log n) + 2` for {lit}`n ≥ 4`,
 so {lit}`lg* n = O(1 + log(log n))`, and {lit}`1 + log(log n) = o(log n)` by
