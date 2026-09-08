@@ -41,6 +41,19 @@ Current status:
 - The second-pass invariant proof culminates in
   {lit}`Graph.kosarajuComponent_scc_core`, so the final
   {lit}`Graph.kosarajuComponents_isSCCPartition` theorem is fully proved.
+
+## Cost boundary
+
+The finish order is obtained with {lit}`List.mergeSort`, not accumulated online
+at DFS exit. The proved BFS/DFS controller count does not include this sorting
+phase, its comparison evaluations, or the representation cost of obtaining
+finish timestamps. No end-to-end {lit}`O(V + E)` execution bound for this
+finish-sorted algorithm follows from the standalone DFS counter.
+
+The results here establish the returned order/partition semantics. A counted
+sort or an online reverse-finish list, together with its execution refinement,
+is required for a stronger total-runtime claim.
+
 -/
 
 namespace CLRS
@@ -204,7 +217,8 @@ theorem finishLe_iff_le {s : DFSState V} {u v : V} :
   simp [finishLe]
 
 /-- Kosaraju's algorithm: DFS on {lit}`G` for finish times, then DFS on
-{lit}`Gᵀ` in decreasing finish-time order, collecting each DFS tree. -/
+{lit}`Gᵀ` in decreasing finish-time order, collecting each DFS tree. The
+intermediate merge-sort work is not included in the standalone DFS counter. -/
 noncomputable def kosarajuComponents (G : Graph V) : List (Finset V) :=
   let s1 := G.dfs
   let order := G.vertices.toList.mergeSort (finishLe s1)
