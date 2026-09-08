@@ -20,6 +20,7 @@ import CLRSLean.FourthEdition.Chapter_05
 #assert_axioms CLRS.Chapter05.hiringExpectationBridge
 #assert_axioms CLRS.Chapter05.randomizedExpectedHiringCost_eq
 #assert_axioms CLRS.Chapter05.randomizedExpectedHiringCost_isBigO_log
+#assert_axioms CLRS.Chapter05.expectedLongestStreak_le
 #assert_axioms CLRS.Chapter05.expectedLongestStreak_lowerBound
 #assert_axioms CLRS.Chapter05.OnlineHiring.probHireBest_asymptotic
 
