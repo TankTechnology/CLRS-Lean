@@ -94,10 +94,15 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             destination = root / "site"
             stylesheet = root / "clrs-literate.css"
             stylesheet.write_text("body { color: black; }\n", encoding="utf-8")
+            config = root / "literate.toml"
 
             parent = "CLRSLean.FourthEdition.Chapter_09"
             child = "CLRSLean.FourthEdition.Chapter_09.Randomized_Select"
             child_href = child.replace(".", "/") + "/"
+            config.write_text(
+                f'[order_children]\n"{parent}" = [\n  "{child}",\n]\n',
+                encoding="utf-8",
+            )
             write_module(
                 source,
                 parent,
@@ -123,6 +128,7 @@ class PrepareLiterateSiteTests(unittest.TestCase):
                 source,
                 destination,
                 stylesheet=stylesheet,
+                config=config,
                 base_url="https://example.test/CLRS-Lean/",
                 lastmod="2026-07-15",
             )
@@ -144,6 +150,8 @@ class PrepareLiterateSiteTests(unittest.TestCase):
 
         self.assertEqual(2, result.html_pages)
         self.assertEqual(2, result.sitemap_urls)
+        self.assertEqual(0, result.inlined_chapters)
+        self.assertEqual(0, result.inlined_sections)
         self.assertFalse(stale_exists)
         self.assertEqual("body { color: black; }\n", stylesheet_text)
         self.assertNotIn(f'title="{child}"', parent_html)
@@ -169,6 +177,59 @@ class PrepareLiterateSiteTests(unittest.TestCase):
             "Allow: /\n"
             "Sitemap: https://example.test/CLRS-Lean/sitemap.xml\n",
             robots,
+        )
+
+    def test_inlines_configured_sections_during_site_preparation(self) -> None:
+        self.assertTrue(SCRIPT_PATH.is_file())
+        preparer = load_preparer()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "verso-output"
+            destination = root / "site"
+            stylesheet = root / "clrs-literate.css"
+            config = root / "literate.toml"
+            stylesheet.write_text("body { color: black; }\n", encoding="utf-8")
+            parent = "CLRSLean.FourthEdition.Chapter_33"
+            child = f"{parent}.Section_33_1_Clustering"
+            child_href = child.replace(".", "/") + "/"
+            config.write_text(
+                f'[order_children]\n"{parent}" = [\n  "{child}",\n]\n',
+                encoding="utf-8",
+            )
+            parent_path = write_module(
+                source,
+                parent,
+                "<html><head><title>Chapter 33</title></head><body><main>"
+                f'<section class="code-content"><a href="{child_href}">33.1</a></section>'
+                "</main></body></html>",
+            )
+            write_module(
+                source,
+                child,
+                "<html><head><title>33.1</title></head><body><main>"
+                '<section class="code-content"><h1>33.1</h1><p>Clustering body</p></section>'
+                "</main></body></html>",
+            )
+
+            result = preparer.prepare_site(
+                source,
+                destination,
+                stylesheet=stylesheet,
+                config=config,
+                base_url="https://example.test/CLRS-Lean/",
+                lastmod="2026-09-09",
+            )
+            chapter_html = destination.joinpath(
+                *parent.split("."), "index.html"
+            ).read_text(encoding="utf-8")
+
+        self.assertEqual(1, result.inlined_chapters)
+        self.assertEqual(1, result.inlined_sections)
+        self.assertIn("Clustering body", chapter_html)
+        self.assertIn('data-clrs-inline-chapter="true"', chapter_html)
+        self.assertIn(
+            'href="CLRSLean/FourthEdition/Chapter_33/#clrs-inline-', chapter_html
         )
 
 

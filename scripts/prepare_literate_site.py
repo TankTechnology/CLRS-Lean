@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.check_literate_config import parse_order_children
 from scripts.check_literate_rendering import check_site
 from scripts.generate_sitemap import (
     iter_html_pages,
@@ -23,10 +24,12 @@ from scripts.generate_sitemap import (
     render_sitemap,
 )
 from scripts.optimize_literate_html import iter_html_files, optimize_file
+from scripts.inline_chapter_sections import compose_chapter_pages
 
 
 DEFAULT_BASE_URL = "https://tanktechnology.github.io/CLRS-Lean/"
 DEFAULT_STYLESHEET = ROOT / "docs/literate/clrs-literate.css"
+DEFAULT_CONFIG = ROOT / "literate.toml"
 
 
 @dataclass(frozen=True)
@@ -34,6 +37,8 @@ class SitePreparationResult:
     html_pages: int
     optimized_pages: int
     sitemap_urls: int
+    inlined_chapters: int
+    inlined_sections: int
 
 
 def prepare_site(
@@ -41,6 +46,7 @@ def prepare_site(
     destination: Path,
     *,
     stylesheet: Path = DEFAULT_STYLESHEET,
+    config: Path = DEFAULT_CONFIG,
     base_url: str = DEFAULT_BASE_URL,
     lastmod: str | None = None,
     strip_attrs_min_bytes: int = 1_000_000,
@@ -49,11 +55,14 @@ def prepare_site(
     source = source.resolve()
     destination = destination.resolve()
     stylesheet = stylesheet.resolve()
+    config = config.resolve()
 
     if not source.is_dir():
         raise ValueError(f"Verso output does not exist or is not a directory: {source}")
     if not stylesheet.is_file():
         raise ValueError(f"stylesheet does not exist or is not a file: {stylesheet}")
+    if not config.is_file():
+        raise ValueError(f"literate config does not exist or is not a file: {config}")
     if (
         destination == source
         or source in destination.parents
@@ -80,6 +89,9 @@ def prepare_site(
             canonical_url=canonical_url,
         ).changed:
             optimized_pages += 1
+
+    order_children = parse_order_children(config.read_text(encoding="utf-8"))
+    composition = compose_chapter_pages(destination, order_children)
 
     failures = check_site(destination)
     if failures:
@@ -109,6 +121,8 @@ def prepare_site(
         html_pages=len(html_files),
         optimized_pages=optimized_pages,
         sitemap_urls=len(sitemap_urls),
+        inlined_chapters=composition.chapters,
+        inlined_sections=composition.sections,
     )
 
 
@@ -119,6 +133,12 @@ def main() -> int:
     )
     parser.add_argument(
         "destination", type=Path, help="Deployable static-site directory."
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=DEFAULT_CONFIG,
+        help="Literate configuration that defines direct chapter sections.",
     )
     parser.add_argument(
         "--stylesheet",
@@ -141,12 +161,14 @@ def main() -> int:
         args.source,
         args.destination,
         stylesheet=args.stylesheet,
+        config=args.config,
         base_url=args.base_url,
         lastmod=args.lastmod,
     )
     print(
         f"prepared {args.destination}: {result.html_pages} HTML pages, "
-        f"{result.optimized_pages} changed, {result.sitemap_urls} sitemap URLs"
+        f"{result.optimized_pages} changed, {result.sitemap_urls} sitemap URLs, "
+        f"{result.inlined_sections} sections in {result.inlined_chapters} chapters"
     )
     return 0
 

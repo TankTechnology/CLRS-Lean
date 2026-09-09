@@ -120,17 +120,23 @@ should not depend on a hand-written `docs/site/index.html`.
 Source-module boundaries do not have to become entries in reader navigation.
 The sidebar shows the 35 fourth-edition chapter facades, their section pages
 as child rows (in the order given by `[order_children]`), and the top-level
-support pages.  Legacy theorem-bearing pages stay generated and searchable, but
-their nearest canonical facade or Online Material is used as the visible
-navigation parent.  Supporting modules below a section, and children below
-top-level support pages such as `ProofPatterns` and `Probability`, are omitted
-from the sidebar.  They are still generated as complete pages and remain
-reachable from the nearest visible parent's **Implementation details** section,
-site search, the sitemap, and their direct URLs.  Keep these files independently
-importable and place them under the main section's module path (for example,
-`Section_xx_y/Helper.lean`).  Their `[order_children]` entries continue to
-control generation and search order even though they are not reader-visible
-navigation rows.
+support pages. The site-preparation step also appends the complete rendered
+content of each direct section to its chapter facade in that same order. Links
+from the chapter guide to those sections become same-page anchors, while the
+standalone section pages remain generated for focused reading, search results,
+and stable direct URLs. Embedded IDs are namespaced by section so repeated
+heading names cannot create ambiguous chapter-local anchors.
+
+Legacy theorem-bearing pages stay generated and searchable, but their nearest
+canonical facade or Online Material is used as the visible navigation parent.
+Supporting modules below a section, and children below top-level support pages
+such as `ProofPatterns` and `Probability`, are omitted from the sidebar and are
+not appended to chapter pages. They remain reachable from the nearest visible
+parent's **Implementation details** section, site search, the sitemap, and their
+direct URLs. Keep these files independently importable and place them under the
+main section's module path (for example, `Section_xx_y/Helper.lean`). Their
+`[order_children]` entries continue to control generation and search order even
+though they are not reader-visible navigation rows.
 
 Verso is patched before rendering so tactic proof states are not serialized
 into raw HTML.  This prevents compact shared proof-state data from expanding
@@ -160,15 +166,17 @@ Third-edition compatibility chapter rows are excluded from the reader sidebar.
 
 Individual chapters may still disclose their section lists. The navigation
 script restores those choices and sidebar scroll across page loads, and opens
-the ancestors of the current section. Without saved state, section lists start
-collapsed so readers can scan the 35 chapter names. Chapter-title links navigate
-without toggling the chapter's disclosure.
+the ancestors of the current section. Static disclosures start closed, matching
+the default script state, and the navigation stays hidden for the brief interval
+while saved state is applied. This prevents the expanded-then-collapsed first
+paint that previously shifted the sidebar. Chapter-title links navigate without
+toggling the chapter's disclosure.
 
 ## Reader Flow
 
 Readers should be able to move in three ways:
 
-1. Project overview: homepage -> chapter guide -> section proof.
+1. Project overview: homepage -> chapter guide with inline section proofs.
 2. Audit path: homepage -> Progress Dashboard / Proof Status -> source proof.
 3. Contributor path: homepage -> Contributor Guide -> chapter guide -> section file.
 

@@ -57,6 +57,7 @@ VERSO_HOVER_SCRIPT_RE = re.compile(
     re.DOTALL,
 )
 BODY_END_RE = re.compile(r"</body\s*>", re.IGNORECASE)
+BODY_START_RE = re.compile(r"<body\b", re.IGNORECASE)
 HEAD_END_RE = re.compile(r"</head\s*>", re.IGNORECASE)
 GOOGLE_SITE_VERIFICATION_CONTENT = "_r82oikN7_rmuMq-yxTixWGiNVPoxC-OJcNLDlO1Atk"
 GOOGLE_SITE_VERIFICATION_META = (
@@ -73,10 +74,20 @@ PROGRESS_MATRIX_PRE_RE = re.compile(
     re.DOTALL,
 )
 NAV_STATE_SCRIPT_ID = "clrs-nav-state-script"
+NAV_BOOTSTRAP_SCRIPT_ID = "clrs-nav-bootstrap-script"
 NAV_STATE_SCRIPT_RE = re.compile(
     rf"<script\s+id=[\"']{NAV_STATE_SCRIPT_ID}[\"'][^>]*>.*?</script>",
     re.DOTALL | re.IGNORECASE,
 )
+NAV_BOOTSTRAP_SCRIPT_RE = re.compile(
+    rf"<script\s+id=[\"']{NAV_BOOTSTRAP_SCRIPT_ID}[\"'][^>]*>.*?</script>",
+    re.DOTALL | re.IGNORECASE,
+)
+NAV_BOOTSTRAP_SCRIPT = r"""
+<script id="clrs-nav-bootstrap-script">
+document.documentElement.classList.add("clrs-nav-pending");
+</script>
+""".strip()
 NAV_STATE_SCRIPT = r"""
 <script id="clrs-nav-state-script">
 (() => {
@@ -156,8 +167,9 @@ NAV_STATE_SCRIPT = r"""
   }
 
   whenReady(() => {
-    const nav = document.querySelector(".module-tree");
-    if (!nav) return;
+    try {
+      const nav = document.querySelector(".module-tree");
+      if (!nav) return;
 
     const detailsList = Array.from(nav.querySelectorAll("details"));
     const savedState = readJson(STATE_KEY, null);
@@ -242,7 +254,13 @@ NAV_STATE_SCRIPT = r"""
     if (typeof savedScroll === "number") {
       scrollHost.scrollTop = savedScroll;
     } else if (current) {
-      current.scrollIntoView({ block: "nearest" });
+      const currentRect = current.getBoundingClientRect();
+      const hostRect = scrollHost.getBoundingClientRect();
+      if (currentRect.top < hostRect.top) {
+        scrollHost.scrollTop -= hostRect.top - currentRect.top;
+      } else if (currentRect.bottom > hostRect.bottom) {
+        scrollHost.scrollTop += currentRect.bottom - hostRect.bottom;
+      }
     }
 
     let scrollQueued = false;
@@ -260,10 +278,13 @@ NAV_STATE_SCRIPT = r"""
       },
       { passive: true },
     );
-    window.addEventListener("pagehide", () => {
-      saveStateNow();
-      saveScroll();
-    });
+      window.addEventListener("pagehide", () => {
+        saveStateNow();
+        saveScroll();
+      });
+    } finally {
+      document.documentElement.classList.remove("clrs-nav-pending");
+    }
   });
 })();
 </script>
@@ -286,7 +307,7 @@ class PageStats:
     injected_verification_meta: int
     injected_canonical_links: int
     converted_progress_matrices: int
-    opened_nav_details: int
+    closed_nav_details: int
     removed_nav_modules: int
     flattened_nav_details: int
 
@@ -305,7 +326,7 @@ class PageStats:
             or self.injected_verification_meta > 0
             or self.injected_canonical_links > 0
             or self.converted_progress_matrices > 0
-            or self.opened_nav_details > 0
+            or self.closed_nav_details > 0
             or self.removed_nav_modules > 0
             or self.flattened_nav_details > 0
         )
@@ -352,7 +373,7 @@ class VersoHtmlOptimizer(HTMLParser):
         self.deferred_scripts = 0
         self.removed_hover_scripts = 0
         self.removed_hover_stylesheets = 0
-        self.opened_nav_details = 0
+        self.closed_nav_details = 0
         self.module_tree_depth = 0
 
     def _attrs(self, tag: str, attrs: list[tuple[str, str | None]]) -> str:
@@ -400,9 +421,9 @@ class VersoHtmlOptimizer(HTMLParser):
                 self.skip_depth += 1
             return
         entering_module_tree = ltag == "nav" and has_class(attrs, "module-tree")
-        if self.module_tree_depth and ltag == "details" and not has_attr(attrs, "open"):
-            attrs = [*attrs, ("open", None)]
-            self.opened_nav_details += 1
+        if self.module_tree_depth and ltag == "details" and has_attr(attrs, "open"):
+            attrs = [(name, value) for name, value in attrs if name.lower() != "open"]
+            self.closed_nav_details += 1
         if self.disable_hover_features:
             if ltag == "script" and asset_name(attr_value(attrs, "src")) in HOVER_SCRIPT_SRCS:
                 self.removed_hover_scripts += 1
@@ -500,17 +521,43 @@ def iter_html_files(paths: Iterable[Path]) -> Iterable[Path]:
 def inject_nav_state_script(text: str) -> tuple[str, int]:
     if "module-tree" not in text:
         return text, 0
+    changed = False
+    if NAV_BOOTSTRAP_SCRIPT_ID in text:
+        match = NAV_BOOTSTRAP_SCRIPT_RE.search(text)
+        if match and match.group(0) != NAV_BOOTSTRAP_SCRIPT:
+            text = NAV_BOOTSTRAP_SCRIPT_RE.sub(
+                lambda _match: NAV_BOOTSTRAP_SCRIPT, text, count=1
+            )
+            changed = True
+    else:
+        text, count = HEAD_END_RE.subn(
+            lambda _match: f"    {NAV_BOOTSTRAP_SCRIPT}\n</head>",
+            text,
+            count=1,
+        )
+        if count == 0:
+            text, count = BODY_START_RE.subn(
+                lambda _match: f"{NAV_BOOTSTRAP_SCRIPT}\n<body",
+                text,
+                count=1,
+            )
+        if count != 1:
+            raise ValueError("HTML page lacks a head or body insertion point")
+        changed = True
     if NAV_STATE_SCRIPT_ID in text:
         match = NAV_STATE_SCRIPT_RE.search(text)
         if not match or match.group(0) == NAV_STATE_SCRIPT:
-            return text, 0
-        return NAV_STATE_SCRIPT_RE.sub(lambda _match: NAV_STATE_SCRIPT, text, count=1), 1
+            return text, int(changed)
+        text = NAV_STATE_SCRIPT_RE.sub(lambda _match: NAV_STATE_SCRIPT, text, count=1)
+        return text, 1
     next_text, count = BODY_END_RE.subn(
         lambda _match: f"{NAV_STATE_SCRIPT}\n</body>",
         text,
         count=1,
     )
-    return next_text, min(count, 1)
+    if count != 1:
+        raise ValueError("HTML page lacks a unique closing body tag")
+    return next_text, 1
 
 
 def inject_google_site_verification(text: str) -> tuple[str, int]:
@@ -645,7 +692,7 @@ def optimize_file(
         injected_verification_meta=injected_verification_meta,
         injected_canonical_links=injected_canonical_links,
         converted_progress_matrices=converted_progress_matrices,
-        opened_nav_details=parser.opened_nav_details,
+        closed_nav_details=parser.closed_nav_details,
         removed_nav_modules=len(sidebar.removed_modules),
         flattened_nav_details=len(sidebar.flattened_modules),
     )
@@ -706,7 +753,7 @@ def main() -> int:
                 f"inline hover scripts: {stats.removed_inline_hover_scripts}, "
                 f"nav scripts: {stats.injected_nav_scripts}, "
                 f"verification meta: {stats.injected_verification_meta}, "
-                f"opened nav details: {stats.opened_nav_details}, "
+                f"closed nav details: {stats.closed_nav_details}, "
                 f"removed nav modules: {stats.removed_nav_modules}, "
                 f"flattened nav details: {stats.flattened_nav_details})"
             )

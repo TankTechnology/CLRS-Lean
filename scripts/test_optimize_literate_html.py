@@ -124,8 +124,12 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
             text = page.read_text(encoding="utf-8")
 
         self.assertTrue(stats.changed)
-        self.assertIn("<details open>", text)
+        self.assertIn("<details>", text)
+        self.assertNotIn("<details open>", text)
         self.assertIn("id=\"clrs-nav-state-script\"", text)
+        self.assertIn("id=\"clrs-nav-bootstrap-script\"", text)
+        self.assertIn('classList.add("clrs-nav-pending")', text)
+        self.assertIn('classList.remove("clrs-nav-pending")', text)
         self.assertIn("localStorage", text)
         self.assertIn("sessionStorage", text)
         self.assertIn("details.open = false", text)
@@ -141,6 +145,9 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
         self.assertIn('replace(/^.*\\/CLRSLean\\//, "/CLRS-Lean/")', text)
         self.assertIn("window.location.href", text)
         self.assertIn("bestParent", text)
+        self.assertIn("currentRect", text)
+        self.assertIn("hostRect", text)
+        self.assertNotIn("scrollIntoView", text)
         self.assertIn("saveStateNow();", text)
         self.assertIn('window.addEventListener("pagehide"', text)
 

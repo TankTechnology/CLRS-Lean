@@ -93,6 +93,10 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+html.clrs-nav-pending .module-tree {
+    visibility: hidden;
+}
+
 a {
     text-underline-offset: 0.18em;
 }
@@ -302,6 +306,22 @@ a {
 
 .content-wrapper {
     background: transparent;
+}
+
+.clrs-inline-chapter {
+    border-top: 1px solid var(--clrs-line-strong);
+}
+
+.clrs-inline-section {
+    flex: none;
+    overflow: visible;
+    padding: clamp(36px, 5vw, 68px) 0;
+    scroll-margin-top: 24px;
+    border-bottom: 1px solid var(--clrs-line-strong);
+}
+
+.clrs-inline-section:last-child {
+    border-bottom: 0;
 }
 
 .code-content {
