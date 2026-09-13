@@ -1,7 +1,10 @@
 import Mathlib
 
 /-!
-# 35.2 The Traveling-Salesperson Problem
+# 35.2. The Traveling-Salesperson Problem
+
+The [complete-graph execution](CLRSLean/FourthEdition/Chapter_35/Section_35_2_The_Traveling_Salesperson_Problem/GraphExecution/)
+constructs the graph, executes Prim's algorithm, and roots the selected tree.
 
 This section formalizes the traveling-salesperson problem and the factor-two
 approximation algorithm **APPROX-TSP-TOUR** from CLRS §35.2.  Given a complete

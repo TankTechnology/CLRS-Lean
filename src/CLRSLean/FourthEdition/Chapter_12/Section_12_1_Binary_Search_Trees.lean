@@ -2,7 +2,7 @@ import Mathlib
 import CLRSLean.Probability
 
 /-!
-# CLRS Section 12.1 - Binary search trees
+# 12.1. What Is a Binary Search Tree?
 
 This section gives a first Lean model of binary search trees as inductive trees
 of natural-number keys.  It proves the fundamental search and insertion facts

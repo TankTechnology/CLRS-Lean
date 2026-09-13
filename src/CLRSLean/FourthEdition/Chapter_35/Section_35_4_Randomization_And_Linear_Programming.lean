@@ -3,7 +3,10 @@ import CLRSLean.Probability.FiniteExpectation
 import Mathlib
 
 /-!
-# 35.4 Randomization and Linear Programming
+# 35.4. Randomization and Linear Programming
+
+The [vertex-cover LP execution](CLRSLean/FourthEdition/Chapter_35/Section_35_4_Randomization_And_Linear_Programming/VertexCoverLP/)
+constructs the program, invokes SIMPLEX, and rounds its optimum.
 
 This section formalizes the two approximation techniques of CLRS §35.4:
 randomization and linear programming.  It covers (1) a randomized algorithm for

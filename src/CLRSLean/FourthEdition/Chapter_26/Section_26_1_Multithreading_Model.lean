@@ -5,7 +5,7 @@ import CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S4_Ex
 import CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops
 
 /-!
-# 26.1. The Basics of Dynamic Multithreading
+# 26.1. The Basics of Fork-Join Parallelism
 
 This reader-facing compatibility module collects the formalization of CLRS
 §26.1. Its implementation is organized by foundation, residual execution,

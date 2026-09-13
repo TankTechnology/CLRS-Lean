@@ -1,35 +1,24 @@
 import Mathlib
 
 /-!
-# CLRS Sections 16.1-16.3 - Amortized analysis methods
+# 16.1. Aggregate Analysis
 
-This section packages the finite-prefix arithmetic behind the aggregate,
-accounting, and potential methods.  Later Chapter 16 examples and the legacy Chapter 19
-Fibonacci-heap bounds can reuse these small telescoping theorems instead of
-reproving the same sum algebra.
+This section presents aggregate analysis through finite-prefix cost bounds.
+The same implementation file also supplies shared arithmetic used by the
+separate accounting-method and potential-method reader pages.
 
 Main results:
 
 - Theorem {lit}`aggregate_bound_of_prefix_bound`: prefix total bounds imply the
   corresponding aggregate bound.
-- Theorem {lit}`accounting_totalCost_eq_totalCharge_sub_delta`: accounting
-  credits telescope exactly.
-- Theorem {lit}`accounting_totalCost_le_totalCharge`: nonnegative final credit
-  bounds total actual cost by total charge plus initial credit.
-- Theorem {lit}`potential_totalCost_eq_totalAmortized_sub_delta`: potential
-  costs telescope exactly.
-- Theorem {lit}`potential_totalCost_le_totalAmortized`: nondecreasing endpoint
-  potential bounds total actual cost by total amortized cost.
+Status: `proved` for the aggregate finite-prefix theorem. The accounting and
+potential definitions below are shared implementation foundations for Sections
+16.2 and 16.3.
 
-## Implementation details
+## Shared implementation pages
 
-The worked stack and counter examples remain available outside the main sidebar:
-
-* [Stack and Counter Examples](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/)
-
-Status: `proved` for the aggregate, accounting, and potential-method framework.
-
-Examples are in Sections 16.2 and 16.4.
+* [Stack and counter examples](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/)
+* [Stack execution and linear work](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/StackExecution/)
 -/
 
 namespace CLRS

@@ -1,7 +1,7 @@
 import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework
 
 /-!
-# CLRS Section 16.4 - Dynamic tables
+# 16.4. Dynamic Tables
 
 This first-pass section keeps dynamic tables at the abstract size/count level.
 It records the state invariant and a conservative potential wrapper that later

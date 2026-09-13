@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# 35.1 The Vertex-Cover Problem
+# 35.1. The Vertex-Cover Problem
 
 This section formalizes the vertex-cover problem and the 2-approximation
 guarantee of the **APPROX-VERTEX-COVER** algorithm from CLRS §35.1.  A *vertex

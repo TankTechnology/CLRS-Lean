@@ -1,3 +1,4 @@
+import csv
 import re
 import sys
 import unittest
@@ -56,6 +57,55 @@ def _ordered_descendants(
 
 
 class LiterateConfigTest(unittest.TestCase):
+    def test_fourth_edition_sections_have_canonical_reader_routes(self) -> None:
+        config_text = LITERATE_TOML.read_text(encoding="utf-8")
+        order_children = parse_order_children(config_text)
+        titled_modules = parse_module_titles(config_text)
+        with (ROOT / "docs" / "clrs-fourth-edition-map.csv").open(
+            encoding="utf-8", newline=""
+        ) as handle:
+            rows = list(csv.DictReader(handle))
+
+        for row in rows:
+            chapter = int(row["chapter_no"])
+            section_no = row["section_no"]
+            if chapter == 0 or "." not in section_no:
+                continue
+            chapter_module = f"CLRSLean.FourthEdition.Chapter_{chapter:02d}"
+            source_modules = row["source_modules"].split(";")
+            if source_modules == [chapter_module]:
+                continue
+
+            section_index = int(section_no.split(".")[1])
+            route_prefix = (
+                f"{chapter_module}.Section_{chapter:02d}_{section_index}_"
+            )
+            routes = [
+                module
+                for module in order_children.get(chapter_module, [])
+                if module.startswith(route_prefix)
+            ]
+            with self.subTest(section=section_no):
+                self.assertEqual(
+                    1,
+                    len(routes),
+                    f"{section_no} must have one direct canonical reader route",
+                )
+                self.assertTrue(
+                    titled_modules.get(routes[0], "").startswith(f"{section_no}. "),
+                    f"{routes[0]} must have a canonical {section_no} title",
+                )
+
+        forbidden = re.compile(r"\b(?:historical|compatibility|legacy)\b", re.IGNORECASE)
+        section_range = re.compile(r"^\d+\.\d+\s*[-–]\s*\d+(?:\.\d+)?\.")
+        for chapter in range(1, 36):
+            chapter_module = f"CLRSLean.FourthEdition.Chapter_{chapter:02d}"
+            for module in order_children.get(chapter_module, []):
+                title = titled_modules.get(module, "")
+                with self.subTest(public_module=module):
+                    self.assertIsNone(forbidden.search(title))
+                    self.assertIsNone(section_range.match(title))
+
     def test_primary_root_is_fourth_edition_first(self) -> None:
         text = LITERATE_TOML.read_text()
         order_children = parse_order_children(text)

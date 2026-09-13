@@ -10,13 +10,12 @@ import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelMerge
 import CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.ParallelStrassen
 
 /-!
-# 26.2–26.3. Multithreaded Algorithms (Historical `2_4` Compatibility)
+# Chapter 26 Internal Parallel-Algorithm Index
 
-The historical `2_4` module name is retained for compatibility.  Its main
-text now covers §§26.2–26.3: parallel-recurrence definitions and all-input
-analysis for P-MATMUL, P-MERGE, and P-MERGE-SORT.  The historical parallel
-Strassen names are imported separately from an explicitly labeled Chapter 26
-extension.
+This internal import index keeps the original source layout stable. Readers
+should use the canonical Section 26.2 and Section 26.3 pages, which present
+parallel matrix multiplication and parallel merge sort separately. Parallel
+Strassen remains an explicitly labeled extension.
 
 ## Main results
 

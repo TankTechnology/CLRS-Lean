@@ -1,7 +1,10 @@
 import Mathlib
 
 /-!
-# 35.5 The Subset-Sum Problem
+# 35.5. The Subset-Sum Problem
+
+The [costed execution](CLRSLean/FourthEdition/Chapter_35/Section_35_5_The_Subset_Sum_Problem/Costed/)
+records the work of the executable approximation scheme.
 
 This section formalizes the subset-sum problem and the fully polynomial-time
 approximation scheme **APPROX-SUBSET-SUM** of CLRS §35.5.  Given a finite set

@@ -1,7 +1,10 @@
 import Mathlib
 
 /-!
-# 35.3 The Set-Covering Problem
+# 35.3. The Set-Covering Problem
+
+The [returned-family refinement](CLRSLean/FourthEdition/Chapter_35/Section_35_3_The_Set_Covering_Problem/ReturnedFamily/)
+connects the executable family to the proved approximation bounds.
 
 This section formalizes the set-covering problem and the harmonic
 approximation guarantee of the greedy algorithm **GREEDY-SET-COVER** from CLRS

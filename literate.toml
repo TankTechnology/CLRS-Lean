@@ -296,7 +296,8 @@ description = "Machine-checked algorithms and proofs across the 35 chapters of C
 ]
 "CLRSLean.FourthEdition.Chapter_03" = [
   "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation",
-  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Asymptotic_Notation_Formal_Definitions",
+  "CLRSLean.FourthEdition.Chapter_03.Section_03_3_Standard_Notations_And_Common_Functions",
 ]
 "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation" = [
   "CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.Core",
@@ -386,6 +387,8 @@ description = "Machine-checked algorithms and proofs across the 35 chapters of C
 ]
 "CLRSLean.FourthEdition.Chapter_12" = [
   "CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees",
+  "CLRSLean.FourthEdition.Chapter_12.Section_12_2_Querying_A_Binary_Search_Tree",
+  "CLRSLean.FourthEdition.Chapter_12.Section_12_3_Insertion_And_Deletion",
 ]
 "CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees" = [
   "CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees.RandomConstruction",
@@ -443,10 +446,15 @@ description = "Machine-checked algorithms and proofs across the 35 chapters of C
 ]
 "CLRSLean.FourthEdition.Chapter_16" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework",
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_2_The_Accounting_Method",
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_3_The_Potential_Method",
   "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables",
 ]
 "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter",
+]
+"CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter" = [
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter.StackExecution",
 ]
 "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables" = [
   "CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables",
@@ -552,7 +560,8 @@ description = "Machine-checked algorithms and proofs across the 35 chapters of C
 ]
 "CLRSLean.FourthEdition.Chapter_26" = [
   "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model",
-  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_2_Parallel_Matrix_Multiplication",
+  "CLRSLean.FourthEdition.Chapter_26.Section_26_3_Parallel_Merge_Sort",
 ]
 "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model" = [
   "CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG",
@@ -587,6 +596,25 @@ description = "Machine-checked algorithms and proofs across the 35 chapters of C
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S4_Matching_Flow",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S5_Residual_Translation",
   "CLRSLean.FourthEdition.Chapter_25.Section_25_1_Maximum_Bipartite_Matching.S6_Berge_Flow_Method",
+]
+"CLRSLean.FourthEdition.Chapter_35" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_1_The_Vertex_Cover_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming",
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem",
+]
+"CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem.GraphExecution",
+]
+"CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem.ReturnedFamily",
+]
+"CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming.VertexCoverLP",
+]
+"CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem" = [
+  "CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem.Costed",
 ]
 "CLRSLean.Chapter_26" = [
   "CLRSLean.Chapter_26.Section_26_1_Flow_Networks",
@@ -2591,6 +2619,12 @@ title = "Chapter 3. Characterizing Running Times"
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation"]
 title = "3.1. Asymptotic Notation"
 
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Asymptotic_Notation_Formal_Definitions"]
+title = "3.2. Asymptotic Notation: Formal Definitions"
+
+[modules."CLRSLean.FourthEdition.Chapter_03.Section_03_3_Standard_Notations_And_Common_Functions"]
+title = "3.3. Standard Notations and Common Functions"
+
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_1_Asymptotic_Notation.Core"]
 title = "3.1–3.2. Asymptotic Notation — Core"
 
@@ -2598,7 +2632,7 @@ title = "3.1–3.2. Asymptotic Notation — Core"
 title = "3.1–3.2. Asymptotic Notation — CLRS Bridges"
 
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions"]
-title = "3.3. Standard Notations and Common Functions"
+title = "Standard Functions — Internal Implementation"
 
 [modules."CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions.Core"]
 title = "3.3. Standard Functions — Core Growth Facts"
@@ -2790,7 +2824,13 @@ title = "11.5. Perfect Hashing"
 title = "Chapter 12. Binary Search Trees"
 
 [modules."CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees"]
-title = "12.1. Binary Search Trees"
+title = "12.1. What Is a Binary Search Tree?"
+
+[modules."CLRSLean.FourthEdition.Chapter_12.Section_12_2_Querying_A_Binary_Search_Tree"]
+title = "12.2. Querying a Binary Search Tree"
+
+[modules."CLRSLean.FourthEdition.Chapter_12.Section_12_3_Insertion_And_Deletion"]
+title = "12.3. Insertion and Deletion"
 
 [modules."CLRSLean.FourthEdition.Chapter_12.Section_12_1_Binary_Search_Trees.RandomConstruction"]
 title = "Random BST Construction and Height Bridge"
@@ -2907,10 +2947,19 @@ title = "Optimality — Finite Exchange Iteration"
 title = "Chapter 16. Amortized Analysis"
 
 [modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework"]
-title = "16.1-16.3. Amortized Analysis Methods"
+title = "16.1. Aggregate Analysis"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_2_The_Accounting_Method"]
+title = "16.2. The Accounting Method"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_3_The_Potential_Method"]
+title = "16.3. The Potential Method"
 
 [modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter"]
 title = "Stack and Counter Examples"
+
+[modules."CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter.StackExecution"]
+title = "Stack Execution and Linear Work"
 
 [modules."CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables"]
 title = "16.4. Dynamic Tables"
@@ -3189,7 +3238,7 @@ title = "Berge's Lemma and the Flow Method"
 [modules."CLRSLean.FourthEdition.Chapter_26"]
 title = "Chapter 26. Parallel Algorithms"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model"]
-title = "26.1. The Basics of Dynamic Multithreading"
+title = "26.1. The Basics of Fork-Join Parallelism"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S1_ComputationDAG"]
 title = "26.1 S1. Computation DAGs"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S2_ReadyExecution"]
@@ -3201,7 +3250,13 @@ title = "26.1 S4. Executable Scheduler"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_1_Multithreading_Model.S5_SpawnTreeAndLoops"]
 title = "26.1 S5. Spawn Trees and Parallel Loops"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms"]
-title = "26.2-26.3. Multithreaded Algorithms (Historical 2_4 Compatibility)"
+title = "Chapter 26 Internal Parallel-Algorithm Index"
+
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_Parallel_Matrix_Multiplication"]
+title = "26.2. Parallel Matrix Multiplication"
+
+[modules."CLRSLean.FourthEdition.Chapter_26.Section_26_3_Parallel_Merge_Sort"]
+title = "26.3. Parallel Merge Sort"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S1_CostModel"]
 title = "26.2-26.3 S1. Costed Execution Model"
 [modules."CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms.S2_Recurrences"]
@@ -3490,14 +3545,26 @@ title = "35.1. The Vertex-Cover Problem"
 [modules."CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem"]
 title = "35.2. The Traveling-Salesperson Problem"
 
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_2_The_Traveling_Salesperson_Problem.GraphExecution"]
+title = "35.2. Complete-Graph TSP Execution"
+
 [modules."CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem"]
 title = "35.3. The Set-Covering Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_3_The_Set_Covering_Problem.ReturnedFamily"]
+title = "35.3. Returned-Family Approximation Bounds"
 
 [modules."CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming"]
 title = "35.4. Randomization and Linear Programming"
 
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_4_Randomization_And_Linear_Programming.VertexCoverLP"]
+title = "35.4. Vertex-Cover LP Execution"
+
 [modules."CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem"]
 title = "35.5. The Subset-Sum Problem"
+
+[modules."CLRSLean.FourthEdition.Chapter_35.Section_35_5_The_Subset_Sum_Problem.Costed"]
+title = "35.5. Costed Subset-Sum FPTAS"
 
 [modules."CLRSLean.OnlineMaterial"]
 title = "Online Material"

@@ -1,7 +1,8 @@
 import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter.StackExecution
 import CLRSLean.Chapter_17
 import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework
-import CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework.Section_16_2_Stack_And_Counter
+import CLRSLean.FourthEdition.Chapter_16.Section_16_2_The_Accounting_Method
+import CLRSLean.FourthEdition.Chapter_16.Section_16_3_The_Potential_Method
 import CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables
 import CLRSLean.FourthEdition.Chapter_16.Section_16_4_Dynamic_Tables.Section_16_4_Mutable_Array_Tables
 
@@ -13,13 +14,10 @@ period.
 
 ## Current source
 
-Sections 16.1--16.4 are native fourth-edition sections (the aggregate,
-accounting, and potential-method framework; the stack and counter examples;
-and the dynamic-tables development), imported directly from
-[Section 16.1](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/),
-[Section 16.2](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/),
-and
-[Section 16.4](CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/).
+Sections 16.1--16.4 are native fourth-edition sections. Each method now has a
+canonical reader page: aggregate analysis, the accounting method, the
+potential method, and dynamic tables. The stack and counter proofs are
+presented with the accounting method.
 Declarations retain the legacy `CLRS.Chapter17` namespace during the
 compatibility period; the third-edition-numbered imports
 {lit}`CLRSLean.Chapter_17` and {lit}`CLRSLean.Chapter_17.Section_17_*` forward
@@ -29,6 +27,8 @@ to these sources.
 
 The supporting implementation pages remain available outside the main sidebar:
 
+* [Stack and Counter Examples](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/)
+* [Stack Execution and Linear Work](CLRSLean/FourthEdition/Chapter_16/Section_16_1_Amortized_Framework/Section_16_2_Stack_And_Counter/StackExecution/)
 * [Mutable-Array Tables and Sharper Potential](CLRSLean/FourthEdition/Chapter_16/Section_16_4_Dynamic_Tables/Section_16_4_Mutable_Array_Tables/)
 
 ## Coverage boundary
