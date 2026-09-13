@@ -93,10 +93,6 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-html.clrs-nav-pending .module-tree {
-    visibility: hidden;
-}
-
 a {
     text-underline-offset: 0.18em;
 }
@@ -539,15 +535,7 @@ a {
     letter-spacing: 0.03em;
 }
 
-.imports-list summary::before {
-    content: "Dependency capsule";
-    margin-right: 10px;
-    color: var(--clrs-accent);
-    font-size: 0.72rem;
-    font-weight: 820;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
+
 
 .copy-button {
     top: 10px;
@@ -748,12 +736,106 @@ a {
     }
 }
 
-@supports (content-visibility: auto) {
-    .code-box,
-    .imports-list,
-    .code-content > .verso-text.mod-doc:not(:first-of-type),
-    .code-content > .md-text.mod-doc:not(:first-of-type) {
-        content-visibility: auto;
-        contain-intrinsic-size: auto 720px;
-    }
+
+/* Chapter reader: static contents, one heading hierarchy, and readable notes. */
+.clrs-chapter-header,
+.clrs-chapter-contents,
+.clrs-scope-note,
+.clrs-chapter-notes {
+    max-width: var(--verso-prose-max-width);
+}
+.clrs-chapter-header h1 {
+    margin: 0 0 12px;
+    font: 760 clamp(1.8rem, 3vw, 2.7rem)/1.15 var(--verso-structure-font-family);
+}
+.clrs-chapter-header p,
+.clrs-scope-note { color: var(--clrs-ink-soft); line-height: 1.6; }
+.clrs-chapter-contents {
+    margin: 26px 0 18px;
+    padding: 20px 24px;
+    background: var(--clrs-green-soft);
+    border: 1px solid var(--clrs-line);
+    border-radius: 8px;
+}
+.clrs-chapter-contents h2 { margin: 0 0 12px; font-size: 1rem; }
+.clrs-chapter-contents ol { list-style: none; margin: 0; padding: 0; }
+.clrs-chapter-contents a {
+    display: block;
+    padding: 8px 0;
+    line-height: 1.5;
+    font-family: var(--verso-structure-font-family);
+}
+.clrs-inline-chapter > .clrs-inline-section {
+    padding: 32px 0;
+    min-width: 0;
+}
+.clrs-inline-section > .imports-list { margin-top: 24px; }
+.clrs-inline-section > .mod-doc h2:first-child {
+    font-size: clamp(1.4rem, 2.3vw, 2rem);
+    letter-spacing: 0;
+}
+.clrs-chapter-notes { padding-top: 32px; line-height: 1.7; }
+.clrs-chapter-notes h2 { font-size: 1.2rem; }
+.clrs-chapter-notes .imports-list { margin: 24px 0; }
+.page-toc,
+.breadcrumbs .current,
+.module-toc a { background: var(--clrs-surface); }
+a:focus-visible,
+summary:focus-visible,
+.hamburger:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid var(--clrs-green);
+    outline-offset: 3px;
+}
+.code-content h1,
+.code-content h2,
+.code-content h3,
+.clrs-inline-section,
+.clrs-chapter-notes { scroll-margin-top: 24px; }
+@media (max-width: 768px) {
+    .clrs-chapter-contents { padding: 16px; }
+    .clrs-inline-chapter > .clrs-inline-section { padding: 28px 0; }
+    .clrs-inline-section .mod-doc { overflow-wrap: anywhere; }
+}
+
+/* Search is enhanced on load by Verso; its space exists from first paint. */
+.title-bar { min-height: 76px; box-sizing: border-box; }
+.title-bar > .breadcrumbs { flex: 1; min-width: 0; }
+.title-bar > #search-wrapper,
+.clrs-search-fallback {
+    flex: 0 0 clamp(180px, 24vw, 384px);
+    width: clamp(180px, 24vw, 384px);
+    box-sizing: border-box;
+}
+.clrs-search-fallback { padding: 12px 8px; font-size: 0.9rem; }
+.title-bar:has(#search-wrapper) > .clrs-search-fallback { display: none; }
+.clrs-skip-link { position: absolute; left: 16px; top: -100px; z-index: 1000; }
+.clrs-skip-link:focus {
+    top: 12px; padding: 12px 16px;
+    background: var(--clrs-surface); color: var(--clrs-ink);
+}
+@media (max-width: 768px) {
+    .title-bar { min-height: 64px; padding-right: 12px; }
+    .title-bar > #search-wrapper,
+    .clrs-search-fallback { flex-basis: 45%; width: 45%; }
+    .title-bar > .breadcrumbs { font-size: 0.8rem; }
+}
+.clrs-search-status {
+    position: absolute; top: 100%; right: 0; z-index: 30;
+    padding: 8px 12px; max-width: 28ch;
+    color: var(--clrs-ink-soft); background: var(--clrs-surface);
+    border: 1px solid var(--clrs-line); font-size: 0.8rem;
+}
+/* Keep text contrast immediate when the system switches color schemes. */
+:root {
+    --verso-code-const-color: var(--clrs-ink);
+    --verso-hamburger-bg: var(--clrs-surface);
+    --verso-hamburger-border: var(--clrs-line);
+    --verso-hamburger-bar-color: var(--clrs-ink);
+}
+.hl.lean .token { transition: background-color 0.15s; }
+.hamburger span { transition: transform 0.15s; }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
 }

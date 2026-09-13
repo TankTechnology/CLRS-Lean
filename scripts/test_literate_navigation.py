@@ -65,6 +65,13 @@ class ReaderSidebarModuleTests(unittest.TestCase):
         ]
         self.assertTrue(all(not is_reader_sidebar_module(name) for name in hidden))
 
+    def test_hides_unconfigured_fourth_edition_facades(self) -> None:
+        for name in [
+            "CLRSLean.FourthEdition.Chapter_03.Section_03_2_Standard_Functions",
+            "CLRSLean.FourthEdition.Chapter_26.Section_26_2_4_Algorithms",
+        ]:
+            self.assertFalse(is_reader_sidebar_module(name), name)
+
     def test_rejects_unrelated_or_malformed_names(self) -> None:
         self.assertFalse(is_reader_sidebar_module("Other.Root"))
         self.assertFalse(is_reader_sidebar_module("CLRSLean.Chapter_22.Helper"))
@@ -124,7 +131,7 @@ class ReaderSidebarRewriteTests(unittest.TestCase):
         )
         result = prune_reader_sidebar(source)
         self.assertIn('<div class="chapter-index"><div class="leaf current">', result.html)
-        self.assertEqual(result.html.count('<details>'), 35)
+        self.assertEqual(result.html.count('>Section</a>'), 0)
         self.assertNotIn('<summary class="current">', result.html)
         for n in range(1, 36):
             self.assertIn(f'>Chapter {n}</a>', result.html)

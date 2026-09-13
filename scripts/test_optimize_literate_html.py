@@ -99,7 +99,7 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
             first_text.index("</head>"),
         )
 
-    def test_injects_persistent_module_tree_state_script(self) -> None:
+    def test_injects_shared_reader_script_without_deferred_navigation_layout(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             page = Path(tmp) / "index.html"
             page.write_text(
@@ -127,29 +127,10 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
         self.assertIn("<details>", text)
         self.assertNotIn("<details open>", text)
         self.assertIn("id=\"clrs-nav-state-script\"", text)
-        self.assertIn("id=\"clrs-nav-bootstrap-script\"", text)
-        self.assertIn('classList.add("clrs-nav-pending")', text)
-        self.assertIn('classList.remove("clrs-nav-pending")', text)
-        self.assertIn("localStorage", text)
-        self.assertIn("sessionStorage", text)
-        self.assertIn("details.open = false", text)
-        self.assertNotIn("details.open = true", text)
-        self.assertIn("parent.open = true", text)
-        self.assertIn("clrs.nav.state.v8", text)
-        self.assertIn("clrs.nav.scroll.v8", text)
-        self.assertNotIn("clrs.nav.state.v7", text)
-        self.assertNotIn("clrs.nav.scroll.v7", text)
-        self.assertIn("stableNavPath", text)
-        self.assertIn("new URL(raw, document.baseURI)", text)
-        self.assertIn("CLRS-Lean", text)
-        self.assertIn('replace(/^.*\\/CLRSLean\\//, "/CLRS-Lean/")', text)
-        self.assertIn("window.location.href", text)
-        self.assertIn("bestParent", text)
-        self.assertIn("currentRect", text)
-        self.assertIn("hostRect", text)
-        self.assertNotIn("scrollIntoView", text)
-        self.assertIn("saveStateNow();", text)
-        self.assertIn('window.addEventListener("pagehide"', text)
+        self.assertNotIn("clrs-nav-bootstrap-script", text)
+        self.assertNotIn("clrs-nav-pending", text)
+        self.assertNotIn("localStorage", text)
+        self.assertIn('src="clrs-reader.js"', text)
 
     def test_nav_script_keeps_summary_link_clicks_from_toggling(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -170,8 +151,9 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
             optimizer.optimize_file(page, strip_attrs_min_bytes=1_000_000)
             text = page.read_text(encoding="utf-8")
 
-        self.assertIn('nav.querySelectorAll("summary a")', text)
-        self.assertIn("event.stopPropagation()", text)
+        script = (SCRIPT_PATH.parents[1] / "docs/literate/clrs-reader.js").read_text()
+        self.assertIn(".module-tree summary a", script)
+        self.assertIn("event.stopPropagation()", script)
 
     def test_nav_state_injection_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -223,7 +205,7 @@ class OptimizeLiterateHtmlTests(unittest.TestCase):
 
         self.assertTrue(stats.changed)
         self.assertEqual(text.count("clrs-nav-state-script"), 1)
-        self.assertIn("clrs.nav.state.v8", text)
+        self.assertIn('src="clrs-reader.js"', text)
         self.assertNotIn("clrs.nav.state.v4", text)
         self.assertNotIn("clrs.nav.state.v7", text)
 

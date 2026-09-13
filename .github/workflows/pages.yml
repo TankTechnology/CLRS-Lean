@@ -192,6 +192,19 @@ jobs:
             _site \
             --base-url "https://tanktechnology.github.io/CLRS-Lean/"
           python3 scripts/check_literate_rendering.py _site
+          python3 scripts/check_reader_site.py _site
+
+      - name: Browser smoke test
+        run: |
+          python3 -m pip install playwright==1.60.0
+          python3 -m playwright install --with-deps chromium
+          python3 -m http.server 8765 --directory _site > /tmp/reader-http.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          python3 scripts/smoke_reader_site.py --base-url http://127.0.0.1:8765/
+
+      - name: Record deployed revision
+        run: git rev-parse HEAD > _site/revision.txt
 
       - uses: actions/upload-pages-artifact@v3
         with:

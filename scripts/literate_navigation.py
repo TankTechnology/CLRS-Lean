@@ -7,13 +7,15 @@ import re
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
+from functools import lru_cache
+
+from scripts.check_literate_config import parse_order_children
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 CHAPTER_MODULE_RE = re.compile(r"Chapter_[0-9][0-9]")
-SECTION_MODULE_RE = re.compile(r"Section_.*")
 READER_SUPPORT_MODULES = frozenset(
     {
         "CLRSLean.OnlineMaterial",
@@ -30,6 +32,17 @@ MODULE_TREE_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 VOID_ELEMENTS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
+
+
+@lru_cache(maxsize=1)
+def canonical_sections() -> frozenset[str]:
+    orders = parse_order_children((ROOT / "literate.toml").read_text(encoding="utf-8"))
+    return frozenset(
+        child for parent, children in orders.items()
+        if re.fullmatch(r"CLRSLean\.FourthEdition\.Chapter_[0-9]{2}", parent)
+        for child in children
+        if child.startswith(parent + ".Section_") and child.count(".") == 3
+    )
 
 
 def is_reader_sidebar_module(module_name: str) -> bool:
@@ -50,7 +63,7 @@ def is_reader_sidebar_module(module_name: str) -> bool:
             len(parts) == 4
             and parts[:2] == ["CLRSLean", "FourthEdition"]
             and CHAPTER_MODULE_RE.fullmatch(parts[2]) is not None
-            and SECTION_MODULE_RE.fullmatch(parts[3]) is not None
+            and module_name in canonical_sections()
         )
     )
 
@@ -89,6 +102,12 @@ def reader_parent_for_module(
         if module_name == prefix or module_name.startswith(f"{prefix}.")
     ]
     if not matching_prefixes:
+        parts = module_name.split(".")
+        if len(parts) > 3 and parts[:2] == ["CLRSLean", "FourthEdition"]:
+            for length in range(len(parts) - 1, 2, -1):
+                candidate = ".".join(parts[:length])
+                if is_reader_sidebar_module(candidate):
+                    return candidate
         return None
     return reader_parent_routes[max(matching_prefixes, key=len)]
 
@@ -354,7 +373,19 @@ def prune_reader_sidebar(
     pruner.rewrite_container(nav)
     if pruner.hidden_current_target and not pruner.has_current(nav):
         pruner.mark_current(nav, pruner.hidden_current_target)
-    changed = bool(pruner.removed_modules or pruner.flattened_modules)
+    def establish_open_state(element: _Element) -> bool:
+        current = "current" in _classes(element)
+        for child in element.children:
+            if isinstance(child, _Element):
+                current = establish_open_state(child) or current
+        if element.tag == "details":
+            element.attrs = [(k, v) for k, v in element.attrs if k != "open"]
+            if current:
+                element.attrs.append(("open", None))
+        return current
+
+    establish_open_state(nav)
+    changed = _render(nav) != match.group(0)
     if changed:
         fragment = _render(nav)
         document = f"{document[:match.start()]}{fragment}{document[match.end():]}"

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.check_literate_config import parse_order_children
+from scripts.check_literate_config import parse_order_children, parse_module_titles
 from scripts.check_literate_rendering import check_site
 from scripts.generate_sitemap import (
     iter_html_pages,
@@ -25,6 +25,8 @@ from scripts.generate_sitemap import (
 )
 from scripts.optimize_literate_html import iter_html_files, optimize_file
 from scripts.inline_chapter_sections import compose_chapter_pages
+from scripts.reader_layout import reader_chrome, canonical_section_title
+from scripts.prepare_search_assets import prepare_search_assets
 
 
 DEFAULT_BASE_URL = "https://tanktechnology.github.io/CLRS-Lean/"
@@ -74,6 +76,10 @@ def prepare_site(
         shutil.rmtree(destination)
     shutil.copytree(source, destination)
     shutil.copy2(stylesheet, destination / "clrs-literate.css")
+    shutil.copy2(ROOT / "docs/literate/clrs-reader.js", destination / "clrs-reader.js")
+
+    shutil.copy2(ROOT / "docs/literate/clrs-search.js", destination / "clrs-search.js")
+    prepare_search_assets(destination)
 
     html_files = list(iter_html_files([destination]))
     optimized_pages = 0
@@ -89,8 +95,29 @@ def prepare_site(
             canonical_url=canonical_url,
         ).changed:
             optimized_pages += 1
+        route = html_file.relative_to(destination).as_posix()
+        if route.endswith("index.html"):
+            route = route[:-len("index.html")] or "./"
+        text = html_file.read_text(encoding="utf-8")
+        updated = reader_chrome(text, route)
+        if updated != text:
+            html_file.write_text(updated, encoding="utf-8")
 
-    order_children = parse_order_children(config.read_text(encoding="utf-8"))
+    config_text = config.read_text(encoding="utf-8")
+    order_children = parse_order_children(config_text)
+    titles = parse_module_titles(config_text)
+    for parent, children in order_children.items():
+        if not parent.startswith("CLRSLean.FourthEdition.Chapter_") or parent.count(".") != 2:
+            continue
+        for child in children:
+            if not child.startswith(parent + ".Section_") or child not in titles:
+                continue
+            path = destination.joinpath(*child.split("."), "index.html")
+            if path.is_file():
+                text = path.read_text(encoding="utf-8")
+                updated = canonical_section_title(text, titles[child])
+                if updated != text:
+                    path.write_text(updated, encoding="utf-8")
     composition = compose_chapter_pages(destination, order_children)
 
     failures = check_site(destination)

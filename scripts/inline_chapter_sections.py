@@ -6,6 +6,13 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.reader_layout import chapter_layout, chapter_toc, nest_headings, section_heading
 
 
 CHAPTER_RE = re.compile(r"CLRSLean\.FourthEdition\.Chapter_[0-9][0-9]")
@@ -179,6 +186,7 @@ def compose_chapter_pages(
 
         chapter_route = parent.replace(".", "/") + "/"
         embedded: list[str] = []
+        entries: list[tuple[str, str]] = []
         chapter_fragment_targets: dict[str, dict[str, str]] = {}
         for child in children:
             child_path = module_page(site_root, child)
@@ -189,6 +197,8 @@ def compose_chapter_pages(
                 child_html, child
             )
             content = child_html[inner_start:inner_end]
+            entries.append((section_anchor(child), section_heading(content, child.rsplit(".", 1)[-1])))
+            content = nest_headings(content)
             targets = _fragment_targets(
                 content, child_html[outer_start:inner_start], child
             )
@@ -212,12 +222,13 @@ def compose_chapter_pages(
             + "\n".join(embedded)
             + "\n</section>\n"
         )
-        _, _, parent_content_end, _ = _code_content_bounds(parent_html, parent)
+        _, parent_content_start, parent_content_end, _ = _code_content_bounds(parent_html, parent)
         combined = (
-            parent_html[:parent_content_end]
-            + insertion
+            parent_html[:parent_content_start]
+            + chapter_layout(parent_html[parent_content_start:parent_content_end], insertion, entries, chapter_route)
             + parent_html[parent_content_end:]
         )
+        combined = chapter_toc(combined, entries, chapter_route)
         combined = _rewrite_section_links(
             combined, parent, children, chapter_fragment_targets
         )

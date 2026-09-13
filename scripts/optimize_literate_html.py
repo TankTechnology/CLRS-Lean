@@ -57,7 +57,6 @@ VERSO_HOVER_SCRIPT_RE = re.compile(
     re.DOTALL,
 )
 BODY_END_RE = re.compile(r"</body\s*>", re.IGNORECASE)
-BODY_START_RE = re.compile(r"<body\b", re.IGNORECASE)
 HEAD_END_RE = re.compile(r"</head\s*>", re.IGNORECASE)
 GOOGLE_SITE_VERIFICATION_CONTENT = "_r82oikN7_rmuMq-yxTixWGiNVPoxC-OJcNLDlO1Atk"
 GOOGLE_SITE_VERIFICATION_META = (
@@ -83,212 +82,7 @@ NAV_BOOTSTRAP_SCRIPT_RE = re.compile(
     rf"<script\s+id=[\"']{NAV_BOOTSTRAP_SCRIPT_ID}[\"'][^>]*>.*?</script>",
     re.DOTALL | re.IGNORECASE,
 )
-NAV_BOOTSTRAP_SCRIPT = r"""
-<script id="clrs-nav-bootstrap-script">
-document.documentElement.classList.add("clrs-nav-pending");
-</script>
-""".strip()
-NAV_STATE_SCRIPT = r"""
-<script id="clrs-nav-state-script">
-(() => {
-  const STATE_KEY = "clrs.nav.state.v8";
-  const SCROLL_KEY = "clrs.nav.scroll.v8";
-
-  function storageArea() {
-    try {
-      const store = window.localStorage;
-      const probe = "clrs.nav.probe";
-      store.setItem(probe, "1");
-      store.removeItem(probe);
-      return store;
-    } catch (_err) {
-      try {
-        return window.sessionStorage;
-      } catch (_fallbackErr) {
-        return null;
-      }
-    }
-  }
-
-  const storage = storageArea();
-
-  function readJson(key, fallback) {
-    if (!storage) return fallback;
-    try {
-      const raw = storage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (_err) {
-      return fallback;
-    }
-  }
-
-  function writeJson(key, value) {
-    if (!storage) return;
-    try {
-      storage.setItem(key, JSON.stringify(value));
-    } catch (_err) {
-      /* Storage can be unavailable in private or locked-down contexts. */
-    }
-  }
-
-  function stablePath(raw) {
-    if (!raw) return "";
-    try {
-      const path = new URL(raw, document.baseURI).pathname
-        .replace(/\/(?:index\.html)?$/, "")
-        .replace(/^.*\/CLRSLean\//, "/CLRS-Lean/")
-        .replace(/^.*\/CLRS-Lean\//, "/CLRS-Lean/");
-      return path || raw;
-    } catch (_err) {
-      return raw;
-    }
-  }
-
-  function stableNavPath(link) {
-    return stablePath(link?.getAttribute("href"));
-  }
-
-  function navKey(details, index) {
-    const link = details.querySelector(":scope > summary a");
-    const title = link?.getAttribute("title")?.trim();
-    if (title) return title;
-    const path = stableNavPath(link);
-    if (path) return path;
-    const label = link?.textContent?.trim().replace(/\s+/g, " ");
-    return label || `nav-${index}`;
-  }
-
-  function whenReady(fn) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", fn, { once: true });
-    } else {
-      fn();
-    }
-  }
-
-  whenReady(() => {
-    try {
-      const nav = document.querySelector(".module-tree");
-      if (!nav) return;
-
-    const detailsList = Array.from(nav.querySelectorAll("details"));
-    const savedState = readJson(STATE_KEY, null);
-
-    for (const link of nav.querySelectorAll("summary a")) {
-      link.addEventListener("click", (event) => {
-        event.stopPropagation();
-      });
-    }
-
-    detailsList.forEach((details, index) => {
-      const key = navKey(details, index);
-      details.dataset.clrsNavKey = key;
-      if (savedState && Object.prototype.hasOwnProperty.call(savedState, key)) {
-        details.open = Boolean(savedState[key]);
-      } else {
-        details.open = false;
-      }
-    });
-
-    let current = nav.querySelector(".current");
-    if (!current) {
-      const pagePath = stablePath(window.location.href);
-      let bestParent = null;
-      let bestLength = -1;
-      for (const link of nav.querySelectorAll("a[title]")) {
-        const candidate = stableNavPath(link);
-        if (
-          candidate &&
-          (pagePath === candidate || pagePath.startsWith(`${candidate}/`)) &&
-          candidate.length > bestLength
-        ) {
-          bestParent = link.closest("summary, .leaf");
-          bestLength = candidate.length;
-        }
-      }
-      if (bestParent) {
-        bestParent.classList.add("current");
-        current = bestParent;
-      }
-    }
-    let parent = current?.closest("details");
-    while (parent) {
-      parent.open = true;
-      parent = parent.parentElement?.closest("details");
-    }
-
-    function saveStateNow() {
-      const state = {};
-      for (const details of detailsList) {
-        state[details.dataset.clrsNavKey] = details.open;
-      }
-      writeJson(STATE_KEY, state);
-    }
-
-    let stateQueued = false;
-    function saveState() {
-      if (stateQueued) return;
-      stateQueued = true;
-      requestAnimationFrame(() => {
-        stateQueued = false;
-        saveStateNow();
-      });
-    }
-
-    for (const details of detailsList) {
-      details.addEventListener("toggle", saveState);
-    }
-
-    const scrollCandidates = [
-      document.querySelector(".sidebar-content"),
-      document.querySelector(".sidebar"),
-      nav.parentElement,
-    ].filter(Boolean);
-    const scrollHost =
-      scrollCandidates.find((el) => el.scrollHeight > el.clientHeight) ||
-      scrollCandidates[0];
-
-    if (!scrollHost) return;
-
-    const savedScroll = readJson(SCROLL_KEY, null);
-    if (typeof savedScroll === "number") {
-      scrollHost.scrollTop = savedScroll;
-    } else if (current) {
-      const currentRect = current.getBoundingClientRect();
-      const hostRect = scrollHost.getBoundingClientRect();
-      if (currentRect.top < hostRect.top) {
-        scrollHost.scrollTop -= hostRect.top - currentRect.top;
-      } else if (currentRect.bottom > hostRect.bottom) {
-        scrollHost.scrollTop += currentRect.bottom - hostRect.bottom;
-      }
-    }
-
-    let scrollQueued = false;
-    function saveScroll() {
-      scrollQueued = false;
-      writeJson(SCROLL_KEY, scrollHost.scrollTop);
-    }
-
-    scrollHost.addEventListener(
-      "scroll",
-      () => {
-        if (scrollQueued) return;
-        scrollQueued = true;
-        requestAnimationFrame(saveScroll);
-      },
-      { passive: true },
-    );
-      window.addEventListener("pagehide", () => {
-        saveStateNow();
-        saveScroll();
-      });
-    } finally {
-      document.documentElement.classList.remove("clrs-nav-pending");
-    }
-  });
-})();
-</script>
-""".strip()
+NAV_STATE_SCRIPT = '<script id="clrs-nav-state-script" src="clrs-reader.js" defer></script>'
 
 
 @dataclass
@@ -310,6 +104,7 @@ class PageStats:
     closed_nav_details: int
     removed_nav_modules: int
     flattened_nav_details: int
+    updated_reader_navigation: bool
 
     @property
     def changed(self) -> bool:
@@ -329,6 +124,7 @@ class PageStats:
             or self.closed_nav_details > 0
             or self.removed_nav_modules > 0
             or self.flattened_nav_details > 0
+            or self.updated_reader_navigation
         )
 
 
@@ -521,29 +317,8 @@ def iter_html_files(paths: Iterable[Path]) -> Iterable[Path]:
 def inject_nav_state_script(text: str) -> tuple[str, int]:
     if "module-tree" not in text:
         return text, 0
-    changed = False
-    if NAV_BOOTSTRAP_SCRIPT_ID in text:
-        match = NAV_BOOTSTRAP_SCRIPT_RE.search(text)
-        if match and match.group(0) != NAV_BOOTSTRAP_SCRIPT:
-            text = NAV_BOOTSTRAP_SCRIPT_RE.sub(
-                lambda _match: NAV_BOOTSTRAP_SCRIPT, text, count=1
-            )
-            changed = True
-    else:
-        text, count = HEAD_END_RE.subn(
-            lambda _match: f"    {NAV_BOOTSTRAP_SCRIPT}\n</head>",
-            text,
-            count=1,
-        )
-        if count == 0:
-            text, count = BODY_START_RE.subn(
-                lambda _match: f"{NAV_BOOTSTRAP_SCRIPT}\n<body",
-                text,
-                count=1,
-            )
-        if count != 1:
-            raise ValueError("HTML page lacks a head or body insertion point")
-        changed = True
+    text, removed = NAV_BOOTSTRAP_SCRIPT_RE.subn("", text)
+    changed = bool(removed)
     if NAV_STATE_SCRIPT_ID in text:
         match = NAV_STATE_SCRIPT_RE.search(text)
         if not match or match.group(0) == NAV_STATE_SCRIPT:
@@ -659,6 +434,7 @@ def optimize_file(
 
     text = tmp.read_text(encoding="utf-8", errors="replace")
     sidebar = prune_reader_sidebar(text, READER_PARENT_ROUTES)
+    updated_reader_navigation = sidebar.html != text
     text = sidebar.html
     text, converted_progress_matrices = replace_progress_matrix(text)
     text, injected_nav_scripts = inject_nav_state_script(text)
@@ -667,7 +443,8 @@ def optimize_file(
     if canonical_url is not None:
         text, injected_canonical_links = inject_canonical_link(text, canonical_url)
     if (
-        sidebar.removed_modules
+        updated_reader_navigation
+        or sidebar.removed_modules
         or sidebar.flattened_modules
         or injected_nav_scripts
         or injected_verification_meta
@@ -695,6 +472,7 @@ def optimize_file(
         closed_nav_details=parser.closed_nav_details,
         removed_nav_modules=len(sidebar.removed_modules),
         flattened_nav_details=len(sidebar.flattened_modules),
+        updated_reader_navigation=updated_reader_navigation,
     )
 
     if stats.changed:

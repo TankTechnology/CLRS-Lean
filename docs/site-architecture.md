@@ -152,7 +152,7 @@ removing hover metadata that makes browser parsing slow on large pages.  The
 same post-processing step prunes non-reader modules from the static sidebar
 HTML.  Any visible disclosure that loses all visible children becomes an
 ordinary leaf row, avoiding empty arrows.  On a hidden implementation page,
-the navigation script marks the nearest visible parent as current.
+the static navigation rewrite marks the nearest visible parent as current.
 
 Both repository workflows are `workflow_dispatch` only.  Commits and pull
 requests do not start Lean or Pages builds automatically; a maintainer manually
@@ -164,13 +164,10 @@ All 35 chapter names are visible in the sidebar without opening a parent group,
 including on the homepage and in browsers with an old saved collapse state.
 Third-edition compatibility chapter rows are excluded from the reader sidebar.
 
-Individual chapters may still disclose their section lists. The navigation
-script restores those choices and sidebar scroll across page loads, and opens
-the ancestors of the current section. Static disclosures start closed, matching
-the default script state, and the navigation stays hidden for the brief interval
-while saved state is applied. This prevents the expanded-then-collapsed first
-paint that previously shifted the sidebar. Chapter-title links navigate without
-toggling the chapter's disclosure.
+Individual chapters may still disclose their section lists. The generated HTML
+opens the active chapter and keeps the remaining chapter names visible. Browser
+storage does not change the initial tree or hide it while scripts load.
+Chapter-title links navigate without toggling the chapter's disclosure.
 
 ## Reader Flow
 
@@ -205,3 +202,47 @@ The top-level sidebar orders the chapter tree first, then Progress Dashboard
 and Proof Status, followed by online material, reusable tools, research
 extensions, and Contributor Guide. The contributor page retains its stable
 `CLRSLean/Workflow/` URL. Internal source names do not need to be reader titles.
+
+## Reader presentation contract
+
+`literate.toml` owns the canonical section inventory. `literate_navigation.py`
+uses that inventory to exclude compatibility facades even when Verso emits them
+as direct children. All 35 chapter names remain visible. The active chapter's
+section disclosure is opened in generated HTML, with no storage-dependent
+initial layout or navigation-hiding bootstrap.
+
+`inline_chapter_sections.py` handles section composition and anchor namespacing;
+`reader_layout.py` handles chapter reading order and the page contents list.
+The chapter starts with its title and same-page section list, followed by the
+section bodies. Detailed source, scope and implementation notes remain below
+the main text, linked from a visible scope notice. Embedded headings are nested under
+the chapter heading and retain their original anchor identifiers. Canonical
+section headings and their TOC labels use the same configured titles as the
+sidebar; changing a display title preserves existing fragment URLs.
+
+`docs/literate/clrs-literate.css` owns the theme and responsive layout.
+`docs/literate/clrs-reader.js` provides optional keyboard/menu behavior; it does
+not assemble content, hide navigation or restore a different initial tree.
+
+Run `python3 scripts/check_reader_site.py _site` after assembly. Pages runs this
+same check before uploading: all chapter pages must include the canonical
+navigation, inline section anchors, complete page contents, unique IDs and
+working local links. Browser smoke tests should include search, same-page links,
+mobile menu, light/dark modes and JavaScript-disabled chapter navigation.
+
+The pinned Verso search adapter (`prepare_search_assets.py`) handles paste and
+touch-keyboard input as well as key events. `clrs-search.js` loads the full-text
+index on first search focus; ordinary chapter reading does not fetch it. The
+standalone search page retains its full index. Failed lazy loading leaves a
+retry message and semantic declaration search available.
+
+Pages also runs `scripts/smoke_reader_site.py` with Chromium before uploading.
+For local use, serve `_site` and run:
+
+```sh
+python3 scripts/smoke_reader_site.py --base-url http://127.0.0.1:8765/
+```
+
+Use `--browser /path/to/chromium` for a system browser. The check saves screenshots
+under `/tmp/clrs-reader-smoke` by default. After deployment, `revision.txt` exposes
+the exact published commit for public verification.
