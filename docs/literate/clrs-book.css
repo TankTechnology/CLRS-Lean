@@ -1,0 +1,121 @@
+/* Book furniture: frontispiece, part headings, sequential navigation, colophon. */
+@media (prefers-color-scheme: light) {
+    :root {
+        --clrs-paper: #f8f5ed;
+        --clrs-surface: #fffcf5;
+        --clrs-sidebar: #f1efe6;
+        --clrs-sidebar-2: #f8f5ed;
+        --clrs-sidebar-current: #285644;
+        --clrs-line: #dcded0;
+    }
+}
+.clrs-book-eyebrow,
+.clrs-cover-edition,
+.clrs-book-folio {
+    font: 600 .73rem/1.65 var(--verso-structure-font-family);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--clrs-ink-soft);
+}
+main[data-clrs-book="cover"] .page-toc { display: none; }
+main[data-clrs-book="cover"] .code-content > .mod-doc { max-width: 1080px; }
+main[data-clrs-book="cover"] .code-content > .mod-doc > section > p { max-width: 74ch; }
+.clrs-book-cover {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    align-items: center;
+    padding: 22px 0 48px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--clrs-line-strong);
+}
+.clrs-cover-copy { min-width: 0; }
+.code-content .mod-doc .clrs-book-cover h1 {
+    margin: 32px 0 24px;
+    font: 500 clamp(3.2rem, 5.3vw, 5.6rem)/1.02 var(--verso-text-font-family);
+    letter-spacing: -.055em;
+}
+.code-content .mod-doc .clrs-cover-deck {
+    font: 400 clamp(1.3rem, 2vw, 1.85rem)/1.4 var(--verso-text-font-family);
+    margin: 0 0 22px;
+}
+.clrs-cover-description { color: var(--clrs-ink-soft); max-width: 36ch; }
+.clrs-book-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    margin: 28px 0;
+    font: 600 .9rem/1.5 var(--verso-structure-font-family);
+}
+.clrs-book-actions .clrs-book-primary {
+    padding: 12px 18px;
+    border-radius: 3px;
+    color: var(--clrs-paper);
+    background: var(--clrs-green);
+    text-decoration: none;
+}
+.clrs-book-primary span { margin-left: 14px; }
+.clrs-cover-art { margin: 0; min-width: 0; }
+.clrs-cover-art img { display: block; width: 100%; height: auto; }
+.clrs-cover-art figcaption {
+    margin-top: 12px;
+    color: var(--clrs-ink-soft);
+    font: italic .85rem/1.5 var(--verso-text-font-family);
+}
+.clrs-cover-edition { margin: 28px 0 0; }
+.clrs-cover-edition span { margin: 0 12px; color: var(--clrs-accent); }
+main[data-clrs-book="contents"] .mod-doc > section { margin-bottom: 36px; }
+main[data-clrs-book="contents"] .mod-doc > section:has(h2) {
+    padding-top: 16px;
+    border-top: 1px solid var(--clrs-line);
+}
+main[data-clrs-book="contents"] .mod-doc > section > ul {
+    list-style: none;
+    padding-left: 0;
+}
+main[data-clrs-book="contents"] .mod-doc > section > ul > li { padding: 5px 0; }
+.clrs-chapter-header h1 { font-family: var(--verso-text-font-family); font-weight: 500; }
+.clrs-book-pagination {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    max-width: var(--verso-prose-max-width);
+    padding: 28px 0;
+    margin-top: 56px;
+    border-top: 1px solid var(--clrs-line-strong);
+    border-bottom: 1px solid var(--clrs-line);
+}
+.clrs-book-pagination a { display: flex; flex-direction: column; gap: 10px; text-decoration: none; }
+.clrs-book-pagination a:last-child { text-align: right; }
+.clrs-book-pagination span {
+    color: var(--clrs-ink-soft);
+    font: 500 .8rem/1.4 var(--verso-structure-font-family);
+}
+.clrs-book-pagination strong { font: 500 1.15rem/1.5 var(--verso-text-font-family); }
+.clrs-book-pagination a:hover strong { text-decoration: underline; }
+.clrs-book-folio { margin-top: 20px; }
+.clrs-book-colophon {
+    max-width: 720px;
+    padding: 52px 0 20px;
+    margin: 52px 0 0;
+    border-top: 1px solid var(--clrs-line-strong);
+    text-align: center;
+    line-height: 1.75;
+}
+.clrs-book-colophon img { display: block; width: 100%; height: auto; margin-bottom: 26px; }
+.clrs-book-colophon h2 { font: 500 clamp(1.8rem, 3vw, 2.5rem)/1.25 var(--verso-text-font-family); }
+.clrs-book-colophon .clrs-book-actions { justify-content: center; }
+.clrs-book-credits { color: var(--clrs-ink-soft); font-size: .86rem; }
+@media (max-width: 1100px) and (min-width: 769px) {
+    .clrs-book-cover { grid-template-columns: 1fr; }
+    .clrs-cover-art { max-width: 480px; }
+}
+@media (max-width: 768px) {
+    .clrs-book-cover { grid-template-columns: 1fr; gap: 32px; padding-top: 0; }
+    .code-content .mod-doc .clrs-book-cover h1 { margin: 20px 0; font-size: clamp(3rem, 13vw, 4.3rem); }
+    .clrs-cover-art { max-width: 440px; }
+    .clrs-book-pagination { gap: 18px; }
+    .clrs-book-pagination strong { font-size: 1rem; overflow-wrap: anywhere; }
+    .clrs-book-colophon { margin-top: 36px; padding-top: 32px; }
+}

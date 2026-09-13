@@ -4,21 +4,32 @@
 
 Algorithms you can read. Proofs Lean can check.
 
-Introducing CLRS-Lean: selected core algorithms from CLRS (4th ed.), organized across 35 chapter guides, with 1,689 tracked proof entries proved in Lean 4.
+Introducing CLRS-Lean: selected core algorithms and proofs from CLRS (4th ed.), organized across 35 chapter guides and checked in Lean 4.
 
-Explore the book and code:
+Open the book:
 https://tanktechnology.github.io/CLRS-Lean/
 
-## Optional reply
+Attach `docs/literate/assets/book-social.png` to the main post.
 
-Browse definitions, invariants, correctness proofs, and cost bounds chapter by chapter, including parallel and machine-learning algorithms.
+## Reply 1: See the work
 
-This milestone covers our selected proof inventory. Each chapter documents its assumptions and scope; it does not cover every textbook theorem or exercise.
+From insertion sort to parallel and machine-learning algorithms: browse definitions, invariants, correctness proofs and cost bounds alongside each chapter.
+
+Our reviewed inventory contains 1,689 selected proof entries, all proved in Lean 4.
+
+Attach `docs/releases/assets/book-walkthrough.mp4` to this reply.
+
+## Reply 2: Scope and invitation
+
+This milestone covers our selected proof inventory, not every textbook theorem or exercise. Each chapter states its models, assumptions and scope.
 
 Contributions welcome:
 https://github.com/TankTechnology/CLRS-Lean
 
 ## Publication note
 
-This is an unpublished draft. Publish after the canonical-section-route deployment
-has succeeded and the public chapter pages pass smoke checks.
+This is an unpublished draft. Publish after the book-presentation deployment
+has succeeded, its public revision matches the release commit, and the public
+chapter pages pass smoke checks. Verify the inventory against the release
+snapshot before posting. The social card uses stable chapter counts rather than
+a theorem count so it remains useful as the inventory evolves.

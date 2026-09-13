@@ -22,11 +22,18 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         page = context.new_page()
         page.goto(base, wait_until='networkidle')
         assert 'CLRS-Lean' in page.title()
+        cover = page.locator('.clrs-book-cover img')
+        assert cover.is_visible() and cover.evaluate('(img) => img.complete && img.naturalWidth > 0')
+        assert cover.get_attribute('width') and cover.get_attribute('height')
         assert not page.evaluate('performance.getEntriesByType("resource").some(r => /searchIndex\.js$/.test(r.name))')
         for n in range(1, 36):
             link = page.locator(f'.module-tree a[title="CLRSLean.FourthEdition.Chapter_{n:02d}"]')
             assert link.count() == 1 and link.is_visible(), n
         page.screenshot(path=str(screenshots / 'home-desktop.png'))
+        page.get_by_role('link', name='Open the book').click()
+        page.wait_for_load_state('networkidle')
+        assert page.locator('main[data-clrs-book="contents"]').count() == 1
+        assert page.locator('main a[href*="/Chapter_"]').count() >= 35
         for n in (3, 26, 33):
             url = base + f'CLRSLean/FourthEdition/Chapter_{n:02d}/'
             response = page.goto(url, wait_until='domcontentloaded')
@@ -38,6 +45,7 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
             assert initial_headings == page.locator('main h1, main h2').all_text_contents()
             assert initial_open == page.locator('.module-tree details[open] > summary').all_text_contents()
             assert page.locator('main h1').count() == 1
+            assert page.locator('.clrs-book-pagination a[rel="next"]').count() == 1
             page.screenshot(path=str(screenshots / f'chapter-{n}-top.png'))
             contents = page.locator('.clrs-chapter-contents a')
             assert contents.count() >= 3
@@ -60,6 +68,13 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         search.press('Enter')
         page.wait_for_load_state('networkidle')
         assert 'ParallelMergeSort' in page.url, page.url
+        page.goto(base + 'CLRSLean/FourthEdition/Chapter_35/', wait_until='networkidle')
+        page.locator('.clrs-book-colophon').scroll_into_view_if_needed()
+        page.wait_for_function('document.querySelector(".clrs-book-colophon img").naturalWidth > 0')
+        assert page.locator('.clrs-book-pagination a[rel="next"]').count() == 0
+        page.locator('.clrs-book-pagination a[rel="prev"]').click()
+        page.wait_for_load_state('networkidle')
+        assert '/Chapter_34/' in page.url
         # Chapter link/anchor navigation on a touch-sized screen, plus dark mode.
         mobile = context.new_page()
         mobile.set_viewport_size({'width': 390, 'height': 844})
@@ -79,6 +94,9 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         # No script may be required to show chapters, section bodies or contents.
         offline = browser.new_context(java_script_enabled=False, viewport={'width': 390, 'height': 844})
         nojs = offline.new_page()
+        nojs.goto(base, wait_until='load')
+        assert nojs.locator('.clrs-book-cover img').is_visible()
+        assert nojs.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         nojs.goto(base + 'CLRSLean/FourthEdition/', wait_until='load')
         assert nojs.locator('main a[href*="/Chapter_"]').count() >= 35
         nojs.goto(url, wait_until='load')

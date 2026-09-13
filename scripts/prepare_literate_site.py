@@ -27,6 +27,7 @@ from scripts.optimize_literate_html import iter_html_files, optimize_file
 from scripts.inline_chapter_sections import compose_chapter_pages
 from scripts.reader_layout import reader_chrome, canonical_section_title
 from scripts.prepare_search_assets import prepare_search_assets
+from scripts.book_presentation import book_metadata, present_book
 
 
 DEFAULT_BASE_URL = "https://tanktechnology.github.io/CLRS-Lean/"
@@ -77,6 +78,8 @@ def prepare_site(
     shutil.copytree(source, destination)
     shutil.copy2(stylesheet, destination / "clrs-literate.css")
     shutil.copy2(ROOT / "docs/literate/clrs-reader.js", destination / "clrs-reader.js")
+    shutil.copy2(ROOT / "docs/literate/clrs-book.css", destination / "clrs-book.css")
+    shutil.copytree(ROOT / "docs/literate/assets", destination / "assets", dirs_exist_ok=True)
 
     shutil.copy2(ROOT / "docs/literate/clrs-search.js", destination / "clrs-search.js")
     prepare_search_assets(destination)
@@ -99,7 +102,7 @@ def prepare_site(
         if route.endswith("index.html"):
             route = route[:-len("index.html")] or "./"
         text = html_file.read_text(encoding="utf-8")
-        updated = reader_chrome(text, route)
+        updated = book_metadata(reader_chrome(text, route), base_url)
         if updated != text:
             html_file.write_text(updated, encoding="utf-8")
 
@@ -119,6 +122,7 @@ def prepare_site(
                 if updated != text:
                     path.write_text(updated, encoding="utf-8")
     composition = compose_chapter_pages(destination, order_children)
+    present_book(destination)
 
     failures = check_site(destination)
     if failures:
