@@ -36,6 +36,16 @@ def book_metadata(document: str, base_url: str) -> str:
     return document.replace('</head>', meta + '</head>', 1)
 
 
+def cover_art() -> str:
+    return (
+        '<figure class="clrs-cover-art">'
+        '<img src="assets/clrs-lean-cover.webp" width="1536" height="1024" fetchpriority="high" '
+        'alt="CLRS-Lean: Machine-checked algorithms, chapter by chapter. '
+        'An open book unfolds into algorithm trees, sorting bars, graphs and a proof tree.">'
+        '</figure>'
+    )
+
+
 def cover(heading: str) -> str:
     return (
         '<header class="clrs-book-cover"><div class="clrs-cover-copy">'
@@ -47,11 +57,7 @@ def cover(heading: str) -> str:
         f'<a class="clrs-book-primary" href="{CONTENTS}">Open the book <span aria-hidden="true">↗</span></a>'
         '<a href="CLRSLean/Status/">Explore proof coverage</a></div>'
         '<p class="clrs-cover-edition">35 chapter guides <span aria-hidden="true">/</span> Lean 4</p>'
-        '</div><figure class="clrs-cover-art">'
-        '<img src="assets/clrs-lean-cover.webp" width="1536" height="1024" fetchpriority="high" '
-        'alt="CLRS-Lean: Machine-checked algorithms, chapter by chapter. '
-        'An open book unfolds into algorithm trees, sorting bars, graphs and a proof tree.">'
-        '</figure></header>'
+        '</div>' + cover_art() + '</header>'
     )
 
 
@@ -98,12 +104,13 @@ def present_book_page(document: str, module: str) -> str:
         return document
     kind = 'cover' if module == 'CLRSLean' else 'contents' if module == 'CLRSLean.FourthEdition' else 'chapter'
     document = document[:main.end()-1] + f' data-clrs-book="{kind}">' + document[main.end():]
-    if kind == 'cover':
+    if kind in ('cover', 'contents'):
         heading = re.search(r'<h1\b[^>]*>.*?</h1>', document[main.start():], re.S)
         if heading:
             start = main.start() + heading.start()
             end = main.start() + heading.end()
-            document = document[:start] + cover(heading.group()) + document[end:]
+            opening = cover(heading.group()) if kind == 'cover' else cover_art() + heading.group()
+            document = document[:start] + opening + document[end:]
     ending = colophon() if kind == 'cover' else ''
     if chapter:
         number = int(chapter.group(1))

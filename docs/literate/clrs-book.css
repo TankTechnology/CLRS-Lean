@@ -90,6 +90,7 @@ main[data-clrs-book="cover"] .code-content > .mod-doc > section > p { max-width:
 .clrs-cover-edition { margin: 28px 0 0; }
 .clrs-cover-edition span { margin: 0 12px; color: var(--clrs-accent); }
 main[data-clrs-book="contents"] .mod-doc > section { margin-bottom: 36px; }
+main[data-clrs-book="contents"] .clrs-cover-art { margin-bottom: 32px; }
 main[data-clrs-book="contents"] .mod-doc > section:has(h2) {
     padding-top: 16px;
     border-top: 1px solid var(--clrs-line);
