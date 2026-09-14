@@ -35,7 +35,7 @@ and a checked change classification. Unknown inputs require a full build.
   retention, explicit full rebuild, and the local refresh command.
 - [x] Run repository checks, local fixture refresh and browser smoke tests;
   obtain independent review.
-- [ ] Merge and dispatch a real refresh after the existing full build completes.
+- [x] Merge and dispatch a real refresh after the existing full build completes.
   Verify skipped Lean jobs, elapsed time and the public revision/image URLs.
 
 ## Acceptance commands
@@ -50,3 +50,12 @@ gh workflow run pages.yml --ref main -f mode=refresh
 The first retained baseline may require the existing full build to finish.
 Do not launch another full build just to install the optimization, or cancel
 the only running build before its replacement artifacts exist.
+
+## Production verification
+
+PR #380 merged as `87e16224467cc6284812b0d7a58d92a0eaf49932`.
+Run `34830859295` completed successfully in 4 minutes 20 seconds, including
+the one-time legacy artifact migration. `prepare`, `render`, and `merge` were
+skipped. The public revision matched the merged commit; `reader-site` and
+`literate-raw` artifacts expire on December 13, 2026. A subsequent `auto` plan
+selects `assets` and only the retained `reader-site` artifact.
