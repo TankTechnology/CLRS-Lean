@@ -41,6 +41,7 @@ CHECK_COMMANDS = [
     ("scripts/test_prepare_literate_module_map.py",),
     ("scripts/test_render_literate_shard.py",),
     ("scripts/test_workflow_policy.py",),
+    ("scripts/test_site_deploy.py",),
     ("scripts/test_check_english_only.py",),
 ]
 

@@ -34,12 +34,12 @@ class WorkflowPolicyTests(unittest.TestCase):
 
     def test_pages_uses_four_stage_parallel_pipeline(self) -> None:
         pages = PAGES.read_text(encoding="utf-8")
-        for job in ("prepare:", "render:", "merge:", "deploy:"):
+        for job in ("plan:", "prepare:", "render:", "merge:", "refresh:", "deploy:"):
             self.assertIn(f"  {job}", pages)
         self.assertIn("shard: [0, 1, 2, 3]", pages)
         self.assertIn("needs: prepare", pages)
         self.assertIn("needs: [prepare, render]", pages)
-        self.assertIn("needs: merge", pages)
+        self.assertIn("needs: [merge, refresh]", pages)
         self.assertIn("actions/upload-artifact@v4", pages)
         self.assertIn("actions/download-artifact@v4", pages)
 
@@ -84,6 +84,33 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.assertLess(rendering_at, upload_at)
         self.assertLess(prepare_at, upload_at)
         self.assertNotIn("lake build :literateHtml", pages)
+
+    def test_refresh_skips_lean_and_requires_validation_before_upload(self) -> None:
+        pages = PAGES.read_text(encoding="utf-8")
+        refresh = pages[pages.index("\n  refresh:"):pages.index("\n  deploy:")]
+        self.assertNotIn("leanprover/lean-action", refresh)
+        self.assertNotIn("lake build", refresh)
+        self.assertIn("scripts/site_deploy.py refresh", refresh)
+        self.assertLess(refresh.index("scripts/check_reader_site.py"),
+                        refresh.index("actions/upload-pages-artifact"))
+        self.assertLess(refresh.index("scripts/smoke_reader_site.py"),
+                        refresh.index("actions/upload-pages-artifact"))
+
+    def test_auto_routing_preserves_full_rebuild_and_guards_deployment(self) -> None:
+        pages = PAGES.read_text(encoding="utf-8")
+        self.assertIn("default: auto", pages)
+        self.assertIn("options: [auto, refresh, full]", pages)
+        prepare = pages[pages.index("\n  prepare:"):pages.index("\n  render:")]
+        self.assertIn("needs: plan", prepare)
+        self.assertIn("if: needs.plan.outputs.mode == 'full'", prepare)
+        deploy = pages[pages.index("\n  deploy:"):]
+        self.assertIn("always()", deploy)
+        self.assertIn("needs.merge.result == 'success'", deploy)
+        self.assertIn("needs.refresh.result == 'success'", deploy)
+        self.assertIn("github.ref == 'refs/heads/main'", deploy)
+        self.assertIn("name: reader-site", pages)
+        self.assertIn("name: literate-raw", pages)
+        self.assertIn("retention-days: 90", pages)
 
 
 if __name__ == "__main__":

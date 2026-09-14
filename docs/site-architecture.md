@@ -38,6 +38,46 @@ docs/workflows/chapter-workflow.md    maintainer workflow notes
 
 ## Deployment Path
 
+The manual Pages workflow defaults to `mode=auto`. Before installing Lean it
+compares the current commit with a successful `main` deployment that still has
+a reusable artifact:
+
+| Changes | Selected path | Work performed |
+| --- | --- | --- |
+| Images, CSS, JavaScript, or non-rendering documentation | `assets` | Restore verified pages and synchronize static assets |
+| Website assembly or presentation scripts | `presentation` | Restore raw Verso HTML and rerun website assembly |
+| Lean source, dependencies, renderer patches/configuration, unknown inputs, or unavailable artifacts | `full` | Compile Lean, render four shards, assemble and validate |
+
+The asset path preserves proof-page HTML byte-for-byte. Deleted owned assets are
+removed. Both refresh paths retain the reader checks and Chromium smoke test.
+Reuse requires an ancestor commit, the same workflow and repository, a successful
+`main` run, an unexpired artifact, and a matching embedded revision. Renames are
+checked as deletion plus addition, so moving a file cannot bypass classification.
+Workflow edits also require a full build, since they can change renderer flags
+or the public base URL. The initial September 14 routing/retention migration has
+one audited exception pinned to the exact old and new workflow content hashes
+in `scripts/site_deploy.py`; modifying either version invalidates that exception.
+
+```sh
+# Choose the least expensive safe path automatically.
+gh workflow run pages.yml --ref main
+# Require a refresh; fail clearly if reuse is unsafe instead of compiling Lean.
+gh workflow run pages.yml --ref main -f mode=refresh
+# Explicitly rebuild all Lean and renderer inputs.
+gh workflow run pages.yml --ref main -f mode=full
+```
+
+`reader-site` stores prepared pages and `literate-raw` stores raw rendered pages
+for 90 days. Normal asset refreshes download only the prepared pages. Presentation
+refreshes also retain their reused raw snapshot. Expired or missing raw data can
+require a full rebuild for presentation changes; a still-valid prepared site is
+enough for asset changes. Download or provenance errors fail visibly rather than
+quietly launching an expensive build.
+
+The first refresh can bootstrap from the previous workflow's `github-pages`
+artifact and, while available, its four shards and immutable inputs. Subsequent
+refreshes use the longer-lived archives. The existing full-build path is:
+
 ```text
 Lean literate source
 -> prepare: JSON + immutable digest + balanced four-shard plan
@@ -113,6 +153,18 @@ Then open `http://localhost:8000/`.  Do not serve the raw Verso output
 directly: reader-sidebar pruning, large-page optimization, rendering checks,
 the project stylesheet, and the sitemap are all applied by the shared
 preparation command.
+
+For a local refresh from retained CI artifacts, start from a clean tracked tree
+and use GitHub CLI authentication with repository Actions read access:
+
+```sh
+python3 scripts/site_deploy.py plan --mode refresh --output /tmp/site-plan.json
+python3 scripts/site_deploy.py refresh --plan /tmp/site-plan.json --site _site
+python3 scripts/check_reader_site.py _site
+```
+
+This uses committed inputs; commit local source or asset changes before planning.
+The workflow runs the full repository metadata checks before making this choice.
 
 `literate.toml` controls the sidebar order and page titles.  The public website
 should not depend on a hand-written `docs/site/index.html`.

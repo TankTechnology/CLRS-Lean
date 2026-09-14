@@ -273,6 +273,14 @@ the digest invariant, and recovery steps.
 Both GitHub workflows are intentionally `workflow_dispatch` only.  Ordinary
 commits and pull requests must not trigger a full Lean or Verso build.
 
+For website publishing, use `gh workflow run pages.yml --ref main` with its
+default `auto` mode. The workflow reuses verified pages for image/CSS/JavaScript
+changes and raw rendered HTML for presentation changes. Do not force a full
+Lean build merely to update an image or stylesheet. Use `-f mode=refresh` to
+require the inexpensive path (it fails if no safe artifact exists), or
+`-f mode=full` when rendering inputs changed or a fresh rebuild is intended.
+See `docs/site-architecture.md` for provenance checks and artifact retention.
+
 Verso reads:
 - `literate.toml` for module ordering, titles, and landing page
 - Each `.lean` file's `/-!` block for the page content
