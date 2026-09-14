@@ -279,6 +279,11 @@ class _SidebarPruner:
             self.removed_modules.append(module_name)
             return None
 
+        if module_name == "CLRSLean.FourthEdition":
+            # A short reader-facing entry for the book's introduction and index.
+            assert anchor is not None
+            anchor.children = [_Text("Introduction")]
+
         self.rewrite_container(element)
         if element.tag.lower() != "details":
             return element
