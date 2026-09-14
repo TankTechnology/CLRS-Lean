@@ -64,8 +64,8 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         results.locator('.full-text').first.wait_for(state='visible', timeout=30000)
         assert page.evaluate('Boolean(window.searchIndex)')
         search.fill('pMergeSort_correct')
-        results.locator('[role="option"]').first.wait_for(state='visible', timeout=30000)
-        assert 'pMergeSort' in results.inner_text()
+        results.locator('[role="option"]').filter(has_text='pMergeSort').first.wait_for(
+            state='visible', timeout=30000)
         search.press('ArrowDown')
         search.press('Enter')
         page.wait_for_load_state('networkidle')
