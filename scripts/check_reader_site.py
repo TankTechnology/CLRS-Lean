@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 from pathlib import Path
@@ -13,14 +14,46 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.check_literate_config import parse_order_children, parse_module_titles
 from scripts.reader_layout import plain_text
-from scripts.inline_chapter_sections import section_anchor
+from scripts.inline_chapter_sections import section_anchor, extract_code_content
 from scripts.literate_navigation import MODULE_TREE_RE, canonical_sections
+
+DECLARATION_RE = re.compile(
+    r'<span\b(?=[^>]*\bclass="[^"]*\bconst\b)(?=[^>]*\bid="[^"]+")'
+)
+
+
+def unresolved_visible_results(body: str, route: str) -> list[str]:
+    """Check the actual guide links independently of the enrichment report."""
+    marker = '<section class="clrs-implementation"'
+    if marker not in body:
+        return []
+    declaration_ids = {
+        html.unescape(re.search(r'\bid="([^"]+)"', tag).group(1))
+        for tag in re.findall(r'<span\b[^>]*>', body)
+        if DECLARATION_RE.search(tag)
+    }
+    unresolved = []
+    for tag in re.findall(r'<a\b[^>]*>', body.split(marker, 1)[0]):
+        if 'title="Definition of ' not in tag:
+            continue
+        href = re.search(r'\bhref="([^"]*)"', tag)
+        if href is None:
+            continue
+        raw = html.unescape(href.group(1))
+        target = urlsplit(urljoin('https://reader.test/', raw))
+        if target.netloc != 'reader.test' or not target.path.startswith('/CLRSLean/'):
+            continue
+        if target.path != '/' + route or unquote(target.fragment) not in declaration_ids:
+            unresolved.append(raw)
+    return unresolved
 
 
 def check_reader_site(site: Path) -> list[str]:
     errors: list[str] = []
     orders = parse_order_children((ROOT / 'literate.toml').read_text())
     section_titles = parse_module_titles((ROOT / 'literate.toml').read_text())
+    coverage_path = site / 'reader-implementation-coverage.json'
+    coverage = json.loads(coverage_path.read_text()) if coverage_path.is_file() else {}
     chapters = [f'CLRSLean.FourthEdition.Chapter_{n:02d}' for n in range(1, 36)]
     expected_nav = set(chapters) | canonical_sections()
     for asset in ('clrs-book.css', 'assets/clrs-lean-cover.webp', 'assets/book-closing.svg',
@@ -62,6 +95,30 @@ def check_reader_site(site: Path) -> list[str]:
             expected = section_titles[child]
             if heading is None or plain_text(heading.group(1)) != expected:
                 errors.append(f'{child}: section heading differs from its navigation title')
+            if not DECLARATION_RE.search(section_text):
+                errors.append(f'{child}: no concrete definitions or proofs in the section')
+            embedded = re.search(r'<section\b[^>]*\bdata-module="' + re.escape(child) + r'"[^>]*>', text)
+            if embedded is not None and not DECLARATION_RE.search(
+                    extract_code_content(text[embedded.start():], child)):
+                errors.append(f'{child}: chapter embeds only an overview, without concrete definitions or proofs')
+            if child not in coverage:
+                errors.append(f'{child}: missing implementation coverage record')
+            embedded_body = extract_code_content(text[embedded.start():], child) if embedded is not None else ''
+            for body, route in ((section_text, child.replace('.', '/') + '/'),
+                                (embedded_body, module.replace('.', '/') + '/')):
+                for href in unresolved_visible_results(body, route):
+                    errors.append(f'{child}: guide result has no visible local declaration in {route}: {href}')
+            for result in coverage.get(child, {}).get('resolved_guide_links', []):
+                target = result['target']
+                chapter_target = section_anchor(child) + '--' + target
+                for body, route, identifier in (
+                        (section_text, child.replace('.', '/') + '/', target),
+                        (text, module.replace('.', '/') + '/', chapter_target)):
+                    escaped_id = html.escape(identifier, quote=True)
+                    escaped_href = html.escape(route + '#' + identifier, quote=True)
+                    if (f'id="{escaped_id}"' not in body or
+                            f'href="{escaped_href}"' not in body):
+                        errors.append(f'{child}: result link does not reach visible implementation in {route}: {result["declaration"]}')
             anchor = section_anchor(child)
             if anchor not in id_set:
                 errors.append(f'{module}: section is not embedded: {child}')
@@ -97,4 +154,4 @@ if __name__ == '__main__':
         print(failure)
     if failures:
         sys.exit(1)
-    print('Reader site OK: all 35 chapters, canonical navigation, inline sections, TOCs and local links')
+    print('Reader site OK: all 35 chapters, concrete section implementations, result links, canonical navigation, inline sections and TOCs')

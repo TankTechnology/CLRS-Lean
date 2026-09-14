@@ -31,6 +31,8 @@ CHECK_COMMANDS = [
     ("scripts/test_literate_config.py",),
     ("scripts/test_literate_navigation.py",),
     ("scripts/test_inline_chapter_sections.py",),
+    ("scripts/test_reader_implementation.py",),
+    ("scripts/test_check_reader_site.py",),
     ("scripts/test_reader_layout.py",),
     ("scripts/test_book_presentation.py",),
     ("scripts/test_optimize_literate_html.py",),

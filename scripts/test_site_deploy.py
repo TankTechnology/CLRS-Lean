@@ -74,6 +74,7 @@ class DeployTests(unittest.TestCase):
                 (['docs/literate/assets/new.webp', 'docs/literate/reader.css'], 'assets'),
                 (['README.md', 'docs/guide.md', 'scripts/test_anything.py'], 'assets'),
                 (['scripts/book_presentation.py'], 'presentation'),
+                (['scripts/reader_implementation.py', 'docs/literate/reader-implementations.json'], 'presentation'),
                 (['docs/literate/contents.json'], 'presentation'),
                 (['tests/Proof.lean'], 'full'), (['docs/Foo.lean'], 'full'),
                 (['scripts/unknown.py'], 'full'), (['lake-manifest.json'], 'full'),

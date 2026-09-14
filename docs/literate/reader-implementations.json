@@ -1,0 +1,187 @@
+{
+  "CLRSLean.FourthEdition.Chapter_16.Section_16_3_The_Potential_Method": {
+    "CLRSLean.FourthEdition.Chapter_16.Section_16_1_Amortized_Framework": [
+      "CLRS.Chapter17.prefixCostR",
+      "CLRS.Chapter17.PotentialTrace",
+      "CLRS.Chapter17.amortizedCost",
+      "CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta",
+      "CLRS.Chapter17.potential_totalCost_le_totalAmortized"
+    ]
+  },
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_4_NP_Completeness_Proofs": {
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CircuitSAT": [
+      "CLRS.Chapter34.CIRCUIT_SAT",
+      "CLRS.Chapter34.SAT",
+      "CLRS.Chapter34.circuitSAT_reducible_to_SAT"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Basic": [
+      "CLRS.Chapter34.GeneralCircuitSatisfiable"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.Encoding": [
+      "CLRS.Chapter34.GeneralCircuitSAT"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.NP": [
+      "CLRS.Chapter34.generalCircuitSAT_polyTimeVerifiable",
+      "CLRS.Chapter34.generalCircuitSAT_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.CookLevin.MainTheorem": [
+      "CLRS.Chapter34.Turing.CookLevin.cookLevin_polyTimeReducible",
+      "CLRS.Chapter34.Turing.CookLevin.cookLevin_theorem",
+      "CLRS.Chapter34.Turing.CookLevin.generalCircuitSAT_npHard",
+      "CLRS.Chapter34.Turing.CookLevin.generalCircuitSAT_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralCircuit.ToSAT.Reduction": [
+      "CLRS.Chapter34.generalCircuitSAT_reducible_to_SAT",
+      "CLRS.Chapter34.SAT_npHard"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFSat": [
+      "CLRS.Chapter34.IsThreeCNF",
+      "CLRS.Chapter34.ThreeCNFSat"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SatTo3CNFMachine": [
+      "CLRS.Chapter34.Turing.TM3CNF.sat_reducible_to_threeCNFSat"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.Verification": [
+      "CLRS.Chapter34.satVerifier",
+      "CLRS.Chapter34.satVerifier_accepts_iff",
+      "CLRS.Chapter34.satVerifier_eq_false_of_malformed",
+      "CLRS.Chapter34.mem_SAT_iff_exists_bounded_certificate"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.SAT.NPCompleteness": [
+      "CLRS.Chapter34.SAT_polyTimeVerifiable",
+      "CLRS.Chapter34.SAT_mem_ClassNP",
+      "CLRS.Chapter34.SAT_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.Verification": [
+      "CLRS.Chapter34.evalClauseBool",
+      "CLRS.Chapter34.evalCNFBool",
+      "CLRS.Chapter34.isThreeCNFBool",
+      "CLRS.Chapter34.threeCNFSatVerifier",
+      "CLRS.Chapter34.threeCNFSatVerifier_accepts_iff",
+      "CLRS.Chapter34.threeCNFSatVerifier_eq_false_of_malformed",
+      "CLRS.Chapter34.mem_threeCNFSat_iff_exists_bounded_certificate"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.ThreeCNF.NPCompleteness": [
+      "CLRS.Chapter34.threeCNFSat_polyTimeVerifiable",
+      "CLRS.Chapter34.threeCNFSat_mem_ClassNP",
+      "CLRS.Chapter34.threeCNFSat_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Instance": [
+      "CLRS.Chapter34.CliqueInstance",
+      "CLRS.Chapter34.CliqueInstance.WellFormed",
+      "CLRS.Chapter34.CliqueInstance.Adj",
+      "CLRS.Chapter34.CliqueInstance.HasClique"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Language": [
+      "CLRS.Chapter34.GeneralCLIQUE"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Public": [
+      "CLRS.Chapter34.CLIQUE",
+      "CLRS.Chapter34.Turing.TMClique.threeCNFSat_reducible_to_CLIQUE"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.NP": [
+      "CLRS.Chapter34.generalCLIQUE_polyTimeVerifiable",
+      "CLRS.Chapter34.generalCLIQUE_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_4_NP_Completeness_Proofs.GeneralClique.Completeness": [
+      "CLRS.Chapter34.threeCNFSat_npHard",
+      "CLRS.Chapter34.generalCLIQUE_npHard",
+      "CLRS.Chapter34.generalCLIQUE_npComplete",
+      "CLRS.Chapter34.CLIQUE_npComplete"
+    ]
+  },
+  "CLRSLean.FourthEdition.Chapter_34.Section_34_5_NP_Complete_Problems": {
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Instance": [
+      "CLRS.Chapter34.VertexCoverInstance",
+      "CLRS.Chapter34.CliqueInstance.IsVertexCover",
+      "CLRS.Chapter34.CliqueInstance.HasVertexCover"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Language": [
+      "CLRS.Chapter34.GeneralVERTEXCOVER",
+      "CLRS.Chapter34.VERTEXCOVER"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NP": [
+      "CLRS.Chapter34.generalVERTEXCOVER_polyTimeVerifiable",
+      "CLRS.Chapter34.VERTEXCOVER_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.Reduction": [
+      "CLRS.Chapter34.generalCLIQUE_reducible_to_VERTEXCOVER",
+      "CLRS.Chapter34.VERTEXCOVER_npHard"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.VertexCover.NPCompleteness": [
+      "CLRS.Chapter34.VERTEXCOVER_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Instance": [
+      "CLRS.Chapter34.HamiltonianCycleInstance",
+      "CLRS.Chapter34.CliqueInstance.PathAdjacent",
+      "CLRS.Chapter34.CliqueInstance.lastFrom",
+      "CLRS.Chapter34.CliqueInstance.CycleAdjacent",
+      "CLRS.Chapter34.CliqueInstance.ListRepresentsHamiltonianCycle",
+      "CLRS.Chapter34.CliqueInstance.HasHamiltonianCycle"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.Language": [
+      "CLRS.Chapter34.GeneralHAMCYCLE",
+      "CLRS.Chapter34.HAMCYCLE"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NP": [
+      "CLRS.Chapter34.generalHAMCYCLE_polyTimeVerifiable",
+      "CLRS.Chapter34.HAMCYCLE_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.HamiltonianCycle.NPCompleteness": [
+      "CLRS.Chapter34.VERTEXCOVER_reducible_to_HAMCYCLE",
+      "CLRS.Chapter34.HAMCYCLE_npHard",
+      "CLRS.Chapter34.HAMCYCLE_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Instance": [
+      "CLRS.Chapter34.TSPInstance",
+      "CLRS.Chapter34.TSPInstance.edgeWeight",
+      "CLRS.Chapter34.TSPInstance.lastFrom",
+      "CLRS.Chapter34.TSPInstance.pathCost",
+      "CLRS.Chapter34.TSPInstance.tourCost",
+      "CLRS.Chapter34.TSPInstance.ListRepresentsTour",
+      "CLRS.Chapter34.TSPInstance.HasTour"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Encoding.Basic": [
+      "CLRS.Chapter34.TSPData",
+      "CLRS.Chapter34.TSPData.WellFormed",
+      "CLRS.Chapter34.TSPData.toInstance",
+      "CLRS.Chapter34.TSPData.HasTour"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Language": [
+      "CLRS.Chapter34.GeneralTSP",
+      "CLRS.Chapter34.TSP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NP": [
+      "CLRS.Chapter34.generalTSP_polyTimeVerifiable",
+      "CLRS.Chapter34.TSP_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.Hardness": [
+      "CLRS.Chapter34.HAMCYCLE_reducible_to_TSP",
+      "CLRS.Chapter34.TSP_npHard"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.TravelingSalesperson.NPCompleteness": [
+      "CLRS.Chapter34.TSP_npComplete"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Encoding.Basic": [
+      "CLRS.Chapter34.SubsetSumData",
+      "CLRS.Chapter34.SubsetSumData.selectedSum",
+      "CLRS.Chapter34.SubsetSumData.HasSubsetSum"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Language": [
+      "CLRS.Chapter34.GeneralSUBSETSUM",
+      "CLRS.Chapter34.SUBSETSUM"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NP": [
+      "CLRS.Chapter34.mem_generalSUBSETSUM_iff_exists_bounded_mask_certificate",
+      "CLRS.Chapter34.generalSUBSETSUM_polyTimeVerifiable",
+      "CLRS.Chapter34.SUBSETSUM_mem_ClassNP"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.Hardness": [
+      "CLRS.Chapter34.threeCNFSat_reducible_to_SUBSETSUM",
+      "CLRS.Chapter34.SUBSETSUM_npHard"
+    ],
+    "CLRSLean.Chapter_34.Section_34_5_NP_Complete_Problems.SubsetSum.NPCompleteness": [
+      "CLRS.Chapter34.SUBSETSUM_npComplete"
+    ]
+  }
+}

@@ -70,6 +70,26 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         search.press('Enter')
         page.wait_for_load_state('networkidle')
         assert 'ParallelMergeSort' in page.url, page.url
+        # Facade result lists must expose real definitions and complete proofs.
+        potential = 'CLRSLean.FourthEdition.Chapter_16.Section_16_3_The_Potential_Method'
+        potential_route = potential.replace('.', '/') + '/'
+        for route, container in (
+                (potential_route, 'main'),
+                ('CLRSLean/FourthEdition/Chapter_16/', f'[data-module="{potential}"]')):
+            page.goto(base + route, wait_until='networkidle')
+            section = page.locator(container)
+            implementation = section.locator('.clrs-implementation')
+            assert implementation.is_visible()
+            assert implementation.locator('.code-box').count() >= 5
+            theorem = implementation.locator('[id$="--CLRS___Chapter17___potential_totalCost_eq_totalAmortized_sub_delta"]')
+            assert theorem.count() == 1
+            proof = theorem.locator('xpath=ancestor::div[contains(@class,"code-box")][1]')
+            assert 'induction n with' in proof.inner_text() and 'ring' in proof.inner_text()
+            guide = section.locator('a[title="Definition of `CLRS.Chapter17.potential_totalCost_eq_totalAmortized_sub_delta`"]')
+            guide.first.click()
+            assert page.url.split('#', 1)[1] == theorem.get_attribute('id')
+            assert theorem.evaluate('(el) => { const r = el.getBoundingClientRect(); return r.top >= -5 && r.top < innerHeight; }')
+        page.screenshot(path=str(screenshots / 'potential-method-proof.png'))
         page.goto(base + 'CLRSLean/FourthEdition/Chapter_35/', wait_until='networkidle')
         page.locator('.clrs-book-colophon').scroll_into_view_if_needed()
         page.wait_for_function('document.querySelector(".clrs-book-colophon img").naturalWidth > 0')
@@ -106,6 +126,10 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         assert nojs.locator('.clrs-inline-section').count() == 3
         nojs.locator('.hamburger').click()
         assert nojs.locator('.module-tree a[title="CLRSLean.FourthEdition.Chapter_35"]').is_visible()
+        nojs.goto(base + potential_route, wait_until='load')
+        assert nojs.locator('.clrs-implementation .code-box').count() >= 5
+        assert 'induction n with' in nojs.locator('.clrs-implementation').inner_text()
+        assert nojs.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
         assert not errors, errors
         browser.close()
     print('Browser smoke OK: chapter index, stable layout, anchors, search, mobile menu, dark mode, no-JS reading')
