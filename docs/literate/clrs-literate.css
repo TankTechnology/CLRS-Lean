@@ -189,6 +189,11 @@ a {
     margin-left: 13px;
 }
 
+/* Chapters without child sections align with expandable chapters. */
+.module-tree .chapter-index > .leaf {
+    margin-left: 0;
+}
+
 .module-tree summary,
 .module-tree .leaf {
     min-height: 36px;
