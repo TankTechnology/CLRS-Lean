@@ -19,6 +19,8 @@ def run(base: str, browser_path: str | None, screenshots: Path) -> None:
         context = browser.new_context(viewport={'width': 1440, 'height': 1000})
         errors = []
         context.on('page', lambda page: page.on('pageerror', lambda error: errors.append(str(error))))
+        context.on('response', lambda response: errors.append(f'{response.status}: {response.url}')
+                   if response.url.startswith(base) and response.status >= 400 else None)
         page = context.new_page()
         page.goto(base, wait_until='networkidle')
         assert 'CLRS-Lean' in page.title()
