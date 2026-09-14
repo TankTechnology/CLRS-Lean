@@ -138,6 +138,16 @@ class InlineChapterSectionsTests(unittest.TestCase):
                 self.assertIn(f'href="{parent_href}#{target}"', parent_html)
             self.assertNotIn('id="Implementation-details"', parent_html)
 
+    def test_embedded_proof_accessibility_references_follow_namespaced_ids(self) -> None:
+        content = ('<h2 id="proof-heading">Proof</h2><p id="proof-note">Assumptions</p>'
+                   '<div aria-labelledby="proof-heading" aria-describedby="proof-note external-note">'
+                   '<label for="proof-control">Expand</label><input id="proof-control"></div>')
+        targets = self.composer._fragment_targets(content, '<section>', self.first)
+        rewritten = self.composer._namespace_section_content(content, self.first, 'chapter/', targets)
+        self.assertIn(f'aria-labelledby="{targets["proof-heading"]}"', rewritten)
+        self.assertIn(f'aria-describedby="{targets["proof-note"]} external-note"', rewritten)
+        self.assertIn(f'for="{targets["proof-control"]}"', rewritten)
+
     def test_composition_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             site = Path(tmp)

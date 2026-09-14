@@ -28,6 +28,11 @@ LOCAL_HREF_RE = re.compile(
     r'(?P<prefix>\bhref\s*=\s*)(?P<quote>["\'])#(?P<value>[^"\']+)(?P=quote)',
     re.IGNORECASE,
 )
+IDREF_RE = re.compile(
+    r'(?P<prefix>\b(?:aria-labelledby|aria-describedby|aria-controls|aria-owns|'
+    r'aria-activedescendant|for|headers)\s*=\s*)(?P<quote>["\'])(?P<value>[^"\']*)(?P=quote)',
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -130,7 +135,13 @@ def _namespace_section_content(
             f'{match.group("quote")}'
         )
 
-    return LOCAL_HREF_RE.sub(replace_href, ID_ATTR_RE.sub(replace_id, content))
+    def replace_idrefs(match: re.Match[str]) -> str:
+        values = ' '.join(fragment_targets.get(value, value) for value in match.group('value').split())
+        return f'{match.group("prefix")}{match.group("quote")}{values}{match.group("quote")}'
+
+    namespaced = ID_ATTR_RE.sub(replace_id, content)
+    namespaced = IDREF_RE.sub(replace_idrefs, namespaced)
+    return LOCAL_HREF_RE.sub(replace_href, namespaced)
 
 
 def _rewrite_section_links(

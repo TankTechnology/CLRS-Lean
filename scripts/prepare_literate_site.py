@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import json
 import shutil
 import sys
 from dataclasses import dataclass
@@ -28,6 +29,7 @@ from scripts.inline_chapter_sections import compose_chapter_pages
 from scripts.reader_layout import reader_chrome, canonical_section_title
 from scripts.prepare_search_assets import prepare_search_assets
 from scripts.book_presentation import book_metadata, present_book
+from scripts.reader_implementation import enrich_sections
 
 
 DEFAULT_BASE_URL = "https://tanktechnology.github.io/CLRS-Lean/"
@@ -121,6 +123,16 @@ def prepare_site(
                 updated = canonical_section_title(text, titles[child])
                 if updated != text:
                     path.write_text(updated, encoding="utf-8")
+    reader_sections = [
+        child for parent, children in order_children.items()
+        if parent.startswith('CLRSLean.FourthEdition.Chapter_') and parent.count('.') == 2
+        for child in children
+        if child.startswith(parent + '.Section_') and child.count('.') == 3
+    ]
+    selections = json.loads((ROOT / 'docs/literate/reader-implementations.json').read_text())
+    implementation = enrich_sections(destination, reader_sections, selections)
+    (destination / 'reader-implementation-coverage.json').write_text(
+        json.dumps(implementation.coverage, indent=2) + '\n', encoding='utf-8')
     composition = compose_chapter_pages(destination, order_children)
     present_book(destination)
 

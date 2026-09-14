@@ -101,6 +101,17 @@ main[data-clrs-book="contents"] .mod-doc > section > ul {
 }
 main[data-clrs-book="contents"] .mod-doc > section > ul > li { padding: 5px 0; }
 .clrs-chapter-header h1 { font-family: var(--verso-text-font-family); font-weight: 500; }
+.clrs-implementation {
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--clrs-line-strong);
+}
+.clrs-implementation-source { margin: 28px 0 40px; min-width: 0; }
+.clrs-implementation-source > :is(h3, h4) {
+    font: 600 1rem/1.5 var(--verso-structure-font-family);
+    overflow-wrap: anywhere;
+}
+.clrs-implementation-provenance { text-decoration-thickness: 1px; }
 .clrs-book-pagination {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -24,6 +24,7 @@ AUDITED_WORKFLOW_MIGRATION = (
 PRESENTATION = {
     'book_presentation.py', 'prepare_literate_site.py', 'optimize_literate_html.py',
     'reader_layout.py', 'inline_chapter_sections.py', 'literate_navigation.py',
+    'reader_implementation.py',
     'prepare_search_assets.py', 'generate_sitemap.py',
 }
 BENIGN_SCRIPTS = {'check_repository.py', 'check_reader_site.py',
