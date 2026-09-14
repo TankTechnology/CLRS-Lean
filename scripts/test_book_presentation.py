@@ -15,7 +15,7 @@ class BookPresentationTests(unittest.TestCase):
         self.assertIn('Selected models only.', result)
         self.assertEqual(result.count('<h1'), 1)
         self.assertIn('class="clrs-book-cover"', result)
-        self.assertIn('width="720" height="680"', result)
+        self.assertIn('width="1536" height="1024"', result)
         self.assertEqual(result, present_book_page(result, 'CLRSLean'))
 
     def test_first_and_last_chapters_have_no_nonexistent_neighbors(self):
@@ -37,7 +37,7 @@ class BookPresentationTests(unittest.TestCase):
 
     def test_metadata_is_absolute_escaped_and_idempotent(self):
         result = book_metadata(self.source, 'https://example.test/book/')
-        self.assertIn('https://example.test/book/assets/book-social.png', result)
+        self.assertIn('https://example.test/book/assets/clrs-lean-social.jpg', result)
         self.assertEqual(result, book_metadata(result, 'https://example.test/book/'))
 
 

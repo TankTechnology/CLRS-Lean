@@ -255,14 +255,18 @@ fragment targets and coverage statements remain in the document. Chapter 1
 links back to the contents; Chapter 35 closes the book and links to Chapter 34
 and the contents. Front matter is rendered on both homepage routes.
 
-`docs/literate/clrs-book.css` owns this presentation layer. The original SVG
-drawings in `docs/literate/assets` have explicit dimensions; they are abstract
-illustrations, not proof diagrams. The same directory contains the 1200-by-630
-PNG used by Open Graph and Twitter metadata. All assets are copied by the shared
-site assembler; chapter reading adds no new JavaScript dependency.
+`docs/literate/clrs-book.css` owns this presentation layer. The current project
+cover, navigation icon, browser icons and 1200-by-800 social image live in
+`docs/literate/assets`; source artwork and export instructions are recorded in
+[`branding/README.md`](branding/README.md). The cover preserves its full aspect
+ratio on desktop and mobile. The closing illustration remains an SVG. These
+are illustrations, not proof diagrams. All assets are copied by the shared site
+assembler; chapter reading adds no new JavaScript dependency.
 
-The social card source is `docs/releases/assets/share-card.html`. To regenerate
-the card, reading screenshots and MP4 walkthrough, serve the prepared site and run:
+The historical September 13 social card source is
+`docs/releases/assets/share-card.html`; it is separate from the current project
+share image. To regenerate that card, reading screenshots and MP4 walkthrough,
+serve the prepared site and run:
 
 ```sh
 python3 scripts/prepare_release_media.py --base-url http://127.0.0.1:8000/ \

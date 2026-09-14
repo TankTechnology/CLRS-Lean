@@ -22,7 +22,7 @@ main[data-clrs-book="cover"] .code-content > .mod-doc { max-width: 1080px; }
 main[data-clrs-book="cover"] .code-content > .mod-doc > section > p { max-width: 74ch; }
 .clrs-book-cover {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1fr;
     gap: 32px;
     align-items: center;
     padding: 22px 0 48px;
@@ -56,8 +56,32 @@ main[data-clrs-book="cover"] .code-content > .mod-doc > section > p { max-width:
     text-decoration: none;
 }
 .clrs-book-primary span { margin-left: 14px; }
-.clrs-cover-art { margin: 0; min-width: 0; }
-.clrs-cover-art img { display: block; width: 100%; height: auto; }
+.clrs-cover-art { grid-row: 1; margin: 0; min-width: 0; }
+.clrs-cover-art img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+.module-tree .nav-title a::before {
+    content: "";
+    flex: 0 0 42px;
+    border: 0;
+    background: url("assets/clrs-lean-icon.png") center / contain no-repeat;
+}
+.breadcrumbs li:first-child > :is(a, .current) {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.breadcrumbs li:first-child > :is(a, .current)::before {
+    content: "";
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border-radius: 4px;
+    background: url("assets/clrs-lean-icon.png") center / contain no-repeat;
+}
 .clrs-cover-art figcaption {
     margin-top: 12px;
     color: var(--clrs-ink-soft);
@@ -109,12 +133,10 @@ main[data-clrs-book="contents"] .mod-doc > section > ul > li { padding: 5px 0; }
 .clrs-book-credits { color: var(--clrs-ink-soft); font-size: .86rem; }
 @media (max-width: 1100px) and (min-width: 769px) {
     .clrs-book-cover { grid-template-columns: 1fr; }
-    .clrs-cover-art { max-width: 480px; }
 }
 @media (max-width: 768px) {
     .clrs-book-cover { grid-template-columns: 1fr; gap: 32px; padding-top: 0; }
     .code-content .mod-doc .clrs-book-cover h1 { margin: 20px 0; font-size: clamp(3rem, 13vw, 4.3rem); }
-    .clrs-cover-art { max-width: 440px; }
     .clrs-book-pagination { gap: 18px; }
     .clrs-book-pagination strong { font-size: 1rem; overflow-wrap: anywhere; }
     .clrs-book-colophon { margin-top: 36px; padding-top: 32px; }

@@ -14,18 +14,22 @@ CONTENTS = 'CLRSLean/FourthEdition/'
 def book_metadata(document: str, base_url: str) -> str:
     if 'name="clrs-book-presentation"' in document:
         return document
-    image = html.escape(base_url.rstrip('/') + '/assets/book-social.png', quote=True)
+    document = document.replace('<link rel="icon" href="data:,">', '')
+    image = html.escape(base_url.rstrip('/') + '/assets/clrs-lean-social.jpg', quote=True)
     title_match = re.search(r'<title>(.*?)</title>', document, re.S)
     title = html.escape(html.unescape(title_match.group(1)), quote=True) if title_match else 'CLRS-Lean'
     meta = (
         '<meta name="clrs-book-presentation" content="1">'
         '<link rel="stylesheet" href="clrs-book.css">'
+        '<link rel="icon" href="assets/favicon.ico" sizes="16x16 32x32 48x48">'
+        '<link rel="icon" type="image/png" href="assets/clrs-lean-icon.png" sizes="192x192">'
+        '<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180">'
         '<meta property="og:type" content="website">'
         '<meta property="og:title" content="' + title + '">'
         '<meta property="og:image" content="' + image + '">'
         '<meta property="og:image:width" content="1200">'
-        '<meta property="og:image:height" content="630">'
-        '<meta property="og:image:alt" content="CLRS-Lean: Algorithms you can read. Proofs Lean can check.">'
+        '<meta property="og:image:height" content="800">'
+        '<meta property="og:image:alt" content="CLRS-Lean: Machine-checked algorithms, chapter by chapter.">'
         '<meta name="twitter:card" content="summary_large_image">'
         '<meta name="twitter:image" content="' + image + '">'
     )
@@ -44,9 +48,10 @@ def cover(heading: str) -> str:
         '<a href="CLRSLean/Status/">Explore proof coverage</a></div>'
         '<p class="clrs-cover-edition">35 chapter guides <span aria-hidden="true">/</span> Lean 4</p>'
         '</div><figure class="clrs-cover-art">'
-        '<img src="assets/book-cover.svg" width="720" height="680" fetchpriority="high" '
-        'alt="An abstract recursion tree branches into a network of connected algorithm nodes.">'
-        '<figcaption>From a problem to its structure.</figcaption></figure></header>'
+        '<img src="assets/clrs-lean-cover.webp" width="1536" height="1024" fetchpriority="high" '
+        'alt="CLRS-Lean: Machine-checked algorithms, chapter by chapter. '
+        'An open book unfolds into algorithm trees, sorting bars, graphs and a proof tree.">'
+        '</figure></header>'
     )
 
 

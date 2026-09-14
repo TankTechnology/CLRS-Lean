@@ -1,5 +1,7 @@
 # CLRS-Lean
 
+[![CLRS-Lean: an open book unfolds into algorithms and machine-checked proofs](docs/literate/assets/clrs-lean-cover.webp)](https://tanktechnology.github.io/CLRS-Lean/)
+
 **Machine-checked algorithms, chapter by chapter.**
 
 CLRS-Lean formalizes the selected mathematical core of *Introduction to

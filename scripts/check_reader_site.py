@@ -23,7 +23,9 @@ def check_reader_site(site: Path) -> list[str]:
     section_titles = parse_module_titles((ROOT / 'literate.toml').read_text())
     chapters = [f'CLRSLean.FourthEdition.Chapter_{n:02d}' for n in range(1, 36)]
     expected_nav = set(chapters) | canonical_sections()
-    for asset in ('clrs-book.css', 'assets/book-cover.svg', 'assets/book-closing.svg', 'assets/book-social.png'):
+    for asset in ('clrs-book.css', 'assets/clrs-lean-cover.webp', 'assets/book-closing.svg',
+                  'assets/clrs-lean-social.jpg', 'assets/favicon.ico',
+                  'assets/clrs-lean-icon.png', 'assets/apple-touch-icon.png'):
         if not (site / asset).is_file():
             errors.append(f'missing book asset: {asset}')
     homepage = (site / 'index.html').read_text() if (site / 'index.html').is_file() else ''
