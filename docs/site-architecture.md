@@ -246,3 +246,35 @@ python3 scripts/smoke_reader_site.py --base-url http://127.0.0.1:8765/
 Use `--browser /path/to/chromium` for a system browser. The check saves screenshots
 under `/tmp/clrs-reader-smoke` by default. After deployment, `revision.txt` exposes
 the exact published commit for public verification.
+
+## Book presentation and launch assets
+
+`scripts/book_presentation.py` adds the frontispiece, sequential chapter links
+and closing matter after section composition. The original source headings,
+fragment targets and coverage statements remain in the document. Chapter 1
+links back to the contents; Chapter 35 closes the book and links to Chapter 34
+and the contents. Front matter is rendered on both homepage routes.
+
+`docs/literate/clrs-book.css` owns this presentation layer. The current project
+cover, navigation icon, browser icons and 1200-by-800 social image live in
+`docs/literate/assets`; source artwork and export instructions are recorded in
+[`branding/README.md`](branding/README.md). The cover preserves its full aspect
+ratio on desktop and mobile. The closing illustration remains an SVG. These
+are illustrations, not proof diagrams. All assets are copied by the shared site
+assembler; chapter reading adds no new JavaScript dependency.
+
+The historical September 13 social card source is
+`docs/releases/assets/share-card.html`; it is separate from the current project
+share image. To regenerate that card, reading screenshots and MP4 walkthrough,
+serve the prepared site and run:
+
+```sh
+python3 scripts/prepare_release_media.py --base-url http://127.0.0.1:8000/ \
+  --browser /snap/bin/chromium
+```
+
+This command requires Playwright with its video encoder and system `ffmpeg`.
+It captures actual browser navigation from the cover through the contents,
+insertion-sort correctness, Chapter 33 and the closing matter. The English
+announcement stays in `docs/releases/2026-09-13-twitter-draft.md` until explicitly
+published. Website deployment and social publication are separate actions.

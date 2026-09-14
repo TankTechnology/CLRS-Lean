@@ -23,12 +23,24 @@ def check_reader_site(site: Path) -> list[str]:
     section_titles = parse_module_titles((ROOT / 'literate.toml').read_text())
     chapters = [f'CLRSLean.FourthEdition.Chapter_{n:02d}' for n in range(1, 36)]
     expected_nav = set(chapters) | canonical_sections()
+    for asset in ('clrs-book.css', 'assets/clrs-lean-cover.webp', 'assets/book-closing.svg',
+                  'assets/clrs-lean-social.jpg', 'assets/favicon.ico',
+                  'assets/clrs-lean-icon.png', 'assets/apple-touch-icon.png'):
+        if not (site / asset).is_file():
+            errors.append(f'missing book asset: {asset}')
+    homepage = (site / 'index.html').read_text() if (site / 'index.html').is_file() else ''
+    if 'class="clrs-book-cover"' not in homepage:
+        errors.append('homepage: missing book cover')
     for module in chapters:
         path = site.joinpath(*module.split('.'), 'index.html')
         if not path.is_file():
             errors.append(f'{module}: missing chapter page')
             continue
         text = path.read_text()
+        if 'class="clrs-book-pagination"' not in text:
+            errors.append(f'{module}: missing sequential chapter navigation')
+        if module.endswith('Chapter_35') and 'id="clrs-book-colophon"' not in text:
+            errors.append(f'{module}: missing closing matter')
         nav = MODULE_TREE_RE.search(text)
         if not nav:
             errors.append(f'{module}: missing sidebar')

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="680" viewBox="0 0 720 680" fill="none">
+  <title>From a problem to its structure</title>
+  <desc>Original abstract algorithm illustration: a recursion tree meets a connected graph.</desc>
+  <rect width="720" height="680" rx="3" fill="#e8e9dc"/>
+  <g stroke="#cbd1bf" stroke-width="1">
+    <path d="M60 0V680M180 0V680M300 0V680M420 0V680M540 0V680M660 0V680M0 100H720M0 220H720M0 340H720M0 460H720M0 580H720"/>
+    <circle cx="360" cy="340" r="262"/><circle cx="360" cy="340" r="210"/>
+  </g>
+  <g stroke="#285644" stroke-width="2.5">
+    <path d="M360 85L210 215L115 340M210 215L280 340M360 85L510 215L440 340M510 215L605 340"/>
+    <path d="M115 340L70 465M115 340L180 465M280 340L250 465M280 340L345 465M440 340L390 465M440 340L495 465M605 340L555 465M605 340L650 465"/>
+    <path d="M70 465L180 570L250 465L345 570L390 465L495 570L555 465L650 570M180 465L180 570M345 465L345 570M495 465L495 570M650 465L650 570M180 570H650" opacity=".65"/>
+  </g>
+  <path d="M360 85L210 215L280 340L345 465L345 570" stroke="#b1683e" stroke-width="4"/>
+  <g fill="#f7f3e8" stroke="#285644" stroke-width="2.5">
+    <circle cx="360" cy="85" r="15"/><circle cx="210" cy="215" r="12"/><circle cx="510" cy="215" r="12"/>
+    <circle cx="115" cy="340" r="10"/><circle cx="280" cy="340" r="10"/><circle cx="440" cy="340" r="10"/><circle cx="605" cy="340" r="10"/>
+    <circle cx="70" cy="465" r="7"/><circle cx="180" cy="465" r="7"/><circle cx="250" cy="465" r="7"/><circle cx="345" cy="465" r="7"/><circle cx="390" cy="465" r="7"/><circle cx="495" cy="465" r="7"/><circle cx="555" cy="465" r="7"/><circle cx="650" cy="465" r="7"/>
+    <circle cx="180" cy="570" r="8"/><circle cx="345" cy="570" r="8"/><circle cx="495" cy="570" r="8"/><circle cx="650" cy="570" r="8"/>
+  </g>
+  <circle cx="360" cy="85" r="6" fill="#b1683e"/><circle cx="345" cy="570" r="4" fill="#b1683e"/>
+  <path d="M40 40H80M40 40V80M680 600V640H640" stroke="#285644" stroke-width="2"/>
+</svg>

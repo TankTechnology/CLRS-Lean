@@ -1,0 +1,4 @@
+Generated with the built-in image generation tool.
+Reference image: clrs-lean-project.png
+
+Use case: logo-brand. Create a square companion project icon for CLRS-Lean based on the provided project cover reference. Distill its open ivory book and golden binary algorithm tree into one exceptionally simple, bold centered emblem. Solid deep ink-blue square background extending to all edges. A clean open book silhouette at bottom with a compact three-node binary tree rising from its center (one root and two children), gold circles and thick clear connecting lines. Flat clean graphic shapes, warm ivory and muted gold matching the reference. Strong silhouette readable at 32 pixels. Generous but not excessive safe margins. No text, no letters, no frame, no gradients, no glow, no tiny details, no surrounding scene. Keep the reference cover itself unchanged; this is a separate matching icon asset.

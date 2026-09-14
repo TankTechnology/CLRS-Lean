@@ -1,0 +1,10 @@
+Generated with the built-in image generation tool.
+
+Use case: stylized-concept
+Asset type: polished landscape project cover illustration.
+Primary request: Create an image for the open-source CLRS-Lean project, which formalizes selected algorithms from Introduction to Algorithms in Lean 4, including executable definitions, correctness proofs, invariants and cost bounds.
+Scene and subject: An elegant open mathematical book as the central sculptural object, its pages becoming precise branching binary trees, ordered sorting bars, and a small network graph. These mathematical structures flow into a luminous, orderly proof tree, visually expressing algorithms becoming machine-checked mathematics. Integrate subtle logical symbols such as ∀, →, and ⊢ into the composition sparingly.
+Style: sophisticated editorial illustration with dimensional paper sculpture, fine technical linework, tactile paper and restrained light; scholarly, beautiful, precise, contemporary. Warm ivory paper against a deep ink-blue background, subtle teal and amber accents. Cohesive spacious composition, strong visual hierarchy, carefully designed negative space.
+Text verbatim: prominent title "CLRS-Lean"; smaller subtitle "Machine-checked algorithms, chapter by chapter."
+Typography: crisp impeccably legible modern typography, title and subtitle clearly separated from the illustration, generous margins.
+Constraints: only the specified title and subtitle as prose text. No invented statistics or claims of full textbook coverage. No fake code blocks, no watermarks, no unrelated logos, no robots, no busy dashboard. Render a finished high-quality landscape image suitable for a repository cover.
