@@ -22,7 +22,7 @@ AUDITED_WORKFLOW_MIGRATION = (
     '700849ebd7ceebe9220154c4c6f3c7344f797b0002ece6b7decb1cc5dc98466f',
     'e9bebfee64683d5e1fb2a904f03d60238723e484065ebe905ffcde266c0c5bd5',
 )
-AUDITED_RENDER_WORKFLOW = '3e4eb98c5d3d097df0b075f1fc2fa7200ab9a35809e7be179290f8b0fcf20659'
+AUDITED_RENDER_WORKFLOW = '60d03b3aa26587b7a54ee9d25e03eb3e242668f07567c54364ecb6f03d3c9802'
 AUDITED_WORKFLOW_MIGRATIONS = {
     AUDITED_WORKFLOW_MIGRATION,
     (AUDITED_WORKFLOW_MIGRATION[0], AUDITED_RENDER_WORKFLOW),
@@ -209,7 +209,7 @@ def create_plan(root, requested, github):
             keys = compiled_cache_keys(caches, sha)
             if keys:
                 render = dict(mode='render', inputs_source='cache', **keys,
-                              reason=f'Re-render exact compiled caches from main run {run["id"]} without Lean',
+                              reason=f'Re-render exact compiled caches from main run {run["id"]} without recompiling book proofs',
                               head_sha=head, inputs_run_id=run['id'], inputs_sha=sha)
         if mode == 'render':
             continue

@@ -179,6 +179,32 @@ jobs:
           key: ${{ needs.plan.outputs.literate_cache_key }}
           fail-on-cache-miss: true
 
+      - name: Check cached renderer executable
+        if: needs.plan.outputs.mode == 'render' && needs.plan.outputs.inputs_source == 'cache'
+        id: cached-renderer
+        run: |
+          if test -x "$VERSO_EXE"; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install toolchain for missing renderer only
+        if: needs.plan.outputs.mode == 'render' && steps.cached-renderer.outputs.available == 'false'
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          test: false
+          lint: false
+          use-github-cache: false
+          use-mathlib-cache: false
+
+      - name: Build missing renderer without recompiling book proofs
+        if: needs.plan.outputs.mode == 'render' && steps.cached-renderer.outputs.available == 'false'
+        run: |
+          python3 scripts/apply_verso_patch.py
+          lake build verso-literate-html
+
       - name: Replan trusted compiled inputs without Lean
         if: needs.plan.outputs.mode == 'render'
         env:
