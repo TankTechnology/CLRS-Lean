@@ -108,6 +108,15 @@ class WorkflowPolicyTests(unittest.TestCase):
         # Compilation and cache writes are full-only. Cache recovery uses exact
         # existing entries and fails instead of compiling when either is absent.
         for step in prepare.split("      - ")[1:]:
+            if "steps.cached-renderer.outputs.available == 'false'" in step:
+                self.assertIn("needs.plan.outputs.mode == 'render'", step)
+                self.assertNotIn('lake build :literate', step)
+                if 'leanprover/lean-action' in step:
+                    for option in ('build', 'test', 'lint', 'use-github-cache', 'use-mathlib-cache'):
+                        self.assertIn(f'{option}: false', step)
+                if 'lake build' in step:
+                    self.assertIn('lake build verso-literate-html', step)
+                continue
             if any(token in step for token in ('leanprover/lean-action', 'lake build',
                                                'apply_verso_patch.py', 'actions/cache/save')):
                 self.assertIn("if: needs.plan.outputs.mode == 'full'", step)

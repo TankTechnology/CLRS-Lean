@@ -84,8 +84,12 @@ to bound memory use; CI runs the four shards in parallel.
 If an older compiled-input archive has expired, the planner can recover the
 exact Lake and literate-JSON caches keyed to the same verified `main` revision.
 Both exact cache hits are required; pull-request caches, other revisions,
-partial hits, and changed Lean sources are rejected. This recovery performs no
-compilation and republishes the inputs with the longer retention period.
+partial hits, and changed Lean sources are rejected. This recovery preserves
+the compiled proofs and republishes the inputs with the longer retention period.
+Older Lake caches can predate the renderer executable. In that recovery case
+only, CI installs the pinned toolchain and builds the explicit
+`verso-literate-html` target. It never runs `lake build :literate` or a project
+build on the render path; the book's compiled JSON is restored unchanged.
 
 The first refresh can bootstrap from the previous workflow's `github-pages`
 artifact and, while available, its four shards and immutable inputs. Subsequent
