@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from html import escape, unescape
 from html.parser import HTMLParser
+import csv
 import json
 from pathlib import Path
 import re
@@ -151,9 +152,42 @@ def imports(document, current):
 def guide_links(document, current):
     for node in document.nodes:
         if node.tag == 'a' and node.attrs.get('title', '').lower().startswith('definition of'):
+            parent = node.parent
+            while parent and not parent.has_class('code-box'):
+                parent = parent.parent
+            if parent:
+                continue
             target = project_target(node.attrs.get('href', ''), current)
             if target:
                 yield node, target
+
+
+def section_companions(root: Path, modules: list[str]) -> dict[str, list[str]]:
+    """Inventory section-owned sources, including split files omitted from navigation."""
+    source = root / 'src'
+    mapping = root / 'docs/clrs-fourth-edition-map.csv'
+    rows = []
+    if mapping.is_file():
+        with mapping.open() as handle:
+            rows = list(csv.DictReader(handle))
+    result = {}
+    for module in modules:
+        roots = [module]
+        for row in rows:
+            mapped = [item.strip() for item in row['source_modules'].split(';')]
+            if mapped and module == mapped[0]:
+                roots.extend(mapped)
+        owned = []
+        for item in dict.fromkeys(roots):
+            module_route(item)
+            if item != module:
+                owned.append(item)
+            directory = source.joinpath(*item.split('.'))
+            if directory.is_dir():
+                owned.extend('.'.join(p.relative_to(source).with_suffix('').parts)
+                             for p in sorted(directory.rglob('*.lean')))
+        result[module] = list(dict.fromkeys(m for m in owned if m != module))
+    return result
 
 
 def selected_content(document, names, source):
@@ -228,10 +262,12 @@ def rewrite(document, source, destination, targets, embedded):
     return apply_edits(document.text, edits)
 
 
-def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[str, list[str] | None]]) -> ImplementationEnrichmentResult:
+def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[str, list[str] | None]],
+                    companions: dict[str, list[str]] | None = None) -> ImplementationEnrichmentResult:
     result = ImplementationEnrichmentResult()
     site = site.resolve()
     originals = {}
+    companions = companions or {}
     for destination in dict.fromkeys(modules):
         cache = {}
         def load(module):
@@ -254,15 +290,14 @@ def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[s
             result.coverage[destination] = json.loads(facade.text[node.start_end:node.end_start])
             continue
         native = facade.declarations()
-        if native:
-            result.coverage[destination] = dict(sources={destination: list(native)}, declarations=len(native), resolved_guide_links=[], status='native')
-            continue
         requested = dict(selections.get(destination, {}))
         guides = list(guide_links(facade, destination))
         project_imports = imports(facade, destination)
         if destination not in selections:
             visited, active = set(), set()
             def visit(module):
+                if module == destination:
+                    return
                 if module in active:
                     raise ValueError(f'project import cycle at {module}')
                 if module in visited:
@@ -276,7 +311,7 @@ def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[s
                         visit(dependency)
                 active.remove(module)
                 visited.add(module)
-            for module in project_imports:
+            for module in [*(project_imports if not native else []), *companions.get(destination, [])]:
                 visit(module)
         resolved = []
         for node, (source, fragment) in guides:
@@ -284,15 +319,25 @@ def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[s
             name = next((name for name, (anchor, _) in declarations.items() if anchor.attrs['id'] == fragment), None)
             if name is None:
                 raise ValueError(f'missing guide declaration target: {source}#{fragment}')
+            if source == destination and name in native:
+                resolved.append(dict(href=node.attrs['href'], source=source, declaration=name,
+                                     target=fragment))
+                continue
             if source not in requested:
                 requested[source] = [name]
             elif requested[source] is not None and name not in requested[source]:
                 requested[source] = [*requested[source], name]
             resolved.append(dict(href=node.attrs['href'], source=source, declaration=name,
                                  target=namespace(destination, source, fragment)))
+        if native and not requested:
+            result.coverage[destination] = dict(sources={destination: list(native)}, declarations=len(native),
+                                                resolved_guide_links=resolved, status='native', companions=[])
+            continue
         if not requested and not project_imports and not guides and destination not in selections:
             continue
-        fragments, targets, coverage = {}, {}, {}
+        fragments, targets = {}, {(destination, anchor.attrs['id']): anchor.attrs['id']
+                                  for anchor, _ in native.values()}
+        coverage = {destination: list(native)} if native else {}
         for source, names in requested.items():
             document = Document(selected_content(load(source)[4], names, source))
             fragments[source] = document
@@ -304,7 +349,8 @@ def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[s
         count = sum(map(len, coverage.values()))
         if not count:
             raise ValueError(f'no concrete implementation declarations for facade {destination}')
-        report = dict(sources=coverage, declarations=count, resolved_guide_links=resolved, status='enriched')
+        report = dict(sources=coverage, declarations=count, resolved_guide_links=resolved, status='enriched',
+                      companions=[] if destination in selections else companions.get(destination, []))
         pieces = [f'<section class="clrs-implementation" {MARKER}><h2>Definitions and proofs</h2>']
         for source, document in fragments.items():
             pieces.append('<section class="clrs-implementation-source"><h3>'
@@ -321,7 +367,7 @@ def enrich_sections(site: Path, modules: list[str], selections: dict[str, dict[s
         temporary.replace(path)
         result.sections += 1
         result.sources += len(fragments)
-        result.declarations += count
+        result.declarations += count - len(native)
         result.resolved_guide_links += len(resolved)
         result.coverage[destination] = report
     return result

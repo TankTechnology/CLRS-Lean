@@ -29,6 +29,16 @@ class VisibleResultTests(unittest.TestCase):
     def test_external_library_link_is_not_transcluded(self):
         self.assertEqual(unresolved_visible_results(self.page('https://example.test/Mathlib/#fact'), self.route), [])
 
+    def test_native_page_without_enrichment_marker_is_checked(self):
+        href = 'CLRSLean/Implementation/#CLRS___fact'
+        page = f'<p><a href="{href}" title="Definition of fact">fact</a></p><div class="code-box"><span class="const" id="native">native</span></div>'
+        self.assertEqual(unresolved_visible_results(page, self.route), [href])
+
+    def test_references_inside_proof_code_may_link_to_other_pages(self):
+        href = 'CLRSLean/Implementation/#CLRS___dependency'
+        page = f'<div class="code-box"><a href="{href}" title="Definition of dependency">dependency</a></div>'
+        self.assertEqual(unresolved_visible_results(page, self.route), [])
+
 
 if __name__ == '__main__':
     unittest.main()

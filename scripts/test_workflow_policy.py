@@ -37,7 +37,7 @@ class WorkflowPolicyTests(unittest.TestCase):
         for job in ("plan:", "prepare:", "render:", "merge:", "refresh:", "deploy:"):
             self.assertIn(f"  {job}", pages)
         self.assertIn("shard: [0, 1, 2, 3]", pages)
-        self.assertIn("needs: prepare", pages)
+        self.assertIn("needs: [plan, prepare]", pages)
         self.assertIn("needs: [prepare, render]", pages)
         self.assertIn("needs: [merge, refresh]", pages)
         self.assertIn("actions/upload-artifact@v4", pages)
@@ -91,10 +91,38 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.assertNotIn("leanprover/lean-action", refresh)
         self.assertNotIn("lake build", refresh)
         self.assertIn("scripts/site_deploy.py refresh", refresh)
+        self.assertIn("scripts/smoke_reader_book.py", refresh)
         self.assertLess(refresh.index("scripts/check_reader_site.py"),
                         refresh.index("actions/upload-pages-artifact"))
         self.assertLess(refresh.index("scripts/smoke_reader_site.py"),
                         refresh.index("actions/upload-pages-artifact"))
+
+    def test_render_refresh_uses_separate_matrix_runners_without_lean(self) -> None:
+        pages = PAGES.read_text(encoding="utf-8")
+        prepare = pages[pages.index("\n  prepare:"):pages.index("\n  render:")]
+        render = pages[pages.index("\n  render:"):pages.index("\n  merge:")]
+        refresh = pages[pages.index("\n  refresh:"):pages.index("\n  deploy:")]
+        self.assertIn("if: needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'render'", prepare)
+        self.assertIn("scripts/site_deploy.py prepare-inputs --plan plan.json", prepare)
+        self.assertIn("fetch-depth: 0", prepare)
+        # Compilation and cache writes are full-only. Cache recovery uses exact
+        # existing entries and fails instead of compiling when either is absent.
+        for step in prepare.split("      - ")[1:]:
+            if any(token in step for token in ('leanprover/lean-action', 'lake build',
+                                               'apply_verso_patch.py', 'actions/cache/save')):
+                self.assertIn("if: needs.plan.outputs.mode == 'full'", step)
+            if 'id: compiled-' in step and 'actions/cache/restore' in step:
+                self.assertIn("needs.plan.outputs.inputs_source == 'cache'", step)
+                self.assertIn('fail-on-cache-miss: true', step)
+                self.assertNotIn('restore-keys:', step)
+        self.assertIn("shard: [0, 1, 2, 3]", render)
+        lean_step = next(step for step in render.split("      - ") if 'leanprover/lean-action' in step)
+        self.assertIn("if: needs.plan.outputs.mode == 'full'", lean_step)
+        self.assertIn("if: needs.plan.outputs.mode == 'assets' || needs.plan.outputs.mode == 'presentation'", refresh)
+        inputs_upload = next(step for step in prepare.split("      - ")
+                             if 'name: literate-inputs' in step and 'upload-artifact' in step)
+        self.assertIn('retention-days: 90', inputs_upload)
+        self.assertIn('compiled_sha=pathlib.Path("_site/compiled-revision.txt")', pages)
 
     def test_auto_routing_preserves_full_rebuild_and_guards_deployment(self) -> None:
         pages = PAGES.read_text(encoding="utf-8")

@@ -29,7 +29,7 @@ from scripts.inline_chapter_sections import compose_chapter_pages
 from scripts.reader_layout import reader_chrome, canonical_section_title
 from scripts.prepare_search_assets import prepare_search_assets
 from scripts.book_presentation import book_metadata, present_book
-from scripts.reader_implementation import enrich_sections
+from scripts.reader_implementation import enrich_sections, section_companions
 
 
 DEFAULT_BASE_URL = "https://tanktechnology.github.io/CLRS-Lean/"
@@ -130,7 +130,8 @@ def prepare_site(
         if child.startswith(parent + '.Section_') and child.count('.') == 3
     ]
     selections = json.loads((ROOT / 'docs/literate/reader-implementations.json').read_text())
-    implementation = enrich_sections(destination, reader_sections, selections)
+    implementation = enrich_sections(destination, reader_sections, selections,
+                                     section_companions(ROOT, reader_sections))
     (destination / 'reader-implementation-coverage.json').write_text(
         json.dumps(implementation.coverage, indent=2) + '\n', encoding='utf-8')
     composition = compose_chapter_pages(destination, order_children)
@@ -140,6 +141,14 @@ def prepare_site(
     if failures:
         details = "\n  ".join(failures)
         raise ValueError(f"literate rendering checks failed:\n  {details}")
+
+    if config == DEFAULT_CONFIG.resolve():
+        from scripts.audit_reader_book import audit
+        book_audit = audit(destination)
+        (destination / 'reader-book-audit.json').write_text(
+            json.dumps(book_audit, indent=2) + '\n', encoding='utf-8')
+        if book_audit['errors']:
+            raise ValueError('whole-book audit failed:\n  ' + '\n  '.join(book_audit['errors']))
 
     sitemap_pages = iter_html_pages(destination)
     if not sitemap_pages:

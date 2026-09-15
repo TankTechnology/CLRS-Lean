@@ -5,6 +5,10 @@ They are evidence records rather than the live completion ledger.
 
 ## Whole-book audits
 
+- [September 15 whole-book publication audit](2026-09-15-whole-book-publication-audit.md)
+  checks all 35 chapters, all 136 canonical reader sections, compiled command
+  preservation, links, and desktop/mobile reading. This concerns publication
+  completeness, rather than textbook-equivalence judgments.
 - [September 8 fourth-edition chapter review](2026-09-08-chapter-review/index.md)
   covers all 35 chapters and 137 mapped section entries. It reviews definitions,
   public theorems, selected proof dependencies, and independent cross-review.

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "auto reuses safe artifacts; refresh forbids Lean rebuilds; full rebuilds everything"
+        description: "auto reuses safe artifacts; refresh can re-render but never compiles Lean; full rebuilds everything"
         type: choice
         default: auto
         options: [auto, refresh, full]
@@ -30,6 +30,9 @@ jobs:
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
       reason: ${{ steps.plan.outputs.reason }}
+      inputs_source: ${{ steps.plan.outputs.inputs_source }}
+      lake_cache_key: ${{ steps.plan.outputs.lake_cache_key }}
+      literate_cache_key: ${{ steps.plan.outputs.literate_cache_key }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,27 +59,33 @@ jobs:
 
   prepare:
     needs: plan
-    if: needs.plan.outputs.mode == 'full'
+    if: needs.plan.outputs.mode == 'full' || needs.plan.outputs.mode == 'render'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check repository metadata
         run: python3 scripts/check_repository.py
 
       - uses: leanprover/lean-action@v1
+        if: needs.plan.outputs.mode == 'full'
         with:
           build: false
           test: false
           use-mathlib-cache: true
 
       - name: Apply pinned Verso renderer patches
+        if: needs.plan.outputs.mode == 'full'
         run: python3 scripts/apply_verso_patch.py
 
       - name: Build the sharded renderer once
+        if: needs.plan.outputs.mode == 'full'
         run: lake build verso-literate-html
 
       - name: Restore CLRSLean build cache
+        if: needs.plan.outputs.mode == 'full'
         id: restore-build-cache
         uses: actions/cache/restore@v5
         with:
@@ -88,6 +97,7 @@ jobs:
             clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
 
       - name: Restore Verso literate JSON cache
+        if: needs.plan.outputs.mode == 'full'
         id: restore-verso-cache
         uses: actions/cache/restore@v5
         with:
@@ -97,9 +107,11 @@ jobs:
             verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-
 
       - name: Build immutable literate JSON inputs
+        if: needs.plan.outputs.mode == 'full'
         run: lake build :literate
 
       - name: Plan four balanced chapter-affine shards
+        if: needs.plan.outputs.mode == 'full'
         run: |
           python3 scripts/prepare_literate_module_map.py \
             .lake/build/literate \
@@ -115,14 +127,14 @@ jobs:
             --digest-input literate.toml
 
       - name: Save Verso literate JSON cache
-        if: steps.restore-verso-cache.outputs.cache-hit != 'true'
+        if: needs.plan.outputs.mode == 'full' && steps.restore-verso-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: .lake/build/literate
           key: verso-literate-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
 
       - name: Save CLRSLean build cache
-        if: steps.restore-build-cache.outputs.cache-hit != 'true'
+        if: needs.plan.outputs.mode == 'full' && steps.restore-build-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: |
@@ -131,22 +143,61 @@ jobs:
           key: clrslean-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json', 'lakefile.lean') }}-${{ github.sha }}
 
       - name: Pack immutable renderer inputs
+        if: needs.plan.outputs.mode == 'full'
         run: |
+          git rev-parse HEAD > .lake/build/compiled-revision.txt
           tar --zstd -cf literate-inputs.tar.zst \
+            .lake/build/compiled-revision.txt \
             .lake/build/literate \
             "$MODULE_MAP" \
             "$SHARD_PLAN" \
             "$VERSO_EXE"
+
+      - uses: actions/download-artifact@v4
+        if: needs.plan.outputs.mode == 'render'
+        with:
+          name: site-deploy-plan
+          path: .
+
+      - uses: actions/cache/restore@v5
+        if: needs.plan.outputs.mode == 'render' && needs.plan.outputs.inputs_source == 'cache'
+        id: compiled-lake
+        with:
+          path: ./.lake
+          key: ${{ needs.plan.outputs.lake_cache_key }}
+          fail-on-cache-miss: true
+
+      - name: Clear older JSON before exact compilation-cache restore
+        if: needs.plan.outputs.mode == 'render' && needs.plan.outputs.inputs_source == 'cache'
+        run: rm -rf .lake/build/literate
+
+      - uses: actions/cache/restore@v5
+        if: needs.plan.outputs.mode == 'render' && needs.plan.outputs.inputs_source == 'cache'
+        id: compiled-json
+        with:
+          path: .lake/build/literate
+          key: ${{ needs.plan.outputs.literate_cache_key }}
+          fail-on-cache-miss: true
+
+      - name: Replan trusted compiled inputs without Lean
+        if: needs.plan.outputs.mode == 'render'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLRS_RESTORED_LAKE_CACHE: ${{ steps.compiled-lake.outputs.cache-matched-key }}
+          CLRS_RESTORED_JSON_CACHE: ${{ steps.compiled-json.outputs.cache-matched-key }}
+        run: |
+          python3 scripts/site_deploy.py prepare-inputs --plan plan.json \
+            --output literate-inputs.tar.zst
 
       - uses: actions/upload-artifact@v4
         with:
           name: literate-inputs
           path: literate-inputs.tar.zst
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 90
 
   render:
-    needs: prepare
+    needs: [plan, prepare]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -156,6 +207,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: leanprover/lean-action@v1
+        if: needs.plan.outputs.mode == 'full'
         with:
           build: false
           test: false
@@ -229,6 +281,7 @@ jobs:
             .lake/build/literate-html-merged \
             _site \
             --base-url "https://tanktechnology.github.io/CLRS-Lean/"
+          python3 scripts/audit_reader_book.py --site _site --compiled .lake/build/literate
           python3 scripts/check_literate_rendering.py _site
           python3 scripts/check_reader_site.py _site
 
@@ -240,9 +293,14 @@ jobs:
           preview_pid=$!
           trap 'kill "$preview_pid"' EXIT
           python3 scripts/smoke_reader_site.py --base-url http://127.0.0.1:8765/
+          python3 scripts/smoke_reader_book.py --base-url http://127.0.0.1:8765/
 
-      - name: Record deployed revision
-        run: git rev-parse HEAD > _site/revision.txt
+      - name: Record deployed revisions
+        run: |
+          git rev-parse HEAD > _site/revision.txt
+          cp _site/revision.txt _site/content-revision.txt
+          cp .lake/build/compiled-revision.txt _site/compiled-revision.txt
+          python3 -c 'import json,pathlib; sha=pathlib.Path("_site/revision.txt").read_text().strip(); pathlib.Path(".lake/build/literate-html-merged/raw-provenance.json").write_text(json.dumps(dict(raw_sha=sha,compiled_sha=pathlib.Path("_site/compiled-revision.txt").read_text().strip()))+"\n")'
 
       - name: Pack reusable website artifacts
         run: |
@@ -269,7 +327,7 @@ jobs:
 
   refresh:
     needs: plan
-    if: needs.plan.outputs.mode != 'full'
+    if: needs.plan.outputs.mode == 'assets' || needs.plan.outputs.mode == 'presentation'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -286,7 +344,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 scripts/site_deploy.py refresh --plan plan.json \
-            --site _site --raw-output raw.tar.gz
+            --site _site --raw-output raw.tar.gz --inputs-output literate-inputs.tar.zst
           python3 scripts/check_literate_rendering.py _site
           python3 scripts/check_reader_site.py _site
 
@@ -298,6 +356,7 @@ jobs:
           preview_pid=$!
           trap 'kill "$preview_pid"' EXIT
           python3 scripts/smoke_reader_site.py --base-url http://127.0.0.1:8765/
+          python3 scripts/smoke_reader_book.py --base-url http://127.0.0.1:8765/
 
       - name: Record and pack verified website
         run: |
@@ -316,6 +375,14 @@ jobs:
         with:
           name: literate-raw
           path: raw.tar.gz
+          compression-level: 0
+          retention-days: 90
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('literate-inputs.tar.zst') != ''
+        with:
+          name: literate-inputs
+          path: literate-inputs.tar.zst
           compression-level: 0
           retention-days: 90
 

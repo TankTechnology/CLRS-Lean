@@ -1,6 +1,6 @@
 landing_page = "CLRSLean"
 extra_css = ["docs/literate/clrs-literate.css"]
-hide_commands = ["set_option"]
+hide_commands = []
 docstrings_as_text = true
 
 [metadata]
