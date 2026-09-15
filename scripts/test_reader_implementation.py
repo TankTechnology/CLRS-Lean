@@ -183,6 +183,49 @@ class EnrichmentTests(unittest.TestCase):
         self.assertEqual(first.coverage, second.coverage)
         self.assertEqual(path.read_text(), enriched)
 
+    def test_native_section_also_includes_all_owned_companions(self):
+        path = self.page(FACADE, declaration('CLRS.native'))
+        self.page(A, imports(FACADE) + declaration('CLRS.execution'))
+        self.page(B, declaration('CLRS.execution_correct', 'by\n  induction n with\n  | zero => trivial'))
+        result = reader.enrich_sections(self.site, [FACADE], {}, {FACADE: [A, B]})
+        text = path.read_text()
+        self.assertEqual(text.count('id="CLRS___native"'), 1)
+        self.assertIn('induction n with', text)
+        self.assertEqual(set(result.coverage[FACADE]['sources']), {FACADE, A, B})
+
+    def test_native_prose_results_are_visible_but_code_dependencies_stay_links(self):
+        guide = f'<p><a title="Definition of fact" href="{route(A)}#CLRS___fact">fact</a></p>'
+        dependency = f'<a title="Definition of dependency" href="{route(B)}#CLRS___dependency">dependency</a>'
+        path = self.page(FACADE, guide + declaration('CLRS.native', extra=dependency))
+        self.page(A, declaration('CLRS.fact'))
+        self.page(B, declaration('CLRS.dependency'))
+        result = reader.enrich_sections(self.site, [FACADE], {})
+        self.assertIn('Documentation for CLRS.fact', path.read_text())
+        self.assertNotIn('Documentation for CLRS.dependency', path.read_text())
+        self.assertEqual(len(result.coverage[FACADE]['resolved_guide_links']), 1)
+
+    def test_native_local_prose_result_is_not_duplicated(self):
+        guide = f'<p><a title="Definition of native" href="{route(FACADE)}#CLRS___native">native</a></p>'
+        path = self.page(FACADE, guide + declaration('CLRS.native'))
+        self.page(A, declaration('CLRS.companion'))
+        result = reader.enrich_sections(self.site, [FACADE], {}, {FACADE: [A]})
+        self.assertEqual(path.read_text().count('Documentation for CLRS.native'), 1)
+        self.assertEqual(result.coverage[FACADE]['resolved_guide_links'][0]['target'], 'CLRS___native')
+
+    def test_companion_inventory_uses_owning_row_and_all_split_sources(self):
+        root = self.site
+        (root / 'docs').mkdir()
+        (root / 'docs/clrs-fourth-edition-map.csv').write_text(
+            'source_modules\n' + FACADE + '; ' + A + '\n' + B + ';' + FACADE + '\n')
+        nested = root / 'src' / route(FACADE) / 'Split' / 'Unlisted.lean'
+        nested.parent.mkdir(parents=True)
+        nested.write_text('theorem unlisted : True := by trivial')
+        shared = root / 'src' / route(A) / 'Helper.lean'
+        shared.parent.mkdir(parents=True)
+        shared.write_text('theorem helper : True := by trivial')
+        self.assertEqual(set(reader.section_companions(root, [FACADE])[FACADE]),
+                         {A, A + '.Helper', FACADE + '.Split.Unlisted'})
+
     def test_traversal_is_rejected_and_limit_preserves_original(self):
         path = self.facade(A)
         self.page(A, declaration('CLRS.fact'))

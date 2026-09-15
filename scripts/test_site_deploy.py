@@ -50,7 +50,58 @@ class DeployTests(unittest.TestCase):
         gh.runs.return_value = [self.run_record()]
         gh.run.return_value = self.run_record()
         gh.artifacts.return_value = set(artifacts)
+        gh.caches.return_value = []
         return gh
+
+    def cache_records(self):
+        return [dict(ref='refs/heads/main', size_in_bytes=1, key=key) for key in
+                [f'lake-Linux-X64-{"a" * 64}-{"b" * 64}-{self.base}',
+                 f'verso-literate-Linux-{"c" * 64}-{self.base}']]
+
+    def test_expired_inputs_can_use_exact_main_compilation_caches(self):
+        self.write('literate.toml', 'hide_commands = []')
+        self.commit()
+        gh = self.client(())
+        gh.caches.return_value = self.cache_records()
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        self.assertEqual((plan['mode'], plan['inputs_source'], plan['inputs_sha']), ('render', 'cache', self.base))
+
+    def test_partial_other_revision_and_fork_caches_cannot_replace_inputs(self):
+        records = self.cache_records()
+        self.assertIsNone(deploy.compiled_cache_keys(records[:1], self.base))
+        self.assertIsNone(deploy.compiled_cache_keys(records, '0' * 40))
+        records[0]['ref'] = 'refs/pull/1/merge'
+        self.assertIsNone(deploy.compiled_cache_keys(records, self.base))
+
+    def test_cache_restoration_must_match_plan(self):
+        gh = self.client(())
+        gh.caches.return_value = self.cache_records()
+        plan = dict(mode='render', inputs_source='cache', inputs_run_id=12, inputs_sha=self.base,
+                    **deploy.compiled_cache_keys(gh.caches(), self.base))
+        with self.assertRaisesRegex(deploy.DeployError, 'exact CI cache'):
+            deploy.restore_inputs(self.root, plan, gh, self.root / 'restored')
+
+    def test_verified_cache_restoration_preserves_compiled_revision(self):
+        gh = self.client(())
+        gh.caches.return_value = self.cache_records()
+        plan = dict(mode='render', inputs_source='cache', inputs_run_id=12, inputs_sha=self.base,
+                    **deploy.compiled_cache_keys(gh.caches(), self.base))
+        self.write('.lake/build/literate/CLRSLean.json', '{}')
+        self.write(deploy.RENDERER, 'trusted renderer fixture')
+        with patch.dict(deploy.os.environ, {'CLRS_RESTORED_LAKE_CACHE': plan['lake_cache_key'],
+                                           'CLRS_RESTORED_JSON_CACHE': plan['literate_cache_key']}):
+            inputs, sha = deploy.restore_inputs(self.root, plan, gh, self.root / 'restored')
+        self.assertEqual(sha, self.base)
+        self.assertEqual((inputs / deploy.INPUT_REVISION).read_text().strip(), self.base)
+        self.assertEqual((inputs / deploy.RENDERER).read_text(), 'trusted renderer fixture')
+
+    def test_compiled_caches_never_authorize_changed_lean_sources(self):
+        gh = self.client(())
+        gh.caches.return_value = self.cache_records()
+        self.write('src/Proof.lean', 'theorem changed := False\n')
+        self.commit()
+        with self.assertRaises(deploy.DeployError):
+            deploy.create_plan(self.root, 'refresh', gh)
 
     def test_diff_keeps_both_sides_of_rename_and_deletion(self):
         self.git('mv', 'src/Proof.lean', 'docs/proof.txt')
@@ -78,7 +129,7 @@ class DeployTests(unittest.TestCase):
                 (['docs/literate/contents.json'], 'presentation'),
                 (['tests/Proof.lean'], 'full'), (['docs/Foo.lean'], 'full'),
                 (['scripts/unknown.py'], 'full'), (['lake-manifest.json'], 'full'),
-                (['literate.toml'], 'full'), (['unknown'], 'full')]:
+                (['literate.toml'], 'render'), (['unknown'], 'full')]:
             with self.subTest(paths=paths):
                 self.assertEqual(deploy.classify_paths(paths), expected)
 
@@ -102,7 +153,7 @@ class DeployTests(unittest.TestCase):
         path.write_bytes(after)
         self.commit()
         pair = (hashlib.sha256(before).hexdigest(), hashlib.sha256(after).hexdigest())
-        with patch.object(deploy, 'AUDITED_WORKFLOW_MIGRATION', pair):
+        with patch.object(deploy, 'AUDITED_WORKFLOW_MIGRATIONS', {pair}):
             gh = self.client()
             plan = deploy.create_plan(self.root, 'refresh', gh)
             self.assertEqual(plan['mode'], 'assets')
@@ -122,7 +173,7 @@ class DeployTests(unittest.TestCase):
         self.write('.github/workflows/other.yml', 'run: changed renderer\n')
         self.commit()
         pair = (hashlib.sha256(before).hexdigest(), hashlib.sha256(after).hexdigest())
-        with patch.object(deploy, 'AUDITED_WORKFLOW_MIGRATION', pair):
+        with patch.object(deploy, 'AUDITED_WORKFLOW_MIGRATIONS', {pair}):
             self.assertEqual(deploy.create_plan(self.root, 'auto', self.client())['mode'], 'full')
 
     def test_planner_never_reuses_site_after_lean_change(self):
@@ -151,6 +202,213 @@ class DeployTests(unittest.TestCase):
         plan = deploy.create_plan(self.root, 'refresh', self.client(names))
         self.assertEqual(plan['site_artifact'], 'github-pages')
         self.assertEqual(plan['raw_format'], 'legacy')
+
+    def test_config_refresh_selects_compiled_inputs_without_site_or_raw(self):
+        self.write('literate.toml', 'hide_commands = []')
+        head = self.commit()
+        plan = deploy.create_plan(self.root, 'refresh', self.client(('literate-inputs',)))
+        self.assertEqual(plan['mode'], 'render')
+        self.assertEqual(plan['inputs_run_id'], 12)
+        self.assertEqual(plan['inputs_sha'], self.base)
+        self.assertEqual(plan['head_sha'], head)
+        self.assertNotIn('raw_sha', plan)
+
+    def test_config_refresh_cannot_reuse_stale_raw_or_site_without_inputs(self):
+        self.write('literate.toml', 'hide_commands = []')
+        self.commit()
+        gh = self.client(('reader-site', 'literate-raw'))
+        with self.assertRaisesRegex(deploy.DeployError, 'compiled inputs'):
+            deploy.create_plan(self.root, 'refresh', gh)
+        self.assertEqual(deploy.create_plan(self.root, 'auto', gh)['mode'], 'full')
+
+    def test_source_and_renderer_changes_cannot_reuse_compiled_inputs(self):
+        for path in ('src/Proof.lean', 'lean-toolchain', 'scripts/render_literate_shard.py',
+                     'patches/verso.patch', 'scripts/plan_literate_shards.py'):
+            with self.subTest(path=path):
+                self.assertEqual(deploy.classify_paths(['literate.toml', path]), 'full')
+        self.write('src/Proof.lean', 'changed proof')
+        self.commit()
+        with self.assertRaises(deploy.DeployError):
+            deploy.create_plan(self.root, 'refresh', self.client(('literate-inputs',)))
+
+    def test_render_rank_does_not_depend_on_path_order(self):
+        paths = ['literate.toml', 'docs/literate/contents.json']
+        self.assertEqual(deploy.classify_paths(paths), 'render')
+        self.assertEqual(deploy.classify_paths(paths[::-1]), 'render')
+
+    def test_render_input_revalidation_rejects_expired_artifact(self):
+        self.write('literate.toml', 'hide_commands = []')
+        self.commit()
+        gh = self.client(('literate-inputs',))
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        gh.artifacts.return_value = set()
+        with self.assertRaisesRegex(deploy.DeployError, 'missing or expired'):
+            deploy.refresh(self.root, plan, Path(self.temp.name) / 'site', gh)
+        gh.download.assert_not_called()
+
+    def test_render_preserves_separate_compiled_raw_and_site_revisions(self):
+        self.write('literate.toml', 'hide_commands = []')
+        head = self.commit()
+        gh = self.client(('literate-inputs',))
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        site = Path(self.temp.name) / 'site'
+        raw_output = Path(self.temp.name) / 'raw.tar.gz'
+        def render(root, plan, github, temp, inputs_output):
+            raw = temp / 'raw'
+            raw.mkdir()
+            (raw / 'index.html').write_text('rendered theorem')
+            return raw, dict(raw_sha=head, compiled_sha=self.base)
+        def assemble(args, root):
+            if Path(args[1]).name == 'audit_reader_book.py':
+                self.assertIn('--compiled', args)
+                return
+            self.assertEqual(Path(args[1]).name, 'prepare_literate_site.py')
+            Path(args[-1]).mkdir()
+            (Path(args[-1]) / 'index.html').write_text('assembled theorem')
+        with patch.object(deploy, 'render_inputs', side_effect=render), \
+                patch.object(deploy, 'command', side_effect=assemble):
+            # Keep Git validation real while mocking only the assembler subprocess.
+            with patch.object(deploy, 'git', side_effect=lambda root, *args: self.git(*args)):
+                deploy.refresh(self.root, plan, site, gh, raw_output)
+        self.assertEqual((site / 'compiled-revision.txt').read_text().strip(), self.base)
+        self.assertEqual((site / 'content-revision.txt').read_text().strip(), head)
+        self.assertEqual((site / 'revision.txt').read_text().strip(), head)
+        gh.download.assert_not_called()
+        self.assertTrue(raw_output.is_file())
+
+    def test_render_replans_four_shards_and_carries_compile_provenance(self):
+        import json
+        import shutil
+        self.write('literate.toml', 'hide_commands = []')
+        head = self.commit()
+        gh = self.client(('literate-inputs',))
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        temp = Path(self.temp.name) / 'render'
+        temp.mkdir()
+        inputs_output = Path(self.temp.name) / 'inputs.tar.zst'
+        def download(run_id, name, destination):
+            self.assertEqual((run_id, name), (12, 'literate-inputs'))
+            destination.mkdir()
+            with tarfile.open(destination / 'literate-inputs.tar.zst', 'w') as tar:
+                for path, data in {
+                    deploy.INPUT_REVISION: self.base.encode(),
+                    deploy.RENDERER: b'trusted executable',
+                    '.lake/build/literate/Proof.json': b'{}',
+                }.items():
+                    info = tarfile.TarInfo(path)
+                    info.size = len(data)
+                    tar.addfile(info, io.BytesIO(data))
+        gh.download.side_effect = download
+        calls = []
+        def run(args, root=None):
+            calls.append(args)
+            if args[0] == 'zstd':
+                shutil.copyfile(args[3], args[5])
+            elif args[0] == 'tar':
+                extracted = Path(args[5])
+                self.assertEqual((extracted / deploy.INPUT_REVISION).read_text().strip(), self.base)
+                inputs_output.write_bytes(b'packed inputs')
+            elif Path(args[1]).name == 'merge_literate_shards.py':
+                Path(args[3]).mkdir()
+        with patch.object(deploy, 'command', side_effect=run), \
+                patch.object(deploy, 'git', side_effect=lambda root, *args: self.git(*args)):
+            raw, record = deploy.render_inputs(self.root, plan, gh, temp, inputs_output)
+        self.assertEqual(record, dict(raw_sha=head, compiled_sha=self.base))
+        self.assertEqual(json.loads((raw / deploy.RAW_PROVENANCE).read_text()), record)
+        render_calls = [args for args in calls if len(args) > 1 and
+                        Path(args[1]).name == 'render_literate_shard.py']
+        self.assertEqual(len(render_calls), 4)
+        for i, args in enumerate(render_calls):
+            self.assertEqual(args[args.index('--shard-index') + 1], str(i))
+            self.assertEqual(args[args.index('--config') + 1], str(self.root / 'literate.toml'))
+            self.assertEqual(args[args.index('--executable') + 1], str(temp / 'inputs' / deploy.RENDERER))
+        self.assertFalse(any(args[0] in {'lean', 'lake', 'elan'} for args in calls))
+        self.assertTrue(inputs_output.is_file())
+        self.assertTrue((temp / 'inputs' / deploy.RENDERER).stat().st_mode & 0o100)
+
+    def test_portable_input_plan_survives_moving_to_another_runner(self):
+        import json
+        import shutil
+        scripts = Path(deploy.__file__).parent
+        for name in ('prepare_literate_module_map.py', 'plan_literate_shards.py'):
+            self.write('scripts/' + name, (scripts / name).read_text())
+        for name in ('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml'):
+            self.write(name, 'fixture configuration')
+        inputs = Path(self.temp.name) / 'first-runner'
+        compiled = inputs / '.lake/build/literate/Proof.json'
+        compiled.parent.mkdir(parents=True)
+        compiled.write_text('{}')
+        module_map, shard_plan = deploy.plan_inputs(self.root, inputs, portable=True)
+        self.assertEqual(module_map.read_text(), 'Proof\t.lake/build/literate/Proof.json\tsrc\n')
+        manifest = json.loads((shard_plan / 'manifest.json').read_text())
+        other = Path(self.temp.name) / 'second-runner'
+        shutil.move(inputs, other)
+        deploy.command([__import__('sys').executable, str(self.root / 'scripts/plan_literate_shards.py'),
+                        str(other / '.lake/build/literate-module-map'), str(other / 'replanned'),
+                        '--shards', '4',
+                        *[arg for name in ('lean-toolchain', 'lake-manifest.json', 'lakefile.lean', 'literate.toml')
+                          for arg in ('--digest-input', str(self.root / name))]], other)
+        moved = json.loads((other / 'replanned/manifest.json').read_text())
+        self.assertEqual(manifest, moved)
+        self.assertEqual(manifest['module_count'], 1)
+        self.assertEqual(manifest['shard_count'], 4)
+
+    def test_ci_input_preparation_revalidates_current_render_plan(self):
+        self.write('literate.toml', 'hide_commands = []')
+        self.commit()
+        gh = self.client(('literate-inputs',))
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        output = Path(self.temp.name) / 'inputs.tar.zst'
+        for key, value in (('mode', 'full'), ('head_sha', self.base)):
+            with self.subTest(key=key), self.assertRaises(deploy.DeployError):
+                deploy.prepare_inputs(self.root, dict(plan, **{key: value}), output, gh)
+        gh.artifacts.return_value = set()
+        with self.assertRaisesRegex(deploy.DeployError, 'missing or expired'):
+            deploy.prepare_inputs(self.root, plan, output, gh)
+        gh.download.assert_not_called()
+
+    def test_compiled_provenance_refuses_hidden_source_change(self):
+        # A newer artifact run cannot make older compiled inputs compatible.
+        old = self.base
+        self.write('src/Proof.lean', 'changed proof')
+        self.base = self.commit()
+        self.write('literate.toml', 'hide_commands = []')
+        self.commit()
+        gh = self.client(('literate-inputs',))
+        plan = deploy.create_plan(self.root, 'refresh', gh)
+        temp = Path(self.temp.name) / 'render'
+        temp.mkdir()
+        def extract(archive, inputs):
+            revision = inputs / deploy.INPUT_REVISION
+            revision.parent.mkdir(parents=True)
+            revision.write_text(old)
+        with patch.object(deploy, 'safe_extract', side_effect=extract), \
+                patch.object(deploy, 'command'), \
+                patch.object(deploy, 'git', side_effect=lambda root, *args: self.git(*args)):
+            with self.assertRaisesRegex(deploy.DeployError, 'compiled revision requires'):
+                deploy.render_inputs(self.root, plan, gh, temp)
+
+    def test_audited_render_workflow_hash_matches_exact_file(self):
+        workflow = Path(deploy.__file__).resolve().parents[1] / deploy.WORKFLOW
+        self.assertEqual(hashlib.sha256(workflow.read_bytes()).hexdigest(),
+                         deploy.AUDITED_RENDER_WORKFLOW)
+
+    def test_raw_provenance_keeps_original_compilation_and_render_revisions(self):
+        import json
+        raw = Path(self.temp.name) / 'raw'
+        raw.mkdir()
+        self.write('literate.toml', 'hide_commands = []')
+        rendered = self.commit()
+        self.write('scripts/book_presentation.py', '# assembled')
+        published = self.commit()
+        (raw / deploy.RAW_PROVENANCE).write_text(json.dumps(
+            dict(raw_sha=rendered, compiled_sha=self.base)))
+        self.assertEqual(deploy.raw_provenance(self.root, raw, published),
+                         dict(raw_sha=rendered, compiled_sha=self.base))
+        (raw / deploy.RAW_PROVENANCE).write_text(json.dumps(
+            dict(raw_sha=self.base, compiled_sha=self.base)))
+        with self.assertRaisesRegex(deploy.DeployError, 'raw revision requires'):
+            deploy.raw_provenance(self.root, raw, published)
 
     def test_bad_run_provenance_is_rejected(self):
         for key, value in [('head_sha', '--help'), ('head_sha', 'a' * 40),

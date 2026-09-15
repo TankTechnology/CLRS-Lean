@@ -16,6 +16,7 @@ from scripts.check_literate_config import parse_order_children, parse_module_tit
 from scripts.reader_layout import plain_text
 from scripts.inline_chapter_sections import section_anchor, extract_code_content
 from scripts.literate_navigation import MODULE_TREE_RE, canonical_sections
+from scripts.reader_implementation import Document, guide_links
 
 DECLARATION_RE = re.compile(
     r'<span\b(?=[^>]*\bclass="[^"]*\bconst\b)(?=[^>]*\bid="[^"]+")'
@@ -25,21 +26,17 @@ DECLARATION_RE = re.compile(
 def unresolved_visible_results(body: str, route: str) -> list[str]:
     """Check the actual guide links independently of the enrichment report."""
     marker = '<section class="clrs-implementation"'
-    if marker not in body:
-        return []
     declaration_ids = {
         html.unescape(re.search(r'\bid="([^"]+)"', tag).group(1))
         for tag in re.findall(r'<span\b[^>]*>', body)
         if DECLARATION_RE.search(tag)
     }
     unresolved = []
-    for tag in re.findall(r'<a\b[^>]*>', body.split(marker, 1)[0]):
-        if 'title="Definition of ' not in tag:
+    boundary = body.find(marker) if marker in body else len(body)
+    for node, _ in guide_links(Document(body), route.strip('/').replace('/', '.')):
+        if node.start >= boundary:
             continue
-        href = re.search(r'\bhref="([^"]*)"', tag)
-        if href is None:
-            continue
-        raw = html.unescape(href.group(1))
+        raw = node.attrs['href']
         target = urlsplit(urljoin('https://reader.test/', raw))
         if target.netloc != 'reader.test' or not target.path.startswith('/CLRSLean/'):
             continue
